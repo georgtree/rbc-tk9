@@ -476,154 +476,338 @@ from similarly named helpers in other modules.</p>
 <dt class="sig sig-object c" id="c.rbcGrLineData.FreeLinePenColor">
 <span class="target" id="group__line__data__transactions_1ga616d02327e05702469ecb469fc8d3a21"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLinePenColor</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">colorPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.FreeLinePenColor" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release an owned line-pen color unless it is NULL or COLOR_DEFAULT. </p>
-<p>The sentinel represents inheritance rather than a Tk color allocation. Does not clear the caller’s pointer; callers must not release it twice. </p>
+<p>The sentinel represents inheritance rather than a Tk color allocation. Does not clear the caller’s pointer; callers must not release it twice.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>colorPtr</strong> – <strong>[in]</strong> Owned Tk color reference to release, or NULL/COLOR_DEFAULT for no action; caller clears its own field. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.GetLineArrayByteCount">
 <span class="target" id="group__line__data__transactions_1ga31b9c6c5be256b2f5f960b0d4f754d0e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLineArrayByteCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">count</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">elementSize</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">bytesPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.GetLineArrayByteCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Validate a count-to-byte multiplication without allocating storage. </p>
-<p>Rejects negative counts, zero element size and SIZE_MAX overflow. Assigns bytesPtr only on success. Zero count is valid with a positive element size. Returns TCL_OK or TCL_ERROR without setting an interpreter diagnostic. </p>
+<p>Rejects negative counts, zero element size and SIZE_MAX overflow. Assigns bytesPtr only on success. Zero count is valid with a positive element size. Returns TCL_OK or TCL_ERROR without setting an interpreter diagnostic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>count</strong> – <strong>[in]</strong> Requested element count; zero is valid and negative counts are rejected. </p></li>
+<li><p><strong>elementSize</strong> – <strong>[in]</strong> Positive size of one element in bytes; zero is rejected. </p></li>
+<li><p><strong>bytesPtr</strong> – <strong>[out]</strong> Required byte-count output, assigned only on TCL_OK. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.LinePointCount">
 <span class="target" id="group__line__data__transactions_1ga3d0d43c9e6910050f578213d8b899a8d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LinePointCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.LinePointCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the current source point count for a line representation. </p>
-<p>Complex mode uses Z length; X/Y mode uses the smaller length. Named sources are queried directly so pending notifications do not hide a resize. Literal slots use cached counts. Does not refresh cached pointers or deliver callbacks; a current count alone does not make cached sample storage current. </p>
+<p>Complex mode uses Z length; X/Y mode uses the smaller length. Named sources are queried directly so pending notifications do not hide a resize. Literal slots use cached counts. Does not refresh cached pointers or deliver callbacks; a current count alone does not make cached sample storage current.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed line-family core with valid live vector records for any retained client IDs; cached arrays need not be synchronized. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.GetLineDataPoint">
 <span class="target" id="group__line__data__transactions_1ga36abb3c14e9e1daefd9fd4912d12ec08"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLineDataPoint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">index</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">xPtr</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">yPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.GetLineDataPoint" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Read a cached source sample and convert it to graph-plane coordinates. </p>
-<p>Complex input delegates to GetComplexLineDataPoint. X/Y input checks cached paired length and non-NULL arrays. Polar X/Y requires finite theta/radius and converts radians to Cartesian coordinates; Cartesian X/Y copies directly, without rejecting nonfinite values. Returns a boolean; callers must reject unusable outputs and ensure borrowed arrays are synchronized before reading. </p>
+<p>Complex input delegates to GetComplexLineDataPoint. X/Y input checks cached paired length and non-NULL arrays. Polar X/Y requires finite theta/radius and converts radians to Cartesian coordinates; Cartesian X/Y copies directly, without rejecting nonfinite values. Returns a boolean; callers must reject unusable outputs and ensure borrowed arrays are synchronized before reading.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with synchronized cached source arrays and coordinate-mode options. </p></li>
+<li><p><strong>index</strong> – <strong>[in]</strong> Original zero-based source index; out-of-range indices return FALSE. </p></li>
+<li><p><strong>xPtr</strong> – <strong>[out]</strong> Required Cartesian X output, separate from yPtr; use only on TRUE and check finiteness. </p></li>
+<li><p><strong>yPtr</strong> – <strong>[out]</strong> Required Cartesian Y output, separate from xPtr; use only on TRUE and check finiteness. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.SyncComplexVector">
 <span class="target" id="group__line__data__transactions_1ga6afda6ca6c8b1aefbdc56908338d4d87"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SyncComplexVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemComplexVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.SyncComplexVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh a complex slot’s borrowed length, capacity and array pointer. </p>
-<p>Requires a live vecPtr of complex type. Does not own the array, install a callback, compute extrema, invalidate mapping or schedule redraw. </p>
+<p>Requires a live vecPtr of complex type. Does not own the array, install a callback, compute extrema, invalidate mapping or schedule redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Complex source slot with a live complex vecPtr; refreshed array storage remains borrowed from that vector. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.FreeComplexVector">
 <span class="target" id="group__line__data__transactions_1ga385ea6fbe40f3ae2f3752542dd644901"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeComplexVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemComplexVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.FreeComplexVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Detach a complex-vector client and zero the whole slot. </p>
-<p>Accepts an empty slot. Does not destroy the source vector or free its borrowed numeric storage. The previous elemPtr owner association is also cleared. </p>
+<p>Accepts an empty slot. Does not destroy the source vector or free its borrowed numeric storage. The previous elemPtr owner association is also cleared.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Required initialized slot, possibly empty; its retained client is released and every field is zeroed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.ComplexVectorChangedProc">
 <span class="target" id="group__line__data__transactions_1ga0a537652950a2f81d8d2c4551a632cc6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexVectorChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorNotify" title="Rbc_VectorNotify"><span class="n"><span class="pre">Rbc_VectorNotify</span></span></a><span class="w"> </span><span class="n"><span class="pre">notify</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.ComplexVectorChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh or clear a stable complex-data slot on vector notification. </p>
-<p>Client data must identify the committed line member. Destruction clears the client ID, vector, array, length and capacity. Update reacquires the vector and refreshes cached storage on success. Always marks axes and element mapping dirty, scheduling backing-store redraw only when not hidden or plotHidden. No partial changed-range accumulation is performed by this callback. </p>
+<p>Client data must identify the committed line member. Destruction clears the client ID, vector, array, length and capacity. Update reacquires the vector and refreshes cached storage on success. Always marks axes and element mapping dirty, scheduling backing-store redraw only when not hidden or plotHidden. No partial changed-range accumulation is performed by this callback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Stable committed ElemComplexVector member with a live elemPtr owner; never temporary transaction storage. </p></li>
+<li><p><strong>notify</strong> – <strong>[in]</strong> Vector notification kind; DESTROY clears the source and other values take the update path. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.ReplaceLineOptionObject">
 <span class="target" id="group__line__data__transactions_1ga45eae26a6356ed2df3d56a64d812e74e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReplaceLineOptionObject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtrPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">newObjPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.ReplaceLineOptionObject" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace one retained Tcl option object with balanced references. </p>
-<p>An identical pointer is a no-op. Retains the replacement before releasing the old object; NULL clears the slot. Does not parse, configure or evaluate it. </p>
+<p>An identical pointer is a no-op. Retains the replacement before releasing the old object; NULL clears the slot. Does not parse, configure or evaluate it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objPtrPtr</strong> – <strong>[inout]</strong> Required retained-object field; its old reference is released after retaining the replacement. </p></li>
+<li><p><strong>newObjPtr</strong> – <strong>[in]</strong> Borrowed replacement object, or NULL to clear the field; one reference is acquired unless already installed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.StageComplexData">
 <span class="target" id="group__line__data__transactions_1ga793cd4d8a86e00b072d96993d9b6a2f7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageComplexData</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">LineComplexDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.StageComplexData" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Replace a staged complex source only after candidate parsing succeeds. </p>
-<p>Uses ParseComplexVectorObj, then releases an earlier staged client and transfers the new candidate. Failure leaves the earlier candidate untouched. The caller owns transaction cleanup; no callback is registered in temporary storage. </p>
+<p>Uses ParseComplexVectorObj, then releases an earlier staged client and transfers the new candidate. Failure leaves the earlier candidate untouched. The caller owns transaction cleanup; no callback is registered in temporary storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed live owner recorded in the candidate; must survive parsing and subsequent commit or cleanup. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed source specification; NULL or empty clears the source. Nonempty input must name a complex vector. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized transaction owning any earlier candidates; successful staging replaces only the selected candidate, preserving live line state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.PrepareLineComplexDataTransaction">
 <span class="target" id="group__line__data__transactions_1ga5a5a8a16233ee467da963e2ce0dff45e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareLineComplexDataTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LineComplexDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.PrepareLineComplexDataTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare complex-source replacement and data-mode selection in option order. </p>
-<p>Initializes a fresh transaction from the current mode. First configuration considers the retained default unless explicit -cdata was supplied. Processes canonical explicit options in caller order: nonempty -cdata selects complex, empty -cdata or ordinary data options select X/Y. Later mode selection does not excuse an invalid earlier complex source. Failure frees staged clients and zeros the transaction, leaving live line storage unchanged. </p>
+<p>Initializes a fresh transaction from the current mode. First configuration considers the retained default unless explicit -cdata was supplied. Processes canonical explicit options in caller order: nonempty -cdata selects complex, empty -cdata or ordinary data options select X/Y. Later mode selection does not excuse an invalid earlier complex source. Failure frees staged clients and zeros the transaction, leaving live line storage unchanged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live window, display and interpreter for resource operations. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed core of linePtr supplying validated ordered option/value pairs and initial-configuration state. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line corresponding to elemPtr, with candidate Tk option values installed and current derived resources still retained. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh transaction storage with no owned candidates; initialized here. Commit only after TCL_OK; failure state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.CommitLineComplexDataTransaction">
 <span class="target" id="group__line__data__transactions_1gae275b64378a259787f65cc0edf896a8c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitLineComplexDataTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LineComplexDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.CommitLineComplexDataTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Commit a prepared complex-source transaction into stable line storage. </p>
-<p>In complex mode, transfers a staged slot and then registers its notification callback against linePtr-&gt;z; an unstaged complex slot remains unchanged. In X/Y mode, frees live and staged complex clients and clears retained -cdata. Stores the selected mode and clears staged ownership. Does not free external vectors or itself schedule graph redraw; preparation must already have passed. </p>
+<p>In complex mode, transfers a staged slot and then registers its notification callback against linePtr-&gt;z; an unstaged complex slot remains unchanged. In X/Y mode, frees live and staged complex clients and clears retained -cdata. Stores the selected mode and clears staged ownership. Does not free external vectors or itself schedule graph redraw; preparation must already have passed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live destination line; prepared candidate fields replace the corresponding committed fields, releasing displaced resources. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared transaction; moved ownership or staged bits are cleared for subsequent cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.FreeLineComplexDataTransaction">
 <span class="target" id="group__line__data__transactions_1ga6490805a0dc155c38adf7a119bf2c912"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLineComplexDataTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineComplexDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.FreeLineComplexDataTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release an abandoned staged complex source and zero its transaction. </p>
-<p>Safe after commit because staged ownership has been cleared. Does not release the live line source or change data mode. </p>
+<p>Safe after commit because staged ownership has been cleared. Does not release the live line source or change data mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized, possibly empty or committed transaction; remaining owned candidates are released and the record is zeroed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.SyncLineParamVector">
 <span class="target" id="group__line__data__transactions_1gaa7d1eb3cf3ef576fb5243620e4a9a9a4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SyncLineParamVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElemVector</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.SyncLineParamVector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh a live real parameter slot’s borrowed storage and extrema. </p>
-<p>Requires a valid vecPtr. Copies length, capacity, array and vector range without geometry invalidation, notification delivery or ownership transfer. </p>
+<p>Requires a valid vecPtr. Copies length, capacity, array and vector range without geometry invalidation, notification delivery or ownership transfer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vPtr</strong> – <strong>[inout]</strong> Real parameter slot with a live vecPtr; cached borrowed storage and extrema are refreshed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.LineParamVectorChangedProc">
 <span class="target" id="group__line__data__transactions_1ga67a0be9e0b06b03e33f2b0c26db5ef42"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineParamVectorChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <a class="reference internal" href="vector-reference.html#c.Rbc_VectorNotify" title="Rbc_VectorNotify"><span class="n"><span class="pre">Rbc_VectorNotify</span></span></a><span class="w"> </span><span class="n"><span class="pre">notify</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.LineParamVectorChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Refresh parallel parameter data without invalidating plotted geometry. </p>
-<p>Destruction clears client identity and borrowed storage. Update reacquires the source and synchronizes it; failed lookup clears vector/array/count/capacity while retaining the client ID for later cleanup. Cached extrema are not reset on those clear paths. Does not reset axes, map geometry or request redraw. </p>
+<p>Destruction clears client identity and borrowed storage. Update reacquires the source and synchronizes it; failed lookup clears vector/array/count/capacity while retaining the client ID for later cleanup. Cached extrema are not reset on those clear paths. Does not reset axes, map geometry or request redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Stable committed ElemVector parameter member; teardown must detach its client before freeing the member. </p></li>
+<li><p><strong>notify</strong> – <strong>[in]</strong> Vector notification kind; DESTROY clears the source and other values take the update path. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.StageLineParam">
 <span class="target" id="group__line__data__transactions_1ga64c951e3ca91324384773903acabfa4a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageLineParam</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">LineParamTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.StageLineParam" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse and retain a replacement parameter candidate transactionally. </p>
-<p>Accepts the common real-vector or numeric-expression-list input. On failure releases the local candidate and retains any earlier staged value. On success frees the earlier staged slot and transfers the candidate. Does not install parameter notifications until commit moves it to stable line storage. </p>
+<p>Accepts the common real-vector or numeric-expression-list input. On failure releases the local candidate and retains any earlier staged value. On success frees the earlier staged slot and transfers the candidate. Does not install parameter notifications until commit moves it to stable line storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed live owner recorded in the candidate; must survive parsing and subsequent commit or cleanup. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed source specification; NULL or empty clears the source. Nonempty input names a real vector or supplies a numeric-expression list. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized transaction owning any earlier candidates; successful staging replaces only the selected candidate, preserving live line state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.PrepareLineParamTransaction">
 <span class="target" id="group__line__data__transactions_1gaa00a5815ed229c9620bf95dd77f6e7ee"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareLineParamTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LineParamTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.PrepareLineParamTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare parameter input from defaults and ordered explicit options. </p>
-<p>Initializes a fresh transaction. On first configuration uses the retained default only when no explicit canonical -param occurs. Validates every explicit occurrence in order, including values superseded later. Failure frees staged storage and zeros the transaction. Length compatibility is a separate check. </p>
+<p>Initializes a fresh transaction. On first configuration uses the retained default only when no explicit canonical -param occurs. Validates every explicit occurrence in order, including values superseded later. Failure frees staged storage and zeros the transaction. Length compatibility is a separate check.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live window, display and interpreter for resource operations. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed core of linePtr supplying validated ordered option/value pairs and initial-configuration state. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line corresponding to elemPtr, with candidate Tk option values installed and current derived resources still retained. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh transaction storage with no owned candidates; initialized here. Commit only after TCL_OK; failure state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.CommitLineParamTransaction">
 <span class="target" id="group__line__data__transactions_1gaa304d39191ba7bded9906af5e6419255"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitLineParamTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LineParamTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.CommitLineParamTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Transfer staged parameter ownership to the line and install its callback. </p>
-<p>No-op without a staged candidate. Releases the old live slot, moves the new one, restores its owner pointer and registers LineParamVectorChangedProc for a named source. Clears candidate ownership for subsequent transaction cleanup. </p>
+<p>No-op without a staged candidate. Releases the old live slot, moves the new one, restores its owner pointer and registers LineParamVectorChangedProc for a named source. Clears candidate ownership for subsequent transaction cleanup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live destination line; prepared candidate fields replace the corresponding committed fields, releasing displaced resources. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared transaction; moved ownership or staged bits are cleared for subsequent cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.FreeLineParamTransaction">
 <span class="target" id="group__line__data__transactions_1ga57fdd87b5e12ee0845cc4965a0c997e1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLineParamTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">LineParamTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.FreeLineParamTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release a staged parameter candidate and zero its transaction. </p>
-<p>Safe on an empty or committed transaction. Uses common slot cleanup for owned list arrays and retained vector clients, without destroying source vectors. </p>
+<p>Safe on an empty or committed transaction. Uses common slot cleanup for owned list arrays and retained vector clients, without destroying source vectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized, possibly empty or committed transaction; remaining owned candidates are released and the record is zeroed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.LineParamConfigured">
 <span class="target" id="group__line__data__transactions_1ga74f37288bef948c32eaee64b97428ac9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineParamConfigured</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.LineParamConfigured" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Test whether the retained parameter option is nonempty. </p>
-<p>Examines paramObjPtr text only, not current numeric length or client validity. A nonempty option whose external source became empty is still configured. </p>
+<p>Examines paramObjPtr text only, not current numeric length or client validity. A nonempty option whose external source became empty is still configured.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line-family record; source slots and option representations remain owned by the element. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.LineParamLengthValidationNeeded">
 <span class="target" id="group__line__data__transactions_1gae84e08dd9459e991308074db38dfdd27"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineParamLengthValidationNeeded</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.LineParamLengthValidationNeeded" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Decide whether configuration must validate parallel parameter length. </p>
-<p>Returns true on initial configuration or an explicit canonical -param, -data, -x, -y or -cdata option. Other changes may proceed during a temporary mismatch caused by independently resized external vectors. Does not compare lengths. </p>
+<p>Returns true on initial configuration or an explicit canonical -param, -data, -x, -y or -cdata option. Other changes may proceed during a temporary mismatch caused by independently resized external vectors. Does not compare lengths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed element with initial-configuration state and the ordered explicit option/value vector. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.ProspectiveLinePointCount">
 <span class="target" id="group__line__data__transactions_1ga7923eef3b396089a662c4229d1659e3e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ProspectiveLinePointCount</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataTransactionPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">LineComplexDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">complexDataTransactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.ProspectiveLinePointCount" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Count prospective data points using current named-vector lengths. </p>
-<p>Uses the staged mode when a complex transaction is supplied. Complex mode selects staged or live Z storage; X/Y delegates to the common transaction count. Named sources are queried directly, while literals use their stored counts. Does not refresh arrays, deliver notifications or commit candidates. </p>
+<p>Uses the staged mode when a complex transaction is supplied. Complex mode selects staged or live Z storage; X/Y delegates to the common transaction count. Named sources are queried directly, while literals use their stored counts. Does not refresh arrays, deliver notifications or commit candidates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line-family record; source slots and option representations remain owned by the element. </p></li>
+<li><p><strong>dataTransactionPtr</strong> – <strong>[in]</strong> Borrowed prepared ordinary-data transaction, or NULL to use committed X/Y slots. </p></li>
+<li><p><strong>complexDataTransactionPtr</strong> – <strong>[in]</strong> Borrowed prepared complex-data transaction, or NULL to use the committed mode and Z slot. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineData.ValidateLineParamLength">
 <span class="target" id="group__line__data__transactions_1ga4e2e8f0c028c5f745881698cd92ac168"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ValidateLineParamLength</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ElemDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dataTransactionPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">LineComplexDataTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">complexDataTransactionPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">LineParamTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">paramTransactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineData.ValidateLineParamLength" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Require configured parameter length to match prospective data length. </p>
-<p>Empty retained -param disables the check. Selects staged parameter storage when available, otherwise the live slot, querying current named-vector length. Obtains data length through ProspectiveLinePointCount. Returns TCL_ERROR with both counts on mismatch, TCL_OK otherwise. Does not refresh arrays, deliver notifications, commit candidates or free them. </p>
+<p>Empty retained -param disables the check. Selects staged parameter storage when available, otherwise the live slot, querying current named-vector length. Obtains data length through ProspectiveLinePointCount. Returns TCL_ERROR with both counts on mismatch, TCL_OK otherwise. Does not refresh arrays, deliver notifications, commit candidates or free them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the interpreter for a length-mismatch diagnostic. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line with candidate retained -param text already installed and valid live source slots. </p></li>
+<li><p><strong>dataTransactionPtr</strong> – <strong>[in]</strong> Borrowed prepared ordinary-data transaction, or NULL to use committed X/Y slots. </p></li>
+<li><p><strong>complexDataTransactionPtr</strong> – <strong>[in]</strong> Borrowed prepared complex-data transaction, or NULL to use the committed mode and Z slot. </p></li>
+<li><p><strong>paramTransactionPtr</strong> – <strong>[in]</strong> Borrowed prepared parameter transaction, or NULL to use the committed parameter slot. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

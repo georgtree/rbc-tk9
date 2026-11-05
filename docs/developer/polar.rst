@@ -2,17 +2,18 @@ Polar data and grid geometry
 ============================
 
 Polar elements reuse the line element implementation in ``rbcGrLine.c``.
-``rbcGrPolar.c`` supplies polar/Smith grid geometry and label presentation.
-The graph's mapped plane remains Cartesian. Selecting a Smith grid does not
-itself convert an element's source values into impedance or admittance.
-See :doc:`polar-reference` for selected private helper contracts.
+``rbcGrPolar.c`` supplies polar/Smith grid geometry and label presentation. The graph's
+mapped plane remains Cartesian. Selecting a Smith grid does not itself convert an
+element's source values into impedance or admittance. See :doc:`polar-reference` for
+selected private helper contracts.
 
 Source representation and conversion
 ------------------------------------
 
-``LinePointCount`` selects either the complex-vector length or the shorter X/Y
-length. ``GetLineDataPoint`` then supplies Cartesian coordinates to extents,
-screen mapping and other consumers. The data mode determines the adapter:
+:c:func:`rbcGrLineData.LinePointCount` selects either the complex-vector length or the
+shorter X/Y length. :c:func:`rbcGrLineData.GetLineDataPoint` then supplies Cartesian
+coordinates to extents, screen mapping and other consumers. The data mode determines the
+adapter:
 
 .. list-table::
    :header-rows: 1
@@ -34,12 +35,12 @@ screen mapping and other consumers. The data mode determines the adapter:
 this must not be confused with the radians used for polar element input.
 Axis inversion and screen scaling happen later through ``Rbc_Map2D``.
 
-The direct Cartesian/gamma adapters can return nonfinite coordinates; success
-only means that the source sample was available. Mapping callers still check
-finite values and domain validity. Complex conversion uses ``ComplexDivide``,
-which rejects nonfinite operands and zero denominators and checks its results.
-It is not an arbitrary-range exact complex arithmetic service. Outputs may have
-been written before a failed conversion, so callers must honor its return value.
+The direct Cartesian/gamma adapters can return nonfinite coordinates; success only means
+that the source sample was available. Mapping callers still check finite values and
+domain validity. Complex conversion uses :c:func:`rbcGrLineConfiguration.ComplexDivide`,
+which rejects nonfinite operands and zero denominators and checks its results. It is not
+an arbitrary-range exact complex arithmetic service. Outputs may have been written
+before a failed conversion, so callers must honor its return value.
 
 Complex-vector ownership
 ------------------------
@@ -49,17 +50,17 @@ fallback. It allocates a client ID, verifies the vector type and borrows the
 record and numeric array. A null/empty option produces an empty candidate.
 It initializes its destination rather than releasing an existing candidate.
 
-``PrepareLineComplexDataTransaction`` processes initial defaults and explicit
-options in order. Nonempty ``-cdata`` selects complex storage; empty ``-cdata``
-or explicit ordinary data options select X/Y storage. Canonical option names
-ensure that aliases participate in the same ordering. Staging acquires a new
-client before releasing an earlier staged candidate. Failure frees staged
-resources without replacing the live line data.
+:c:func:`rbcGrLineData.PrepareLineComplexDataTransaction` processes initial defaults and
+explicit options in order. Nonempty ``-cdata`` selects complex storage; empty ``-cdata``
+or explicit ordinary data options select X/Y storage. Canonical option names ensure that
+aliases participate in the same ordering. Staging acquires a new client before releasing
+an earlier staged candidate. Failure frees staged resources without replacing the live
+line data.
 
-Commit transfers the candidate into the stable ``linePtr->z`` member before
-registering ``ComplexVectorChangedProc``. Switching away from complex storage
-releases its client and clears the retained ``-cdata`` option. The element does
-not free the source array or destroy the application vector.
+Commit transfers the candidate into the stable ``linePtr->z`` member before registering
+:c:func:`rbcGrLineData.ComplexVectorChangedProc`. Switching away from complex storage
+releases its client and clears the retained ``-cdata`` option. The element does not free
+the source array or destroy the application vector.
 
 On update, the callback reacquires the record through its client ID and refreshes
 length, capacity and numeric pointer. On destruction it clears those borrowed
@@ -138,45 +139,47 @@ geometry. It can be a named real vector or a list of numeric expressions, using
 the common element parser. Complex ``-cdata`` instead requires a named complex
 vector and has no list fallback.
 
-PrepareLineParamTransaction processes an initial option-database value unless an
-explicit parameter option overrides it. Every explicit occurrence is parsed in
-caller order. StageLineParam acquires a new candidate before discarding the old
-staged one, so failed parsing does not lose the earlier candidate. Preparation
-failure then releases all remaining staged ownership. It does not commit the
-candidate or validate its final relationship to the prospective data count.
+:c:func:`rbcGrLineData.PrepareLineParamTransaction` processes an initial option-database
+value unless an explicit parameter option overrides it. Every explicit occurrence is
+parsed in caller order. :c:func:`rbcGrLineData.StageLineParam` acquires a new candidate
+before discarding the old staged one, so failed parsing does not lose the earlier
+candidate. Preparation failure then releases all remaining staged ownership. It does not
+commit the candidate or validate its final relationship to the prospective data count.
 
-CommitLineParamTransaction moves the slot to the stable line record before
-installing its callback. A parameter notification refreshes borrowed metadata
-without resetting axes, remapping geometry or scheduling a redraw. Destruction
-clears the client and storage; lookup failure clears potentially stale storage
-while retaining the client ID for cleanup. These clear paths leave extrema
-unchanged, so length and storage validity must be checked before using values.
+:c:func:`rbcGrLineData.CommitLineParamTransaction` moves the slot to the stable line
+record before installing :c:func:`rbcGrLineData.LineParamVectorChangedProc`. A parameter
+notification refreshes borrowed metadata without resetting axes, remapping geometry or
+scheduling a redraw. Destruction clears the client and storage; lookup failure clears
+potentially stale storage while retaining the client ID for cleanup. These clear paths
+leave extrema unchanged, so length and storage validity must be checked before using
+values.
 
-The configured/not-configured decision uses the retained option text, not the
+:c:func:`rbcGrLineData.LineParamConfigured` uses the retained option text, not the
 source's current length. An empty option disables the parallel mapping. Initial
-configuration and explicit changes to parameter or source-data options require
-matching lengths. Unrelated style changes remain legal while independent external
-vector updates have temporarily produced a mismatch. Validation occurs before
-any of the line's prepared transactions commit; it neither frees nor commits the
-candidates itself.
+configuration and explicit changes to parameter or source-data options, selected by
+:c:func:`rbcGrLineData.LineParamLengthValidationNeeded`, require matching lengths.
+Unrelated style changes remain legal while independent external vector updates have
+temporarily produced a mismatch. Validation occurs before any of the line's prepared
+transactions commit; it neither frees nor commits the candidates itself.
 
 Current counts versus cached sample storage
 -------------------------------------------
 
-LinePointCount now reads named-vector lengths directly, so activation sees a
-resize even before its queued notification runs. It does not refresh cached array
-pointers or consume that notification. GetLineDataPoint, by contrast, reads cached
-slots. A caller must not use a fresh point count as permission to read an old
-array. Source synchronization and mapping remain separate responsibilities.
+:c:func:`rbcGrLineData.LinePointCount` now reads named-vector lengths directly, so
+activation sees a resize even before its queued notification runs. It does not refresh
+cached array pointers or consume that notification.
+:c:func:`rbcGrLineData.GetLineDataPoint`, by contrast, reads cached slots. A caller must
+not use a fresh point count as permission to read an old array. Source synchronization
+and mapping remain separate responsibilities.
 
-Configuration validation selects staged slots where supplied and retained live
-slots otherwise. ProspectiveLinePointCount and ValidateLineParamLength query
-current lengths for named sources, including complex data and parameter vectors;
-literal candidates use their stored counts. This makes validation independent of
-whether pending resize notifications have run. It neither refreshes borrowed
-sample arrays nor delivers or cancels notifications. Real mismatches are still
-rejected before commit, and unrelated style changes retain the existing policy
-of permitting temporary data/parameter mismatch.
+Configuration validation selects staged slots where supplied and retained live slots
+otherwise. :c:func:`rbcGrLineData.ProspectiveLinePointCount` and
+:c:func:`rbcGrLineData.ValidateLineParamLength` query current lengths for named sources,
+including complex data and parameter vectors; literal candidates use their stored
+counts. This makes validation independent of whether pending resize notifications have
+run. It neither refreshes borrowed sample arrays nor delivers or cancels notifications.
+Real mismatches are still rejected before commit, and unrelated style changes retain the
+existing policy of permitting temporary data/parameter mismatch.
 
 Cartesian X/Y sample access returns source values without a finite check. Polar
 X/Y access checks finite theta and radius before converting radians; complex
@@ -187,20 +190,23 @@ finite graph coordinate are separate conditions.
 Complex mode selection and cleanup
 -----------------------------------
 
-PrepareLineComplexDataTransaction tracks both a candidate source and the selected
-mode. Explicit ordinary data options select X/Y; a later nonempty complex option
-selects complex mode again. Canonical aliases participate in this same sequence.
-An invalid earlier complex option still fails even if a later option would switch
-away from it. A staged client may therefore need cleanup even when the final mode
+:c:func:`rbcGrLineData.PrepareLineComplexDataTransaction` tracks both a candidate source
+and the selected mode. Explicit ordinary data options select X/Y; a later nonempty
+complex option selects complex mode again. Canonical aliases participate in this same
+sequence. An invalid earlier complex option still fails even if a later option would
+switch away from it. A staged client may therefore need cleanup even when the final mode
 is X/Y.
 
-Commit in complex mode transfers any staged source and installs the callback;
-without a candidate it retains the live source. Commit in X/Y mode releases both
-live and staged complex clients and clears the retained complex option object.
-The transaction cleanup functions are safe after commit because moved ownership
-is cleared. None of these cleanup paths destroys the application's source vector.
-ReplaceLineOptionObject retains a replacement before releasing the previous Tcl
-object and treats identical pointers as a no-op.
+Commit in complex mode transfers any staged source and installs the callback; without a
+candidate it retains the live source. Commit in X/Y mode releases both live and staged
+complex clients and clears the retained complex option object.
+:c:func:`rbcGrLineData.CommitLineComplexDataTransaction` performs those transfers;
+:c:func:`rbcGrLineData.FreeLineComplexDataTransaction` and
+:c:func:`rbcGrLineData.FreeLineParamTransaction` dispose of abandoned candidates. The
+transaction cleanup functions are safe after commit because moved ownership is cleared.
+None of these cleanup paths destroys the application's source vector.
+:c:func:`rbcGrLineData.ReplaceLineOptionObject` retains a replacement before releasing
+the previous Tcl object and treats identical pointers as a no-op.
 
 Complex notifications invalidate axes and mapping and schedule redraw for visible
 plotted elements. Parameter notifications deliberately do none of those things.

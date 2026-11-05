@@ -1504,6 +1504,11 @@ static void ValuesExport(Rbc_ExportContext *exportPtr, Line *linePtr, LinePen *p
  * Compares the supplied byte length with the full keyword and then strncmp.
  * Borrows both strings; returns FALSE for empty or overlong prefixes. Does not
  * perform abbreviation disambiguation against other keywords.
+ *
+ * @param[in] string Borrowed prefix bytes, readable for length bytes when the length passes the keyword bounds
+ *   check.
+ * @param[in] length Prefix byte count; nonpositive or longer-than-keyword counts return FALSE.
+ * @param[in] fullName Borrowed NUL-terminated complete keyword.
  */
 static int IsLinePenPrefix(const char *string, Tcl_Size length, const char *fullName) {
     Tcl_Size fullLength;
@@ -1521,6 +1526,13 @@ static int IsLinePenPrefix(const char *string, Tcl_Size length, const char *full
  * Other strings acquire a Tk color reference for the caller to release through
  * FreeLinePenColor. On error returns TCL_ERROR with a diagnostic and leaves
  * the output pointer unchanged. Does not retain the input Tcl object.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] tkwin Borrowed live Tk window supplying the display and resource lookup context.
+ * @param[in] objPtr Borrowed color name or defcolor prefix; NULL and empty inputs follow allowNull.
+ * @param[in] allowNull Nonzero permits a NULL result for empty input; zero reports an error.
+ * @param[out] colorPtrPtr Required result slot for NULL, COLOR_DEFAULT or an acquired Tk color; unchanged on
+ *   error.
  */
 static int GetLinePenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, int allowNull,
                                   XColor **colorPtrPtr) {
@@ -1556,6 +1568,8 @@ static int GetLinePenColorFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *
  * Clears pending/all flags and changed bounds in the element's X and Y slots.
  * Does not deliver or cancel vector notifications, replace values, or clear
  * metadata in other slots. Mapping calls this after handling cache refresh.
+ *
+ * @param[in,out] linePtr Live line whose X/Y pending-change flags and bounds are cleared after cache handling.
  */
 static void ClearLineVectorChanges(Line *linePtr) {
     ElemVector *xPtr;
@@ -1583,6 +1597,13 @@ static void ClearLineVectorChanges(Line *linePtr) {
  * leave computed nonfinite outputs, so callers must honor the return value.
  * This formulation does not guarantee overflow-free arithmetic for all finite
  * extreme inputs. Borrows scalar inputs and writes only the output doubles.
+ *
+ * @param[in] nr Real numerator component.
+ * @param[in] ni Imaginary numerator component.
+ * @param[in] dr Real denominator component; the complex denominator must be nonzero.
+ * @param[in] di Imaginary denominator component.
+ * @param[out] realPtr Required real-quotient destination, distinct from imagPtr; consume only on TRUE.
+ * @param[out] imagPtr Required imaginary-quotient destination, distinct from realPtr; consume only on TRUE.
  */
 static int ComplexDivide(double nr, double ni, double dr, double di, double *realPtr, double *imagPtr) {
     double ratio;
@@ -1679,6 +1700,12 @@ static int SetClosestInfoPair(Tcl_Interp *interp, Tcl_Obj *resultObjPtr, const c
  * (+1, 0), which succeeds with (HUGE_VAL, 0) for an open circuit. TRUE therefore
  * does not imply finite output. Failure follows ComplexDivide output rules.
  * No physical reference-impedance scaling is performed here.
+ *
+ * @param[in] gammaReal Real component of the dimensionless reflection coefficient.
+ * @param[in] gammaImag Imaginary component of the dimensionless reflection coefficient.
+ * @param[out] resistancePtr Required real-part output in normalized units; may be positive infinity on a
+ *   successful singular case. Consume only on TRUE.
+ * @param[out] reactancePtr Required separate imaginary-part output in normalized units; consume only on TRUE.
  */
 static int GammaToNormalizedImpedance(double gammaReal, double gammaImag, double *resistancePtr, double *reactancePtr) {
     /*
@@ -1702,6 +1729,12 @@ static int GammaToNormalizedImpedance(double gammaReal, double gammaImag, double
  * (-1, 0), which succeeds with (HUGE_VAL, 0) for a short circuit. TRUE therefore
  * does not imply finite output. Physical admittance scaling belongs to the
  * caller; failed division outputs must not be consumed.
+ *
+ * @param[in] gammaReal Real component of the dimensionless reflection coefficient.
+ * @param[in] gammaImag Imaginary component of the dimensionless reflection coefficient.
+ * @param[out] conductancePtr Required real-part output in normalized units; may be positive infinity on a
+ *   successful singular case. Consume only on TRUE.
+ * @param[out] susceptancePtr Required separate imaginary-part output in normalized units; consume only on TRUE.
  */
 static int GammaToNormalizedAdmittance(double gammaReal, double gammaImag, double *conductancePtr,
                                        double *susceptancePtr) {
@@ -1782,6 +1815,9 @@ static int GetComplexLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, 
  *
  * The sentinel represents inheritance rather than a Tk color allocation.
  * Does not clear the caller's pointer; callers must not release it twice.
+ *
+ * @param[in] colorPtr Owned Tk color reference to release, or NULL/COLOR_DEFAULT for no action; caller clears
+ *   its own field.
  */
 static void FreeLinePenColor(XColor *colorPtr) {
     if ((colorPtr != NULL) && (colorPtr != COLOR_DEFAULT)) {
@@ -1797,6 +1833,10 @@ static void FreeLinePenColor(XColor *colorPtr) {
  * Rejects negative counts, zero element size and SIZE_MAX overflow. Assigns
  * bytesPtr only on success. Zero count is valid with a positive element size.
  * Returns TCL_OK or TCL_ERROR without setting an interpreter diagnostic.
+ *
+ * @param[in] count Requested element count; zero is valid and negative counts are rejected.
+ * @param[in] elementSize Positive size of one element in bytes; zero is rejected.
+ * @param[out] bytesPtr Required byte-count output, assigned only on TCL_OK.
  */
 static int GetLineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *bytesPtr) {
     if ((count < 0) || (elementSize == 0) || ((uintmax_t)count > (uintmax_t)(SIZE_MAX / elementSize))) {
@@ -1814,6 +1854,9 @@ static int GetLineArrayByteCount(Tcl_Size count, size_t elementSize, size_t *byt
  * are queried directly so pending notifications do not hide a resize. Literal
  * slots use cached counts. Does not refresh cached pointers or deliver callbacks;
  * a current count alone does not make cached sample storage current.
+ *
+ * @param[in] elemPtr Borrowed line-family core with valid live vector records for any retained client IDs;
+ *   cached arrays need not be synchronized.
  */
 static Tcl_Size LinePointCount(Element *elemPtr) {
     Line *linePtr;
@@ -1835,6 +1878,11 @@ static Tcl_Size LinePointCount(Element *elemPtr) {
  * converts radians to Cartesian coordinates; Cartesian X/Y copies directly,
  * without rejecting nonfinite values. Returns a boolean; callers must reject
  * unusable outputs and ensure borrowed arrays are synchronized before reading.
+ *
+ * @param[in] linePtr Borrowed line with synchronized cached source arrays and coordinate-mode options.
+ * @param[in] index Original zero-based source index; out-of-range indices return FALSE.
+ * @param[out] xPtr Required Cartesian X output, separate from yPtr; use only on TRUE and check finiteness.
+ * @param[out] yPtr Required Cartesian Y output, separate from xPtr; use only on TRUE and check finiteness.
  */
 static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double *yPtr) {
     if (linePtr->dataMode == LINE_DATA_COMPLEX) {
@@ -1872,6 +1920,9 @@ static int GetLineDataPoint(Line *linePtr, Tcl_Size index, double *xPtr, double 
  *
  * Requires a live vecPtr of complex type. Does not own the array, install a
  * callback, compute extrema, invalidate mapping or schedule redraw.
+ *
+ * @param[in,out] vPtr Complex source slot with a live complex vecPtr; refreshed array storage remains borrowed
+ *   from that vector.
  */
 static void SyncComplexVector(ElemComplexVector *vPtr) {
     vPtr->nValues = Rbc_VectorLength(vPtr->vecPtr);
@@ -1885,6 +1936,9 @@ static void SyncComplexVector(ElemComplexVector *vPtr) {
  *
  * Accepts an empty slot. Does not destroy the source vector or free its borrowed
  * numeric storage. The previous elemPtr owner association is also cleared.
+ *
+ * @param[in,out] vPtr Required initialized slot, possibly empty; its retained client is released and every
+ *   field is zeroed.
  */
 static void FreeComplexVector(ElemComplexVector *vPtr) {
     if (vPtr->clientId != NULL) {
@@ -1902,6 +1956,11 @@ static void FreeComplexVector(ElemComplexVector *vPtr) {
  * refreshes cached storage on success. Always marks axes and element mapping
  * dirty, scheduling backing-store redraw only when not hidden or plotHidden.
  * No partial changed-range accumulation is performed by this callback.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in,out] clientData Stable committed ElemComplexVector member with a live elemPtr owner; never
+ *   temporary transaction storage.
+ * @param[in] notify Vector notification kind; DESTROY clears the source and other values take the update path.
  */
 static void ComplexVectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
     ElemComplexVector *vPtr;
@@ -1985,6 +2044,11 @@ static int ParseComplexVectorObj(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *
  *
  * An identical pointer is a no-op. Retains the replacement before releasing the
  * old object; NULL clears the slot. Does not parse, configure or evaluate it.
+ *
+ * @param[in,out] objPtrPtr Required retained-object field; its old reference is released after retaining the
+ *   replacement.
+ * @param[in] newObjPtr Borrowed replacement object, or NULL to clear the field; one reference is acquired
+ *   unless already installed.
  */
 static void ReplaceLineOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
     Tcl_Obj *oldObjPtr;
@@ -2009,6 +2073,14 @@ static void ReplaceLineOptionObject(Tcl_Obj **objPtrPtr, Tcl_Obj *newObjPtr) {
  * Uses ParseComplexVectorObj, then releases an earlier staged client and transfers
  * the new candidate. Failure leaves the earlier candidate untouched. The caller
  * owns transaction cleanup; no callback is registered in temporary storage.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] elemPtr Borrowed live owner recorded in the candidate; must survive parsing and subsequent commit
+ *   or cleanup.
+ * @param[in] objPtr Borrowed source specification; NULL or empty clears the source. Nonempty input must name a
+ *   complex vector.
+ * @param[in,out] transactionPtr Initialized transaction owning any earlier candidates; successful staging
+ *   replaces only the selected candidate, preserving live line state.
  */
 static int StageComplexData(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
                             LineComplexDataTransaction *transactionPtr) {
@@ -2035,6 +2107,15 @@ static int StageComplexData(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPt
  * empty -cdata or ordinary data options select X/Y. Later mode selection does not
  * excuse an invalid earlier complex source. Failure frees staged clients and
  * zeros the transaction, leaving live line storage unchanged.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in] elemPtr Borrowed core of linePtr supplying validated ordered option/value pairs and
+ *   initial-configuration state.
+ * @param[in] linePtr Borrowed line corresponding to elemPtr, with candidate Tk option values installed and
+ *   current derived resources still retained.
+ * @param[out] transactionPtr Fresh transaction storage with no owned candidates; initialized here. Commit only
+ *   after TCL_OK; failure state is described above.
  */
 static int PrepareLineComplexDataTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
                                              LineComplexDataTransaction *transactionPtr) {
@@ -2108,6 +2189,11 @@ error:
  * In X/Y mode, frees live and staged complex clients and clears retained -cdata.
  * Stores the selected mode and clears staged ownership. Does not free external
  * vectors or itself schedule graph redraw; preparation must already have passed.
+ *
+ * @param[in,out] linePtr Live destination line; prepared candidate fields replace the corresponding committed
+ *   fields, releasing displaced resources.
+ * @param[in,out] transactionPtr Successfully prepared transaction; moved ownership or staged bits are cleared
+ *   for subsequent cleanup.
  */
 static void CommitLineComplexDataTransaction(Line *linePtr, LineComplexDataTransaction *transactionPtr) {
     if (transactionPtr->mode == LINE_DATA_COMPLEX) {
@@ -2139,6 +2225,9 @@ static void CommitLineComplexDataTransaction(Line *linePtr, LineComplexDataTrans
  *
  * Safe after commit because staged ownership has been cleared. Does not release
  * the live line source or change data mode.
+ *
+ * @param[in,out] transactionPtr Initialized, possibly empty or committed transaction; remaining owned
+ *   candidates are released and the record is zeroed.
  */
 static void FreeLineComplexDataTransaction(LineComplexDataTransaction *transactionPtr) {
     if (transactionPtr->staged) {
@@ -2153,6 +2242,9 @@ static void FreeLineComplexDataTransaction(LineComplexDataTransaction *transacti
  *
  * Requires a valid vecPtr. Copies length, capacity, array and vector range without
  * geometry invalidation, notification delivery or ownership transfer.
+ *
+ * @param[in,out] vPtr Real parameter slot with a live vecPtr; cached borrowed storage and extrema are
+ *   refreshed.
  */
 static void SyncLineParamVector(ElemVector *vPtr) {
     vPtr->nValues = Rbc_VectorLength(vPtr->vecPtr);
@@ -2169,6 +2261,11 @@ static void SyncLineParamVector(ElemVector *vPtr) {
  * source and synchronizes it; failed lookup clears vector/array/count/capacity
  * while retaining the client ID for later cleanup. Cached extrema are not reset
  * on those clear paths. Does not reset axes, map geometry or request redraw.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in,out] clientData Stable committed ElemVector parameter member; teardown must detach its client
+ *   before freeing the member.
+ * @param[in] notify Vector notification kind; DESTROY clears the source and other values take the update path.
  */
 static void LineParamVectorChangedProc(Tcl_Interp *interp, ClientData clientData, Rbc_VectorNotify notify) {
     ElemVector *vPtr;
@@ -2208,6 +2305,14 @@ static void LineParamVectorChangedProc(Tcl_Interp *interp, ClientData clientData
  * releases the local candidate and retains any earlier staged value. On success
  * frees the earlier staged slot and transfers the candidate. Does not install
  * parameter notifications until commit moves it to stable line storage.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] elemPtr Borrowed live owner recorded in the candidate; must survive parsing and subsequent commit
+ *   or cleanup.
+ * @param[in] objPtr Borrowed source specification; NULL or empty clears the source. Nonempty input names a real
+ *   vector or supplies a numeric-expression list.
+ * @param[in,out] transactionPtr Initialized transaction owning any earlier candidates; successful staging
+ *   replaces only the selected candidate, preserving live line state.
  */
 static int StageLineParam(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr, LineParamTransaction *transactionPtr) {
     ElemVector candidate;
@@ -2233,6 +2338,15 @@ static int StageLineParam(Tcl_Interp *interp, Element *elemPtr, Tcl_Obj *objPtr,
  * default only when no explicit canonical -param occurs. Validates every explicit
  * occurrence in order, including values superseded later. Failure frees staged
  * storage and zeros the transaction. Length compatibility is a separate check.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in] elemPtr Borrowed core of linePtr supplying validated ordered option/value pairs and
+ *   initial-configuration state.
+ * @param[in] linePtr Borrowed line corresponding to elemPtr, with candidate Tk option values installed and
+ *   current derived resources still retained.
+ * @param[out] transactionPtr Fresh transaction storage with no owned candidates; initialized here. Commit only
+ *   after TCL_OK; failure state is described above.
  */
 static int PrepareLineParamTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
                                        LineParamTransaction *transactionPtr) {
@@ -2289,6 +2403,11 @@ error:
  * No-op without a staged candidate. Releases the old live slot, moves the new
  * one, restores its owner pointer and registers LineParamVectorChangedProc for
  * a named source. Clears candidate ownership for subsequent transaction cleanup.
+ *
+ * @param[in,out] linePtr Live destination line; prepared candidate fields replace the corresponding committed
+ *   fields, releasing displaced resources.
+ * @param[in,out] transactionPtr Successfully prepared transaction; moved ownership or staged bits are cleared
+ *   for subsequent cleanup.
  */
 static void CommitLineParamTransaction(Line *linePtr, LineParamTransaction *transactionPtr) {
     if (!transactionPtr->staged) {
@@ -2310,6 +2429,9 @@ static void CommitLineParamTransaction(Line *linePtr, LineParamTransaction *tran
  *
  * Safe on an empty or committed transaction. Uses common slot cleanup for owned
  * list arrays and retained vector clients, without destroying source vectors.
+ *
+ * @param[in,out] transactionPtr Initialized, possibly empty or committed transaction; remaining owned
+ *   candidates are released and the record is zeroed.
  */
 static void FreeLineParamTransaction(LineParamTransaction *transactionPtr) {
     if (transactionPtr->staged) {
@@ -2324,6 +2446,9 @@ static void FreeLineParamTransaction(LineParamTransaction *transactionPtr) {
  *
  * Examines paramObjPtr text only, not current numeric length or client validity.
  * A nonempty option whose external source became empty is still configured.
+ *
+ * @param[in] linePtr Borrowed line-family record; source slots and option representations remain owned by the
+ *   element.
  */
 static int LineParamConfigured(Line *linePtr) {
     return ((linePtr->paramObjPtr != NULL) && (Tcl_GetCharLength(linePtr->paramObjPtr) > 0));
@@ -2336,6 +2461,9 @@ static int LineParamConfigured(Line *linePtr) {
  * Returns true on initial configuration or an explicit canonical -param, -data,
  * -x, -y or -cdata option. Other changes may proceed during a temporary mismatch
  * caused by independently resized external vectors. Does not compare lengths.
+ *
+ * @param[in] elemPtr Borrowed element with initial-configuration state and the ordered explicit option/value
+ *   vector.
  */
 static int LineParamLengthValidationNeeded(Element *elemPtr) {
     Tcl_Size i;
@@ -2366,6 +2494,13 @@ static int LineParamLengthValidationNeeded(Element *elemPtr) {
  * selects staged or live Z storage; X/Y delegates to the common transaction
  * count. Named sources are queried directly, while literals use their stored
  * counts. Does not refresh arrays, deliver notifications or commit candidates.
+ *
+ * @param[in] linePtr Borrowed line-family record; source slots and option representations remain owned by the
+ *   element.
+ * @param[in] dataTransactionPtr Borrowed prepared ordinary-data transaction, or NULL to use committed X/Y
+ *   slots.
+ * @param[in] complexDataTransactionPtr Borrowed prepared complex-data transaction, or NULL to use the committed
+ *   mode and Z slot.
  */
 static Tcl_Size ProspectiveLinePointCount(Line *linePtr, const ElemDataTransaction *dataTransactionPtr,
                                           const LineComplexDataTransaction *complexDataTransactionPtr) {
@@ -2395,6 +2530,16 @@ static Tcl_Size ProspectiveLinePointCount(Line *linePtr, const ElemDataTransacti
  * Obtains data length through ProspectiveLinePointCount. Returns TCL_ERROR with
  * both counts on mismatch, TCL_OK otherwise. Does not refresh arrays, deliver
  * notifications, commit candidates or free them.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the interpreter for a length-mismatch diagnostic.
+ * @param[in] linePtr Borrowed line with candidate retained -param text already installed and valid live source
+ *   slots.
+ * @param[in] dataTransactionPtr Borrowed prepared ordinary-data transaction, or NULL to use committed X/Y
+ *   slots.
+ * @param[in] complexDataTransactionPtr Borrowed prepared complex-data transaction, or NULL to use the committed
+ *   mode and Z slot.
+ * @param[in] paramTransactionPtr Borrowed prepared parameter transaction, or NULL to use the committed
+ *   parameter slot.
  */
 static int ValidateLineParamLength(Graph *graphPtr, Line *linePtr, const ElemDataTransaction *dataTransactionPtr,
                                    const LineComplexDataTransaction *complexDataTransactionPtr,
@@ -2431,6 +2576,9 @@ static int ValidateLineParamLength(Graph *graphPtr, Line *linePtr, const ElemDat
  * Recognizes maxsymbols, smooth and trace; returns NONE for other options or
  * unresolved names. The enclosing Tk option pass has already validated names
  * and abbreviations. Does not parse the option value or change live fields.
+ *
+ * @param[in] elemPtr Borrowed element supplying the option table for canonical-name resolution.
+ * @param[in] objPtr Borrowed option-name object, already validated by the enclosing Tk option pass.
  */
 static LineScalarOption GetLineScalarOption(Element *elemPtr, Tcl_Obj *objPtr) {
     const char *name;
@@ -2458,6 +2606,10 @@ static LineScalarOption GetLineScalarOption(Element *elemPtr, Tcl_Obj *objPtr) {
  * band selects errorbandpattern/errorbandtile instead of areapattern/areatile.
  * Resolves canonical names through the element option table; returns NONE for
  * other options. Tk has already checked ambiguous or unknown option names.
+ *
+ * @param[in] elemPtr Borrowed element supplying the option table for canonical-name resolution.
+ * @param[in] objPtr Borrowed option-name object, already validated by the enclosing Tk option pass.
+ * @param[in] band Nonzero selects error-band resources; zero selects ordinary area-fill resources.
  */
 static LineAreaOption GetLineAreaOption(Element *elemPtr, Tcl_Obj *objPtr, int band) {
     const char *name;
@@ -2482,6 +2634,9 @@ static LineAreaOption GetLineAreaOption(Element *elemPtr, Tcl_Obj *objPtr, int b
  * Adds or subtracts one half and casts to int. Caller must provide a finite
  * value whose adjusted result is representable; this helper neither clamps
  * nor reports overflow. Used for native-compatible screen geometry.
+ *
+ * @param[in] x Finite value whose adjustment by plus or minus one half remains representable as int; no
+ *   overflow check is performed.
  */
 INLINE static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 : 0.5)); }
 
@@ -2499,6 +2654,12 @@ INLINE static int Round(register double x) { return (int)(x + ((x < 0.0) ? -0.5 
  * is a Tk bitmap name and acquires a bitmap reference. Assigns stipplePtr only
  * on success. Returns TCL_ERROR with the bitmap diagnostic on lookup failure.
  * Only a real bitmap result requires Tk_FreeBitmap; sentinels do not.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] tkwin Borrowed live Tk window supplying the display and resource lookup context.
+ * @param[in] string Borrowed NUL-terminated bitmap name or exact solid; NULL or empty selects None.
+ * @param[out] stipplePtr Required pattern output, assigned only on TCL_OK; real bitmap ownership transfers to
+ *   the caller.
  */
 static int GetPatternFromString(Tcl_Interp *interp, Tk_Window tkwin, const char *string, Pixmap *stipplePtr) {
     Pixmap stipple;
@@ -2523,6 +2684,12 @@ static int GetPatternFromString(Tcl_Interp *interp, Tk_Window tkwin, const char 
  *
  * NULL is treated as empty. Does not retain the object; successful bitmap
  * ownership belongs to the caller and must be released or transferred.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] tkwin Borrowed live Tk window supplying the display and resource lookup context.
+ * @param[in] objPtr Borrowed pattern specification, or NULL for None; no object reference is acquired.
+ * @param[out] stipplePtr Required pattern output, assigned only on TCL_OK; real bitmap ownership transfers to
+ *   the caller.
  */
 static int GetPatternFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, Pixmap *stipplePtr) {
     const char *string;
@@ -2537,6 +2704,10 @@ static int GetPatternFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPt
  *
  * Does not modify the caller's field. Requires the bitmap's display context;
  * callers must clear or replace ownership to avoid a second release.
+ *
+ * @param[in] display Borrowed display on which the bitmap references were acquired; must remain live through
+ *   release.
+ * @param[in] stipple Owned bitmap reference to release, or None/PATTERN_SOLID for no action.
  */
 static void FreeLinePattern(Display *display, Pixmap stipple) {
     if ((stipple != None) && (stipple != PATTERN_SOLID)) {
@@ -2551,6 +2722,12 @@ static void FreeLinePattern(Display *display, Pixmap stipple) {
  * Failure retains prior staged state. Success stores the pattern or sentinel
  * and marks the pattern bit. The transaction owns real bitmap references until
  * commit or FreeLineAreaTransaction; live line resources are unchanged.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in] objPtr Borrowed pattern specification; NULL or empty stages a cleared resource.
+ * @param[in,out] transactionPtr Initialized transaction owning any earlier candidates; successful staging
+ *   replaces only the selected candidate, preserving live line state.
  */
 static int StageLineAreaPattern(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransaction *transactionPtr) {
     Pixmap newStipple;
@@ -2579,6 +2756,12 @@ static int StageLineAreaPattern(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransa
  * NULL or empty input stages a cleared tile. Nonempty input resolves an RBC
  * tile before releasing any previous staged client. Failure leaves that earlier
  * candidate intact. Does not install the line notification callback yet.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in] objPtr Borrowed tile image specification; NULL or empty stages a cleared resource.
+ * @param[in,out] transactionPtr Initialized transaction owning any earlier candidates; successful staging
+ *   replaces only the selected candidate, preserving live line state.
  */
 static int StageLineAreaTile(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransaction *transactionPtr) {
     const char *name;
@@ -2615,6 +2798,14 @@ static int StageLineAreaTile(Graph *graphPtr, Tcl_Obj *objPtr, LineAreaTransacti
  * FillOpaqueStippled with one. None and PATTERN_SOLID do not install stippling.
  * Returns a Tk-managed GC reference for later Tk_FreeGC; this helper does not
  * decide whether geometry should be filled or implement opacity or tile drawing.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in] foreground Borrowed resolved Tk foreground color, or NULL to omit the GC foreground field; not
+ *   COLOR_DEFAULT.
+ * @param[in] background Borrowed resolved Tk background color, or NULL for transparent stippling; not
+ *   COLOR_DEFAULT.
+ * @param[in] stipple Borrowed bitmap on the graph display, or None/PATTERN_SOLID for an unstippled GC.
  */
 static GC CreateLineFillGC(Graph *graphPtr, XColor *foreground, XColor *background, Pixmap stipple) {
     unsigned long gcMask;
@@ -2645,6 +2836,10 @@ static GC CreateLineFillGC(Graph *graphPtr, XColor *foreground, XColor *backgrou
  * Releases a staged real pattern, any tile client and any candidate GC. Does
  * not free the live line resources or Tk-managed color options. Safe after
  * commit because moved ownership is cleared. Requires the owning display.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live display for candidate bitmap and GC release.
+ * @param[in,out] transactionPtr Initialized, possibly empty or committed transaction; remaining owned
+ *   candidates are released and the record is zeroed.
  */
 static void FreeLineAreaTransaction(Graph *graphPtr, LineAreaTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & LINE_AREA_OPTION_MASK(LINE_AREA_OPTION_PATTERN)) {
@@ -2669,6 +2864,16 @@ static void FreeLineAreaTransaction(Graph *graphPtr, LineAreaTransaction *transa
  * Builds a GC using the staged or retained stipple and colors already installed
  * by Tk_SetOptions. Failure frees staged resources and leaves live derived
  * resources unchanged; the caller remains responsible for Tk option rollback.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in] elemPtr Borrowed core of linePtr supplying validated ordered option/value pairs and
+ *   initial-configuration state.
+ * @param[in] linePtr Borrowed line corresponding to elemPtr, with candidate Tk option values installed and
+ *   current derived resources still retained.
+ * @param[out] transactionPtr Fresh transaction storage with no owned candidates; initialized here. Commit only
+ *   after TCL_OK; failure state is described above.
+ * @param[in] band Nonzero selects error-band resources; zero selects ordinary area-fill resources.
  */
 static int PrepareLineAreaTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
                                       LineAreaTransaction *transactionPtr, int band) {
@@ -2760,6 +2965,13 @@ error:
  * present, releasing displaced resources. Installs TileChangedProc on a new tile
  * or ensures it is installed on the retained tile. Clears moved candidates and
  * stagedMask for cleanup. No parsing, geometry mapping or redraw is performed.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live display for displaced bitmap and GC release.
+ * @param[in,out] linePtr Live destination line; prepared candidate fields replace the corresponding committed
+ *   fields, releasing displaced resources.
+ * @param[in,out] transactionPtr Successfully prepared transaction; moved ownership or staged bits are cleared
+ *   for subsequent cleanup.
+ * @param[in] band Nonzero selects error-band resources; zero selects ordinary area-fill resources.
  */
 static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTransaction *transactionPtr, int band) {
     Pixmap *stipplePtr = band ? &linePtr->errorBand.stipple : &linePtr->fillStipple;
@@ -2812,6 +3024,11 @@ static void CommitLineAreaTransaction(Graph *graphPtr, Line *linePtr, LineAreaTr
  *
  * Clears each released handle to None; repeated cleanup is safe. Leaves the
  * symbol type untouched. The caller supplies the bitmap display context.
+ *
+ * @param[in] display Borrowed display on which the bitmap references were acquired; must remain live through
+ *   release.
+ * @param[in,out] symbolPtr Initialized symbol holding owned bitmap/mask references or None; handles are cleared
+ *   but type is retained.
  */
 static void FreeParsedSymbol(Display *display, ParsedSymbol *symbolPtr) {
     if (symbolPtr->bitmap != None) {
@@ -2834,6 +3051,13 @@ static void FreeParsedSymbol(Display *display, ParsedSymbol *symbolPtr) {
  * Otherwise accepts a one- or two-item bitmap list. A missing mask releases the
  * already acquired bitmap before returning TCL_ERROR. Success transfers owned
  * bitmap/mask references to the caller; mask dimensions are not validated here.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] tkwin Borrowed live Tk window supplying the display and resource lookup context.
+ * @param[in] objPtr Required borrowed symbol specification; empty disables symbols, otherwise a built-in name
+ *   or bitmap/mask list.
+ * @param[out] symbolPtr Fresh nonowning output record, initialized here; successful bitmap references must be
+ *   transferred or freed.
  */
 static int GetSymbolFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr, ParsedSymbol *symbolPtr) {
     const char *string;
@@ -2939,6 +3163,10 @@ static int GetSymbolFromObj(Tcl_Interp *interp, Tk_Window tkwin, Tcl_Obj *objPtr
  * Accepts linear, step, natural, cubic, quadratic and catrom; cubic aliases
  * natural. No prefix matching is performed. Writes valuePtr only on success.
  * Failure returns TCL_ERROR with a diagnostic listing all accepted names.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] string Required borrowed NUL-terminated exact smoothing name.
+ * @param[out] valuePtr Required smoothing output, assigned only on TCL_OK.
  */
 static int GetSmoothFromString(Tcl_Interp *interp, const char *string, Smoothing *valuePtr) {
     SmoothingInfo *siPtr;
@@ -2960,6 +3188,10 @@ static int GetSmoothFromString(Tcl_Interp *interp, const char *string, Smoothing
  *
  * Delegates to GetSmoothFromString without retaining or evaluating the object.
  * Leaves the output unchanged on parse failure.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Required borrowed Tcl object whose string is parsed; NULL is not accepted.
+ * @param[out] valuePtr Required smoothing output, assigned only on TCL_OK.
  */
 static int GetSmoothFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Smoothing *valuePtr) {
     return GetSmoothFromString(interp, Tcl_GetString(objPtr), valuePtr);
@@ -2972,6 +3204,10 @@ static int GetSmoothFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, Smoothing *valu
  * The leading i/d/b selects the candidate; longer-than-name strings are rejected.
  * Writes penDirPtr only on success, otherwise returns TCL_ERROR with a diagnostic.
  * Does not alter traces or mapped geometry.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] string Required borrowed NUL-terminated trace-direction prefix; empty is invalid.
+ * @param[out] penDirPtr Required trace-direction output, assigned only on TCL_OK.
  */
 static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penDirPtr) {
     size_t length;
@@ -2999,6 +3235,10 @@ static int GetPenDirFromString(Tcl_Interp *interp, const char *string, int *penD
  *
  * Delegates to GetPenDirFromString without retaining the object or evaluating
  * an expression. Returns the delegated Tcl status.
+ *
+ * @param[in,out] interp Borrowed interpreter for lookup and diagnostics; see @ref rbc_interp_argument.
+ * @param[in] objPtr Required borrowed Tcl object whose string is parsed; NULL is not accepted.
+ * @param[out] penDirPtr Required trace-direction output, assigned only on TCL_OK.
  */
 static int GetPenDirFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *penDirPtr) {
     return GetPenDirFromString(interp, Tcl_GetString(objPtr), penDirPtr);
@@ -3012,6 +3252,13 @@ static int GetPenDirFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *penDirPtr)
  * their dedicated name parsers. Conversion failure leaves that candidate field
  * and mask unchanged. An invalid option enum is an internal programming error
  * and calls Tcl_Panic. Does not modify the live line or schedule redraw.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in] objPtr Required borrowed value for the selected scalar; conversion does not retain it.
+ * @param[in] option Recognized MAX_SYMBOLS, SMOOTH or TRACE discriminator; NONE is a programming error.
+ * @param[in,out] transactionPtr Initialized transaction owning any earlier candidates; successful staging
+ *   replaces only the selected candidate, preserving live line state.
  */
 static int StageLineScalarOption(Graph *graphPtr, Tcl_Obj *objPtr, LineScalarOption option,
                                  LineScalarTransaction *transactionPtr) {
@@ -3055,6 +3302,15 @@ static int StageLineScalarOption(Graph *graphPtr, Tcl_Obj *objPtr, LineScalarOpt
  * their traceObjPtr remains NULL. Failure may leave earlier staged scalar values
  * in the transaction, but owns no resources to release and changes no live field.
  * The caller must not commit a failed transaction.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in] elemPtr Borrowed core of linePtr supplying validated ordered option/value pairs and
+ *   initial-configuration state.
+ * @param[in] linePtr Borrowed line corresponding to elemPtr, with candidate Tk option values installed and
+ *   current derived resources still retained.
+ * @param[out] transactionPtr Fresh transaction storage with no owned candidates; initialized here. Commit only
+ *   after TCL_OK; failure state is described above.
  */
 static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line *linePtr,
                                         LineScalarTransaction *transactionPtr) {
@@ -3129,6 +3385,11 @@ static int PrepareLineScalarTransaction(Graph *graphPtr, Element *elemPtr, Line 
  * to penDir only when their bits are present. Clears stagedMask afterward.
  * Values are already validated; mapping, redraw and effective smoothing selection
  * belong to later stages, not this commit helper.
+ *
+ * @param[in,out] linePtr Live destination line; prepared candidate fields replace the corresponding committed
+ *   fields, releasing displaced resources.
+ * @param[in,out] transactionPtr Successfully prepared transaction; moved ownership or staged bits are cleared
+ *   for subsequent cleanup.
  */
 static void CommitLineScalarTransaction(Line *linePtr, LineScalarTransaction *transactionPtr) {
     if (transactionPtr->stagedMask & LINE_SCALAR_OPTION_MASK(LINE_SCALAR_OPTION_MAX_SYMBOLS)) {
@@ -3149,6 +3410,9 @@ static void CommitLineScalarTransaction(Line *linePtr, LineScalarTransaction *tr
  *
  * Zeros each style's symbol, strip and X/Y error-bar counts. Array pointers
  * and pen references remain unchanged; the owning line releases shared geometry.
+ *
+ * @param[in,out] palette Valid chain of line-style records; only their geometry counts are zeroed, not pointers
+ *   or pen references.
  */
 static void ClearPalette(Rbc_Chain *palette) {
     register LinePenStyle *stylePtr;
@@ -3175,6 +3439,11 @@ static void ClearPalette(Rbc_Chain *palette) {
  * Uses Tk-managed symbol, text and error-bar GCs but a private trace GC,
  * including its dash state. Bitmap symbols retain their mask/background
  * semantics. Does not map geometry or schedule drawing.
+ *
+ * @param[in] graphPtr Borrowed owning graph supplying the live window, display and interpreter for resource
+ *   operations.
+ * @param[in,out] penPtr Live line-pen core with candidate Tk option values installed; derived resources are
+ *   replaced only after conversion succeeds.
  */
 static int ConfigurePen(Graph *graphPtr, Pen *penPtr) {
     LinePen *lpPtr;
@@ -3461,6 +3730,10 @@ error:
  * and mask, and separately retained colors. Clears released fields.
  * Does not free the pen record or its Tk option values; outer pen teardown
  * owns those. Requires the graph display to remain valid.
+ *
+ * @param[in] graphPtr Borrowed owning graph whose display remains live while pen drawing resources are released.
+ * @param[in,out] penPtr Line-pen core whose derived resources are released and cleared; record and Tk option
+ *   ownership remain with the caller.
  */
 static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
     LinePen *lpPtr;
@@ -3518,6 +3791,11 @@ static void DestroyPen(Graph *graphPtr, Pen *penPtr) {
  * baseline symbol, error-bar and value-label settings. Does not zero the
  * whole record, initialize Tk options, or allocate GCs. The initial empty
  * name is borrowed; the factory replaces it with owned storage.
+ *
+ * @param[in,out] penPtr Caller-owned zero-allocated line pen; initialization does not release any preexisting
+ *   resources.
+ * @param[in] optionSpecs Required persistent Tk option specification table, retained by pointer.
+ * @param[in] flags Initial pen flags copied to the core, normally NORMAL_PEN or ACTIVE_PEN.
  */
 static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned int flags) {
     Pen *corePtr;
@@ -3553,6 +3831,9 @@ static void InitPen(LinePen *penPtr, const Tk_OptionSpec *optionSpecs, unsigned 
  * select normal specifications. Duplicates the name and returns the embedded
  * Pen pointer. Allocation is asserted. Registry insertion, Tk option
  * initialization and configuration belong to the caller.
+ *
+ * @param[in] penName Required NUL-terminated name copied into owned storage; exact activeLine selects active
+ *   defaults.
  */
 Pen *Rbc_LinePen(const char *penName) {
     const Tk_OptionSpec *optionSpecs;
@@ -3597,6 +3878,11 @@ Pen *Rbc_LinePen(const char *penName) {
  * clear SCALE_SYMBOL. Clamps before integer conversion to at least one and
  * at most the smaller graph screen range, then chooses an odd size without
  * exceeding that cap. Does not allocate or invoke Tcl.
+ *
+ * @param[in,out] elemPtr Live element with current axes and viewport dimensions; baseline ranges and
+ *   SCALE_SYMBOL may be updated.
+ * @param[in] normalSize Unscaled requested symbol size in pixels; final output is bounded to the drawable range
+ *   and made odd.
  */
 static int ScaleSymbol(Element *elemPtr, int normalSize) {
     double scale;
@@ -3696,6 +3982,12 @@ static int ScaleSymbol(Element *elemPtr, int normalSize) {
  * Transfers the point, index and optional break arrays to the map on success.
  * Checked-size or allocation failure frees candidates and leaves an empty
  * map without an interpreter diagnostic.
+ *
+ * @param[in] graphPtr Borrowed graph with the element or track viewport and axis mappings already installed.
+ * @param[in] linePtr Borrowed line with synchronized source arrays and assigned axes; no source ownership is
+ *   transferred.
+ * @param[out] mapPtr Fresh nonowning map output; initialized empty, then receives owned parallel arrays to
+ *   release with ckfree.
  */
 static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Point2D *screenPts;
@@ -3815,6 +4107,9 @@ static void GetScreenPoints(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
  *
  * Returns screen X normally and screen Y when inverted. Does not undo axis
  * descending direction or perform an inverse transform. Borrows both inputs.
+ *
+ * @param[in] graphPtr Borrowed graph supplying only the inversion flag.
+ * @param[in] pointPtr Borrowed mapped point in graph-window pixels.
  */
 INLINE static double PixelAbscissa(Graph *graphPtr, const Point2D *pointPtr) {
     return graphPtr->inverted ? pointPtr->y : pointPtr->x;
@@ -3827,6 +4122,9 @@ INLINE static double PixelAbscissa(Graph *graphPtr, const Point2D *pointPtr) {
  * Returns screen Y normally and screen X when inverted. Pixel buckets use
  * its extrema to preserve the visible envelope. Does not change sign or
  * recover data coordinates.
+ *
+ * @param[in] graphPtr Borrowed graph supplying only the inversion flag.
+ * @param[in] pointPtr Borrowed mapped point in graph-window pixels.
  */
 INLINE static double PixelOrdinate(Graph *graphPtr, const Point2D *pointPtr) {
     return graphPtr->inverted ? pointPtr->x : pointPtr->y;
@@ -4566,6 +4864,10 @@ static void AppendPixelBucket(Tcl_Size first, Tcl_Size minIndex, Tcl_Size maxInd
  * Uses horizontal axis mapping normally and vertical mapping when inverted,
  * with the element's X axis and current graph viewport. Borrows graph/line
  * state; does not validate the source or establish the viewport.
+ *
+ * @param[in] graphPtr Borrowed graph with the active viewport and inversion state already installed.
+ * @param[in] linePtr Borrowed line supplying its prepared X axis.
+ * @param[in] x Raw data-X value, not a screen coordinate or logarithmic exponent.
  */
 INLINE static double MapLineDataAbscissa(Graph *graphPtr, Line *linePtr, double x) {
     if (graphPtr->inverted) {
@@ -5744,6 +6046,10 @@ static void DecimatePointsByPixels(Graph *graphPtr, MapInfo *mapPtr) {
  * and frees old arrays only after all replacement arrays are available.
  * Invalid counts, size/allocation failures, or unchanged selection leave the
  * original map intact. Does not modify source vectors or report Tcl errors.
+ *
+ * @param[in,out] mapPtr Caller-owned map with parallel point/index arrays and optional break flags; replaced
+ *   arrays are freed only after successful reduction.
+ * @param[in] tolerance Simplification distance in mapped screen pixels, passed unchanged to Rbc_SimplifyLine.
  */
 static void ReducePoints(MapInfo *mapPtr, double tolerance) {
     Point2D *screenPts;
@@ -5856,6 +6162,12 @@ static void ReducePoints(MapInfo *mapPtr, double tolerance) {
  * Transfers newly allocated arrays and frees the old map on success. On
  * size/allocation failure, retains old arrays and changes effective smooth
  * to PEN_SMOOTH_NONE; the requested smoothing option is unchanged.
+ *
+ * @param[in] graphPtr Borrowed graph supplying the inversion flag for the mapped coordinate roles.
+ * @param[in,out] linePtr Owning line whose effective smooth mode falls back to linear if replacement storage
+ *   cannot be allocated.
+ * @param[in,out] mapPtr Owned mapped point/index arrays with optional break flags; successful replacement
+ *   releases the original arrays.
  */
 static void GenerateSteps(Graph *graphPtr, Line *linePtr, MapInfo *mapPtr) {
     Point2D *screenPts;
@@ -6869,6 +7181,10 @@ static void FilterReducedSymbols(Line *linePtr, const MapInfo *mapPtr) {
  * Transfers candidate arrays only if points survive. Checked allocation
  * failure or an empty result leaves no active geometry. Clears ACTIVE_PENDING
  * on every exit, without changing the retained activation selection.
+ *
+ * @param[in] graphPtr Borrowed graph with the correct element or track viewport and prepared axis mappings.
+ * @param[in,out] linePtr Live line with synchronized sources, explicit active indices and configured pens;
+ *   active geometry is replaced and ACTIVE_PENDING cleared.
  */
 static void MapActiveSymbols(Graph *graphPtr, Line *linePtr) {
     Extents2D exts;
@@ -7333,6 +7649,9 @@ static void SaveTrace(Line *linePtr, Tcl_Size start, Tcl_Size length, MapInfo *m
  * Frees each trace's point and source-index arrays and the trace record,
  * then destroys the chain and clears its pointer. Does not release source
  * data or other mapped arrays.
+ *
+ * @param[in,out] linePtr Live line owning a trace chain or NULL; all trace allocations are freed and the chain
+ *   field is cleared.
  */
 static void FreeTraces(Line *linePtr) {
     Rbc_ChainLink *linkPtr;
@@ -7804,6 +8123,9 @@ static void MapErrorBand(Graph *graphPtr, Line *linePtr) {
  *
  * Retains source data, pens, activation indices and the source decimation
  * cache. This is a geometry reset, not complete element teardown.
+ *
+ * @param[in,out] linePtr Live line owning mapped arrays and traces; source slots, pens, active selection and
+ *   decimation cache remain retained.
  */
 static void ResetLine(Line *linePtr) {
     LineBandPolygon *polygonPtr;
@@ -7880,6 +8202,13 @@ static void ResetLine(Line *linePtr) {
  * parallel indices, and returns the retained count. All parts of a selected
  * bar, including caps, survive. The caller supplies valid source indices
  * and selection storage; this helper does not check bounds or allocate.
+ *
+ * @param[in,out] segments Writable array of count mapped segments; retained entries are compacted into its
+ *   prefix.
+ * @param[in,out] indices Writable parallel array of count original source indices, each valid for selected.
+ * @param[in] count Nonnegative number of initialized entries in both arrays.
+ * @param[in] selected Borrowed byte-selection table covering every supplied source index; nonzero retains the
+ *   corresponding segment.
  */
 static Tcl_Size FilterErrorBarSegments(Segment2D *segments, Tcl_Size *indices, Tcl_Size count,
                                        const unsigned char *selected) {
@@ -7906,6 +8235,11 @@ static Tcl_Size FilterErrorBarSegments(Segment2D *segments, Tcl_Size *indices, T
  * Borrows a valid data-to-style map. Allocates temporary selection storage
  * with checked byte count and ckalloc, then frees it. Does not resize the
  * segment allocations, change source data, or regenerate geometry.
+ *
+ * @param[in,out] linePtr Mapped line before palette regrouping; symbol/source indices are valid and X/Y segment
+ *   counts may shrink.
+ * @param[in] dataToStyle Borrowed style-pointer array indexed by every source point used by the symbol map;
+ *   records belong to the palette.
  */
 static void FilterLineErrorBars(Line *linePtr, PenStyle **dataToStyle) {
     Element *elemPtr = &linePtr->core;
@@ -8607,6 +8941,10 @@ static void GetLineExtents(Element *elemPtr, Extents2D *extsPtr) {
  * exists, sets REDRAW_WORLD and REDRAW_BACKING_STORE and queues redraw. Does not
  * filter hidden elements, remap source data or synchronously draw. Resource
  * teardown must detach tile clients before their owner storage is released.
+ *
+ * @param[in,out] clientData Stable owning Line pointer whose graph remains live; tile-client teardown precedes
+ *   owner disposal.
+ * @param[in] tile Unused notifying tile handle; callback registration already identifies the owner.
  */
 static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
     Line *linePtr = clientData;
@@ -8637,6 +8975,11 @@ static void TileChangedProc(ClientData clientData, Rbc_Tile tile) {
  * Error cleanup releases still-owned staged resources and returns TCL_ERROR.
  * It does not undo already committed derived state, restore Tk options itself,
  * or make application callbacks during parsing generally reentrant.
+ *
+ * @param[in,out] graphPtr Borrowed owning graph; staged resource operations use its live window and
+ *   interpreter, and commits may update graph state.
+ * @param[in,out] elemPtr Live line-family core with Tk candidates and changed-option metadata installed; caller
+ *   owns rollback of those Tk values on error.
  */
 static int ConfigureLine(Graph *graphPtr, Element *elemPtr) {
     Line *linePtr;
@@ -10353,6 +10696,10 @@ static void NormalLineExport(Graph *graphPtr, Rbc_ExportContext *exportPtr, Elem
  * The common element lifecycle guards this callback against repeated teardown;
  * not every field is cleared here. It owns record/name and Tk option cleanup
  * outside this callback. Requires a live display for drawing-resource release.
+ *
+ * @param[in] graphPtr Borrowed owning graph with live display and pen registry throughout element-resource teardown.
+ * @param[in,out] elemPtr Line-family core being torn down once by the common lifecycle; this call releases
+ *   contents but not the record or names.
  */
 static void DestroyLine(Graph *graphPtr, Element *elemPtr) {
     Line *linePtr;
@@ -10455,6 +10802,11 @@ static ElementProcs polarLineProcs = {
  * Starts with XY data, no requested smoothing and pending symbol-scale
  * baseline capture. Caller owns registration, Tk option initialization and
  * configuration of the returned embedded Element pointer.
+ *
+ * @param[in] graphPtr Borrowed owning graph retained by pointer in the new element; must outlive the element.
+ * @param[in] name Required NUL-terminated element name, duplicated for both name and initial label.
+ * @param[in] classUid Interned line, polar or strip element class; line/polar have explicit branches and other
+ *   values select strip specifications.
  */
 Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     Line *linePtr;
@@ -10511,6 +10863,9 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
  * font. Shared named pens are visited through the registry rather than once
  * per element. Borrows a live graph/window; does not itself schedule redraw
  * or layout.
+ *
+ * @param[in,out] graphPtr Live graph with initialized pen/element registries and Tk window; cached value-label
+ *   styles are reset.
  */
 void Rbc_LineFontsChanged(Graph *graphPtr) {
     Tcl_HashSearch iter;

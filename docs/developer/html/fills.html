@@ -43,32 +43,32 @@
             
   <section id="area-fills-and-error-bands">
 <h1>Area fills and error bands<a class="headerlink" href="#area-fills-and-error-bands" title="Link to this heading">¶</a></h1>
-<p>Line elements keep ordinary area fills and uncertainty bands as separate
-geometry. Both are implemented in <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code> and use renderer polygon
-services, but their input, closure and continuity rules differ. Selected
-private contracts are in <a class="reference internal" href="fill-reference.html"><span class="doc">Line fill C reference</span></a>.</p>
+<p>Line elements keep ordinary area fills and uncertainty bands as separate geometry. Both
+are implemented in <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code> and use renderer polygon services, but their input,
+closure and continuity rules differ. Selected private contracts are in
+<a class="reference internal" href="fill-reference.html"><span class="doc">Line fill C reference</span></a>.</p>
 <section id="resources-and-configuration">
 <h2>Resources and configuration<a class="headerlink" href="#resources-and-configuration" title="Link to this heading">¶</a></h2>
 <p>An area and a band each have independent colors, pattern, tile, opacity and GC.
 A pattern is <code class="docutils literal notranslate"><span class="pre">None</span></code> for disabled, the <code class="docutils literal notranslate"><span class="pre">PATTERN_SOLID</span></code> sentinel for solid,
 or a retained Tk bitmap. Only actual bitmaps are passed to <code class="docutils literal notranslate"><span class="pre">Tk_FreeBitmap</span></code>.
 Tiles are retained RBC tile clients, not element-owned Tk image commands.</p>
-<p><code class="docutils literal notranslate"><span class="pre">PrepareLineAreaTransaction</span></code> stages pattern and tile acquisition and builds
-a candidate GC. It handles initial defaults/option-database values and checks
-explicit occurrences in their original order. A failed later option releases
-the staged resources without replacing the live ones. Commit transfers resource
-ownership, installs the tile-change callback on the stable line record and
-releases replaced resources. This follows <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a>, rather than
-relying on Tk option rollback to undo derived-resource changes.</p>
+<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.PrepareLineAreaTransaction" title="rbcGrLineOptions.PrepareLineAreaTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.PrepareLineAreaTransaction()</span></code></a> stages pattern and tile
+acquisition and builds a candidate GC. It handles initial defaults/option-database
+values and checks explicit occurrences in their original order. A failed later option
+releases the staged resources without replacing the live ones. Commit transfers resource
+ownership, installs the tile-change callback on the stable line record and releases
+replaced resources. This follows <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a>, rather than relying on Tk option
+rollback to undo derived-resource changes.</p>
 <p>Both opacity values must be finite and within zero to one. Enabled error bands
 require Cartesian axes and linear or step smoothing; configuration rejects
 other smoothing modes. Ordinary area fills also support polar elements and
 can follow their parametric smoothing. The shared implementation does not mean
 that every concrete element exposes every fill option.</p>
-<p><code class="docutils literal notranslate"><span class="pre">TileChangedProc</span></code> schedules graph/backing-store redisplay while the Tk window
-exists. <code class="docutils literal notranslate"><span class="pre">DestroyLine</span></code> releases tile clients, real pattern bitmaps and derived
-GCs. It does not destroy the application’s source images. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a>
-for tile notification and resource lifetime.</p>
+<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.TileChangedProc" title="rbcGrLineOptions.TileChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.TileChangedProc()</span></code></a> schedules graph/backing-store redisplay while
+the Tk window exists. <a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.DestroyLine" title="rbcGrLineGeometry.DestroyLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.DestroyLine()</span></code></a> releases tile clients,
+real pattern bitmaps and derived GCs. It does not destroy the application’s source
+images. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for tile notification and resource lifetime.</p>
 </section>
 <section id="ordinary-area-geometry">
 <h2>Ordinary area geometry<a class="headerlink" href="#ordinary-area-geometry" title="Link to this heading">¶</a></h2>
@@ -164,52 +164,55 @@ mapped geometry. It preserves area-before-band ordering and supplies tiles
 through <code class="docutils literal notranslate"><span class="pre">Rbc_RenderSetFillTile</span></code>. PostScript retains its opaque/tile-background
 policy; format capabilities remain the renderer’s responsibility. See
 <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">ResetLine</span></code> frees every band node and its points, then frees and zeros the
-ordinary fill. It runs before mapping can return early, so shortened or empty
-data cannot leave a stale polygon on screen. Mapping helpers assume this reset
-has happened; they are not replacement APIs for an already populated list.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.ResetLine" title="rbcGrLineGeometry.ResetLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.ResetLine()</span></code></a> frees every band node and its points, then frees
+and zeros the ordinary fill. It runs before mapping can return early, so shortened or
+empty data cannot leave a stale polygon on screen. Mapping helpers assume this reset has
+happened; they are not replacement APIs for an already populated list.</p>
 </section>
 <section id="pattern-and-tile-transaction-details">
 <h2>Pattern and tile transaction details<a class="headerlink" href="#pattern-and-tile-transaction-details" title="Link to this heading">¶</a></h2>
-<p>GetLineAreaOption resolves canonical names using the concrete element option
-table. The same transaction code handles ordinary area and error-band resources,
-selected by its band argument. This shares ownership machinery, not option
+<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetLineAreaOption" title="rbcGrLineOptions.GetLineAreaOption"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetLineAreaOption()</span></code></a> resolves canonical names using the concrete
+element option table. The same transaction code handles ordinary area and error-band
+resources, selected by its band argument. This shares ownership machinery, not option
 availability or geometry rules.</p>
 <p>Pattern parsing has three results: empty/NULL means None, exact solid means
-PATTERN_SOLID, and other strings acquire a Tk bitmap. GetPatternFromString writes
-its output only after successful lookup. FreeLinePattern releases only actual
-bitmap references. Tile parsing similarly treats empty/NULL as a staged clear;
-nonempty input acquires a client through Rbc_GetTile. Both staging helpers acquire
-the new resource before releasing an earlier candidate, preserving that candidate
-if the replacement fails.</p>
-<p>PrepareLineAreaTransaction initializes fresh candidate storage. Initial defaults
-are considered only for fields not explicitly supplied; explicit repetitions
-are processed in caller order. A bad early pattern or tile still fails even if
-a later occurrence would replace it. The fill colors are already managed by Tk’s
-saved-option transaction and are borrowed by this preparation step.</p>
-<p>CreateLineFillGC sets foreground/background pixels only for non-NULL colors. A
-real bitmap selects transparent stippling without a background or opaque
-stippling with one. None and PATTERN_SOLID leave stippling disabled. The GC’s
-existence does not itself mean an area will be drawn: geometry and draw dispatch
-still determine that. Opacity and tile rendering are not implemented by this GC
-constructor.</p>
-<p>Commit transfers staged resources, installs tile notifications on the stable
-line record, and releases the displaced resources. An unchanged retained tile
-also receives the callback if needed. Moved candidate fields and the staged mask
-are cleared so subsequent transaction cleanup is safe. Cleanup frees only the
-resources it still owns; it never destroys the application’s image command or
-frees the Tk-owned fill colors. A tile change requests redisplay while the graph
-window exists, even if the element is hidden. It does not draw synchronously.</p>
+PATTERN_SOLID, and other strings acquire a Tk bitmap.
+<a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetPatternFromString" title="rbcGrLineOptions.GetPatternFromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetPatternFromString()</span></code></a> writes its output only after successful
+lookup. <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.FreeLinePattern" title="rbcGrLineOptions.FreeLinePattern"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.FreeLinePattern()</span></code></a> releases only actual bitmap
+references. Tile parsing similarly treats empty/NULL as a staged clear; nonempty input
+acquires a client through Rbc_GetTile. <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.StageLineAreaPattern" title="rbcGrLineOptions.StageLineAreaPattern"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.StageLineAreaPattern()</span></code></a>
+and <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.StageLineAreaTile" title="rbcGrLineOptions.StageLineAreaTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.StageLineAreaTile()</span></code></a> acquire the new resource before
+releasing an earlier candidate, preserving that candidate if the replacement fails.</p>
+<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.PrepareLineAreaTransaction" title="rbcGrLineOptions.PrepareLineAreaTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.PrepareLineAreaTransaction()</span></code></a> initializes fresh candidate
+storage. Initial defaults are considered only for fields not explicitly supplied;
+explicit repetitions are processed in caller order. A bad early pattern or tile still
+fails even if a later occurrence would replace it. The fill colors are already managed
+by Tk’s saved-option transaction and are borrowed by this preparation step.</p>
+<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.CreateLineFillGC" title="rbcGrLineOptions.CreateLineFillGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.CreateLineFillGC()</span></code></a> sets foreground/background pixels only for
+non-NULL colors. A real bitmap selects transparent stippling without a background or
+opaque stippling with one. None and PATTERN_SOLID leave stippling disabled. The GC’s
+existence does not itself mean an area will be drawn: geometry and draw dispatch still
+determine that. Opacity and tile rendering are not implemented by this GC constructor.</p>
+<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.CommitLineAreaTransaction" title="rbcGrLineOptions.CommitLineAreaTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.CommitLineAreaTransaction()</span></code></a> transfers staged resources,
+installs tile notifications on the stable line record, and releases the displaced
+resources. An unchanged retained tile also receives the callback if needed. Moved
+candidate fields and the staged mask are cleared so subsequent
+<a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.FreeLineAreaTransaction" title="rbcGrLineOptions.FreeLineAreaTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.FreeLineAreaTransaction()</span></code></a> cleanup is safe. Cleanup frees only
+the resources it still owns; it never destroys the application’s image command or frees
+the Tk-owned fill colors. A tile change requests redisplay while the graph window
+exists, even if the element is hidden. It does not draw synchronously.</p>
 </section>
 <section id="adjacent-scalar-and-symbol-parsing">
 <h2>Adjacent scalar and symbol parsing<a class="headerlink" href="#adjacent-scalar-and-symbol-parsing" title="Link to this heading">¶</a></h2>
 <p>Line scalar configuration separately stages maxsymbols, smooth and trace values.
-GetLineScalarOption recognizes canonical option identities after Tk has validated
-the names. PrepareLineScalarTransaction follows the same default-versus-explicit
-ordering as resource transactions. Failed preparation can retain earlier staged
-numbers, but owns no resources requiring cleanup; those numbers must not be
-committed. Commit copies only marked fields and clears the mask, leaving mapping
-and redraw to the enclosing configuration operation.</p>
+<a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetLineScalarOption" title="rbcGrLineOptions.GetLineScalarOption"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetLineScalarOption()</span></code></a> recognizes canonical option identities
+after Tk has validated the names.
+<a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.PrepareLineScalarTransaction" title="rbcGrLineOptions.PrepareLineScalarTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.PrepareLineScalarTransaction()</span></code></a> follows the same
+default-versus-explicit ordering as resource transactions. Failed preparation can retain
+earlier staged numbers, but owns no resources requiring cleanup; those numbers must not
+be committed. <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.CommitLineScalarTransaction" title="rbcGrLineOptions.CommitLineScalarTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.CommitLineScalarTransaction()</span></code></a> copies only marked
+fields and clears the mask, leaving mapping and redraw to the enclosing configuration
+operation.</p>
 <p>The parsers deliberately preserve their existing differences:</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Scalar parsing rules</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
@@ -230,16 +233,20 @@ and redraw to the enclosing configuration operation.</p>
 </tr>
 </tbody>
 </table>
-<p>The smoothing failure diagnostic lists all accepted names, including the cubic
-alias and catrom. Matching remains exact; the diagnostic does not change parsing.</p>
-<p>GetSymbolFromObj initializes a fresh ParsedSymbol rather than releasing an old
-one. Empty input disables symbols. Geometric names use legacy prefix rules:
-none, diamond, plus, triangle and arrow accept one-character prefixes; circle,
+<p>The string parsers <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetSmoothFromString" title="rbcGrLineOptions.GetSmoothFromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetSmoothFromString()</span></code></a> and
+<a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetPenDirFromString" title="rbcGrLineOptions.GetPenDirFromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetPenDirFromString()</span></code></a> leave their outputs unchanged on failure;
+their object adapters borrow required, non-NULL Tcl objects. The smoothing failure
+diagnostic lists all accepted names, including the cubic alias and catrom. Matching
+remains exact; the diagnostic does not change parsing.</p>
+<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetSymbolFromObj" title="rbcGrLineOptions.GetSymbolFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetSymbolFromObj()</span></code></a> initializes a fresh ParsedSymbol rather than
+releasing an old one. Empty input disables symbols. Geometric names use legacy prefix
+rules: none, diamond, plus, triangle and arrow accept one-character prefixes; circle,
 cross, square, splus and scross require at least two characters. Matching is
-case-sensitive. Other input is parsed as a one- or two-item bitmap/mask list.
-The bitmap is released if mask lookup fails, and success transfers both acquired
-references to the result. This parser does not validate bitmap/mask dimensions.
-FreeParsedSymbol clears released handles but leaves the type field unchanged.</p>
+case-sensitive. Other input is parsed as a one- or two-item bitmap/mask list. The bitmap
+is released if mask lookup fails, and success transfers both acquired references to the
+result. This parser does not validate bitmap/mask dimensions.
+<a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.FreeParsedSymbol" title="rbcGrLineOptions.FreeParsedSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.FreeParsedSymbol()</span></code></a> clears released handles but leaves the type
+field unchanged.</p>
 </section>
 </section>
 

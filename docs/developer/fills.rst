@@ -1,10 +1,10 @@
 Area fills and error bands
 ==========================
 
-Line elements keep ordinary area fills and uncertainty bands as separate
-geometry. Both are implemented in ``rbcGrLine.c`` and use renderer polygon
-services, but their input, closure and continuity rules differ. Selected
-private contracts are in :doc:`fill-reference`.
+Line elements keep ordinary area fills and uncertainty bands as separate geometry. Both
+are implemented in ``rbcGrLine.c`` and use renderer polygon services, but their input,
+closure and continuity rules differ. Selected private contracts are in
+:doc:`fill-reference`.
 
 Resources and configuration
 ---------------------------
@@ -14,13 +14,13 @@ A pattern is ``None`` for disabled, the ``PATTERN_SOLID`` sentinel for solid,
 or a retained Tk bitmap. Only actual bitmaps are passed to ``Tk_FreeBitmap``.
 Tiles are retained RBC tile clients, not element-owned Tk image commands.
 
-``PrepareLineAreaTransaction`` stages pattern and tile acquisition and builds
-a candidate GC. It handles initial defaults/option-database values and checks
-explicit occurrences in their original order. A failed later option releases
-the staged resources without replacing the live ones. Commit transfers resource
-ownership, installs the tile-change callback on the stable line record and
-releases replaced resources. This follows :doc:`configuration`, rather than
-relying on Tk option rollback to undo derived-resource changes.
+:c:func:`rbcGrLineOptions.PrepareLineAreaTransaction` stages pattern and tile
+acquisition and builds a candidate GC. It handles initial defaults/option-database
+values and checks explicit occurrences in their original order. A failed later option
+releases the staged resources without replacing the live ones. Commit transfers resource
+ownership, installs the tile-change callback on the stable line record and releases
+replaced resources. This follows :doc:`configuration`, rather than relying on Tk option
+rollback to undo derived-resource changes.
 
 Both opacity values must be finite and within zero to one. Enabled error bands
 require Cartesian axes and linear or step smoothing; configuration rejects
@@ -28,10 +28,10 @@ other smoothing modes. Ordinary area fills also support polar elements and
 can follow their parametric smoothing. The shared implementation does not mean
 that every concrete element exposes every fill option.
 
-``TileChangedProc`` schedules graph/backing-store redisplay while the Tk window
-exists. ``DestroyLine`` releases tile clients, real pattern bitmaps and derived
-GCs. It does not destroy the application's source images. See :doc:`images-tiles`
-for tile notification and resource lifetime.
+:c:func:`rbcGrLineOptions.TileChangedProc` schedules graph/backing-store redisplay while
+the Tk window exists. :c:func:`rbcGrLineGeometry.DestroyLine` releases tile clients,
+real pattern bitmaps and derived GCs. It does not destroy the application's source
+images. See :doc:`images-tiles` for tile notification and resource lifetime.
 
 Ordinary area geometry
 ----------------------
@@ -135,58 +135,61 @@ through ``Rbc_RenderSetFillTile``. PostScript retains its opaque/tile-background
 policy; format capabilities remain the renderer's responsibility. See
 :doc:`rendering` and :doc:`exports`.
 
-``ResetLine`` frees every band node and its points, then frees and zeros the
-ordinary fill. It runs before mapping can return early, so shortened or empty
-data cannot leave a stale polygon on screen. Mapping helpers assume this reset
-has happened; they are not replacement APIs for an already populated list.
+:c:func:`rbcGrLineGeometry.ResetLine` frees every band node and its points, then frees
+and zeros the ordinary fill. It runs before mapping can return early, so shortened or
+empty data cannot leave a stale polygon on screen. Mapping helpers assume this reset has
+happened; they are not replacement APIs for an already populated list.
 
 Pattern and tile transaction details
 ------------------------------------
 
-GetLineAreaOption resolves canonical names using the concrete element option
-table. The same transaction code handles ordinary area and error-band resources,
-selected by its band argument. This shares ownership machinery, not option
+:c:func:`rbcGrLineOptions.GetLineAreaOption` resolves canonical names using the concrete
+element option table. The same transaction code handles ordinary area and error-band
+resources, selected by its band argument. This shares ownership machinery, not option
 availability or geometry rules.
 
 Pattern parsing has three results: empty/NULL means None, exact solid means
-PATTERN_SOLID, and other strings acquire a Tk bitmap. GetPatternFromString writes
-its output only after successful lookup. FreeLinePattern releases only actual
-bitmap references. Tile parsing similarly treats empty/NULL as a staged clear;
-nonempty input acquires a client through Rbc_GetTile. Both staging helpers acquire
-the new resource before releasing an earlier candidate, preserving that candidate
-if the replacement fails.
+PATTERN_SOLID, and other strings acquire a Tk bitmap.
+:c:func:`rbcGrLineOptions.GetPatternFromString` writes its output only after successful
+lookup. :c:func:`rbcGrLineOptions.FreeLinePattern` releases only actual bitmap
+references. Tile parsing similarly treats empty/NULL as a staged clear; nonempty input
+acquires a client through Rbc_GetTile. :c:func:`rbcGrLineOptions.StageLineAreaPattern`
+and :c:func:`rbcGrLineOptions.StageLineAreaTile` acquire the new resource before
+releasing an earlier candidate, preserving that candidate if the replacement fails.
 
-PrepareLineAreaTransaction initializes fresh candidate storage. Initial defaults
-are considered only for fields not explicitly supplied; explicit repetitions
-are processed in caller order. A bad early pattern or tile still fails even if
-a later occurrence would replace it. The fill colors are already managed by Tk's
-saved-option transaction and are borrowed by this preparation step.
+:c:func:`rbcGrLineOptions.PrepareLineAreaTransaction` initializes fresh candidate
+storage. Initial defaults are considered only for fields not explicitly supplied;
+explicit repetitions are processed in caller order. A bad early pattern or tile still
+fails even if a later occurrence would replace it. The fill colors are already managed
+by Tk's saved-option transaction and are borrowed by this preparation step.
 
-CreateLineFillGC sets foreground/background pixels only for non-NULL colors. A
-real bitmap selects transparent stippling without a background or opaque
-stippling with one. None and PATTERN_SOLID leave stippling disabled. The GC's
-existence does not itself mean an area will be drawn: geometry and draw dispatch
-still determine that. Opacity and tile rendering are not implemented by this GC
-constructor.
+:c:func:`rbcGrLineOptions.CreateLineFillGC` sets foreground/background pixels only for
+non-NULL colors. A real bitmap selects transparent stippling without a background or
+opaque stippling with one. None and PATTERN_SOLID leave stippling disabled. The GC's
+existence does not itself mean an area will be drawn: geometry and draw dispatch still
+determine that. Opacity and tile rendering are not implemented by this GC constructor.
 
-Commit transfers staged resources, installs tile notifications on the stable
-line record, and releases the displaced resources. An unchanged retained tile
-also receives the callback if needed. Moved candidate fields and the staged mask
-are cleared so subsequent transaction cleanup is safe. Cleanup frees only the
-resources it still owns; it never destroys the application's image command or
-frees the Tk-owned fill colors. A tile change requests redisplay while the graph
-window exists, even if the element is hidden. It does not draw synchronously.
+:c:func:`rbcGrLineOptions.CommitLineAreaTransaction` transfers staged resources,
+installs tile notifications on the stable line record, and releases the displaced
+resources. An unchanged retained tile also receives the callback if needed. Moved
+candidate fields and the staged mask are cleared so subsequent
+:c:func:`rbcGrLineOptions.FreeLineAreaTransaction` cleanup is safe. Cleanup frees only
+the resources it still owns; it never destroys the application's image command or frees
+the Tk-owned fill colors. A tile change requests redisplay while the graph window
+exists, even if the element is hidden. It does not draw synchronously.
 
 Adjacent scalar and symbol parsing
 -----------------------------------
 
 Line scalar configuration separately stages maxsymbols, smooth and trace values.
-GetLineScalarOption recognizes canonical option identities after Tk has validated
-the names. PrepareLineScalarTransaction follows the same default-versus-explicit
-ordering as resource transactions. Failed preparation can retain earlier staged
-numbers, but owns no resources requiring cleanup; those numbers must not be
-committed. Commit copies only marked fields and clears the mask, leaving mapping
-and redraw to the enclosing configuration operation.
+:c:func:`rbcGrLineOptions.GetLineScalarOption` recognizes canonical option identities
+after Tk has validated the names.
+:c:func:`rbcGrLineOptions.PrepareLineScalarTransaction` follows the same
+default-versus-explicit ordering as resource transactions. Failed preparation can retain
+earlier staged numbers, but owns no resources requiring cleanup; those numbers must not
+be committed. :c:func:`rbcGrLineOptions.CommitLineScalarTransaction` copies only marked
+fields and clears the mask, leaving mapping and redraw to the enclosing configuration
+operation.
 
 The parsers deliberately preserve their existing differences:
 
@@ -202,14 +205,18 @@ The parsers deliberately preserve their existing differences:
    * - trace
      - Nonempty prefixes of increasing, decreasing or both.
 
-The smoothing failure diagnostic lists all accepted names, including the cubic
-alias and catrom. Matching remains exact; the diagnostic does not change parsing.
+The string parsers :c:func:`rbcGrLineOptions.GetSmoothFromString` and
+:c:func:`rbcGrLineOptions.GetPenDirFromString` leave their outputs unchanged on failure;
+their object adapters borrow required, non-NULL Tcl objects. The smoothing failure
+diagnostic lists all accepted names, including the cubic alias and catrom. Matching
+remains exact; the diagnostic does not change parsing.
 
-GetSymbolFromObj initializes a fresh ParsedSymbol rather than releasing an old
-one. Empty input disables symbols. Geometric names use legacy prefix rules:
-none, diamond, plus, triangle and arrow accept one-character prefixes; circle,
+:c:func:`rbcGrLineOptions.GetSymbolFromObj` initializes a fresh ParsedSymbol rather than
+releasing an old one. Empty input disables symbols. Geometric names use legacy prefix
+rules: none, diamond, plus, triangle and arrow accept one-character prefixes; circle,
 cross, square, splus and scross require at least two characters. Matching is
-case-sensitive. Other input is parsed as a one- or two-item bitmap/mask list.
-The bitmap is released if mask lookup fails, and success transfers both acquired
-references to the result. This parser does not validate bitmap/mask dimensions.
-FreeParsedSymbol clears released handles but leaves the type field unchanged.
+case-sensitive. Other input is parsed as a one- or two-item bitmap/mask list. The bitmap
+is released if mask lookup fails, and success transfers both acquired references to the
+result. This parser does not validate bitmap/mask dimensions.
+:c:func:`rbcGrLineOptions.FreeParsedSymbol` clears released handles but leaves the type
+field unchanged.

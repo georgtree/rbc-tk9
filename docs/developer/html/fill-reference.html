@@ -146,147 +146,339 @@ with file-local names in other modules.</p>
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetLineScalarOption">
 <span class="target" id="group__line__option__transactions_1gae9b0086e6280045d1d035caac8730861"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">LineScalarOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLineScalarOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetLineScalarOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Identify a manually parsed scalar option by its canonical Tk name. </p>
-<p>Recognizes maxsymbols, smooth and trace; returns NONE for other options or unresolved names. The enclosing Tk option pass has already validated names and abbreviations. Does not parse the option value or change live fields. </p>
+<p>Recognizes maxsymbols, smooth and trace; returns NONE for other options or unresolved names. The enclosing Tk option pass has already validated names and abbreviations. Does not parse the option value or change live fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed element supplying the option table for canonical-name resolution. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object, already validated by the enclosing Tk option pass. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetLineAreaOption">
 <span class="target" id="group__line__option__transactions_1ga12cbf985e8b9e37136736d8aaf6fd580"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">LineAreaOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLineAreaOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">band</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetLineAreaOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Identify pattern or tile options for an area or error-band transaction. </p>
-<p>band selects errorbandpattern/errorbandtile instead of areapattern/areatile. Resolves canonical names through the element option table; returns NONE for other options. Tk has already checked ambiguous or unknown option names. </p>
+<p>band selects errorbandpattern/errorbandtile instead of areapattern/areatile. Resolves canonical names through the element option table; returns NONE for other options. Tk has already checked ambiguous or unknown option names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed element supplying the option table for canonical-name resolution. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed option-name object, already validated by the enclosing Tk option pass. </p></li>
+<li><p><strong>band</strong> – <strong>[in]</strong> Nonzero selects error-band resources; zero selects ordinary area-fill resources. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetPatternFromString">
 <span class="target" id="group__line__option__transactions_1ga4a84aa545ea3b531c915b8de219bf5c0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPatternFromString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stipplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetPatternFromString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a fill pattern without modifying live element resources. </p>
-<p>NULL or empty text yields None; exact solid yields PATTERN_SOLID. Other text is a Tk bitmap name and acquires a bitmap reference. Assigns stipplePtr only on success. Returns TCL_ERROR with the bitmap diagnostic on lookup failure. Only a real bitmap result requires Tk_FreeBitmap; sentinels do not. </p>
+<p>NULL or empty text yields None; exact solid yields PATTERN_SOLID. Other text is a Tk bitmap name and acquires a bitmap reference. Assigns stipplePtr only on success. Returns TCL_ERROR with the bitmap diagnostic on lookup failure. Only a real bitmap result requires Tk_FreeBitmap; sentinels do not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying the display and resource lookup context. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Borrowed NUL-terminated bitmap name or exact solid; NULL or empty selects None. </p></li>
+<li><p><strong>stipplePtr</strong> – <strong>[out]</strong> Required pattern output, assigned only on TCL_OK; real bitmap ownership transfers to the caller. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetPatternFromObj">
 <span class="target" id="group__line__option__transactions_1ga5d2bc5bafe542fd4652eccec976055a5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPatternFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">stipplePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetPatternFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a borrowed Tcl pattern object through GetPatternFromString. </p>
-<p>NULL is treated as empty. Does not retain the object; successful bitmap ownership belongs to the caller and must be released or transferred. </p>
+<p>NULL is treated as empty. Does not retain the object; successful bitmap ownership belongs to the caller and must be released or transferred.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying the display and resource lookup context. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed pattern specification, or NULL for None; no object reference is acquired. </p></li>
+<li><p><strong>stipplePtr</strong> – <strong>[out]</strong> Required pattern output, assigned only on TCL_OK; real bitmap ownership transfers to the caller. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.FreeLinePattern">
 <span class="target" id="group__line__option__transactions_1ga10c1c2f6b05448fe5a050f29a7d05282"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLinePattern</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.FreeLinePattern" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release an owned bitmap pattern, excluding None and PATTERN_SOLID. </p>
-<p>Does not modify the caller’s field. Requires the bitmap’s display context; callers must clear or replace ownership to avoid a second release. </p>
+<p>Does not modify the caller’s field. Requires the bitmap’s display context; callers must clear or replace ownership to avoid a second release.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display on which the bitmap references were acquired; must remain live through release. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Owned bitmap reference to release, or None/PATTERN_SOLID for no action. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.StageLineAreaPattern">
 <span class="target" id="group__line__option__transactions_1ga8246996b8e09afb50345040577817471"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageLineAreaPattern</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">LineAreaTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.StageLineAreaPattern" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a replacement stipple before releasing an earlier candidate. </p>
-<p>Failure retains prior staged state. Success stores the pattern or sentinel and marks the pattern bit. The transaction owns real bitmap references until commit or FreeLineAreaTransaction; live line resources are unchanged. </p>
+<p>Failure retains prior staged state. Success stores the pattern or sentinel and marks the pattern bit. The transaction owns real bitmap references until commit or FreeLineAreaTransaction; live line resources are unchanged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live window, display and interpreter for resource operations. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed pattern specification; NULL or empty stages a cleared resource. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized transaction owning any earlier candidates; successful staging replaces only the selected candidate, preserving live line state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.StageLineAreaTile">
 <span class="target" id="group__line__option__transactions_1gab6e06558ac348e00015ec508a5791cfa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageLineAreaTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">LineAreaTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.StageLineAreaTile" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a replacement tile client in temporary transaction storage. </p>
-<p>NULL or empty input stages a cleared tile. Nonempty input resolves an RBC tile before releasing any previous staged client. Failure leaves that earlier candidate intact. Does not install the line notification callback yet. </p>
+<p>NULL or empty input stages a cleared tile. Nonempty input resolves an RBC tile before releasing any previous staged client. Failure leaves that earlier candidate intact. Does not install the line notification callback yet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live window, display and interpreter for resource operations. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Borrowed tile image specification; NULL or empty stages a cleared resource. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized transaction owning any earlier candidates; successful staging replaces only the selected candidate, preserving live line state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.CreateLineFillGC">
 <span class="target" id="group__line__option__transactions_1gae07b4062c822f99872a62624bbb028bd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CreateLineFillGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">foreground</span></span>, <span class="n"><span class="pre">XColor</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">background</span></span>, <span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="n"><span class="pre">stipple</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.CreateLineFillGC" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Acquire a Tk GC for effective fill colors and a pattern. </p>
-<p>Colors and stipple are borrowed. Non-NULL colors supply foreground/background pixels; a real bitmap selects FillStippled without a background and FillOpaqueStippled with one. None and PATTERN_SOLID do not install stippling. Returns a Tk-managed GC reference for later Tk_FreeGC; this helper does not decide whether geometry should be filled or implement opacity or tile drawing. </p>
+<p>Colors and stipple are borrowed. Non-NULL colors supply foreground/background pixels; a real bitmap selects FillStippled without a background and FillOpaqueStippled with one. None and PATTERN_SOLID do not install stippling. Returns a Tk-managed GC reference for later Tk_FreeGC; this helper does not decide whether geometry should be filled or implement opacity or tile drawing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live window, display and interpreter for resource operations. </p></li>
+<li><p><strong>foreground</strong> – <strong>[in]</strong> Borrowed resolved Tk foreground color, or NULL to omit the GC foreground field; not COLOR_DEFAULT. </p></li>
+<li><p><strong>background</strong> – <strong>[in]</strong> Borrowed resolved Tk background color, or NULL for transparent stippling; not COLOR_DEFAULT. </p></li>
+<li><p><strong>stipple</strong> – <strong>[in]</strong> Borrowed bitmap on the graph display, or None/PATTERN_SOLID for an unstippled GC. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.FreeLineAreaTransaction">
 <span class="target" id="group__line__option__transactions_1gae0790f541281c15c6bbff0b3ad4eaac1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeLineAreaTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">LineAreaTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.FreeLineAreaTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release all remaining owned area candidates and zero the transaction. </p>
-<p>Releases a staged real pattern, any tile client and any candidate GC. Does not free the live line resources or Tk-managed color options. Safe after commit because moved ownership is cleared. Requires the owning display. </p>
+<p>Releases a staged real pattern, any tile client and any candidate GC. Does not free the live line resources or Tk-managed color options. Safe after commit because moved ownership is cleared. Requires the owning display.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live display for candidate bitmap and GC release. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized, possibly empty or committed transaction; remaining owned candidates are released and the record is zeroed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.PrepareLineAreaTransaction">
 <span class="target" id="group__line__option__transactions_1ga9d153f6229a39b2dedc5916898d0599c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareLineAreaTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LineAreaTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">band</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.PrepareLineAreaTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Prepare pattern, tile and replacement GC for area or band configuration. </p>
-<p>Initializes fresh transaction storage. Initial defaults are parsed only for options not explicitly supplied. Every explicit occurrence is processed in caller order; an invalid earlier value cannot be hidden by a later one. Builds a GC using the staged or retained stipple and colors already installed by Tk_SetOptions. Failure frees staged resources and leaves live derived resources unchanged; the caller remains responsible for Tk option rollback. </p>
+<p>Initializes fresh transaction storage. Initial defaults are parsed only for options not explicitly supplied. Every explicit occurrence is processed in caller order; an invalid earlier value cannot be hidden by a later one. Builds a GC using the staged or retained stipple and colors already installed by Tk_SetOptions. Failure frees staged resources and leaves live derived resources unchanged; the caller remains responsible for Tk option rollback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live window, display and interpreter for resource operations. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed core of linePtr supplying validated ordered option/value pairs and initial-configuration state. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line corresponding to elemPtr, with candidate Tk option values installed and current derived resources still retained. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh transaction storage with no owned candidates; initialized here. Commit only after TCL_OK; failure state is described above. </p></li>
+<li><p><strong>band</strong> – <strong>[in]</strong> Nonzero selects error-band resources; zero selects ordinary area-fill resources. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.CommitLineAreaTransaction">
 <span class="target" id="group__line__option__transactions_1ga02b708efc20b2467bc560cd027ae40c2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitLineAreaTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LineAreaTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">band</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.CommitLineAreaTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Transfer prepared area or band resources to their live line fields. </p>
-<p>Replaces only staged pattern/tile fields and transfers the candidate GC when present, releasing displaced resources. Installs TileChangedProc on a new tile or ensures it is installed on the retained tile. Clears moved candidates and stagedMask for cleanup. No parsing, geometry mapping or redraw is performed. </p>
+<p>Replaces only staged pattern/tile fields and transfers the candidate GC when present, releasing displaced resources. Installs TileChangedProc on a new tile or ensures it is installed on the retained tile. Clears moved candidates and stagedMask for cleanup. No parsing, geometry mapping or redraw is performed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live display for displaced bitmap and GC release. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live destination line; prepared candidate fields replace the corresponding committed fields, releasing displaced resources. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared transaction; moved ownership or staged bits are cleared for subsequent cleanup. </p></li>
+<li><p><strong>band</strong> – <strong>[in]</strong> Nonzero selects error-band resources; zero selects ordinary area-fill resources. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.FreeParsedSymbol">
 <span class="target" id="group__line__option__transactions_1ga1311ea7537ec34436f2b1029ee232e5f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeParsedSymbol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Display</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">display</span></span>, <span class="n"><span class="pre">ParsedSymbol</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.FreeParsedSymbol" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Release bitmap and mask references owned by a parsed symbol. </p>
-<p>Clears each released handle to None; repeated cleanup is safe. Leaves the symbol type untouched. The caller supplies the bitmap display context. </p>
+<p>Clears each released handle to None; repeated cleanup is safe. Leaves the symbol type untouched. The caller supplies the bitmap display context.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display</strong> – <strong>[in]</strong> Borrowed display on which the bitmap references were acquired; must remain live through release. </p></li>
+<li><p><strong>symbolPtr</strong> – <strong>[inout]</strong> Initialized symbol holding owned bitmap/mask references or None; handles are cleared but type is retained. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetSymbolFromObj">
 <span class="target" id="group__line__option__transactions_1gac7c7d44b9790fedf4df1b4abaf098d04"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSymbolFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">ParsedSymbol</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">symbolPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetSymbolFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a geometric symbol name or acquire a bitmap and optional mask. </p>
-<p>Initializes fresh output storage to SYMBOL_NONE with empty handles; do not pass an already owning result. Empty input disables symbols. Built-in names use legacy prefix rules, with two-character minima for c/s names. Otherwise accepts a one- or two-item bitmap list. A missing mask releases the already acquired bitmap before returning TCL_ERROR. Success transfers owned bitmap/mask references to the caller; mask dimensions are not validated here. </p>
+<p>Initializes fresh output storage to SYMBOL_NONE with empty handles; do not pass an already owning result. Empty input disables symbols. Built-in names use legacy prefix rules, with two-character minima for c/s names. Otherwise accepts a one- or two-item bitmap list. A missing mask releases the already acquired bitmap before returning TCL_ERROR. Success transfers owned bitmap/mask references to the caller; mask dimensions are not validated here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>tkwin</strong> – <strong>[in]</strong> Borrowed live Tk window supplying the display and resource lookup context. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Required borrowed symbol specification; empty disables symbols, otherwise a built-in name or bitmap/mask list. </p></li>
+<li><p><strong>symbolPtr</strong> – <strong>[out]</strong> Fresh nonowning output record, initialized here; successful bitmap references must be transferred or freed. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetSmoothFromString">
 <span class="target" id="group__line__option__transactions_1ga808cbeef88fd8967789218c8c8e2c0c6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSmoothFromString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="n"><span class="pre">Smoothing</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetSmoothFromString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse an exact entry in the smoothing table without modifying the line. </p>
-<p>Accepts linear, step, natural, cubic, quadratic and catrom; cubic aliases natural. No prefix matching is performed. Writes valuePtr only on success. Failure returns TCL_ERROR with a diagnostic listing all accepted names. </p>
+<p>Accepts linear, step, natural, cubic, quadratic and catrom; cubic aliases natural. No prefix matching is performed. Writes valuePtr only on success. Failure returns TCL_ERROR with a diagnostic listing all accepted names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Required borrowed NUL-terminated exact smoothing name. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required smoothing output, assigned only on TCL_OK. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetSmoothFromObj">
 <span class="target" id="group__line__option__transactions_1ga9222ac674cf8249d3586c3a8d2672cea"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSmoothFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">Smoothing</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">valuePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetSmoothFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse the string of a borrowed Tcl object as a smoothing value. </p>
-<p>Delegates to GetSmoothFromString without retaining or evaluating the object. Leaves the output unchanged on parse failure. </p>
+<p>Delegates to GetSmoothFromString without retaining or evaluating the object. Leaves the output unchanged on parse failure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Required borrowed Tcl object whose string is parsed; NULL is not accepted. </p></li>
+<li><p><strong>valuePtr</strong> – <strong>[out]</strong> Required smoothing output, assigned only on TCL_OK. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetPenDirFromString">
 <span class="target" id="group__line__option__transactions_1gae960526e8c10e2f693666605769fa761"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPenDirFromString</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">string</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penDirPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetPenDirFromString" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a nonempty prefix of increasing, decreasing or both. </p>
-<p>The leading i/d/b selects the candidate; longer-than-name strings are rejected. Writes penDirPtr only on success, otherwise returns TCL_ERROR with a diagnostic. Does not alter traces or mapped geometry. </p>
+<p>The leading i/d/b selects the candidate; longer-than-name strings are rejected. Writes penDirPtr only on success, otherwise returns TCL_ERROR with a diagnostic. Does not alter traces or mapped geometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>string</strong> – <strong>[in]</strong> Required borrowed NUL-terminated trace-direction prefix; empty is invalid. </p></li>
+<li><p><strong>penDirPtr</strong> – <strong>[out]</strong> Required trace-direction output, assigned only on TCL_OK. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.GetPenDirFromObj">
 <span class="target" id="group__line__option__transactions_1ga79f8162faa47f3e5e408d133a32eac26"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPenDirFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">penDirPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.GetPenDirFromObj" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse a borrowed Tcl object’s string as a trace-direction prefix. </p>
-<p>Delegates to GetPenDirFromString without retaining the object or evaluating an expression. Returns the delegated Tcl status. </p>
+<p>Delegates to GetPenDirFromString without retaining the object or evaluating an expression. Returns the delegated Tcl status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interp</strong> – <strong>[inout]</strong> Borrowed interpreter for lookup and diagnostics; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">Interpreter arguments</span></a>. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Required borrowed Tcl object whose string is parsed; NULL is not accepted. </p></li>
+<li><p><strong>penDirPtr</strong> – <strong>[out]</strong> Required trace-direction output, assigned only on TCL_OK. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.StageLineScalarOption">
 <span class="target" id="group__line__option__transactions_1gab71c78e0e0507bf836886bbd01631d5e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageLineScalarOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">LineScalarOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <span class="n"><span class="pre">LineScalarTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.StageLineScalarOption" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert one recognized scalar into candidate storage and mark its bit. </p>
-<p>maxsymbols uses the existing nonnegative pixel parser; smooth and trace use their dedicated name parsers. Conversion failure leaves that candidate field and mask unchanged. An invalid option enum is an internal programming error and calls Tcl_Panic. Does not modify the live line or schedule redraw. </p>
+<p>maxsymbols uses the existing nonnegative pixel parser; smooth and trace use their dedicated name parsers. Conversion failure leaves that candidate field and mask unchanged. An invalid option enum is an internal programming error and calls Tcl_Panic. Does not modify the live line or schedule redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live window, display and interpreter for resource operations. </p></li>
+<li><p><strong>objPtr</strong> – <strong>[in]</strong> Required borrowed value for the selected scalar; conversion does not retain it. </p></li>
+<li><p><strong>option</strong> – <strong>[in]</strong> Recognized MAX_SYMBOLS, SMOOTH or TRACE discriminator; NONE is a programming error. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Initialized transaction owning any earlier candidates; successful staging replaces only the selected candidate, preserving live line state. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.PrepareLineScalarTransaction">
 <span class="target" id="group__line__option__transactions_1gada4e2deb8809e23bc542cdb43c1c359a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrepareLineScalarTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Graph</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Element</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LineScalarTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.PrepareLineScalarTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Parse ordered scalar defaults and explicit values into a fresh transaction. </p>
-<p>Processes initial defaults only when not explicitly overridden, then each explicit occurrence in caller order. Strip elements have no trace option and their traceObjPtr remains NULL. Failure may leave earlier staged scalar values in the transaction, but owns no resources to release and changes no live field. The caller must not commit a failed transaction. </p>
+<p>Processes initial defaults only when not explicitly overridden, then each explicit occurrence in caller order. Strip elements have no trace option and their traceObjPtr remains NULL. Failure may leave earlier staged scalar values in the transaction, but owns no resources to release and changes no live field. The caller must not commit a failed transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphPtr</strong> – <strong>[in]</strong> Borrowed owning graph supplying the live window, display and interpreter for resource operations. </p></li>
+<li><p><strong>elemPtr</strong> – <strong>[in]</strong> Borrowed core of linePtr supplying validated ordered option/value pairs and initial-configuration state. </p></li>
+<li><p><strong>linePtr</strong> – <strong>[in]</strong> Borrowed line corresponding to elemPtr, with candidate Tk option values installed and current derived resources still retained. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[out]</strong> Fresh transaction storage with no owned candidates; initialized here. Commit only after TCL_OK; failure state is described above. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.CommitLineScalarTransaction">
 <span class="target" id="group__line__option__transactions_1ga3f496f8b9948afd50e582cac778dadb4"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommitLineScalarTransaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Line</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">linePtr</span></span>, <span class="n"><span class="pre">LineScalarTransaction</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.CommitLineScalarTransaction" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Copy successfully staged scalar values into live line configuration. </p>
-<p>Copies maxsymbols to reqMaxSymbols, smoothing to reqSmooth, and trace direction to penDir only when their bits are present. Clears stagedMask afterward. Values are already validated; mapping, redraw and effective smoothing selection belong to later stages, not this commit helper. </p>
+<p>Copies maxsymbols to reqMaxSymbols, smoothing to reqSmooth, and trace direction to penDir only when their bits are present. Clears stagedMask afterward. Values are already validated; mapping, redraw and effective smoothing selection belong to later stages, not this commit helper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linePtr</strong> – <strong>[inout]</strong> Live destination line; prepared candidate fields replace the corresponding committed fields, releasing displaced resources. </p></li>
+<li><p><strong>transactionPtr</strong> – <strong>[inout]</strong> Successfully prepared transaction; moved ownership or staged bits are cleared for subsequent cleanup. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOptions.TileChangedProc">
 <span class="target" id="group__line__option__transactions_1gac6de070efccb35af84ab93397cd9e30f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TileChangedProc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <span class="n"><span class="pre">Rbc_Tile</span></span><span class="w"> </span><span class="n"><span class="pre">tile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOptions.TileChangedProc" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Schedule line redisplay when a retained area or band tile changes. </p>
-<p>clientData is the stable owning Line; tile is unused. If the graph window exists, sets REDRAW_WORLD and REDRAW_BACKING_STORE and queues redraw. Does not filter hidden elements, remap source data or synchronously draw. Resource teardown must detach tile clients before their owner storage is released. </p>
+<p>clientData is the stable owning Line; tile is unused. If the graph window exists, sets REDRAW_WORLD and REDRAW_BACKING_STORE and queues redraw. Does not filter hidden elements, remap source data or synchronously draw. Resource teardown must detach tile clients before their owner storage is released.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clientData</strong> – <strong>[inout]</strong> Stable owning Line pointer whose graph remains live; tile-client teardown precedes owner disposal. </p></li>
+<li><p><strong>tile</strong> – <strong>[in]</strong> Unused notifying tile handle; callback registration already identifies the owner. </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

@@ -586,61 +586,67 @@ Line-family geometry ownership
 ------------------------------
 
 Line, strip and polar elements share a line record, with type-specific option
-specifications and polar dispatch where needed. Rbc_LineElement allocates the
-record, duplicated names, built-in pen and palette; common element creation
-still performs registration and option initialization. Rbc_LinePen similarly
-creates an unregistered pen. Neither factory produces configured drawing GCs.
+specifications and polar dispatch where needed.
+:c:func:`rbcGrLineGeometry.Rbc_LineElement` allocates the record, duplicated names,
+built-in pen and palette; common element creation still performs registration and option
+initialization. :c:func:`rbcGrLineGeometry.Rbc_LinePen` similarly creates an
+unregistered pen. Both use :c:func:`rbcGrLineGeometry.InitPen` on zero-allocated
+storage; it installs callbacks and defaults without initializing Tk options. Neither
+factory produces configured drawing GCs.
 
-ConfigurePen stages derived resources separately from Tk option values. All
-fallible conversions precede replacement GC construction and commit. Failure
-releases staged colors, shadow and bitmap resources; the surrounding transaction
-restores Tk options. Symbol, text and error-bar GCs use Tk ownership, whereas
-the trace GC is private so its dash state can be set independently. DestroyPen
-releases derived resources, leaving option values and record disposal to its
-owner.
+:c:func:`rbcGrLineGeometry.ConfigurePen` stages derived resources separately from Tk
+option values. All fallible conversions precede replacement GC construction and commit.
+Failure releases staged colors, shadow and bitmap resources; the surrounding transaction
+restores Tk options. Symbol, text and error-bar GCs use Tk ownership, whereas the trace
+GC is private so its dash state can be set independently.
+:c:func:`rbcGrLineGeometry.DestroyPen` releases derived resources, leaving option values
+and record disposal to its owner.
 
 Mapped points and discontinuities
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GetScreenPoints starts with an empty output map and creates parallel screen-point
-and original-index arrays. Nonfinite source or mapped coordinates are omitted;
-gaps in original indices create break flags. This stage does not clip to the
-viewport. Source synchronization and disposal of any previous map are caller
+:c:func:`rbcGrLineGeometry.GetScreenPoints` starts with an empty output map and creates
+parallel screen-point and original-index arrays. Nonfinite source or mapped coordinates
+are omitted; gaps in original indices create break flags. This stage does not clip to
+the viewport. Source synchronization and disposal of any previous map are caller
 responsibilities. Allocation failure leaves an empty map without a Tcl error.
 
-ReducePoints simplifies continuous runs separately and commits replacement
-storage only after all allocations succeed. GenerateSteps also preserves breaks;
-it inserts the data-X change before the data-Y change, including for inverted
-axes. Inserted points retain the following source index. A failed step allocation
-keeps the old map and falls back to effective linear smoothing, without changing
-the requested option. These are display-geometry operations, not vector edits.
+:c:func:`rbcGrLineGeometry.ReducePoints` simplifies continuous runs separately and
+commits replacement storage only after all allocations succeed.
+:c:func:`rbcGrLineGeometry.GenerateSteps` also preserves breaks; it inserts the data-X
+change before the data-Y change, including for inverted axes. Inserted points retain the
+following source index. A failed step allocation keeps the old map and falls back to
+effective linear smoothing, without changing the requested option. These are
+display-geometry operations, not vector edits.
 
-ScaleSymbol captures axis-range baselines when requested, applies valid range
-ratios and returns a bounded odd pixel size. MapActiveSymbols separately rebuilds
-explicit active selections, retaining their original indices and filtering them
-through symbol-map extents. It discards old active geometry before allocating
-and clears ACTIVE_PENDING even on allocation failure; retained selection indices
-are unchanged.
+:c:func:`rbcGrLineGeometry.ScaleSymbol` captures axis-range baselines when requested,
+applies valid range ratios and returns a bounded odd pixel size.
+:c:func:`rbcGrLineGeometry.MapActiveSymbols` separately rebuilds explicit active
+selections, retaining their original indices and filtering them through symbol-map
+extents. It discards old active geometry before allocating and clears ACTIVE_PENDING
+even on allocation failure; retained selection indices are unchanged.
 
 Reset versus destruction
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-ResetLine frees mapped traces, symbols, strips, fill/error-band polygons and
-error bars, together with their source-index arrays. ClearPalette only clears
-style counts; it does not own those shared arrays. FreeTraces owns each trace's
-arrays and record as well as the chain. ResetLine retains source subscriptions,
-pens, activation indices and the source decimation cache. Explicit active
+:c:func:`rbcGrLineGeometry.ResetLine` frees mapped traces, symbols, strips,
+fill/error-band polygons and error bars, together with their source-index arrays.
+:c:func:`rbcGrLineGeometry.ClearPalette` only clears style counts; it does not own those
+shared arrays. :c:func:`rbcGrLineGeometry.FreeTraces` owns each trace's arrays and
+record as well as the chain. :c:func:`rbcGrLineGeometry.ResetLine` retains source
+subscriptions, pens, activation indices and the source decimation cache. Explicit active
 selections become pending again for the next mapping pass.
 
 Error-bar filtering takes place before MergePens reorders palette geometry.
-FilterLineErrorBars selects source indices using the same palette traversal and
-symbol interval policy, then compacts both error-bar arrays in place. Shafts and
-caps follow their source point together; allocation capacity is unchanged.
+:c:func:`rbcGrLineGeometry.FilterLineErrorBars` selects source indices using the same
+palette traversal and symbol interval policy, then compacts both error-bar arrays in
+place. Shafts and caps follow their source point together; allocation capacity is
+unchanged.
 
-DestroyLine additionally releases subscriptions, pen references, the decimation
-cache, palette, tags and fill resources. Common lifecycle code guards this
-callback against repeated release and handles record/name and Tk option cleanup.
-It must not be treated as an independently repeatable destructor. Referenced
+:c:func:`rbcGrLineGeometry.DestroyLine` additionally releases subscriptions, pen
+references, the decimation cache, palette, tags and fill resources. Common lifecycle
+code guards this callback against repeated release and handles record/name and Tk option
+cleanup. It must not be treated as an independently repeatable destructor. Referenced
 vectors remain owned by their creators.
 
 Font-change handling resets named-pen value styles through the pen registry and
@@ -863,12 +869,12 @@ and preserving interpreter state do not protect borrowed drawing storage.
 Line configuration and continuous-run smoothing
 -----------------------------------------------
 
-ConfigureLine orchestrates the smaller transactions described above. Tk has
-already installed candidate option values; the element carries the changed-option
-mask and original argument order. The routine stages resources selectively,
-validates data/parameter compatibility and error-band smoothing, and configures
-the embedded pen before transferring prepared state. Successful completion marks
-mapping and symbol-scale baselines dirty where needed. The enclosing common
+:c:func:`rbcGrLineConfiguration.ConfigureLine` orchestrates the smaller transactions
+described above. Tk has already installed candidate option values; the element carries
+the changed-option mask and original argument order. The routine stages resources
+selectively, validates data/parameter compatibility and error-band smoothing, and
+configures the embedded pen before transferring prepared state. Successful completion
+marks mapping and symbol-scale baselines dirty where needed. The enclosing common
 configuration routine owns saved Tk option restoration and final acceptance.
 
 Polar reference impedance is validated before the embedded pen is reconfigured
@@ -907,19 +913,26 @@ needs such proof must not infer it solely from the smoothing flag.
 Scalar adapters and ownership
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The pen-color parser accepts nonempty prefixes of defcolor as an inherited-color
-sentinel. Empty values produce NULL only when permitted; actual Tk colors carry
-an acquired reference. Callers must distinguish those cases when releasing
-resources. The local Round helper requires bounded finite input and does not
-provide checked conversion.
+The pen-color parser :c:func:`rbcGrLineConfiguration.GetLinePenColorFromObj` uses
+:c:func:`rbcGrLineConfiguration.IsLinePenPrefix` to accept nonempty prefixes of defcolor
+as an inherited-color sentinel. Empty values produce NULL only when permitted; actual Tk
+colors carry an acquired reference. :c:func:`rbcGrLineData.FreeLinePenColor` releases
+actual Tk colors while ignoring NULL and the sentinel. Callers still clear their own
+fields after release. The local :c:func:`rbcGrLineConfiguration.Round` helper requires
+bounded finite input and does not provide checked conversion.
 
-PixelAbscissa and PixelOrdinate select physical coordinate roles according to
-inversion; neither removes axis descending direction. MapLineDataAbscissa invokes
-the appropriate axis mapper. ClearLineVectorChanges consumes recorded X/Y change
-ranges after cache handling, without delivering or canceling vector notifications.
+:c:func:`rbcGrLineConfiguration.PixelAbscissa` and
+:c:func:`rbcGrLineConfiguration.PixelOrdinate` select physical coordinate roles
+according to inversion; neither removes axis descending direction.
+:c:func:`rbcGrLineConfiguration.MapLineDataAbscissa` invokes the appropriate axis
+mapper. :c:func:`rbcGrLineConfiguration.ClearLineVectorChanges` consumes recorded X/Y
+change ranges after cache handling, without delivering or canceling vector
+notifications.
 
-ComplexDivide uses a denominator-component ratio and rejects nonfinite results,
-but does not guarantee overflow-free arithmetic for all finite extreme inputs.
-Its failure outputs must not be used. The normalized Smith conversion helpers
-special-case exact open and short points as successful positive-infinity results;
-callers must not equate a successful conversion with finite output.
+:c:func:`rbcGrLineConfiguration.ComplexDivide` uses a denominator-component ratio and
+rejects nonfinite results, but does not guarantee overflow-free arithmetic for all
+finite extreme inputs. Its failure outputs must not be used. The normalized Smith
+conversion helpers :c:func:`rbcGrLineConfiguration.GammaToNormalizedImpedance` and
+:c:func:`rbcGrLineConfiguration.GammaToNormalizedAdmittance` special-case exact open and
+short points as successful positive-infinity results; callers must not equate a
+successful conversion with finite output.

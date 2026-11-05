@@ -589,53 +589,59 @@ have different input restrictions and notification policies from common X/Y data
 <section id="line-family-geometry-ownership">
 <h2>Line-family geometry ownership<a class="headerlink" href="#line-family-geometry-ownership" title="Link to this heading">¶</a></h2>
 <p>Line, strip and polar elements share a line record, with type-specific option
-specifications and polar dispatch where needed. Rbc_LineElement allocates the
-record, duplicated names, built-in pen and palette; common element creation
-still performs registration and option initialization. Rbc_LinePen similarly
-creates an unregistered pen. Neither factory produces configured drawing GCs.</p>
-<p>ConfigurePen stages derived resources separately from Tk option values. All
-fallible conversions precede replacement GC construction and commit. Failure
-releases staged colors, shadow and bitmap resources; the surrounding transaction
-restores Tk options. Symbol, text and error-bar GCs use Tk ownership, whereas
-the trace GC is private so its dash state can be set independently. DestroyPen
-releases derived resources, leaving option values and record disposal to its
-owner.</p>
+specifications and polar dispatch where needed.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.Rbc_LineElement" title="rbcGrLineGeometry.Rbc_LineElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.Rbc_LineElement()</span></code></a> allocates the record, duplicated names,
+built-in pen and palette; common element creation still performs registration and option
+initialization. <a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.Rbc_LinePen" title="rbcGrLineGeometry.Rbc_LinePen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.Rbc_LinePen()</span></code></a> similarly creates an
+unregistered pen. Both use <a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.InitPen" title="rbcGrLineGeometry.InitPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.InitPen()</span></code></a> on zero-allocated
+storage; it installs callbacks and defaults without initializing Tk options. Neither
+factory produces configured drawing GCs.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.ConfigurePen" title="rbcGrLineGeometry.ConfigurePen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.ConfigurePen()</span></code></a> stages derived resources separately from Tk
+option values. All fallible conversions precede replacement GC construction and commit.
+Failure releases staged colors, shadow and bitmap resources; the surrounding transaction
+restores Tk options. Symbol, text and error-bar GCs use Tk ownership, whereas the trace
+GC is private so its dash state can be set independently.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.DestroyPen" title="rbcGrLineGeometry.DestroyPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.DestroyPen()</span></code></a> releases derived resources, leaving option values
+and record disposal to its owner.</p>
 <section id="mapped-points-and-discontinuities">
 <h3>Mapped points and discontinuities<a class="headerlink" href="#mapped-points-and-discontinuities" title="Link to this heading">¶</a></h3>
-<p>GetScreenPoints starts with an empty output map and creates parallel screen-point
-and original-index arrays. Nonfinite source or mapped coordinates are omitted;
-gaps in original indices create break flags. This stage does not clip to the
-viewport. Source synchronization and disposal of any previous map are caller
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.GetScreenPoints" title="rbcGrLineGeometry.GetScreenPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.GetScreenPoints()</span></code></a> starts with an empty output map and creates
+parallel screen-point and original-index arrays. Nonfinite source or mapped coordinates
+are omitted; gaps in original indices create break flags. This stage does not clip to
+the viewport. Source synchronization and disposal of any previous map are caller
 responsibilities. Allocation failure leaves an empty map without a Tcl error.</p>
-<p>ReducePoints simplifies continuous runs separately and commits replacement
-storage only after all allocations succeed. GenerateSteps also preserves breaks;
-it inserts the data-X change before the data-Y change, including for inverted
-axes. Inserted points retain the following source index. A failed step allocation
-keeps the old map and falls back to effective linear smoothing, without changing
-the requested option. These are display-geometry operations, not vector edits.</p>
-<p>ScaleSymbol captures axis-range baselines when requested, applies valid range
-ratios and returns a bounded odd pixel size. MapActiveSymbols separately rebuilds
-explicit active selections, retaining their original indices and filtering them
-through symbol-map extents. It discards old active geometry before allocating
-and clears ACTIVE_PENDING even on allocation failure; retained selection indices
-are unchanged.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.ReducePoints" title="rbcGrLineGeometry.ReducePoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.ReducePoints()</span></code></a> simplifies continuous runs separately and
+commits replacement storage only after all allocations succeed.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.GenerateSteps" title="rbcGrLineGeometry.GenerateSteps"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.GenerateSteps()</span></code></a> also preserves breaks; it inserts the data-X
+change before the data-Y change, including for inverted axes. Inserted points retain the
+following source index. A failed step allocation keeps the old map and falls back to
+effective linear smoothing, without changing the requested option. These are
+display-geometry operations, not vector edits.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.ScaleSymbol" title="rbcGrLineGeometry.ScaleSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.ScaleSymbol()</span></code></a> captures axis-range baselines when requested,
+applies valid range ratios and returns a bounded odd pixel size.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.MapActiveSymbols" title="rbcGrLineGeometry.MapActiveSymbols"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.MapActiveSymbols()</span></code></a> separately rebuilds explicit active
+selections, retaining their original indices and filtering them through symbol-map
+extents. It discards old active geometry before allocating and clears ACTIVE_PENDING
+even on allocation failure; retained selection indices are unchanged.</p>
 </section>
 <section id="reset-versus-destruction">
 <h3>Reset versus destruction<a class="headerlink" href="#reset-versus-destruction" title="Link to this heading">¶</a></h3>
-<p>ResetLine frees mapped traces, symbols, strips, fill/error-band polygons and
-error bars, together with their source-index arrays. ClearPalette only clears
-style counts; it does not own those shared arrays. FreeTraces owns each trace’s
-arrays and record as well as the chain. ResetLine retains source subscriptions,
-pens, activation indices and the source decimation cache. Explicit active
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.ResetLine" title="rbcGrLineGeometry.ResetLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.ResetLine()</span></code></a> frees mapped traces, symbols, strips,
+fill/error-band polygons and error bars, together with their source-index arrays.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.ClearPalette" title="rbcGrLineGeometry.ClearPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.ClearPalette()</span></code></a> only clears style counts; it does not own those
+shared arrays. <a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.FreeTraces" title="rbcGrLineGeometry.FreeTraces"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.FreeTraces()</span></code></a> owns each trace’s arrays and
+record as well as the chain. <a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.ResetLine" title="rbcGrLineGeometry.ResetLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.ResetLine()</span></code></a> retains source
+subscriptions, pens, activation indices and the source decimation cache. Explicit active
 selections become pending again for the next mapping pass.</p>
 <p>Error-bar filtering takes place before MergePens reorders palette geometry.
-FilterLineErrorBars selects source indices using the same palette traversal and
-symbol interval policy, then compacts both error-bar arrays in place. Shafts and
-caps follow their source point together; allocation capacity is unchanged.</p>
-<p>DestroyLine additionally releases subscriptions, pen references, the decimation
-cache, palette, tags and fill resources. Common lifecycle code guards this
-callback against repeated release and handles record/name and Tk option cleanup.
-It must not be treated as an independently repeatable destructor. Referenced
+<a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.FilterLineErrorBars" title="rbcGrLineGeometry.FilterLineErrorBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.FilterLineErrorBars()</span></code></a> selects source indices using the same
+palette traversal and symbol interval policy, then compacts both error-bar arrays in
+place. Shafts and caps follow their source point together; allocation capacity is
+unchanged.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.DestroyLine" title="rbcGrLineGeometry.DestroyLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.DestroyLine()</span></code></a> additionally releases subscriptions, pen
+references, the decimation cache, palette, tags and fill resources. Common lifecycle
+code guards this callback against repeated release and handles record/name and Tk option
+cleanup. It must not be treated as an independently repeatable destructor. Referenced
 vectors remain owned by their creators.</p>
 <p>Font-change handling resets named-pen value styles through the pen registry and
 built-in styles through the element registry, including hidden elements. The
@@ -828,12 +834,12 @@ and preserving interpreter state do not protect borrowed drawing storage.</p>
 </section>
 <section id="line-configuration-and-continuous-run-smoothing">
 <h2>Line configuration and continuous-run smoothing<a class="headerlink" href="#line-configuration-and-continuous-run-smoothing" title="Link to this heading">¶</a></h2>
-<p>ConfigureLine orchestrates the smaller transactions described above. Tk has
-already installed candidate option values; the element carries the changed-option
-mask and original argument order. The routine stages resources selectively,
-validates data/parameter compatibility and error-band smoothing, and configures
-the embedded pen before transferring prepared state. Successful completion marks
-mapping and symbol-scale baselines dirty where needed. The enclosing common
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ConfigureLine" title="rbcGrLineConfiguration.ConfigureLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ConfigureLine()</span></code></a> orchestrates the smaller transactions
+described above. Tk has already installed candidate option values; the element carries
+the changed-option mask and original argument order. The routine stages resources
+selectively, validates data/parameter compatibility and error-band smoothing, and
+configures the embedded pen before transferring prepared state. Successful completion
+marks mapping and symbol-scale baselines dirty where needed. The enclosing common
 configuration routine owns saved Tk option restoration and final acceptance.</p>
 <p>Polar reference impedance is validated before the embedded pen is reconfigured
 or any staged resources are transferred. A combined update such as
@@ -865,20 +871,27 @@ needs such proof must not infer it solely from the smoothing flag.</p>
 </section>
 <section id="scalar-adapters-and-ownership">
 <h3>Scalar adapters and ownership<a class="headerlink" href="#scalar-adapters-and-ownership" title="Link to this heading">¶</a></h3>
-<p>The pen-color parser accepts nonempty prefixes of defcolor as an inherited-color
-sentinel. Empty values produce NULL only when permitted; actual Tk colors carry
-an acquired reference. Callers must distinguish those cases when releasing
-resources. The local Round helper requires bounded finite input and does not
-provide checked conversion.</p>
-<p>PixelAbscissa and PixelOrdinate select physical coordinate roles according to
-inversion; neither removes axis descending direction. MapLineDataAbscissa invokes
-the appropriate axis mapper. ClearLineVectorChanges consumes recorded X/Y change
-ranges after cache handling, without delivering or canceling vector notifications.</p>
-<p>ComplexDivide uses a denominator-component ratio and rejects nonfinite results,
-but does not guarantee overflow-free arithmetic for all finite extreme inputs.
-Its failure outputs must not be used. The normalized Smith conversion helpers
-special-case exact open and short points as successful positive-infinity results;
-callers must not equate a successful conversion with finite output.</p>
+<p>The pen-color parser <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GetLinePenColorFromObj" title="rbcGrLineConfiguration.GetLinePenColorFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.GetLinePenColorFromObj()</span></code></a> uses
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.IsLinePenPrefix" title="rbcGrLineConfiguration.IsLinePenPrefix"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.IsLinePenPrefix()</span></code></a> to accept nonempty prefixes of defcolor
+as an inherited-color sentinel. Empty values produce NULL only when permitted; actual Tk
+colors carry an acquired reference. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.FreeLinePenColor" title="rbcGrLineData.FreeLinePenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.FreeLinePenColor()</span></code></a> releases
+actual Tk colors while ignoring NULL and the sentinel. Callers still clear their own
+fields after release. The local <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.Round" title="rbcGrLineConfiguration.Round"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.Round()</span></code></a> helper requires
+bounded finite input and does not provide checked conversion.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.PixelAbscissa" title="rbcGrLineConfiguration.PixelAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.PixelAbscissa()</span></code></a> and
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.PixelOrdinate" title="rbcGrLineConfiguration.PixelOrdinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.PixelOrdinate()</span></code></a> select physical coordinate roles
+according to inversion; neither removes axis descending direction.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.MapLineDataAbscissa" title="rbcGrLineConfiguration.MapLineDataAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.MapLineDataAbscissa()</span></code></a> invokes the appropriate axis
+mapper. <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ClearLineVectorChanges" title="rbcGrLineConfiguration.ClearLineVectorChanges"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ClearLineVectorChanges()</span></code></a> consumes recorded X/Y
+change ranges after cache handling, without delivering or canceling vector
+notifications.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ComplexDivide" title="rbcGrLineConfiguration.ComplexDivide"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ComplexDivide()</span></code></a> uses a denominator-component ratio and
+rejects nonfinite results, but does not guarantee overflow-free arithmetic for all
+finite extreme inputs. Its failure outputs must not be used. The normalized Smith
+conversion helpers <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GammaToNormalizedImpedance" title="rbcGrLineConfiguration.GammaToNormalizedImpedance"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.GammaToNormalizedImpedance()</span></code></a> and
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GammaToNormalizedAdmittance" title="rbcGrLineConfiguration.GammaToNormalizedAdmittance"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.GammaToNormalizedAdmittance()</span></code></a> special-case exact open and
+short points as successful positive-infinity results; callers must not equate a
+successful conversion with finite output.</p>
 </section>
 </section>
 </section>
