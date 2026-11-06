@@ -1320,11 +1320,11 @@ rather than introducing a second common marker lifecycle.</p>
 <tr class="row-odd"><td><p>Name and direct option fields</p></td>
 <td><p>Tk option ownership after initialization; partial-creation cleanup handles earlier state</p></td>
 </tr>
-<tr class="row-even"><td><p>worldPts</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">worldPts</span></code></p></td>
 <td><p>Owned parsed coordinate array, replaced at common-option commit</p></td>
 </tr>
 <tr class="row-odd"><td><p>tags</p></td>
-<td><p>One Tcl_SplitList allocation, freed as a whole</p></td>
+<td><p>One <code class="docutils literal notranslate"><span class="pre">Tcl_SplitList</span></code> allocation, freed as a whole</p></td>
 </tr>
 <tr class="row-even"><td><p>X/Y axes</p></td>
 <td><p>Acquired references, dropped on replacement or release</p></td>
@@ -1355,8 +1355,8 @@ the diagnostic retained. This wrapper cannot undo derived resources that a class
 stage its own fallible work.</p>
 <p>Common class preparation uses <a class="reference internal" href="marker-reference.html#c.ParsedMarkerOptions" title="ParsedMarkerOptions"><code class="xref c c-struct docutils literal notranslate"><span class="pre">ParsedMarkerOptions</span></code></a>. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.ParseMarkerOptions" title="rbcGrMarkerConfiguration.ParseMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.ParseMarkerOptions()</span></code></a>
 zeros it, parses tags, coordinates and state, acquires both axes and validates the optional track. The selected Y axis
-must belong to exactly that track, including the graph-wide NULL case. Failure releases candidate allocations and axis
-references. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.CommitMarkerOptions" title="rbcGrMarkerConfiguration.CommitMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.CommitMarkerOptions()</span></code></a> frees old common resources, transfers new
+must belong to exactly that track, including the graph-wide <code class="docutils literal notranslate"><span class="pre">NULL</span></code> case. Failure releases candidate allocations and
+axis references. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.CommitMarkerOptions" title="rbcGrMarkerConfiguration.CommitMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.CommitMarkerOptions()</span></code></a> frees old common resources, transfers new
 allocations/references and clears transferred pointers. It does not register, map or schedule the marker; concrete
 configuration completes those tasks.</p>
 </section>
@@ -1391,12 +1391,12 @@ coordinate lists obey these limits:</p>
 </table>
 <p>Odd list lengths fail before allocation. Byte-size checks and <code class="docutils literal notranslate"><span class="pre">Tcl_AttemptAlloc</span></code> make coordinate allocation failure
 reportable as a Tcl error. Each component is evaluated separately. Exact <code class="docutils literal notranslate"><span class="pre">Inf</span></code>, <code class="docutils literal notranslate"><span class="pre">+Inf</span></code> and <code class="docutils literal notranslate"><span class="pre">-Inf</span></code> spellings select
-elastic DBL_MAX sentinels; other strings go through <code class="docutils literal notranslate"><span class="pre">Tcl_ExprDouble</span></code>. This parser does not impose a general
+elastic <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> sentinels; other strings go through <code class="docutils literal notranslate"><span class="pre">Tcl_ExprDouble</span></code>. This parser does not impose a general
 finite-value policy.</p>
 <p>Expression evaluation can execute application Tcl. The parser borrows list storage and the marker record throughout
 evaluation; ordinary candidate cleanup is not protection against callbacks deleting owners or mutating borrowed inputs.
 Future lifetime changes must address that boundary explicitly.</p>
-<p>Single colors accept empty values as NULL and, when enabled by the caller, nonempty prefixes of <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> as a
+<p>Single colors accept empty values as <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and, when enabled by the caller, nonempty prefixes of <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> as a
 sentinel. Other values acquire Tk colors. A color pair contains at most foreground and background. Pair conversion
 stages both colors, releases a successfully acquired first color if the second fails, and transfers ownership only on
 success. It does not free an older destination pair. Sentinel-aware release remains essential.</p>
@@ -1440,7 +1440,7 @@ returns the first class point test that succeeds, not a global minimum-distance 
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Nearest point</p></td>
-<td><p>Reverse display order; requested layer, coordinates present, not hidden, STATE_NORMAL</p></td>
+<td><p>Reverse display order; requested layer, coordinates present, not hidden, <code class="docutils literal notranslate"><span class="pre">STATE_NORMAL</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Region find</p></td>
 <td><p>Forward display order; not hidden and no existing hidden associated element</p></td>
@@ -1471,7 +1471,7 @@ the reference retains the existing front/back placement conventions.</p>
 <h2>Teardown and invalidation details<a class="headerlink" href="#teardown-and-invalidation-details" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLifetime.DestroyMarker" title="rbcGrMarkerLifetime.DestroyMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLifetime.DestroyMarker()</span></code></a> invalidates the backing store for under-layer markers and removes object
 bindings. Initialized records use the guarded Tk-resource release path; records that failed before initialization
-receive explicit common cleanup. It then deletes non-NULL registry/list handles and frees the concrete allocation.
+receive explicit common cleanup. It then deletes non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> registry/list handles and frees the concrete allocation.
 Callers, rather than this destructor, schedule the eventual redraw.</p>
 <p>Whole-registry destruction clears each marker’s hash handle before invoking its destructor so iteration owns hash-table
 deletion. It finally destroys both the registry and tag table and the display chain. This is final teardown, not a
@@ -1782,8 +1782,8 @@ execute.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.ChildEventProc" title="rbcGrMarkerWindow.ChildEventProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.ChildEventProc()</span></code></a></p></td>
-<td><p>On DestroyNotify, clears child/dimensions, marks mapping dirty and schedules redraw when the graph window still
-exists; retains marker</p></td>
+<td><p>On <code class="docutils literal notranslate"><span class="pre">DestroyNotify</span></code>, clears child/dimensions, marks mapping dirty and schedules redraw when the graph window
+still exists; retains marker</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerWindow.ChildGeometryProc" title="rbcGrMarkerWindow.ChildGeometryProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerWindow.ChildGeometryProc()</span></code></a></p></td>
 <td><p>Copies requested dimensions only where the explicit override is zero, then schedules remapping/redraw when an
@@ -1846,7 +1846,7 @@ is no per-marker allocation in the middle of assembling a native run.</p>
 <td><p>Outline foreground pixel</p></td>
 </tr>
 <tr class="row-even"><td><p>Polygon fill</p></td>
-<td><p>Native solid foreground, no XOR/stipple/background/drawable outline, and 3..INT_MAX mapped fill points</p></td>
+<td><p>Native solid foreground, no XOR/stipple/background/drawable outline, and <code class="docutils literal notranslate"><span class="pre">3..INT_MAX</span></code> mapped fill points</p></td>
 <td><p>Fill foreground pixel</p></td>
 </tr>
 <tr class="row-odd"><td><p>Text</p></td>
@@ -1876,9 +1876,9 @@ original primitive and text semantics rather than forcing every class through on
 <section id="cairo-context-reuse-and-native-targets">
 <h3>Cairo context reuse and native targets<a class="headerlink" href="#cairo-context-reuse-and-native-targets" title="Link to this heading"></a></h3>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.GetMarkerStroke" title="rbcGrMarkerBatches.GetMarkerStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.GetMarkerStroke()</span></code></a> accepts solid, non-XOR line shafts without arrows and polygon outlines
-without drawable fills. It returns a borrowed <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.MarkerStroke" title="rbcGrMarkerBatches.MarkerStroke"><code class="xref c c-struct docutils literal notranslate"><span class="pre">MarkerStroke</span></code></a> view; a FALSE
-result must not be used, even if some fields were written. Arcs retain their class-specific continuous-curve path. Style
-equality compares width, cap, join and RGB values, not pointer identity.</p>
+without drawable fills. It returns a borrowed <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.MarkerStroke" title="rbcGrMarkerBatches.MarkerStroke"><code class="xref c c-struct docutils literal notranslate"><span class="pre">MarkerStroke</span></code></a> view; a
+<code class="docutils literal notranslate"><span class="pre">FALSE</span></code> result must not be used, even if some fields were written. Arcs retain their class-specific continuous-curve
+path. Style equality compares width, cap, join and RGB values, not pointer identity.</p>
 <p>Compatible strokes reuse an open renderer context, but each marker still calls <a class="reference internal" href="reference.html#c.Rbc_RenderSegments" title="Rbc_RenderSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSegments()</span></code></a>
 separately. Merging all paths into one stroke would change antialiased overlap coverage. Incompatible visible content
 closes the context before dispatch; failure to create one falls back to the class draw callback. Context reuse therefore
@@ -1906,8 +1906,8 @@ geometry and exporter clipping remain relevant. Window markers retain their mapp
 <p>The ordinary Windows pass owns all five scratch arrays: line segments, polygon segments, polygon-fill marker pointers,
 text-marker pointers and bitmap positions. Flush helpers reset batch bookkeeping but do not release storage. After the
 final synchronous flush, <a class="reference internal" href="marker-reference.html#c.Rbc_DrawMarkers" title="Rbc_DrawMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawMarkers()</span></code></a> frees every allocated array before ending the marker render
-target. NULL arrays from unused batches or allocation failures require no release. Freeing the text-marker pointer array
-does not free the markers, layouts or fonts it borrowed.</p>
+target. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> arrays from unused batches or allocation failures require no release. Freeing the text-marker pointer
+array does not free the markers, layouts or fonts it borrowed.</p>
 </section>
 <section id="geometry-and-batch-argument-contracts">
 <h3>Geometry and batch argument contracts<a class="headerlink" href="#geometry-and-batch-argument-contracts" title="Link to this heading"></a></h3>
@@ -1923,8 +1923,8 @@ caches. Drawing/export and picking must not treat these representations as inter
 allocation failure.</p></li>
 <li><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerShapeOutput.EraseLineMarkerXor" title="rbcGrMarkerShapeOutput.EraseLineMarkerXor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerShapeOutput.EraseLineMarkerXor()</span></code></a> requires the old GC and geometry. A missing drawable clears
 bookkeeping without erasing pixels; replacing options is not a substitute for retaining the old drawing state.</p></li>
-<li><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.GetMarkerStroke" title="rbcGrMarkerBatches.GetMarkerStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.GetMarkerStroke()</span></code></a> returns a borrowed view, not a retained snapshot. Only a TRUE result can
-be compared or submitted, and the marker caches and colors must remain live throughout context reuse.</p></li>
+<li><p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.GetMarkerStroke" title="rbcGrMarkerBatches.GetMarkerStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.GetMarkerStroke()</span></code></a> returns a borrowed view, not a retained snapshot. Only a <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> result
+can be compared or submitted, and the marker caches and colors must remain live throughout context reuse.</p></li>
 <li><p>Windows flush helpers consume pending counts and clear representative slots. They borrow arrays and markers
 throughout synchronous submission; the outer pass still owns scratch allocation and release. Eligibility predicates
 must precede style comparisons, which intentionally omit already-fixed properties.</p></li>

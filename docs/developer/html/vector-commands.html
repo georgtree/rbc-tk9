@@ -1253,7 +1253,8 @@ command renaming, mapping or lifecycle.</p>
 the vector. It is allowed for protected vectors and explicitly flushes even when automatic flushing is disabled. The
 cache normally retains only its <code class="docutils literal notranslate"><span class="pre">end</span></code> entry after recreation; subsequent reads materialize values again. User
 unset/write traces may run during flushing, and their side effects can include data changes, remapping or
-destruction. The handler returns TCL_OK after the void helper and does not report lower-level cache recreation status.</p>
+destruction. The handler returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> after the void helper and does not report lower-level cache recreation
+status.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.VariableOp" title="rbcVectorCommands.VariableOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">VariableOp</span></code></a> queries the stored mapping name, or delegates replacement/removal to
 <a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorMapVariable" title="Rbc_VectorMapVariable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorMapVariable()</span></code></a>. An empty argument removes the association; it does not rename the vector command or
 discard numerical storage. The returned mapping spelling need not be a fully qualified command name. Array names reject
@@ -1290,8 +1291,8 @@ trace protection and its layout checks are described separately in <a class="ref
 <p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorSortIndex" title="Rbc_VectorSortIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorSortIndex()</span></code></a> builds an owned array of indices without moving values. The first vector’s selected
 interval determines the indices; callers must provide valid corresponding storage in every key vector. Keys are compared
 lexicographically, and a heap sort constructs the permutation. Sorting is not stable and does not define a total
-ordering for NaNs. Complex keys are rejected. An empty successful sort still returns an allocation so NULL denotes
-failure.</p>
+ordering for <code class="docutils literal notranslate"><span class="pre">NaN</span></code> s. Complex keys are rejected. An empty successful sort still returns an allocation so <code class="docutils literal notranslate"><span class="pre">NULL</span></code>
+denotes failure.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortOp" title="rbcVectorCommands.SortOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortOp</span></code></a> resolves and retains all destination objects, validates them, and allocates
 the permutation and one reusable scratch array. It applies every permutation before invoking any variable trace or
 observer. This avoids a full output allocation per vector. Callbacks see all sorted data; later callbacks may
@@ -1412,7 +1413,7 @@ the vector’s metadata or publish data. The ownership transition depends on the
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandWrite" title="rbcVectorCommands.PrepareCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">PrepareCommandWrite</span></code></a>
 / <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandResize" title="rbcVectorCommands.PrepareCommandResize"><code class="xref c c-func docutils literal notranslate"><span class="pre">PrepareCommandResize</span></code></a></p></td>
-<td><p>Current borrowed pointer, independent allocation, or NULL for a zero-capacity resize.</p></td>
+<td><p>Current borrowed pointer, independent allocation, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for a zero-capacity resize.</p></td>
 <td><p>Initialize required values; commit or release only independently allocated storage.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AllocateCommandData" title="rbcVectorCommands.AllocateCommandData"><code class="xref c c-func docutils literal notranslate"><span class="pre">AllocateCommandData</span></code></a></p></td>
@@ -1420,8 +1421,8 @@ the vector’s metadata or publish data. The ownership transition depends on the
 <td><p>Release with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code> or transfer at commit.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList" title="rbcVectorCommands.ConvertCommandList"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConvertCommandList</span></code></a></p></td>
-<td><p>Independent converted values; NULL for an empty list.</p></td>
-<td><p>Release non-NULL storage or transfer at commit.</p></td>
+<td><p>Independent converted values; <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for an empty list.</p></td>
+<td><p>Release non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> storage or transfer at commit.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.FinishCommandWrite" title="rbcVectorCommands.FinishCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code></a></p></td>
 <td><p>Completed storage installed in the vector; no output allocation is returned.</p></td>
@@ -1442,7 +1443,7 @@ releases the old allocation. A prepared pointer may still be the vector’s curr
 must not unconditionally free it. Callers must supply nonnegative requested lengths.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AllocateCommandData" title="rbcVectorCommands.AllocateCommandData"><code class="xref c c-func docutils literal notranslate"><span class="pre">AllocateCommandData</span></code></a> always returns independent uninitialized storage,
 with a one-byte allocation for an empty result. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList" title="rbcVectorCommands.ConvertCommandList"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConvertCommandList</span></code></a>
-instead uses NULL for an empty successful conversion and retains a private outer Tcl list while converting its
+instead uses <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for an empty successful conversion and retains a private outer Tcl list while converting its
 elements. Neither helper installs destination metadata. Conversion failure frees staged storage; effects of conversion
 callbacks remain.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.FinishCommandWrite" title="rbcVectorCommands.FinishCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code></a> installs data, dimensions, whole-vector selection
@@ -1476,11 +1477,12 @@ themselves.</p>
 indices, and every key vector must support those same indices. The allocation helper checks numeric types and allocation
 sizes, but does not validate all key lengths for its callers.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CompareVectorIndices" title="rbcVectorCommands.CompareVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">CompareVectorIndices</span></code></a> examines keys lexicographically. Equal
-comparisons advance to the next key; a NaN also advances because both ordered comparisons are false. No original-index
-tie-breaker is added. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortVectorIndices" title="rbcVectorCommands.SortVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortVectorIndices</span></code></a> uses <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SiftVectorIndices" title="rbcVectorCommands.SiftVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SiftVectorIndices</span></code></a> to repair the heap. Sorting therefore remains unstable and does not define a
-total ordering for NaNs. It uses constant auxiliary storage beyond the permutation and O(n log n) comparisons, each
-potentially examining every key. The numerical vectors remain untouched until a command handler applies the resulting
-permutation.</p>
+comparisons advance to the next key; a <code class="docutils literal notranslate"><span class="pre">NaN</span></code> also advances because both ordered comparisons are false. No
+original-index tie-breaker is added. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortVectorIndices" title="rbcVectorCommands.SortVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortVectorIndices</span></code></a> uses
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SiftVectorIndices" title="rbcVectorCommands.SiftVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SiftVectorIndices</span></code></a> to repair the heap. Sorting therefore remains unstable
+and does not define a total ordering for <code class="docutils literal notranslate"><span class="pre">NaN</span></code> s. It uses constant auxiliary storage beyond the permutation and <code class="docutils literal notranslate"><span class="pre">O(n</span>
+<span class="pre">log</span> <span class="pre">n)</span></code> comparisons, each potentially examining every key. The numerical vectors remain untouched until a command
+handler applies the resulting permutation.</p>
 </section>
 </section>
 </section>

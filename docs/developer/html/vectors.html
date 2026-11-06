@@ -1268,13 +1268,13 @@ restrictions. Not every numerical operation is documented here.</p>
 <p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorInterpData" title="VectorInterpData"><code class="xref c c-struct docutils literal notranslate"><span class="pre">VectorInterpData</span></code></a> contains the vector registry and math/index-function tables for an interpreter.
 <code class="docutils literal notranslate"><span class="pre">VectorObject</span></code> is the internal alias of the opaque <a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">Rbc_Vector</span></code></a> record. It holds type, length, capacity,
 storage ownership, command identity, optional variable mapping, observer chain and cached extrema.</p>
-<p>A new internal record starts real and empty: its data pointer is NULL and its length and capacity are zero. Growth
+<p>A new internal record starts real and empty: its data pointer is <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and its length and capacity are zero. Growth
 allocates storage; there is no inline array. Real storage contains doubles; complex storage contains
 <a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_Complex</span></code></a> records with separate real and imaginary doubles. Length and capacity count values, not bytes or
 individual complex components.</p>
-<p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorData" title="Rbc_VectorData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorData()</span></code></a> and <a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorComplexData" title="Rbc_VectorComplexData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code></a> return borrowed storage, or NULL for the wrong type. NULL
-can also represent an empty vector, so query type and length rather than using the pointer alone as a type
-test. Reacquire pointers after resize/reset and before using data following callbacks or Tcl evaluation. The vector
+<p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorData" title="Rbc_VectorData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorData()</span></code></a> and <a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorComplexData" title="Rbc_VectorComplexData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code></a> return borrowed storage, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for the wrong
+type. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> can also represent an empty vector, so query type and length rather than using the pointer alone as a
+type test. Reacquire pointers after resize/reset and before using data following callbacks or Tcl evaluation. The vector
 record itself becomes invalid on destruction.</p>
 <p>Registered names are borrowed hash-key strings. Rename retains vector identity and observer connections, but invalidates
 a cached name pointer. Obtain the current name again or keep an owned copy. The mapped array name is a separate
@@ -1314,7 +1314,7 @@ caller retains its source buffer.</p></td>
 </tr>
 </tbody>
 </table>
-<p>A NULL pointer or zero capacity denotes empty storage after size validation. Replacement frees the previous owned
+<p>A <code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointer or zero capacity denotes empty storage after size validation. Replacement frees the previous owned
 buffer only if its address differs from the installed address. A same-address reset still updates the complete ownership
 contract. Do not use reset merely to announce a value change: accidentally changing its release policy can leak or
 incorrectly free storage.</p>
@@ -1362,15 +1362,15 @@ reclamation.</p>
 suppress updates. Do not assume that a mutation API always returns before its notification callback executes.
 <a class="reference internal" href="vector-reference.html#c.Rbc_VectorNotifyPending" title="Rbc_VectorNotifyPending"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorNotifyPending()</span></code></a> tests the idle-pending flag only; it is not a general dirty test and its nonzero value
 is not necessarily 1.</p>
-<p>Destruction cancels pending idle notification and sends DESTROY synchronously, regardless of the ordinary update
+<p>Destruction cancels pending idle notification and sends <code class="docutils literal notranslate"><span class="pre">DESTROY</span></code> synchronously, regardless of the ordinary update
 policy. The vector’s length is already zero at this point. A client discards its saved ID and borrowed data pointers,
 marks its own view invalid, and schedules any later owner work. After callbacks return, RBC frees the remaining IDs and
 vector storage. Do not query or free those IDs later. An API’s disconnected-token check does not make freed memory safe
 to use.</p>
 <p>Notification delivery snapshots and preserves client IDs before calling them. Removing another observer before its turn
 skips that observer. Added observers join a subsequent delivery, not the already captured pass. Destroying the vector
-during UPDATE delivers DESTROY synchronously and stops the remaining UPDATE callbacks. Recursive destruction of the same
-vector is ignored.</p>
+during <code class="docutils literal notranslate"><span class="pre">UPDATE</span></code> delivers <code class="docutils literal notranslate"><span class="pre">DESTROY</span></code> synchronously and stops the remaining <code class="docutils literal notranslate"><span class="pre">UPDATE</span></code> callbacks. Recursive destruction
+of the same vector is ignored.</p>
 <p>The old registry entry is removed before destruction callbacks, allowing a new vector with the same name to be
 created. The old vector keeps a temporary name copy during delivery, and its cleanup does not remove the replacement.</p>
 <p>Nested immediate updates save and restore each client’s changed-range snapshot. The graph/vector records and
@@ -1387,13 +1387,13 @@ prior snapshot is restored afterward (normally no active interval). Coalesced in
 between separate writes.</p>
 <p>Real extrema are cached along with their source indices. A ranged update can scan just the changed interval when no
 cached extremum was overwritten. If an old extremum was touched, or the cache was already invalid, a full scan is
-needed. <a class="reference internal" href="vector-reference.html#c.Rbc_VectorGetRange" title="Rbc_VectorGetRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorGetRange()</span></code></a> refreshes the cache on demand; empty or entirely non-finite real data has NaN
+needed. <a class="reference internal" href="vector-reference.html#c.Rbc_VectorGetRange" title="Rbc_VectorGetRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorGetRange()</span></code></a> refreshes the cache on demand; empty or entirely non-finite real data has <code class="docutils literal notranslate"><span class="pre">NaN</span></code>
 extrema. Complex storage has no real min/max range through this function.</p>
 </section>
 <section id="graph-consumers">
 <h2>Graph consumers<a class="headerlink" href="#graph-consumers" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> owns the graph element’s observer callback. UPDATE records the changed interval, borrows the vector
-again and synchronizes element data. DESTROY clears the saved client ID and data pointer and sets the value count to
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> owns the graph element’s observer callback. <code class="docutils literal notranslate"><span class="pre">UPDATE</span></code> records the changed interval, borrows the vector
+again and synchronizes element data. <code class="docutils literal notranslate"><span class="pre">DESTROY</span></code> clears the saved client ID and data pointer and sets the value count to
 zero. Both invalidate mapping and axis limits; visible elements also invalidate the plot backing store and request
 redraw.</p>
 <p>The graph display callback defers drawing while vector notification is pending, so borrowed source values and mapped

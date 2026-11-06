@@ -1261,9 +1261,10 @@ coefficients. It checks interval widths, divisions and intermediate coefficients
 that case while successive queries remain in the same interval. Both use binary search for in-domain queries, preserve
 source knots exactly and extrapolate using the first or final interval outside the domain. Neither requires query
 abscissas to be sorted.</p>
-<p>Both kernels accept zero queries but still require a non-NULL query pointer and valid source data. They allocate checked
-private workspace and release it before returning. Their boolean failure result can follow writes to some query Y
-values; callers needing an unchanged destination must evaluate into scratch storage and discard that storage on failure.</p>
+<p>Both kernels accept zero queries but still require a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> query pointer and valid source data. They allocate
+checked private workspace and release it before returning. Their boolean failure result can follow writes to some query
+Y values; callers needing an unchanged destination must evaluate into scratch storage and discard that storage on
+failure.</p>
 </section>
 <section id="parametric-paths">
 <h2>Parametric paths<a class="headerlink" href="#parametric-paths" title="Link to this heading"></a></h2>
@@ -1274,9 +1275,9 @@ quadratic path constructs independent coordinate splines on the same parameter; 
 coefficients. Exact source-knot queries are copied from the source. Both Eval routines stage complete coordinates and
 copy back only on success, preserving input parameters on failure.</p>
 <p><a class="reference internal" href="spline-reference.html#c.Rbc_NaturalParametricSpline" title="Rbc_NaturalParametricSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NaturalParametricSpline()</span></code></a> is the separate uniform sampler. Its public wrapper uses absolute extent spans as
-metric scales and clamps tiny or non-finite spans to FLT_EPSILON. Closed curves append the first point privately when
-necessary. The underlying sampler slightly undershoots the total parameter length to avoid losing the final sample to
-rounding, then restores the endpoint exactly when the requested count is generated. Callers must check that
+metric scales and clamps tiny or non-finite spans to <code class="docutils literal notranslate"><span class="pre">FLT_EPSILON</span></code>. Closed curves append the first point privately
+when necessary. The underlying sampler slightly undershoots the total parameter length to avoid losing the final sample
+to rounding, then restores the endpoint exactly when the requested count is generated. Callers must check that
 count. Sampling in chord parameter is not exact equal-distance sampling along the curved result.</p>
 <p>The Tcl complex-vector command uses the natural core with unit scales and an open curve, or the quadratic core sampled
 uniformly over its common chord parameter. It requires at least three source points and at least two output samples. It
@@ -1325,7 +1326,7 @@ remain separate responsibilities; see <a class="reference internal" href="mappin
 <p>The <a class="reference internal" href="spline-reference.html"><span class="doc">Spline C reference</span></a> now includes the internal validation, quadratic, cubic and command helpers. These are
 separate numerical and ownership layers; none of the interpolation kernels resolves vector names or invokes Tcl code.</p>
 <p><a class="reference internal" href="spline-reference.html#c.GetSplineArrayByteCount" title="GetSplineArrayByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetSplineArrayByteCount()</span></code></a> accepts zero-length arrays and rejects overflow without setting an interpreter
-message. Its callers decide whether zero queries are valid and whether to allocate a non-NULL sentinel. Source
+message. Its callers decide whether zero queries are valid and whether to allocate a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> sentinel. Source
 validation checks both coordinates; Cartesian query validation checks only X because Y will be replaced. These checks
 are intentionally different.</p>
 <p>Quadratic preparation runs <a class="reference internal" href="spline-reference.html#c.QuadSlopes" title="QuadSlopes"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadSlopes()</span></code></a> once, then <a class="reference internal" href="spline-reference.html#c.QuadSelect" title="QuadSelect"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadSelect()</span></code></a> combines case selection and
@@ -1399,7 +1400,7 @@ reads only Cartesian query X. None acquires ownership, allocates output, or supp
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="spline-reference.html#c.Rbc_NaturalSpline" title="Rbc_NaturalSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NaturalSpline()</span></code></a>, <a class="reference internal" href="spline-reference.html#c.Rbc_QuadraticSpline" title="Rbc_QuadraticSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_QuadraticSpline()</span></code></a>, parametric Eval wrappers and <a class="reference internal" href="spline-reference.html#c.SolveCubic1" title="SolveCubic1"><code class="xref c c-func docutils literal notranslate"><span class="pre">SolveCubic1()</span></code></a></p></td>
-<td><p>Boolean TRUE means success. FALSE may have helper-specific partial writes.</p></td>
+<td><p>Boolean <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> means success. <code class="docutils literal notranslate"><span class="pre">FALSE</span></code> may have helper-specific partial writes.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="spline-reference.html#c.QuadEval" title="QuadEval"><code class="xref c c-func docutils literal notranslate"><span class="pre">QuadEval()</span></code></a></p></td>
 <td><p>Both 0 (interpolation) and 1 (extrapolation) are accepted; 2 is failure.</p></td>
@@ -1408,7 +1409,7 @@ reads only Cartesian query X. None acquires ownership, allocates output, or supp
 <td><p>Compare the generated count with the requested count; do not use a boolean success test.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="spline-reference.html#c.CubicSlopes" title="CubicSlopes"><code class="xref c c-func docutils literal notranslate"><span class="pre">CubicSlopes()</span></code></a></p></td>
-<td><p>A non-NULL pointer is an owned coefficient allocation to release with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>; NULL indicates failure.</p></td>
+<td><p>A non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointer is an owned coefficient allocation to release with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>; <code class="docutils literal notranslate"><span class="pre">NULL</span></code> indicates failure.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="spline-reference.html#c.GetSplineArrayByteCount" title="GetSplineArrayByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetSplineArrayByteCount()</span></code></a>, <a class="reference internal" href="spline-reference.html#c.SplineStoreResult" title="SplineStoreResult"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplineStoreResult()</span></code></a></p></td>
 <td><p>Tcl status: <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> is zero. The size helper does not set diagnostics.</p></td>

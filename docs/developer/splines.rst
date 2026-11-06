@@ -41,9 +41,10 @@ that case while successive queries remain in the same interval. Both use binary 
 source knots exactly and extrapolate using the first or final interval outside the domain. Neither requires query
 abscissas to be sorted.
 
-Both kernels accept zero queries but still require a non-NULL query pointer and valid source data. They allocate checked
-private workspace and release it before returning. Their boolean failure result can follow writes to some query Y
-values; callers needing an unchanged destination must evaluate into scratch storage and discard that storage on failure.
+Both kernels accept zero queries but still require a non-``NULL`` query pointer and valid source data. They allocate
+checked private workspace and release it before returning. Their boolean failure result can follow writes to some query
+Y values; callers needing an unchanged destination must evaluate into scratch storage and discard that storage on
+failure.
 
 Parametric paths
 ----------------
@@ -56,9 +57,9 @@ coefficients. Exact source-knot queries are copied from the source. Both Eval ro
 copy back only on success, preserving input parameters on failure.
 
 :c:func:`Rbc_NaturalParametricSpline` is the separate uniform sampler. Its public wrapper uses absolute extent spans as
-metric scales and clamps tiny or non-finite spans to FLT_EPSILON. Closed curves append the first point privately when
-necessary. The underlying sampler slightly undershoots the total parameter length to avoid losing the final sample to
-rounding, then restores the endpoint exactly when the requested count is generated. Callers must check that
+metric scales and clamps tiny or non-finite spans to ``FLT_EPSILON``. Closed curves append the first point privately
+when necessary. The underlying sampler slightly undershoots the total parameter length to avoid losing the final sample
+to rounding, then restores the endpoint exactly when the requested count is generated. Callers must check that
 count. Sampling in chord parameter is not exact equal-distance sampling along the curved result.
 
 The Tcl complex-vector command uses the natural core with unit scales and an open curve, or the quadratic core sampled
@@ -118,7 +119,7 @@ The :doc:`spline-reference` now includes the internal validation, quadratic, cub
 separate numerical and ownership layers; none of the interpolation kernels resolves vector names or invokes Tcl code.
 
 :c:func:`GetSplineArrayByteCount` accepts zero-length arrays and rejects overflow without setting an interpreter
-message. Its callers decide whether zero queries are valid and whether to allocate a non-NULL sentinel. Source
+message. Its callers decide whether zero queries are valid and whether to allocate a non-``NULL`` sentinel. Source
 validation checks both coordinates; Cartesian query validation checks only X because Y will be replaced. These checks
 are intentionally different.
 
@@ -183,13 +184,13 @@ reads only Cartesian query X. None acquires ownership, allocates output, or supp
    * - Entry or helper
      - How to accept its result
    * - :c:func:`Rbc_NaturalSpline`, :c:func:`Rbc_QuadraticSpline`, parametric Eval wrappers and :c:func:`SolveCubic1`
-     - Boolean TRUE means success. FALSE may have helper-specific partial writes.
+     - Boolean ``TRUE`` means success. ``FALSE`` may have helper-specific partial writes.
    * - :c:func:`QuadEval`
      - Both 0 (interpolation) and 1 (extrapolation) are accepted; 2 is failure.
    * - :c:func:`CubicEval`, :c:func:`NaturalParametricSplineCore`, :c:func:`QuadraticParametricSplineCore`
      - Compare the generated count with the requested count; do not use a boolean success test.
    * - :c:func:`CubicSlopes`
-     - A non-NULL pointer is an owned coefficient allocation to release with ``ckfree``; NULL indicates failure.
+     - A non-``NULL`` pointer is an owned coefficient allocation to release with ``ckfree``; ``NULL`` indicates failure.
    * - :c:func:`GetSplineArrayByteCount`, :c:func:`SplineStoreResult`
      - Tcl status: ``TCL_OK`` is zero. The size helper does not set diagnostics.
 

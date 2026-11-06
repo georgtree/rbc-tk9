@@ -1277,10 +1277,10 @@ expressions.</p>
 <td><p>Current registered name; invalidated by rename or destruction</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorData" title="Rbc_VectorData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorData()</span></code></a></p></td>
-<td><p>Real storage, or NULL for a complex vector</p></td>
+<td><p>Real storage, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for a complex vector</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorComplexData" title="Rbc_VectorComplexData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code></a></p></td>
-<td><p>Complex storage, or NULL for a real vector</p></td>
+<td><p>Complex storage, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for a real vector</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorLength" title="Rbc_VectorLength"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorLength()</span></code></a> / <a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorSize" title="Rbc_VectorSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorSize()</span></code></a></p></td>
 <td><p>Used length / capacity, both in values rather than bytes</p></td>
@@ -1293,7 +1293,7 @@ expressions.</p>
 </tr>
 </tbody>
 </table>
-<p>An empty vector can also have NULL storage. Query type and length separately. Raw pointers are not retained across
+<p>An empty vector can also have <code class="docutils literal notranslate"><span class="pre">NULL</span></code> storage. Query type and length separately. Raw pointers are not retained across
 storage replacement, destruction or Tcl callbacks. The dirty counter advances through internal change scheduling,
 including when ordinary notifications are disabled; an unreported native write does not advance it. It is not an
 object-lifetime token.</p>
@@ -1308,7 +1308,7 @@ length releases storage entirely.</p>
 <a class="reference internal" href="vector-storage-reference.html#c.Rbc_ResizeVector" title="Rbc_ResizeVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeVector()</span></code></a> adds cache flushing and a full update. Its failure path replaces the detailed resize message
 with a generic message; it is not a name-based lookup API and requires a live vector pointer.</p>
 <p>The two public reset functions share <a class="reference internal" href="vector-storage-private-reference.html#c.ResetVectorStorage" title="ResetVectorStorage"><code class="xref c c-func docutils literal notranslate"><span class="pre">ResetVectorStorage()</span></code></a> after checking type. Reset validates nonnegative
-length/capacity, <code class="docutils literal notranslate"><span class="pre">length</span> <span class="pre">&lt;=</span> <span class="pre">capacity</span></code> and byte-count overflow. NULL data or zero capacity produces empty static
+length/capacity, <code class="docutils literal notranslate"><span class="pre">length</span> <span class="pre">&lt;=</span> <span class="pre">capacity</span></code> and byte-count overflow. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> data or zero capacity produces empty static
 storage after validation. <code class="docutils literal notranslate"><span class="pre">TCL_VOLATILE</span></code> allocates capacity-sized storage and copies only used values; unused capacity
 is not initialized by this path. Other policies borrow or adopt the supplied pointer. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for release
 ownership.</p>
@@ -1332,7 +1332,7 @@ changing length or ownership. The ranged form uses inclusive storage indices ind
 function checks writability; notification cannot retroactively authorize a write.</p>
 <p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_FreeVector" title="Rbc_FreeVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeVector()</span></code></a> delegates to private destruction, which retains the record and interpreter through callbacks
 and ignores recursive destruction. It deletes the command and mapping, removes registration, cancels pending idle
-delivery, and sends synchronous DESTROY with length zero. Registration has been removed before observer DESTROY
+delivery, and sends synchronous <code class="docutils literal notranslate"><span class="pre">DESTROY</span></code> with length zero. Registration has been removed before observer <code class="docutils literal notranslate"><span class="pre">DESTROY</span></code>
 callbacks, allowing those observers to create a new identity with the same name. Command deletion/unmapping happen
 earlier and have their own callback boundaries. Remaining clients and owned numeric storage are released before deferred
 record reclamation. Preservation of a record does not keep its name, storage or logical identity usable after
@@ -1398,7 +1398,7 @@ the range before scheduling observers.</p>
 either cached extremum index was overwritten, a full recomputation is required even when another equal value might exist
 elsewhere. Invalid intervals or inconsistent cache state likewise fall back to recomputation.</p>
 <p>Otherwise only changed finite values are scanned. Equal extrema retain the lowest index, and the no-finite-values state
-uses NaN bounds with negative indices. A successful incremental update commits both values and indices. Invalidation
+uses <code class="docutils literal notranslate"><span class="pre">NaN</span></code> bounds with negative indices. A successful incremental update commits both values and indices. Invalidation
 instead marks the cache dirty and stores those sentinel values; it does not itself notify observers. Correctness depends
 on callers reporting all modified indices, not merely the subset that changed visibly on a graph.</p>
 </section>
@@ -1434,9 +1434,9 @@ callback activity safe.</p>
 <section id="creation-parsers-and-bounded-index-strings">
 <h2>Creation parsers and bounded index strings<a class="headerlink" href="#creation-parsers-and-bounded-index-strings" title="Link to this heading"></a></h2>
 <p>The creation-option parsers report consumed argument counts: one on success, minus one on missing or invalid
-input. Boolean and size parsers write their output only after conversion. A successfully parsed Tcl_Size still needs the
-caller’s vector length and allocation checks. The type parser accepts exact real/complex names and records whether the
-choice was explicit; it does not change an existing vector’s type.</p>
+input. Boolean and size parsers write their output only after conversion. A successfully parsed <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> still needs
+the caller’s vector length and allocation checks. The type parser accepts exact real/complex names and records whether
+the choice was explicit; it does not change an existing vector’s type.</p>
 <p>String-size conversion owns a temporary Tcl object. Bounded index parsing similarly copies a half-open character span,
 allowing a range endpoint to be parsed without modifying or NUL-terminating the caller’s input buffer. It then delegates
 external index offsets, special indices and flags to the ordinary index parser. The copied string is temporary; returned

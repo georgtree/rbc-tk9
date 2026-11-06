@@ -112,18 +112,18 @@ specification type reaches Tcl_Panic. Integer query objects report normalized va
 spelling. Initialization may write fields before failing; it belongs to graph construction, unlike the rollback
 guarantee of runtime configuration.
 
-:c:func:`rbcGraphExportCommands.SvgDocument` frames an XML document with pixel dimensions and an equal viewBox. After
-shared traversal succeeds, it finalizes font definitions, closes the SVG and copies the buffer into a new Tcl
-string. The closing tag is appended even on failure, but no partial document is
+:c:func:`rbcGraphExportCommands.SvgDocument` frames an XML document with pixel dimensions and an equal
+``viewBox``. After shared traversal succeeds, it finalizes font definitions, closes the SVG and copies the buffer into a
+new Tcl string. The closing tag is appended even on failure, but no partial document is
 returned. :c:func:`rbcGraphExportCommands.PdfDocument` initializes the PDF builder using horizontal screen
 pixels/millimeters to obtain points per pixel, traverses the graph and invokes the binary serializer only on success.
 Neither adapter opens files or restores screen geometry.
 
 :c:func:`rbcGraphExportCommands.OutputGraphExport` acquires a reference to a document returned by the callback and
-releases it after delivery or failure. A callback must return a non-NULL new object on success; cleanup accepts NULL on
-failure. Backend cleanup still runs when initial layout fails before the document callback is entered. A new format must
-therefore separate backend teardown from shared font and buffer cleanup, and must tolerate that partially initialized
-state.
+releases it after delivery or failure. A callback must return a non-``NULL`` new object on success; cleanup accepts
+``NULL`` on failure. Backend cleanup still runs when initial layout fails before the document callback is entered. A new
+format must therefore separate backend teardown from shared font and buffer cleanup, and must tolerate that partially
+initialized state.
 
 Graph traversal and geometry
 ----------------------------
@@ -178,12 +178,12 @@ failure.
 
 The document callback output is also deliberately narrower than the command
 result. :c:func:`rbcGraphExportCommands.SvgDocument` leaves its output pointer unchanged on
-failure. :c:func:`rbcGraphExportCommands.PdfDocument` leaves it unchanged when traversal fails, but writes NULL when
-serialization fails. :c:func:`rbcGraphExportCommands.OutputGraphExport` initializes that pointer to NULL, takes a
+failure. :c:func:`rbcGraphExportCommands.PdfDocument` leaves it unchanged when traversal fails, but writes ``NULL`` when
+serialization fails. :c:func:`rbcGraphExportCommands.OutputGraphExport` initializes that pointer to ``NULL``, takes a
 reference when a document is returned, and releases it after result delivery or failure. New callbacks must follow this
 ownership contract.
 
-:c:func:`Rbc_ExportAppend` takes C strings terminated by a pointer-valued NULL sentinel, not a byte
+:c:func:`Rbc_ExportAppend` takes C strings terminated by a pointer-valued ``NULL`` sentinel, not a byte
 count. :c:func:`Rbc_ExportFormat` takes printf arguments. Both append to the context's current buffer, which may differ
 from its embedded storage; neither suppresses output because an earlier error was recorded. :c:func:`Rbc_ExportError`
 records the first static error string without setting the Tcl result. Final traversal or serialization must turn that

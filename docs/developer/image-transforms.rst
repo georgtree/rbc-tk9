@@ -129,8 +129,8 @@ discrete one-bit sampling with no partially covered pixels.
 
 X11 implementations obtain source and destination ``XImage`` objects, populate the destination and upload it with
 ``XPutImage``. Temporary XImages are released with ``XDestroyImage``. Windows rotation works through monochrome bitmap
-bytes and DIB metadata, including DWORD-aligned scanlines and checked buffer sizes. Those byte-layout rules must not be
-replaced with packed RGBA assumptions.
+bytes and DIB metadata, including ``DWORD``-aligned scanlines and checked buffer sizes. Those byte-layout rules must not
+be replaced with packed RGBA assumptions.
 
 Scaling and virtual regions
 ---------------------------
@@ -158,16 +158,16 @@ returns its allocated pixmap without propagating ``StretchBlt`` failure.
 
 The rotation dimension outputs are not portable failure indicators. X11 writes them on success; Windows clears them
 after initial argument validation and before later operations. Always check the returned pixmap first, and require
-non-NULL output pointers on both platforms. These helpers do not provide a uniform Tcl diagnostic interface.
+non-``NULL`` output pointers on both platforms. These helpers do not provide a uniform Tcl diagnostic interface.
 
 Maintenance checks
 ------------------
 
 Use an asymmetric pattern to detect mirroring and rotation direction. Check zero, positive and negative right angles,
 angles near quadrant boundaries, non-square images and arbitrary rotations. For color images, inspect RGBA values at
-transparent edges as well as appearance. For bitmaps, exercise scanline widths around byte and DWORD boundaries, scaling
-and contained virtual regions on both Windows and X11. Verify returned dimensions, source preservation and matching
-resource cleanup independently of the rendered result.
+transparent edges as well as appearance. For bitmaps, exercise scanline widths around byte and ``DWORD`` boundaries,
+scaling and contained virtual regions on both Windows and X11. Verify returned dimensions, source preservation and
+matching resource cleanup independently of the rendered result.
 
 X11 capture dimensions and visual channels
 ------------------------------------------
@@ -175,8 +175,8 @@ X11 capture dimensions and visual channels
 The X11 helpers distinguish geometric dimensions, pixel counts and packed row sizes.
 :c:func:`rbcX11Image.GetBitmapDimension` rounds upward with ``ceil`` and returns zero when the result is nonfinite,
 below one or above ``INT_MAX``. Pixel-count and packed row helpers instead treat negative arguments as internal
-programming errors and panic. A packed one-bit row occupies ceiling(width/8) bytes; it is not the DWORD-aligned Windows
-representation.
+programming errors and panic. A packed one-bit row occupies ceiling(width/8) bytes; it is not the ``DWORD``-aligned
+Windows representation.
 
 Drawable capture installs a temporary Tk handler for ``BadMatch`` from ``X_GetImage``.
 :c:func:`rbcX11Image.XGetImageErrorProc` only records failure in the caller's status slot. ``XSync`` runs before the
@@ -208,4 +208,4 @@ successful output with :c:func:`Rbc_FreeColorImage`.
 :c:func:`rbcX11Image.Rbc_PhotoImageMask` reads a supplied photo block, including its stride and alpha
 offset. :c:func:`rbcX11Image.Rbc_ColorImageMask` reads RBC RGBA pixels. Both treat zero alpha as transparent and nonzero
 alpha as opaque. On X11, fully opaque input returns None; otherwise the returned bitmap belongs to the caller and
-requires Tk_FreePixmap.
+requires ``Tk_FreePixmap``.

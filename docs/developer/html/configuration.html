@@ -1227,7 +1227,7 @@ lowercased. Callers release the copy with <code class="docutils literal notransl
 preserves legacy child-name matching rather than applying Unicode case folding.</p>
 <p><a class="reference internal" href="configuration-reference.html#c.Rbc_InitComponentOptions" title="Rbc_InitComponentOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitComponentOptions()</span></code></a> receives the resource name and class separately. It first looks for an existing real
 child of the graph with that name. When found, initialization uses that child’s existing class. Otherwise the helper
-reuses the graph’s anonymous option proxy, setting its name and class for this lookup. A NULL proxy falls back to the
+reuses the graph’s anonymous option proxy, setting its name and class for this lookup. A <code class="docutils literal notranslate"><span class="pre">NULL</span></code> proxy falls back to the
 parent window’s option hierarchy. Explicit command arguments are applied separately after initialization.</p>
 <p>The proxy is not a visible component widget and has no registered Tk pathname. A temporary pathname supplies meaningful
 initialization errors and is cleared before returning. The helper refreshes the parent’s option-database cache before
@@ -1302,9 +1302,9 @@ partial setup.</p>
 <h2>Root and nested child lookup<a class="headerlink" href="#root-and-nested-child-lookup" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="configuration-reference.html#c.Rbc_FindChild" title="Rbc_FindChild"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindChild()</span></code></a> joins a relative child name to a borrowed parent path. The root parent <code class="docutils literal notranslate"><span class="pre">.</span></code> needs no extra
 separator: <code class="docutils literal notranslate"><span class="pre">child</span></code> resolves to <code class="docutils literal notranslate"><span class="pre">.child</span></code>. Other parents add one dot; <code class="docutils literal notranslate"><span class="pre">.container</span></code> plus <code class="docutils literal notranslate"><span class="pre">child</span></code> resolves to
-<code class="docutils literal notranslate"><span class="pre">.container.child</span></code>. Dotted relative names can select descendants. Missing windows and a NULL parent return NULL;
-successful results remain Tk-owned. This also preserves the real-child path used by <a class="reference internal" href="configuration-reference.html#c.Rbc_InitComponentOptions" title="Rbc_InitComponentOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitComponentOptions()</span></code></a>
-before its anonymous proxy fallback.</p>
+<code class="docutils literal notranslate"><span class="pre">.container.child</span></code>. Dotted relative names can select descendants. Missing windows and a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> parent return
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code>; successful results remain Tk-owned. This also preserves the real-child path used by
+<a class="reference internal" href="configuration-reference.html#c.Rbc_InitComponentOptions" title="Rbc_InitComponentOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitComponentOptions()</span></code></a> before its anonymous proxy fallback.</p>
 </section>
 </section>
 

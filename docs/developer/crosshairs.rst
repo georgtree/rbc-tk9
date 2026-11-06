@@ -146,7 +146,7 @@ Tcl configure operation. It reuses validated settings and discards the private c
 keep displaying the graph.
 
 :c:func:`rbcCrosshairs.GetCrosshairPositionFromObj` borrows its option object and copies parsed coordinates to required
-output storage. NULL and empty input select the off-plot sentinel, while an invalid nonempty input leaves the output
+output storage. ``NULL`` and empty input select the off-plot sentinel, while an invalid nonempty input leaves the output
 unchanged. No object or coordinate pointer is retained.
 
 :c:func:`rbcCrosshairs.ConfigureCrosshairs` receives candidate Tk option fields but a still-active old GC and old

@@ -68,7 +68,7 @@ zero/one; empty means are nonfinite and fail final expression validation.
 These reducers use ordinary double accumulation. Complex distance uses ``hypot`` to avoid unnecessary overflow in its
 intermediate squares, but squaring that distance or accumulating many values can still overflow. There is no compensated
 summation or general guarantee for extreme dynamic ranges. Standard deviation returns zero whenever the variance is not
-greater than zero, including a NaN comparison; this is an implementation detail worth preserving or deliberately
+greater than zero, including a ``NaN`` comparison; this is an implementation detail worth preserving or deliberately
 revising with tests, rather than assuming every nonfinite intermediate propagates.
 
 Real order statistics and normalization
@@ -105,7 +105,7 @@ two produces a nonfinite result.
 
 ``skew`` retains this legacy formula for compatibility. The separate ``skewness`` function uses signed population
 central moments, with no bias correction: :math:`g_1=m_3/m_2^{3/2}`, where :math:`m_k=\sum(x-m)^k/n`. It returns zero
-for symmetric samples and reverses sign under reflection. Empty or zero-variance input returns NaN internally and
+for symmetric samples and reverses sign under reflection. Empty or zero-variance input returns ``NaN`` internally and
 becomes an expression domain error; no partial result is assigned to a named destination.
 
 :c:func:`Skewness` scales finite samples by their maximum absolute value before computing the mean and central
@@ -193,4 +193,4 @@ Full-storage extrema inputs
 
 :c:func:`Rbc_VecMin` and :c:func:`Rbc_VecMax` require real vector storage and scan the complete array, ignoring the
 current first/last selection. They update the corresponding scalar cache but do not publish notifications, update
-extrema indices or clear invalidation flags. Empty or wholly nonfinite input returns NaN.
+extrema indices or clear invalidation flags. Empty or wholly nonfinite input returns ``NaN``.

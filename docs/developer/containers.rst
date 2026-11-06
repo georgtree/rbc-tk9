@@ -35,18 +35,18 @@ so its key representation is known. This is a construction state, not ordinary d
 before first insertion would incorrectly change the list count. Insert it, or dispose of the never-inserted allocation
 directly with ``ckfree``. The Append/Prepend convenience functions perform creation and insertion together.
 
-After normal unlinking, ``listPtr`` is NULL. The node can then be freed with :c:func:`Rbc_ListDeleteNode` or relinked
-into a list with the same key representation. The ``Rbc_ListGetKey`` macro dereferences ``listPtr`` and therefore must
-not be used on an unlinked node. It is a convenience for string/one-word keys; code handling array keys must use the
-stored words with the known key type.
+After normal unlinking, ``listPtr`` is ``NULL``. The node can then be freed with :c:func:`Rbc_ListDeleteNode` or
+relinked into a list with the same key representation. The ``Rbc_ListGetKey`` macro dereferences ``listPtr`` and
+therefore must not be used on an unlinked node. It is a convenience for string/one-word keys; code handling array keys
+must use the stored words with the known key type.
 
 Linking and moving
 ------------------
 
 :c:func:`Rbc_ChainLinkBefore`/:c:func:`Rbc_ChainLinkAfter` require a detached record and a neighbor belonging to the
-destination container. They do not unlink existing membership automatically. A NULL neighbor has deliberately
-asymmetric meaning: Before(NULL) appends, while After(NULL) prepends. The AppendLink/PrependLink and
-AppendNode/PrependNode macros express those conventions directly.
+destination container. They do not unlink existing membership automatically. A ``NULL`` neighbor has deliberately
+asymmetric meaning: ``Before(NULL)`` appends, while ``After(NULL)`` prepends. The ``AppendLink`` / ``PrependLink`` and
+``AppendNode`` / ``PrependNode`` macros express those conventions directly.
 
 Chain links do not store owner identity. :c:func:`Rbc_ChainUnlinkLink` needs the actual owning chain; passing another
 chain can corrupt both structures. Unlink clears neighbor pointers without freeing the link. Delete additionally
@@ -57,8 +57,8 @@ Borrowed pointers and traversal
 -------------------------------
 
 Access macros return borrowed links, nodes and payloads. Next/previous/value macros require a valid record. Length and
-first/last macros tolerate a NULL container, but this is not a general NULL-tolerance rule for all operations. The
-macros may evaluate arguments more than once; avoid arguments with side effects.
+first/last macros tolerate a ``NULL`` container, but this is not a general ``NULL``-tolerance rule for all
+operations. The macros may evaluate arguments more than once; avoid arguments with side effects.
 
 When deleting only the current chain link, save its successor first:
 
@@ -79,7 +79,7 @@ Sorting and positional lookup
 -----------------------------
 
 :c:func:`Rbc_ListGetNthNode` uses a zero-based position, traversing from the head for positive direction and from the
-tail otherwise. Invalid positions or a NULL list return NULL. It does not cache an index.
+tail otherwise. Invalid positions or a ``NULL`` list return ``NULL``. It does not cache an index.
 
 :c:func:`Rbc_ListSort` builds an array of node pointers, calls ``qsort`` and relinks the same allocations. Saved node
 addresses remain valid, but neighbor/order assumptions do not. Its comparator receives pointers to node pointers and
@@ -99,7 +99,7 @@ helpers. Allocation uses Tcl's fatal allocation policy for container and node cr
 interpreter diagnostic under memory pressure. The attempted scratch allocation in sorting is a separate, nonfatal
 policy.
 
-A detached record supplied to an insertion helper must have NULL neighbor pointers. In particular, insertion into an
+A detached record supplied to an insertion helper must have ``NULL`` neighbor pointers. In particular, insertion into an
 empty container assigns its head and tail without clearing arbitrary old link fields. Nodes created by the allocation
 helpers and records detached by normal unlinking meet this precondition. Hand-built records must meet it too. Insertion
 is not a membership check or a move operation: callers must unlink existing membership first.
@@ -115,10 +115,10 @@ The list's key type determines lookup semantics:
      - Caller requirement
    * - String
      - First byte, then ``strcmp``
-     - Non-NULL NUL-terminated query string
+     - Non-``NULL`` NUL-terminated query string
    * - One word
      - Pointer-sized identity
-     - Query value need not point to readable storage; NULL is allowed
+     - Query value need not point to readable storage; ``NULL`` is allowed
    * - Integer array
      - ``memcmp`` over ``type * sizeof(int)`` bytes
      - Query has that many readable native ``int`` words
@@ -132,7 +132,7 @@ Private key lookup contracts
 ----------------------------
 
 The list's key representation selects the lookup helper. :c:func:`FindString` compares NUL-terminated contents,
-:c:func:`FindOneWord` compares pointer-sized identity (including NULL), and :c:func:`FindArray` compares the copied
+:c:func:`FindOneWord` compares pointer-sized identity (including ``NULL``), and :c:func:`FindArray` compares the copied
 bytes of exactly the configured number of native integers. They return borrowed nodes and do not retain payloads. A key
 representation mismatch is a caller error, not a conversion request.
 
@@ -163,6 +163,6 @@ transferred by insertion. A payload pointer remains borrowed unless it points in
    * - Stack or embedded container
      - Use Reset; Destroy also frees container storage.
 
-A NULL neighbor is a position selector, not a missing dependency: LinkAfter with NULL prepends and LinkBefore with NULL
-appends. A non-NULL neighbor must belong to the specified destination. Neither interface searches for or repairs
-incorrect membership, and no insertion implicitly removes an existing one.
+A ``NULL`` neighbor is a position selector, not a missing dependency: ``LinkAfter`` with ``NULL`` prepends and
+``LinkBefore`` with ``NULL`` appends. A non-``NULL`` neighbor must belong to the specified destination. Neither
+interface searches for or repairs incorrect membership, and no insertion implicitly removes an existing one.

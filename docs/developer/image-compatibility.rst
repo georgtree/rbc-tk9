@@ -9,14 +9,14 @@ Private-layout access
 ---------------------
 
 :c:func:`Tk_ImageIsDeleted` inspects the instance's master and type pointers. It can recognize a deleted image while the
-caller still owns a retained instance; it cannot make a NULL or dangling instance pointer
+caller still owns a retained instance; it cannot make a ``NULL`` or dangling instance pointer
 safe. :c:func:`Tk_ImageGetMaster` returns a borrowed pointer. :c:func:`Tk_ImageGetType` requires that master to exist
-and can return NULL after deletion.
+and can return ``NULL`` after deletion.
 
 :c:func:`Tk_ImageGetPhotoPixmap` and :c:func:`Tk_ImageGetPhotoGC` require a live type before checking whether it is a
 photo. They expose Tk-owned display resources rather than independent pixel data. Callers must not free these resources
 or assume that they remain stable across image changes. The GC is not caller-owned scratch state. A different live image
-type yields ``None`` or NULL respectively.
+type yields ``None`` or ``NULL`` respectively.
 
 :c:func:`Rbc_NameOfImage` passes the borrowed master to ``Tk_NameOfImage``. Its result is a borrowed name, not a
 retained Tcl object. Copy the name before any operation that could invalidate its owner. See :doc:`images-tiles` for
@@ -55,8 +55,9 @@ Deletion and failure ownership
 ------------------------------
 
 :c:func:`Rbc_DestroyTemporaryImage` copies the name of a live image, deletes it with ``Tk_DeleteImage`` and releases the
-retained instance with ``Tk_FreeImage``. An already-deleted image still has its instance released. NULL is a successful
-no-op. Cleanup always consumes a non-NULL token and returns ``TCL_OK``; callers must not retry with that token.
+retained instance with ``Tk_FreeImage``. An already-deleted image still has its instance released. ``NULL`` is a
+successful no-op. Cleanup always consumes a non-``NULL`` token and returns ``TCL_OK``; callers must not retry with that
+token.
 
 Deletion uses Tk's C API rather than evaluating the replaceable Tcl ``image`` command. A failing wrapper or a renamed
 command therefore cannot block private resource release. The helper preserves the interpreter and saves/restores its

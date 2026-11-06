@@ -115,22 +115,22 @@ normally. This visibility commit is separate from the Tk option transaction, whi
    * - Operation
      - Lookup/result
      - Mutation boundary
-   * - cget / type
+   * - ``cget`` / ``type``
      - Borrowed lookup, value or normalized class result
      - No reference acquisition or mutation
-   * - configure query
+   * - ``configure query``
      - First named pen only
      - Zero options returns all metadata; one option returns its metadata
-   * - configure update
+   * - ``configure update``
      - Names checked before applying option pairs
      - Per-pen commit; later failure retains earlier changes
-   * - create
+   * - ``create``
      - Original name object returned on success
      - New allocation or compatible retained-record revival
-   * - delete
+   * - ``delete``
      - Names processed in argument order
      - Earlier deletions survive later failure
-   * - names
+   * - ``names``
      - Visible names matching any supplied glob
      - Hash traversal order; each name appears at most once
 
@@ -147,14 +147,14 @@ Candidate palettes and default ranges
 -------------------------------------
 
 :c:func:`ParseStylesObj` clears its output pointer before doing any work. It always constructs the reserved normal-style
-entry, including for NULL or empty style lists, and borrows the element's current normal pen there. Additional entries
+entry, including for ``NULL`` or empty style lists, and borrows the element's current normal pen there. Additional entries
 use the concrete record size supplied by the caller, which must accommodate :c:type:`PenStyle`. The first additional
 entry defaults to range 0 through 1, the second to 1 through 2, and so on.
 
 :c:func:`GetPenStyleFromObj` accepts exactly one or three list elements. The three-item form converts both endpoints
 before acquiring a named pen, so invalid numeric input cannot leak that reference. It uses Tcl numeric conversion rather
 than expression evaluation. A one-item specification retains the initialized default range; three items replace it using
-``SetWeight``. Endpoint ordering is not rejected: ``SetRange`` uses DBL_EPSILON when max is not greater than min. This
+``SetWeight``. Endpoint ordering is not rejected: ``SetRange`` uses ``DBL_EPSILON`` when max is not greater than min. This
 compatibility behavior differs from rejecting reversed ranges or treating them as empty. Keep it distinct from the style
 mapper's check for a stored nonpositive range.
 
@@ -163,9 +163,9 @@ Palette pen compatibility is checked against the element's class. The ``penType`
 successor before releasing the earlier candidate. This matters for repeated options and for delete-pending pens whose
 last reference could otherwise disappear.
 
-:c:func:`StageElemPen` similarly records NULL as an explicitly staged choice: normal NULL selects the built-in pen at
-commit, whereas active NULL disables the active pen. An unsuccessful lookup retains the previous candidate. The outer
-transaction decides whether to continue, commit, or release all staged values.
+:c:func:`StageElemPen` similarly records ``NULL`` as an explicitly staged choice: normal ``NULL`` selects the built-in
+pen at commit, whereas active ``NULL`` disables the active pen. An unsuccessful lookup retains the previous
+candidate. The outer transaction decides whether to continue, commit, or release all staged values.
 
 An unattached palette entry that fails parsing is freed separately. Entries already attached are cleaned through
 :c:func:`DestroyPalette`, which releases counted style pens and destroys the chain without releasing the borrowed first

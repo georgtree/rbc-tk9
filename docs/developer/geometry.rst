@@ -41,8 +41,9 @@ corner inside the polygon. That final check handles a rectangle wholly inside a 
 Line and polygon clipping differ
 --------------------------------
 
-:c:func:`Rbc_LineRectClip` uses Liang-Barsky clipping against the supplied bounds. Its output pointer may be NULL for
-visibility testing. With separate output storage, endpoints remain unchanged; rejected input leaves output untouched.
+:c:func:`Rbc_LineRectClip` uses Liang-Barsky clipping against the supplied bounds. Its output pointer may be ``NULL``
+for visibility testing. With separate output storage, endpoints remain unchanged; rejected input leaves output
+untouched.
 
 :c:func:`Rbc_PolyRectClip` preserves a historical pixel-area convention: left/top are used directly, while right/bottom
 are expanded by one coordinate unit. It also perturbs zero edge deltas by ``DBL_EPSILON`` internally. It is therefore

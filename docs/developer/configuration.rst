@@ -16,7 +16,7 @@ preserves legacy child-name matching rather than applying Unicode case folding.
 
 :c:func:`Rbc_InitComponentOptions` receives the resource name and class separately. It first looks for an existing real
 child of the graph with that name. When found, initialization uses that child's existing class. Otherwise the helper
-reuses the graph's anonymous option proxy, setting its name and class for this lookup. A NULL proxy falls back to the
+reuses the graph's anonymous option proxy, setting its name and class for this lookup. A ``NULL`` proxy falls back to the
 parent window's option hierarchy. Explicit command arguments are applied separately after initialization.
 
 The proxy is not a visible component widget and has no registered Tk pathname. A temporary pathname supplies meaningful
@@ -103,6 +103,6 @@ Root and nested child lookup
 
 :c:func:`Rbc_FindChild` joins a relative child name to a borrowed parent path. The root parent ``.`` needs no extra
 separator: ``child`` resolves to ``.child``. Other parents add one dot; ``.container`` plus ``child`` resolves to
-``.container.child``. Dotted relative names can select descendants. Missing windows and a NULL parent return NULL;
-successful results remain Tk-owned. This also preserves the real-child path used by :c:func:`Rbc_InitComponentOptions`
-before its anonymous proxy fallback.
+``.container.child``. Dotted relative names can select descendants. Missing windows and a ``NULL`` parent return
+``NULL``; successful results remain Tk-owned. This also preserves the real-child path used by
+:c:func:`Rbc_InitComponentOptions` before its anonymous proxy fallback.

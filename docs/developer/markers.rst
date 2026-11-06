@@ -120,10 +120,10 @@ rather than introducing a second common marker lifecycle.
      - Concrete allocation; :c:func:`rbcGrMarkerLifetime.DestroyMarker` frees it
    * - Name and direct option fields
      - Tk option ownership after initialization; partial-creation cleanup handles earlier state
-   * - worldPts
+   * - ``worldPts``
      - Owned parsed coordinate array, replaced at common-option commit
    * - tags
-     - One Tcl_SplitList allocation, freed as a whole
+     - One ``Tcl_SplitList`` allocation, freed as a whole
    * - X/Y axes
      - Acquired references, dropped on replacement or release
    * - Track
@@ -149,8 +149,8 @@ stage its own fallible work.
 
 Common class preparation uses :c:struct:`ParsedMarkerOptions`. :c:func:`rbcGrMarkerConfiguration.ParseMarkerOptions`
 zeros it, parses tags, coordinates and state, acquires both axes and validates the optional track. The selected Y axis
-must belong to exactly that track, including the graph-wide NULL case. Failure releases candidate allocations and axis
-references. :c:func:`rbcGrMarkerConfiguration.CommitMarkerOptions` frees old common resources, transfers new
+must belong to exactly that track, including the graph-wide ``NULL`` case. Failure releases candidate allocations and
+axis references. :c:func:`rbcGrMarkerConfiguration.CommitMarkerOptions` frees old common resources, transfers new
 allocations/references and clears transferred pointers. It does not register, map or schedule the marker; concrete
 configuration completes those tasks.
 
@@ -178,14 +178,14 @@ coordinate lists obey these limits:
 
 Odd list lengths fail before allocation. Byte-size checks and ``Tcl_AttemptAlloc`` make coordinate allocation failure
 reportable as a Tcl error. Each component is evaluated separately. Exact ``Inf``, ``+Inf`` and ``-Inf`` spellings select
-elastic DBL_MAX sentinels; other strings go through ``Tcl_ExprDouble``. This parser does not impose a general
+elastic ``DBL_MAX`` sentinels; other strings go through ``Tcl_ExprDouble``. This parser does not impose a general
 finite-value policy.
 
 Expression evaluation can execute application Tcl. The parser borrows list storage and the marker record throughout
 evaluation; ordinary candidate cleanup is not protection against callbacks deleting owners or mutating borrowed inputs.
 Future lifetime changes must address that boundary explicitly.
 
-Single colors accept empty values as NULL and, when enabled by the caller, nonempty prefixes of ``defcolor`` as a
+Single colors accept empty values as ``NULL`` and, when enabled by the caller, nonempty prefixes of ``defcolor`` as a
 sentinel. Other values acquire Tk colors. A color pair contains at most foreground and background. Pair conversion
 stages both colors, releases a successfully acquired first color if the second fails, and transfers ownership only on
 success. It does not free an older destination pair. Sentinel-aware release remains essential.
@@ -234,7 +234,7 @@ The shared selection filters differ:
    * - Operation
      - Order and eligibility
    * - Nearest point
-     - Reverse display order; requested layer, coordinates present, not hidden, STATE_NORMAL
+     - Reverse display order; requested layer, coordinates present, not hidden, ``STATE_NORMAL``
    * - Region find
      - Forward display order; not hidden and no existing hidden associated element
    * - Track-use query
@@ -264,7 +264,7 @@ Teardown and invalidation details
 
 :c:func:`rbcGrMarkerLifetime.DestroyMarker` invalidates the backing store for under-layer markers and removes object
 bindings. Initialized records use the guarded Tk-resource release path; records that failed before initialization
-receive explicit common cleanup. It then deletes non-NULL registry/list handles and frees the concrete allocation.
+receive explicit common cleanup. It then deletes non-``NULL`` registry/list handles and frees the concrete allocation.
 Callers, rather than this destructor, schedule the eventual redraw.
 
 Whole-registry destruction clears each marker's hash handle before invoking its destructor so iteration owns hash-table
@@ -559,8 +559,8 @@ execute.
    * - Callback
      - Current action
    * - :c:func:`rbcGrMarkerWindow.ChildEventProc`
-     - On DestroyNotify, clears child/dimensions, marks mapping dirty and schedules redraw when the graph window still
-       exists; retains marker
+     - On ``DestroyNotify``, clears child/dimensions, marks mapping dirty and schedules redraw when the graph window
+       still exists; retains marker
    * - :c:func:`rbcGrMarkerWindow.ChildGeometryProc`
      - Copies requested dimensions only where the explicit override is zero, then schedules remapping/redraw when an
        automatic dimension changes
@@ -615,7 +615,7 @@ is no per-marker allocation in the middle of assembling a native run.
      - Same narrow stroke style, without a drawable fill
      - Outline foreground pixel
    * - Polygon fill
-     - Native solid foreground, no XOR/stipple/background/drawable outline, and 3..INT_MAX mapped fill points
+     - Native solid foreground, no XOR/stipple/background/drawable outline, and ``3..INT_MAX`` mapped fill points
      - Fill foreground pixel
    * - Text
      - Layout/string/foreground present, no background, special text state or visible shadow; also usable with
@@ -644,9 +644,9 @@ Cairo context reuse and native targets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :c:func:`rbcGrMarkerBatches.GetMarkerStroke` accepts solid, non-XOR line shafts without arrows and polygon outlines
-without drawable fills. It returns a borrowed :c:struct:`MarkerStroke <rbcGrMarkerBatches.MarkerStroke>` view; a FALSE
-result must not be used, even if some fields were written. Arcs retain their class-specific continuous-curve path. Style
-equality compares width, cap, join and RGB values, not pointer identity.
+without drawable fills. It returns a borrowed :c:struct:`MarkerStroke <rbcGrMarkerBatches.MarkerStroke>` view; a
+``FALSE`` result must not be used, even if some fields were written. Arcs retain their class-specific continuous-curve
+path. Style equality compares width, cap, join and RGB values, not pointer identity.
 
 Compatible strokes reuse an open renderer context, but each marker still calls :c:func:`Rbc_RenderSegments`
 separately. Merging all paths into one stroke would change antialiased overlap coverage. Incompatible visible content
@@ -679,8 +679,8 @@ Windows scratch ownership
 The ordinary Windows pass owns all five scratch arrays: line segments, polygon segments, polygon-fill marker pointers,
 text-marker pointers and bitmap positions. Flush helpers reset batch bookkeeping but do not release storage. After the
 final synchronous flush, :c:func:`Rbc_DrawMarkers` frees every allocated array before ending the marker render
-target. NULL arrays from unused batches or allocation failures require no release. Freeing the text-marker pointer array
-does not free the markers, layouts or fonts it borrowed.
+target. ``NULL`` arrays from unused batches or allocation failures require no release. Freeing the text-marker pointer
+array does not free the markers, layouts or fonts it borrowed.
 
 Geometry and batch argument contracts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -697,8 +697,8 @@ mapped first, including marker offsets and the current track viewport.
   allocation failure.
 * :c:func:`rbcGrMarkerShapeOutput.EraseLineMarkerXor` requires the old GC and geometry. A missing drawable clears
   bookkeeping without erasing pixels; replacing options is not a substitute for retaining the old drawing state.
-* :c:func:`rbcGrMarkerBatches.GetMarkerStroke` returns a borrowed view, not a retained snapshot. Only a TRUE result can
-  be compared or submitted, and the marker caches and colors must remain live throughout context reuse.
+* :c:func:`rbcGrMarkerBatches.GetMarkerStroke` returns a borrowed view, not a retained snapshot. Only a ``TRUE`` result
+  can be compared or submitted, and the marker caches and colors must remain live throughout context reuse.
 * Windows flush helpers consume pending counts and clear representative slots. They borrow arrays and markers
   throughout synchronous submission; the outer pass still owns scratch allocation and release. Eligibility predicates
   must precede style comparisons, which intentionally omit already-fixed properties.

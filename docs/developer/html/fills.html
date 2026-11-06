@@ -1321,8 +1321,8 @@ assume this reset has happened; they are not replacement APIs for an already pop
 <p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetLineAreaOption" title="rbcGrLineOptions.GetLineAreaOption"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetLineAreaOption()</span></code></a> resolves canonical names using the concrete element option table. The same
 transaction code handles ordinary area and error-band resources, selected by its band argument. This shares ownership
 machinery, not option availability or geometry rules.</p>
-<p>Pattern parsing has three results: empty/NULL means None, exact solid means PATTERN_SOLID, and other strings acquire a
-Tk bitmap. <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetPatternFromString" title="rbcGrLineOptions.GetPatternFromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetPatternFromString()</span></code></a> writes its output only after successful lookup.
+<p>Pattern parsing has three results: empty/<code class="docutils literal notranslate"><span class="pre">NULL</span></code> means None, exact solid means <code class="docutils literal notranslate"><span class="pre">PATTERN_SOLID</span></code>, and other strings
+acquire a Tk bitmap. <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetPatternFromString" title="rbcGrLineOptions.GetPatternFromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetPatternFromString()</span></code></a> writes its output only after successful lookup.
 <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.FreeLinePattern" title="rbcGrLineOptions.FreeLinePattern"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.FreeLinePattern()</span></code></a> releases only actual bitmap references. Tile parsing similarly treats
 empty/NULL as a staged clear; nonempty input acquires a client through <a class="reference internal" href="image-tile-reference.html#c.Rbc_GetTile" title="Rbc_GetTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTile()</span></code></a>.
 <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.StageLineAreaPattern" title="rbcGrLineOptions.StageLineAreaPattern"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.StageLineAreaPattern()</span></code></a> and <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.StageLineAreaTile" title="rbcGrLineOptions.StageLineAreaTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.StageLineAreaTile()</span></code></a> acquire the new
@@ -1331,10 +1331,10 @@ resource before releasing an earlier candidate, preserving that candidate if the
 considered only for fields not explicitly supplied; explicit repetitions are processed in caller order. A bad early
 pattern or tile still fails even if a later occurrence would replace it. The fill colors are already managed by Tk’s
 saved-option transaction and are borrowed by this preparation step.</p>
-<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.CreateLineFillGC" title="rbcGrLineOptions.CreateLineFillGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.CreateLineFillGC()</span></code></a> sets foreground/background pixels only for non-NULL colors. A real bitmap
-selects transparent stippling without a background or opaque stippling with one. None and PATTERN_SOLID leave stippling
-disabled. The GC’s existence does not itself mean an area will be drawn: geometry and draw dispatch still determine
-that. Opacity and tile rendering are not implemented by this GC constructor.</p>
+<p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.CreateLineFillGC" title="rbcGrLineOptions.CreateLineFillGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.CreateLineFillGC()</span></code></a> sets foreground/background pixels only for non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> colors. A real
+bitmap selects transparent stippling without a background or opaque stippling with one. None and <code class="docutils literal notranslate"><span class="pre">PATTERN_SOLID</span></code> leave
+stippling disabled. The GC’s existence does not itself mean an area will be drawn: geometry and draw dispatch still
+determine that. Opacity and tile rendering are not implemented by this GC constructor.</p>
 <p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.CommitLineAreaTransaction" title="rbcGrLineOptions.CommitLineAreaTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.CommitLineAreaTransaction()</span></code></a> transfers staged resources, installs tile notifications on the
 stable line record, and releases the displaced resources. An unchanged retained tile also receives the callback if
 needed. Moved candidate fields and the staged mask are cleared so subsequent
@@ -1371,7 +1371,7 @@ clears the mask, leaving mapping and redraw to the enclosing configuration opera
 </tbody>
 </table>
 <p>The string parsers <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetSmoothFromString" title="rbcGrLineOptions.GetSmoothFromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetSmoothFromString()</span></code></a> and <a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetPenDirFromString" title="rbcGrLineOptions.GetPenDirFromString"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetPenDirFromString()</span></code></a>
-leave their outputs unchanged on failure; their object adapters borrow required, non-NULL Tcl objects. The smoothing
+leave their outputs unchanged on failure; their object adapters borrow required, non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> Tcl objects. The smoothing
 failure diagnostic lists all accepted names, including the cubic alias and catrom. Matching remains exact; the
 diagnostic does not change parsing.</p>
 <p><a class="reference internal" href="fill-reference.html#c.rbcGrLineOptions.GetSymbolFromObj" title="rbcGrLineOptions.GetSymbolFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOptions.GetSymbolFromObj()</span></code></a> initializes a fresh <a class="reference internal" href="mapping-reference.html#c.ParsedSymbol" title="ParsedSymbol"><code class="xref c c-struct docutils literal notranslate"><span class="pre">ParsedSymbol</span></code></a> rather than releasing an old

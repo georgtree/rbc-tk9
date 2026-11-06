@@ -122,8 +122,8 @@ Pattern and tile transaction details
 transaction code handles ordinary area and error-band resources, selected by its band argument. This shares ownership
 machinery, not option availability or geometry rules.
 
-Pattern parsing has three results: empty/NULL means None, exact solid means PATTERN_SOLID, and other strings acquire a
-Tk bitmap. :c:func:`rbcGrLineOptions.GetPatternFromString` writes its output only after successful lookup.
+Pattern parsing has three results: empty/``NULL`` means None, exact solid means ``PATTERN_SOLID``, and other strings
+acquire a Tk bitmap. :c:func:`rbcGrLineOptions.GetPatternFromString` writes its output only after successful lookup.
 :c:func:`rbcGrLineOptions.FreeLinePattern` releases only actual bitmap references. Tile parsing similarly treats
 empty/NULL as a staged clear; nonempty input acquires a client through :c:func:`Rbc_GetTile`.
 :c:func:`rbcGrLineOptions.StageLineAreaPattern` and :c:func:`rbcGrLineOptions.StageLineAreaTile` acquire the new
@@ -134,10 +134,10 @@ considered only for fields not explicitly supplied; explicit repetitions are pro
 pattern or tile still fails even if a later occurrence would replace it. The fill colors are already managed by Tk's
 saved-option transaction and are borrowed by this preparation step.
 
-:c:func:`rbcGrLineOptions.CreateLineFillGC` sets foreground/background pixels only for non-NULL colors. A real bitmap
-selects transparent stippling without a background or opaque stippling with one. None and PATTERN_SOLID leave stippling
-disabled. The GC's existence does not itself mean an area will be drawn: geometry and draw dispatch still determine
-that. Opacity and tile rendering are not implemented by this GC constructor.
+:c:func:`rbcGrLineOptions.CreateLineFillGC` sets foreground/background pixels only for non-``NULL`` colors. A real
+bitmap selects transparent stippling without a background or opaque stippling with one. None and ``PATTERN_SOLID`` leave
+stippling disabled. The GC's existence does not itself mean an area will be drawn: geometry and draw dispatch still
+determine that. Opacity and tile rendering are not implemented by this GC constructor.
 
 :c:func:`rbcGrLineOptions.CommitLineAreaTransaction` transfers staged resources, installs tile notifications on the
 stable line record, and releases the displaced resources. An unchanged retained tile also receives the callback if
@@ -171,7 +171,7 @@ The parsers deliberately preserve their existing differences:
      - Nonempty prefixes of increasing, decreasing or both.
 
 The string parsers :c:func:`rbcGrLineOptions.GetSmoothFromString` and :c:func:`rbcGrLineOptions.GetPenDirFromString`
-leave their outputs unchanged on failure; their object adapters borrow required, non-NULL Tcl objects. The smoothing
+leave their outputs unchanged on failure; their object adapters borrow required, non-``NULL`` Tcl objects. The smoothing
 failure diagnostic lists all accepted names, including the cubic alias and catrom. Matching remains exact; the
 diagnostic does not change parsing.
 

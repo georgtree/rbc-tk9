@@ -138,8 +138,8 @@ intermediate search bound.
 Representative append helpers sort first/minimum/maximum/last source indices and remove duplicates within that
 bucket. :c:func:`rbcGrLineCache.AppendPixelBucket` relies on caller
 capacity. :c:func:`rbcGrLineCache.AppendSourcePixelBucket` checks each write but can fail after partial appends, so its
-FALSE return is not an unchanged-output guarantee. Break flags mark the first representative of a later run; duplicates
-across distinct buckets are not removed by these helpers.
+``FALSE`` return is not an unchanged-output guarantee. Break flags mark the first representative of a later run;
+duplicates across distinct buckets are not removed by these helpers.
 
 :c:func:`rbcGrLineCache.CanPreMapDecimateLine` is only an eligibility check. It excludes normal symbols, value labels
 and error data because they require full center/style mappings. Explicit active selections can be mapped independently,
@@ -164,6 +164,6 @@ Pixel-bucket output ownership
 
 :c:func:`BuildPixelDecimatedScreenPoints` requires the caller to select an eligible real Cartesian element and its track
 viewport. It initializes an empty output and attempts to return representative mapped points, original indices and
-optional discontinuity flags. TRUE includes a successfully empty result; FALSE requests ordinary mapping after temporary
-allocations are released. Successful arrays transfer to the caller, which releases them with ckfree. Do not pass an
-output record still owning arrays.
+optional discontinuity flags. ``TRUE`` includes a successfully empty result; ``FALSE`` requests ordinary mapping after
+temporary allocations are released. Successful arrays transfer to the caller, which releases them with ckfree. Do not
+pass an output record still owning arrays.

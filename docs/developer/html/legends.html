@@ -1298,12 +1298,12 @@ are two layout contexts, but only one element and one <code class="docutils lite
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Owner pointer</p></td>
-<td><p>graphPtr-&gt;legend</p></td>
-<td><p>track-&gt;legend</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;legend</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">track-&gt;legend</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Binding table</p></td>
 <td><p>Owned by the legend</p></td>
-<td><p>Borrowed graphPtr-&gt;trackLegendBindings</p></td>
+<td><p>Borrowed <code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;trackLegendBindings</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Interned tag strings</p></td>
 <td><p>Graph element tag table</p></td>
@@ -1319,8 +1319,8 @@ are two layout contexts, but only one element and one <code class="docutils lite
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.Rbc_CreateLegend" title="rbcGrLegendConfiguration.Rbc_CreateLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.Rbc_CreateLegend()</span></code></a> initializes the <code class="docutils literal notranslate"><span class="pre">legend</span></code>/<code class="docutils literal notranslate"><span class="pre">Legend</span></code> option-database
-component. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend" title="rbcGrLegendConfiguration.Rbc_CreateTrackLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.Rbc_CreateTrackLegend()</span></code></a> initializes <code class="docutils literal notranslate"><span class="pre">trackLegend</span></code>/<code class="docutils literal notranslate"><span class="pre">TrackLegend</span></code> and
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.Rbc_CreateLegend" title="rbcGrLegendConfiguration.Rbc_CreateLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.Rbc_CreateLegend()</span></code></a> initializes the <code class="docutils literal notranslate"><span class="pre">legend</span></code> / <code class="docutils literal notranslate"><span class="pre">Legend</span></code> option-database
+component. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend" title="rbcGrLegendConfiguration.Rbc_CreateTrackLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.Rbc_CreateTrackLegend()</span></code></a> initializes <code class="docutils literal notranslate"><span class="pre">trackLegend</span></code> / <code class="docutils literal notranslate"><span class="pre">TrackLegend</span></code> and
 lazily creates the graph-owned local binding table. Both constructors install their owner pointer before initializing
 options, so failure cleanup must clear it. A local creation failure retains the shared table for the graph. They assume
 no existing legend at their destination; they are not replacements.</p>
@@ -1493,7 +1493,8 @@ cached origin.</p>
 <td><p>Supply required int output storage; failure leaves its old value unchanged.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.GetLegendPositionFromObj" title="rbcGrLegendConfiguration.GetLegendPositionFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.GetLegendPositionFromObj()</span></code></a></p></td>
-<td><p>Supply staging storage and retain the input object while using windowName. Failure can leave partial staging values.</p></td>
+<td><p>Supply staging storage and retain the input object while using <code class="docutils literal notranslate"><span class="pre">windowName</span></code>. Failure can leave partial staging
+values.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.PrepareLegendWindow" title="rbcGrLegendLifetime.PrepareLegendWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.PrepareLegendWindow()</span></code></a></p></td>
 <td><p>Supply both handle outputs; success transfers responsibility to adopt or clean up the window and command together.</p></td>
@@ -1509,7 +1510,7 @@ cached origin.</p>
 </tr>
 </tbody>
 </table>
-<p>A non-NULL picking context is therefore not proof that an entry was selected. The returned element pointer determines
+<p>A non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> picking context is therefore not proof that an entry was selected. The returned element pointer determines
 whether an item was found; the context identifies the scope for subsequent tag collection. Neither result acquires an
 element or legend reference.</p>
 <p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_DrawTrackLegends" title="rbcGrLegendOutput.Rbc_DrawTrackLegends"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_DrawTrackLegends()</span></code></a> and

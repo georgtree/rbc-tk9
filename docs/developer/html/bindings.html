@@ -1385,9 +1385,9 @@ destroying the binding table.</p>
 <p><a class="reference internal" href="binding-reference.html#c.Rbc_ConfigureBindingsFromObj" title="Rbc_ConfigureBindingsFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConfigureBindingsFromObj()</span></code></a> accepts an already validated argument count: no arguments list sequences, one
 queries a sequence, and two set a script. Empty scripts delete a binding; a leading <code class="docutils literal notranslate"><span class="pre">+</span></code> appends. Its event-mask
 validation allows key, button, motion, crossing and virtual sequences. A newly created binding with an unsupported mask
-is deleted, not rolled back to a prior script. The native handler’s switch has no direct VirtualEvent case; accepting a
-virtual sequence must not be confused with explicit dispatch of every synthetically generated virtual event by this
-module.</p>
+is deleted, not rolled back to a prior script. The native handler’s switch has no direct <code class="docutils literal notranslate"><span class="pre">VirtualEvent</span></code> case;
+accepting a virtual sequence must not be confused with explicit dispatch of every synthetically generated virtual event
+by this module.</p>
 </section>
 <section id="lifetime-and-deletion">
 <h2>Lifetime and deletion<a class="headerlink" href="#lifetime-and-deletion" title="Link to this heading"></a></h2>

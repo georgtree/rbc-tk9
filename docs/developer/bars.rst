@@ -44,7 +44,7 @@ objects. ``BarRectangle`` aliases the renderer's :c:struct:`Rbc_RenderRectangle`
      - :c:type:`Element` slots own subscriptions or private data, not application vectors
      - :c:func:`Rbc_FreeElemVector` during concrete destruction
    * - Duplicate-X records
-     - :c:type:`Graph` owns freqArr; hash values borrow its records
+     - :c:type:`Graph` owns ``freqArr``; hash values borrow its records
      - Frequency-table rebuild or graph teardown
 
 :c:struct:`BarPenStyle <rbcGrBarGeometry.BarPenStyle>` stores a concrete ``BarPen *`` alongside its weight range and
@@ -88,7 +88,7 @@ builds replacement GCs and commits them together with the parsed values. On fail
 derived resources remain live. The value command is validated here, not executed. Direct candidate Tk fields still need
 the caller's rollback.
 
-Error-color conversion accepts an empty value as NULL and any nonempty, case-sensitive prefix of ``defcolor`` as
+Error-color conversion accepts an empty value as ``NULL`` and any nonempty, case-sensitive prefix of ``defcolor`` as
 ``COLOR_DEFAULT``. The latter is a sentinel, not a Tk color reference; :c:func:`rbcGrBarConfiguration.FreeBarPenColor`
 must not pass it to ``Tk_FreeColor``. Fill GC defaults choose foreground, then border color, then screen black. With
 both foreground and border, stipple gaps can be opaque; without both, the GC uses transparent stippling.
@@ -333,8 +333,8 @@ match.
 Resource and output contracts
 -----------------------------
 
-:c:func:`rbcGrBarConfiguration.GetBarPenColorFromObj` can return NULL, the ``COLOR_DEFAULT`` sentinel, or an acquired Tk
-color. Use :c:func:`rbcGrBarConfiguration.FreeBarPenColor` for these staged results. By contrast,
+:c:func:`rbcGrBarConfiguration.GetBarPenColorFromObj` can return ``NULL``, the ``COLOR_DEFAULT`` sentinel, or an
+acquired Tk color. Use :c:func:`rbcGrBarConfiguration.FreeBarPenColor` for these staged results. By contrast,
 :c:func:`rbcGrBarConfiguration.GetBarColor` returns a borrowed resolved color or the supplied fallback storage. It
 acquires no reference; keep fallback storage alive until the renderer has finished using it.
 

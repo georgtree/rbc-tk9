@@ -1231,8 +1231,8 @@ transaction rules.</p>
 </section>
 <section id="inherited-and-local-state">
 <h2>Inherited and local state<a class="headerlink" href="#inherited-and-local-state" title="Link to this heading"></a></h2>
-<p>When <code class="docutils literal notranslate"><span class="pre">track-&gt;grid</span></code> is NULL, the track uses global grid settings. Its X axis comes from the global grid. If the global
-Y mapping is enabled and the track has axes, the inherited Y mapping uses the track’s first axis; otherwise that
+<p>When <code class="docutils literal notranslate"><span class="pre">track-&gt;grid</span></code> is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, the track uses global grid settings. Its X axis comes from the global grid. If the
+global Y mapping is enabled and the track has axes, the inherited Y mapping uses the track’s first axis; otherwise that
 direction is disabled. It does not blindly reuse another track’s Y axis.</p>
 <p><a class="reference internal" href="grid-reference.html#c.rbcGrid.Rbc_TrackGridOp" title="rbcGrid.Rbc_TrackGridOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.Rbc_TrackGridOp()</span></code></a> builds a temporary view for inherited queries. A <code class="docutils literal notranslate"><span class="pre">cget</span></code> or configuration query
 therefore does not materialize a local grid or freeze its defaults. The view borrows global resources and has a
@@ -1310,11 +1310,11 @@ pointer, a count and a staged flag. The flag is necessary because these states h
 </thead>
 <tbody>
 <tr class="row-even"><td><p>False</p></td>
-<td><p>NULL/0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NULL</span></code>/0</p></td>
 <td><p>Keep the existing active list</p></td>
 </tr>
 <tr class="row-odd"><td><p>True</p></td>
-<td><p>NULL/0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NULL</span></code>/0</p></td>
 <td><p>Replace the active list with an empty list</p></td>
 </tr>
 <tr class="row-even"><td><p>True</p></td>
@@ -1381,13 +1381,14 @@ and clears its local pointer.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="grid-reference.html#c.rbcGrid.ParsePolarAngleTicks" title="rbcGrid.ParsePolarAngleTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.ParsePolarAngleTicks()</span></code></a> / <a class="reference internal" href="grid-reference.html#c.rbcGrid.ParseSmithTicks" title="rbcGrid.ParseSmithTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.ParseSmithTicks()</span></code></a></p></td>
-<td><p>Required pointer/count outputs receive owned storage on success, or NULL/zero for empty input or failure.</p></td>
+<td><p>Required pointer/count outputs receive owned storage on success, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code>/zero for empty input or failure.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="grid-reference.html#c.rbcGrid.StageGridPolarAngleTicks" title="rbcGrid.StageGridPolarAngleTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.StageGridPolarAngleTicks()</span></code></a> / <a class="reference internal" href="grid-reference.html#c.rbcGrid.StageGridSmithTicks" title="rbcGrid.StageGridSmithTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.StageGridSmithTicks()</span></code></a></p></td>
 <td><p>Transaction must already be initialized. A successful replacement frees only that slot’s previous staged array.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="grid-reference.html#c.rbcGrid.PrepareGridPolarAngleTicksTransaction" title="rbcGrid.PrepareGridPolarAngleTicksTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.PrepareGridPolarAngleTicksTransaction()</span></code></a> / <a class="reference internal" href="grid-reference.html#c.rbcGrid.PrepareGridSmithTicksTransaction" title="rbcGrid.PrepareGridSmithTicksTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.PrepareGridSmithTicksTransaction()</span></code></a></p></td>
-<td><p>Output storage must not own arrays before entry: preparation zeroes it before processing defaults and explicit options.</p></td>
+<td><p>Output storage must not own arrays before entry: preparation zeroes it before processing defaults and explicit
+options.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="grid-reference.html#c.rbcGrid.CommitGridPolarAngleTicksTransaction" title="rbcGrid.CommitGridPolarAngleTicksTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.CommitGridPolarAngleTicksTransaction()</span></code></a> / <a class="reference internal" href="grid-reference.html#c.rbcGrid.CommitGridSmithTicksTransaction" title="rbcGrid.CommitGridSmithTicksTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.CommitGridSmithTicksTransaction()</span></code></a></p></td>
 <td><p>Successful preparation is required. Transferred pointers are detached before subsequent staging cleanup.</p></td>
@@ -1406,7 +1407,7 @@ to free.</p>
 an adapted command for <a class="reference internal" href="grid-reference.html#c.rbcGrid.Rbc_GridOp" title="rbcGrid.Rbc_GridOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.Rbc_GridOp()</span></code></a> and its handlers, where the operation is at index two. The temporary
 original option/value slice used by <a class="reference internal" href="grid-reference.html#c.rbcGrid.ConfigureGrid" title="rbcGrid.ConfigureGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.ConfigureGrid()</span></code></a> is borrowed only for that configuration call.
 Neither the adapter nor the tick transaction transfers ownership of Tcl command arguments.</p>
-<p><a class="reference internal" href="grid-reference.html#c.rbcGrid.DrawTrackGrids" title="rbcGrid.DrawTrackGrids"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.DrawTrackGrids()</span></code></a> takes either a screen drawable or a non-NULL export context. In the export case the
+<p><a class="reference internal" href="grid-reference.html#c.rbcGrid.DrawTrackGrids" title="rbcGrid.DrawTrackGrids"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.DrawTrackGrids()</span></code></a> takes either a screen drawable or a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> export context. In the export case the
 drawable is ignored; in the screen case the destination remains borrowed. Both paths consume prepared segment caches,
 restore temporary track viewports and end renderer contexts without finalizing a document. A new configuration must be
 mapped before relying on these caches.</p>

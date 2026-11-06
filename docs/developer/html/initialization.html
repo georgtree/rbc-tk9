@@ -1289,9 +1289,9 @@ consumer’s <code class="docutils literal notranslate"><span class="pre">rbcStu
 selects functions; it does not own vectors or retain the interpreter. See <a class="reference internal" href="vector-reference.html"><span class="doc">Vector client C reference</span></a> for storage ownership
 and read-only checks.</p>
 <p>The pointer belongs to the linked stub object, not to each interpreter. A failed initialization leaves its previous
-value unchanged. Consumers must check the return value rather than use a previously non-NULL pointer as evidence that
-loading succeeded in another interpreter. The helpers do not validate the table magic or individual slots; a NULL
-package client-data pointer returns NULL without adding its own diagnostic.</p>
+value unchanged. Consumers must check the return value rather than use a previously non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointer as evidence
+that loading succeeded in another interpreter. The helpers do not validate the table magic or individual slots; a
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code> package client-data pointer returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> without adding its own diagnostic.</p>
 <p><code class="docutils literal notranslate"><span class="pre">generic/rbc.decls</span></code> defines numbered public slots. <code class="docutils literal notranslate"><span class="pre">rbcDecls.h</span></code> supplies the table type, declarations and client
 dispatch macros; <code class="docutils literal notranslate"><span class="pre">rbcStubInit.c</span></code> supplies the implementation addresses. Preserve existing slot numbers and signatures
 when extending the ABI, and update generated sections through <code class="docutils literal notranslate"><span class="pre">tools/genStubs.tcl</span></code>. Require a package version

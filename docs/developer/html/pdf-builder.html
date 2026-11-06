@@ -1253,7 +1253,7 @@ release its resources through the normal cleanup path.</p>
 <td><p>Pages tree with one child</p></td>
 </tr>
 <tr class="row-even"><td><p>3</p></td>
-<td><p>Page, scaled MediaBox, resource and content references</p></td>
+<td><p>Page, scaled <code class="docutils literal notranslate"><span class="pre">MediaBox</span></code>, resource and content references</p></td>
 </tr>
 <tr class="row-odd"><td><p>4</p></td>
 <td><p>Page resource dictionary</p></td>
@@ -1270,10 +1270,10 @@ release its resources through the normal cleanup path.</p>
 resource-owned <code class="docutils literal notranslate"><span class="pre">Tcl_DString</span></code>; an identical entry reuses its number. The search is linear and storage capacity grows in
 blocks of 32 pointers. IDs remain stable as the pointer array grows. Neither source pointers nor caller buffers are
 retained.</p>
-<p>Categories <code class="docutils literal notranslate"><span class="pre">F</span></code>, <code class="docutils literal notranslate"><span class="pre">G</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">P</span></code> populate the page’s Font, ExtGState, XObject and Pattern dictionaries
-respectively, with names such as <code class="docutils literal notranslate"><span class="pre">/F6</span></code>. Other categories are still serialized as objects but are not automatically
-listed in those dictionaries. Font support uses <code class="docutils literal notranslate"><span class="pre">D</span></code> for indirectly referenced objects such as font programs, mappings
-and descriptors.</p>
+<p>Categories <code class="docutils literal notranslate"><span class="pre">F</span></code>, <code class="docutils literal notranslate"><span class="pre">G</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">P</span></code> populate the page’s <code class="docutils literal notranslate"><span class="pre">Font</span></code>, <code class="docutils literal notranslate"><span class="pre">ExtGState</span></code>, <code class="docutils literal notranslate"><span class="pre">XObject</span></code> and <code class="docutils literal notranslate"><span class="pre">Pattern</span></code>
+dictionaries respectively, with names such as <code class="docutils literal notranslate"><span class="pre">/F6</span></code>. Other categories are still serialized as objects but are not
+automatically listed in those dictionaries. Font support uses <code class="docutils literal notranslate"><span class="pre">D</span></code> for indirectly referenced objects such as font
+programs, mappings and descriptors.</p>
 <p>This is byte interning, not semantic PDF deduplication: differently formatted but equivalent dictionaries are different
 resources. Explicit lengths are required for binary data; negative resource lengths use <code class="docutils literal notranslate"><span class="pre">strlen</span></code>. Callers supply valid
 PDF syntax and valid sizes. The internal resource API is not a parser for untrusted PDF documents and does not provide

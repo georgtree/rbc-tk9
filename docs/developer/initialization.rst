@@ -78,9 +78,9 @@ selects functions; it does not own vectors or retain the interpreter. See :doc:`
 and read-only checks.
 
 The pointer belongs to the linked stub object, not to each interpreter. A failed initialization leaves its previous
-value unchanged. Consumers must check the return value rather than use a previously non-NULL pointer as evidence that
-loading succeeded in another interpreter. The helpers do not validate the table magic or individual slots; a NULL
-package client-data pointer returns NULL without adding its own diagnostic.
+value unchanged. Consumers must check the return value rather than use a previously non-``NULL`` pointer as evidence
+that loading succeeded in another interpreter. The helpers do not validate the table magic or individual slots; a
+``NULL`` package client-data pointer returns ``NULL`` without adding its own diagnostic.
 
 ``generic/rbc.decls`` defines numbered public slots. ``rbcDecls.h`` supplies the table type, declarations and client
 dispatch macros; ``rbcStubInit.c`` supplies the implementation addresses. Preserve existing slot numbers and signatures

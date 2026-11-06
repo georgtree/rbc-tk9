@@ -1319,7 +1319,7 @@ directly.</p>
 </table>
 <p>Consult <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a> for the native arc, symbol and specialized Cairo families. Do not use this table to infer extra
 capabilities.</p>
-<p>Finish each allocated context with <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>. It requires a non-NULL live context, unwinds outstanding
+<p>Finish each allocated context with <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>. It requires a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> live context, unwinds outstanding
 rectangular clips, and calls the backend destructor. It does not destroy borrowed graph, document or component
 resources. Stack-based one-shot screen adapters manage their own lifetime.</p>
 <p>For example, a mapped trace batch:</p>
@@ -1351,7 +1351,7 @@ least 360 form one closed ellipse without a radial seam. Components supply geome
 its clip. Geometry transforms do not scale stroke widths or dashes.</p>
 <p><a class="reference internal" href="reference.html#c.Rbc_RenderPolygonPointLimit" title="Rbc_RenderPolygonPointLimit"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPolygonPointLimit()</span></code></a> reports the selected backend’s request capacity before a context exists. The
 component reserves closure/clipping vertices and splits at shared samples. Native X11 has a request-size limit; the
-other selected outputs report TCL_SIZE_MAX.</p>
+other selected outputs report <code class="docutils literal notranslate"><span class="pre">TCL_SIZE_MAX</span></code>.</p>
 </section>
 <section id="native-details-and-fallback-policy">
 <h2>Native details and fallback policy<a class="headerlink" href="#native-details-and-fallback-policy" title="Link to this heading"></a></h2>
@@ -1361,7 +1361,7 @@ mask composition and one-step presentation.</p>
 <p>Preserve conversion order and batching when moving code: text backgrounds add the anchor before integer conversion;
 arrowheads keep doubles through scan conversion; legend samples retain stipple origins. Marker run callbacks are
 synchronous, and no callback data escapes the call.</p>
-<p>The Cairo-attempt helpers can return NULL or false. Their callers select the native fallback. This is distinct from
+<p>The Cairo-attempt helpers can return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or false. Their callers select the native fallback. This is distinct from
 invoking an unsupported operation on an already-created context, which is a caller error.</p>
 </section>
 <section id="common-dispatch-and-constructor-state">
@@ -1370,7 +1370,7 @@ invoking an unsupported operation on an already-created context, which is a call
 embeds <a class="reference internal" href="reference.html#c.Rbc_RenderContext" title="Rbc_RenderContext"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_RenderContext</span></code></a> first so backend callbacks can recover the enclosing record. Trace, clip and
 polygon batch records are owned; windows, drawables, GCs, tiles, styles and mapped arc arrays are borrowed. A bar style
 is copied by value, but its Tk resources are still borrowed.</p>
-<p>Select operations from the constructor’s contract, not merely from non-NULL entries in its operation table. Several
+<p>Select operations from the constructor’s contract, not merely from non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> entries in its operation table. Several
 constructors share a table while initializing different state. For example, a native trace context owns trace scratch
 storage, whereas a segment-only context does not. Likewise, native symbol, fill, bar and arc constructors populate
 different fields of the shared geometry record. Calling a sibling operation can therefore be invalid even when the table
@@ -1462,11 +1462,11 @@ records: <a class="reference internal" href="reference.html#c.Rbc_RenderSegments
 <a class="reference internal" href="reference.html#c.Rbc_RenderPolyline" title="Rbc_RenderPolyline"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPolyline()</span></code></a> counts points. No dispatcher can verify the allocated capacity behind a pointer/count
 pair.</p>
 <p><a class="reference internal" href="reference.html#c.Rbc_RenderFillPolygon" title="Rbc_RenderFillPolygon"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillPolygon()</span></code></a> suppresses counts below three; <a class="reference internal" href="reference.html#c.Rbc_RenderFillRectangles" title="Rbc_RenderFillRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillRectangles()</span></code></a> and
-<a class="reference internal" href="reference.html#c.Rbc_RenderSymbolPoints" title="Rbc_RenderSymbolPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSymbolPoints()</span></code></a> suppress nonpositive counts. This does not establish a universal validation policy
-for every operation. Most wrappers immediately dispatch through the operation table, so callers must supply a live,
-capable context and valid geometry even when another operation tolerates a null pointer or empty batch. In
-particular, <a class="reference internal" href="reference.html#c.Rbc_RenderArc" title="Rbc_RenderArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderArc()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderFillArc" title="Rbc_RenderFillArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillArc()</span></code></a> accepting a NULL context does not make NULL safe
-for <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
+<a class="reference internal" href="reference.html#c.Rbc_RenderSymbolPoints" title="Rbc_RenderSymbolPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSymbolPoints()</span></code></a> suppress nonpositive counts. This does not establish a universal validation policy for
+:c:every operation. Most wrappers immediately dispatch through the operation table, so callers must supply a live,
+:c:capable context and valid geometry even when another operation tolerates a null pointer or empty batch. In
+:c:particular, <a class="reference internal" href="reference.html#c.Rbc_RenderArc" title="Rbc_RenderArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderArc()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderFillArc" title="Rbc_RenderFillArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillArc()</span></code></a> accepting a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> context does not make
+:c:<code class="docutils literal notranslate"><span class="pre">NULL</span></code> safe for <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
 <p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginStroke" title="Rbc_RenderBeginStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginStroke()</span></code></a> uses supplied color, width and dash data for Cairo, while its native fallback uses the
 borrowed GC. The caller must prepare that GC consistently; passing a new color argument does not recolor the native
 GC. <a class="reference internal" href="reference.html#c.Rbc_RenderGCForeground" title="Rbc_RenderGCForeground"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderGCForeground()</span></code></a> resolves an existing GC foreground when Cairo setup needs
@@ -1490,7 +1490,7 @@ while <a class="reference internal" href="reference.html#c.Rbc_RenderPhotoImage"
 and backend omissions still apply; a shared interface does not promise equal support for every image source.</p>
 <p>A marker-pass target has a separate lifetime from a renderer context. <a class="reference internal" href="reference.html#c.Rbc_RenderBeginMarkerPass" title="Rbc_RenderBeginMarkerPass"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginMarkerPass()</span></code></a> may replace
 the caller’s drawable and install a temporary graph target. On failure it leaves the original drawable
-usable. <a class="reference internal" href="reference.html#c.Rbc_RenderEndMarkerPass" title="Rbc_RenderEndMarkerPass"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEndMarkerPass()</span></code></a> presents and releases a successful target and accepts NULL, but does not
+usable. <a class="reference internal" href="reference.html#c.Rbc_RenderEndMarkerPass" title="Rbc_RenderEndMarkerPass"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEndMarkerPass()</span></code></a> presents and releases a successful target and accepts <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, but does not
 restore the caller’s drawable variable. The replacement drawable must not be used afterward. Do not pass this target to
 <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
 </section>
@@ -1499,7 +1499,7 @@ restore the caller’s drawable variable. The replacement drawable must not be u
 <p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginExportOutput" title="Rbc_RenderBeginExportOutput"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginExportOutput()</span></code></a> borrows a supported document token; it does not open or finish a
 file. <a class="reference internal" href="reference.html#c.Rbc_RenderPlotBegin" title="Rbc_RenderPlotBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPlotBegin()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderPlotEnd" title="Rbc_RenderPlotEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPlotEnd()</span></code></a> delimit backend plot setup and must be balanced
 before releasing the context. They are distinct from the common rectangular clip stack. <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> unwinds
-clips, but does not substitute for PlotEnd or document finalization.</p>
+clips, but does not substitute for <code class="docutils literal notranslate"><span class="pre">PlotEnd</span></code> or document finalization.</p>
 <p><a class="reference internal" href="reference.html#c.Rbc_RenderBackgroundPolygon" title="Rbc_RenderBackgroundPolygon"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBackgroundPolygon()</span></code></a>, <a class="reference internal" href="reference.html#c.Rbc_RenderBackgroundRectangles" title="Rbc_RenderBackgroundRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBackgroundRectangles()</span></code></a>, <a class="reference internal" href="reference.html#c.Rbc_RenderBorder" title="Rbc_RenderBorder"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBorder()</span></code></a> and
 <a class="reference internal" href="reference.html#c.Rbc_RenderClearRectangle" title="Rbc_RenderClearRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClearRectangle()</span></code></a> consume resolved presentation data. <a class="reference internal" href="reference.html#c.Rbc_RenderBitmapMask" title="Rbc_RenderBitmapMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBitmapMask()</span></code></a> preserves the
 component’s background/foreground pass selector: PostScript uses it for color setup, while SVG/PDF paint the mask
@@ -1514,7 +1514,7 @@ quantities. No renderer operation performs axis transforms or establishes compon
 <p>The common callbacks in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a> now identify the context family they
 require. <a class="reference internal" href="reference.html#c.rbcRenderDispatch.BeginNativeGeometry" title="rbcRenderDispatch.BeginNativeGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.BeginNativeGeometry()</span></code></a> installs a shared table but initializes only its common
 fields. Specialized constructors still have to populate symbol, bar, polygon or arc state before the corresponding
-callback can be used. A non-NULL callback pointer alone is not a capability check.</p>
+callback can be used. A non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> callback pointer alone is not a capability check.</p>
 <p><a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativePolyline" title="rbcRenderDispatch.NativePolyline"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcRenderDispatch.NativePolyline()</span></code></a> requires a retained native trace;
 <a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeSegments" title="rbcRenderDispatch.NativeSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">NativeSegments</span></code></a> consumes independent endpoint pairs.
 <a class="reference internal" href="reference.html#c.rbcRenderDispatch.NativeSymbolPoints" title="rbcRenderDispatch.NativeSymbolPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">NativeSymbolPoints</span></code></a> borrows mutable interval state.

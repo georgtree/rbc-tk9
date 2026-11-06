@@ -1221,10 +1221,10 @@ copy, a reference-counted UID, a borrowed UID lookup and a scratch formatting bu
 <section id="allocation-and-failure-policy">
 <h2>Allocation and failure policy<a class="headerlink" href="#allocation-and-failure-policy" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="utility-reference.html#c.RbcCalloc" title="RbcCalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcCalloc()</span></code></a> checks the multiplication of element count and element size against <code class="docutils literal notranslate"><span class="pre">SIZE_MAX</span></code>. Overflow invokes
-<code class="docutils literal notranslate"><span class="pre">Tcl_Panic</span></code>. A zero logical size still allocates and zeros one byte, retaining ckalloc-style non-NULL
-behavior. <a class="reference internal" href="utility-reference.html#c.RbcStrdup" title="RbcStrdup"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a> copies a non-NULL NUL-terminated string, including its terminator. Both use Tcl allocation
-and return storage to release with ckfree, not libc free.</p>
-<p>These wrappers do not offer a recoverable allocation-failure protocol. Code that requires a diagnostic and TCL_ERROR
+<code class="docutils literal notranslate"><span class="pre">Tcl_Panic</span></code>. A zero logical size still allocates and zeros one byte, retaining ckalloc-style non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code>
+behavior. <a class="reference internal" href="utility-reference.html#c.RbcStrdup" title="RbcStrdup"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a> copies a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> NUL-terminated string, including its terminator. Both use Tcl
+allocation and return storage to release with ckfree, not libc free.</p>
+<p>These wrappers do not offer a recoverable allocation-failure protocol. Code that requires a diagnostic and <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>
 must choose an appropriate allocation strategy explicitly. A check after a fatal allocator is not a substitute.
 Likewise, a successful allocation does not prove that earlier arithmetic used to compute a count was safe; callers own
 those calculations.</p>
@@ -1273,7 +1273,7 @@ mutable, but callers must not modify hash-key characters or release them directl
 <p><a class="reference internal" href="utility-reference.html#c.Rbc_FindUid" title="Rbc_FindUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindUid()</span></code></a> returns the same pointer without incrementing its count. It is not an acquisition. Retaining its
 result after the last owner releases the UID is invalid, even if the characters previously matched another string. An
 unknown still-valid string passed to <a class="reference internal" href="utility-reference.html#c.Rbc_FreeUid" title="Rbc_FreeUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeUid()</span></code></a> produces a stderr diagnostic; this is not protection against
-NULL, stale or already-freed pointers.</p>
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code>, stale or already-freed pointers.</p>
 <p>The table is not interpreter-associated and has no synchronization or teardown hook for each interpreter. Do not treat
 sharing a UID pointer as cross-thread support. These declarations already appear in <code class="docutils literal notranslate"><span class="pre">rbc.h</span></code>; they do not have entries
 in the vector stubs table. Documentation adds neither new symbols nor stub slots. See <a class="reference internal" href="initialization.html"><span class="doc">Package loading and stubs</span></a> for the
@@ -1287,16 +1287,16 @@ argument evaluation order cannot make that safe. Copy or append one result befor
 have no thread synchronization.</p>
 <p><a class="reference internal" href="utility-reference.html#c.Rbc_AppendResultStrings" title="Rbc_AppendResultStrings"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendResultStrings()</span></code></a> duplicates the current Tcl result object, appends raw NUL-terminated fragments and
 installs the completed duplicate. It preserves shared original objects, but does not quote list elements, retain binary
-data past NUL, or set errorCode/errorInfo. Its varargs terminate with a NULL string
+data past NUL, or set <code class="docutils literal notranslate"><span class="pre">errorCode</span></code> / <code class="docutils literal notranslate"><span class="pre">errorInfo</span></code>. Its varargs terminate with a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> string
 pointer. <a class="reference internal" href="utility-reference.html#c.Rbc_DStringAppendElements" title="Rbc_DStringAppendElements"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DStringAppendElements()</span></code></a> instead appends each argument through Tcl’s list-element quoting API. It
-borrows an initialized DString; the caller remains responsible for freeing it. Neither helper is an arbitrary Tcl
+borrows an initialized <code class="docutils literal notranslate"><span class="pre">DString</span></code>; the caller remains responsible for freeing it. Neither helper is an arbitrary Tcl
 evaluator.</p>
 </section>
 <section id="other-utility-boundaries">
 <h2>Other utility boundaries<a class="headerlink" href="#other-utility-boundaries" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="utility-reference.html#c.Rbc_InitHexTable" title="Rbc_InitHexTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitHexTable()</span></code></a> initializes only the hexadecimal digit entries. Callers must initialize the remaining slots
 to their desired invalid-digit sentinel; the helper neither clears the table nor maintains an initialization flag.</p>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_RandomDouble" title="Rbc_RandomDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a> consumes the C library rand state and divides by RAND_MAX + 1, producing values from zero
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_RandomDouble" title="Rbc_RandomDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a> consumes the C library rand state and divides by <code class="docutils literal notranslate"><span class="pre">RAND_MAX</span> <span class="pre">+</span> <span class="pre">1</span></code>, producing values from zero
 inclusive to one exclusive. It does not seed a per-interpreter generator, promise identical sequences across C libraries
 or provide a cryptographic random source.</p>
 <p>The same module contains legacy byte-case fallback routines, dictionary comparison and stdio filename conversion. They
@@ -1318,15 +1318,15 @@ precedes <code class="docutils literal notranslate"><span class="pre">x10</span>
 skipped by the legacy algorithm; this is not a general numeric parser. Leading zeros and letter case supply secondary
 differences only after primary comparisons tie. For example, <code class="docutils literal notranslate"><span class="pre">x2</span></code> precedes <code class="docutils literal notranslate"><span class="pre">x02</span></code>, and <code class="docutils literal notranslate"><span class="pre">B</span></code> precedes <code class="docutils literal notranslate"><span class="pre">b</span></code> but
 follows <code class="docutils literal notranslate"><span class="pre">a</span></code>. The first secondary difference encountered is retained.</p>
-<p>Other characters are decoded with Tcl_UtfToUniChar and compared after Tcl lowercase conversion. There is no
+<p>Other characters are decoded with <code class="docutils literal notranslate"><span class="pre">Tcl_UtfToUniChar</span></code> and compared after Tcl lowercase conversion. There is no
 normalization or locale collation. Both arguments are borrowed Tcl UTF strings despite their historical mutable C
 parameter types. Consumers should test the sign of the result, not expect exact values of minus one or plus one. This
 comparator is different from the conditional byte-oriented strcasecmp fallback in the same module.</p>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_OpenUtfFile" title="Rbc_OpenUtfFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_OpenUtfFile()</span></code></a> owns only its temporary encoding-conversion buffer. A successful FILE stream belongs to its
-caller and must be closed with fclose; NULL reports stdio failure, without a Tcl interpreter result. This helper cannot
-substitute for Tcl filesystem operations on virtual paths.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_OpenUtfFile" title="Rbc_OpenUtfFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_OpenUtfFile()</span></code></a> owns only its temporary encoding-conversion buffer. A successful <code class="docutils literal notranslate"><span class="pre">FILE</span></code> stream belongs to
+its caller and must be closed with <code class="docutils literal notranslate"><span class="pre">fclose</span></code>; <code class="docutils literal notranslate"><span class="pre">NULL</span></code> reports stdio failure, without a Tcl interpreter result. This
+helper cannot substitute for Tcl filesystem operations on virtual paths.</p>
 <p><a class="reference internal" href="utility-reference.html#c.Rbc_Assert" title="Rbc_Assert"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Assert()</span></code></a> and <a class="reference internal" href="utility-reference.html#c.Rbc_Panic" title="Rbc_Panic"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Panic()</span></code></a> are process-fatal diagnostics. They flush stderr and abort, rather than
-returning TCL_ERROR or invoking the ordinary ownership cleanup paths. The assertion function is compiled only in
+returning <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code> or invoking the ordinary ownership cleanup paths. The assertion function is compiled only in
 non-NDEBUG builds. Do not use either for expected malformed user input; that belongs in a recoverable parser with a
 diagnostic and explicit cleanup.</p>
 </section>

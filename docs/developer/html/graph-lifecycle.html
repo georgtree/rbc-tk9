@@ -1271,7 +1271,7 @@ separate live fields:</p>
 <td><p>Move the acquired color, then release the old shadow.</p></td>
 </tr>
 <tr class="row-even"><td><p>Tile</p></td>
-<td><p>Tile client or NULL</p></td>
+<td><p>Tile client or <code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
 <td><p>Move the client, register the callback, then release the old client.</p></td>
 </tr>
 </tbody>
@@ -1283,7 +1283,7 @@ configuration, only unoverridden defaults are parsed. It then processes every ex
 rather than only the last value retained by Tk. An invalid earlier occurrence is consequently not concealed by a later
 valid occurrence.</p>
 <p>Scalar candidates own no resources. Shadow and tile staging acquire a new candidate before releasing an earlier one, and
-prepare failure cleans up that candidate. An empty tile is a staged NULL, distinct from an unstaged value. Commit
+prepare failure cleans up that candidate. An empty tile is a staged <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, distinct from an unstaged value. Commit
 transfers resource ownership and disarms the candidate; cleanup must never release a successfully transferred resource a
 second time.</p>
 <p><a class="reference internal" href="graph-reference.html#c.rbcGraphOptions.ConfigureGraphOptions" title="rbcGraphOptions.ConfigureGraphOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphOptions.ConfigureGraphOptions()</span></code></a> applies Tk options with saved-option support, then calls
@@ -1500,7 +1500,7 @@ graph, requests layout, marks the world dirty and draws without the element back
 releases the pixmap before returning an error. The normal photo path captures into the named photo and releases the
 pixmap.</p>
 <p>On Windows the same command also supports EMF and WMF. It records drawing into an enhanced-metafile DC, then copies an
-EMF or converts the recording to a placeable WMF file. The special CLIPBOARD target requests system ownership of the
+EMF or converts the recording to a placeable WMF file. The special <code class="docutils literal notranslate"><span class="pre">CLIPBOARD</span></code> target requests system ownership of the
 enhanced metafile. These are native recording paths, separate from the renderer-independent document exporters.</p>
 <p>The snapshot wrapper saves graph dimensions and existing flags before capture. It marks temporary rendering as export
 work, forces layout at the requested size, then restores dimensions and merges dirty flags on every return path. A
@@ -1514,8 +1514,8 @@ be ignored for compatibility.</p>
 </section>
 <section id="construction-helpers-and-notification-ownership">
 <h2>Construction helpers and notification ownership<a class="headerlink" href="#construction-helpers-and-notification-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.InitPens" title="rbcGraphLifecycle.InitPens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.InitPens()</span></code></a> initializes the registry and creates activeLine before activeBar. A failure leaves
-already-created resources for the enclosing graph teardown; it is not an independently repeatable initialization
+<p><a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.InitPens" title="rbcGraphLifecycle.InitPens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.InitPens()</span></code></a> initializes the registry and creates <code class="docutils literal notranslate"><span class="pre">activeLine</span></code> before <code class="docutils literal notranslate"><span class="pre">activeBar</span></code>. A failure
+leaves already-created resources for the enclosing graph teardown; it is not an independently repeatable initialization
 operation. The successful constructor creates bindings only after all components and widget options have been
 configured. Trackgraph selection is initially a distinct constructor UID, then becomes a line-element class plus the
 trackGraph flag on the instance.</p>
@@ -1529,8 +1529,8 @@ separates named-font changes from ordinary option parsing and ownership.</p>
 <p>The geometry-settling record owns its sample array but only borrows window identities. Each idle pass walks the current
 ancestry and compares identity, position, size and border width. It never dereferences a previously sampled window
 handle. Two consecutive unchanged passes are required after the latest change. A pending settle request absorbs later
-ordinary redraw requests via REDRAW_PENDING. Freeing the sampling record alone does not cancel an idle call; destruction
-must cancel scheduling separately before releasing it.</p>
+ordinary redraw requests via <code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code>. Freeing the sampling record alone does not cancel an idle call;
+destruction must cancel scheduling separately before releasing it.</p>
 <p><a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData" title="rbcGraphLifecycle.Rbc_GetGraphFromWindowData"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.Rbc_GetGraphFromWindowData()</span></code></a> searches the supplied window and its ancestors for RBC instance
 data. The result is borrowed, with no added preservation or class check. This supports graph descendants but is not a
 generic checked conversion of arbitrary RBC instance data into a graph.</p>
@@ -1552,8 +1552,8 @@ their byte count. A write failure can leave a partial file; the helper releases 
 borrows the recording and reference DC. The file path still uses the native ANSI API, as does EMF copying.</p>
 <p>The snapshot command builds the EMF description as application-name/NUL, picture-name/NUL, followed by the DString
 terminator. Reference-DC acquisition, recording completion and EMF copy failures now produce diagnostics. Clipboard
-ownership transfers only when SetClipboardData succeeds; otherwise RBC deletes the recording. These checks preserve the
-existing snapshot wrapper’s screen geometry restoration and do not alter the SVG/PDF/PostScript exporters.</p>
+ownership transfers only when <code class="docutils literal notranslate"><span class="pre">SetClipboardData</span></code> succeeds; otherwise RBC deletes the recording. These checks preserve
+the existing snapshot wrapper’s screen geometry restoration and do not alter the SVG/PDF/PostScript exporters.</p>
 </section>
 </section>
 

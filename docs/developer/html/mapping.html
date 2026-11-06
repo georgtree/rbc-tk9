@@ -1317,7 +1317,7 @@ reduction or drawing fields additionally use a paired viewport scope:</p>
 </div>
 <p>Entry saves both directions but changes only the stacking direction’s bounds, scale and padding, along with
 <code class="docutils literal notranslate"><span class="pre">activeTrack</span></code>. Visible bounds supply clipping limits while full world bounds supply offsets and ranges. Entry with a
-NULL track still changes the active-track state and must be paired with leave. Nested scopes need separate saved
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code> track still changes the active-track state and must be paired with leave. Nested scopes need separate saved
 records and restoration in reverse order. These helpers neither install a renderer clip nor preserve object lifetime;
 cleanup on every return path remains the caller’s responsibility.</p>
 <p>During axis mapping, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_MapAxes" title="rbcGrAxisPresentation.Rbc_MapAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_MapAxes()</span></code></a> first lays out tracks, then walks margin axes. Track

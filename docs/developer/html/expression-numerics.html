@@ -1292,7 +1292,7 @@ zero/one; empty means are nonfinite and fail final expression validation.</p>
 <p>These reducers use ordinary double accumulation. Complex distance uses <code class="docutils literal notranslate"><span class="pre">hypot</span></code> to avoid unnecessary overflow in its
 intermediate squares, but squaring that distance or accumulating many values can still overflow. There is no compensated
 summation or general guarantee for extreme dynamic ranges. Standard deviation returns zero whenever the variance is not
-greater than zero, including a NaN comparison; this is an implementation detail worth preserving or deliberately
+greater than zero, including a <code class="docutils literal notranslate"><span class="pre">NaN</span></code> comparison; this is an implementation detail worth preserving or deliberately
 revising with tests, rather than assuming every nonfinite intermediate propagates.</p>
 </section>
 <section id="real-order-statistics-and-normalization">
@@ -1323,7 +1323,7 @@ therefore loses the sign of asymmetry and is not conventional signed skewness. F
 two produces a nonfinite result.</p>
 <p><code class="docutils literal notranslate"><span class="pre">skew</span></code> retains this legacy formula for compatibility. The separate <code class="docutils literal notranslate"><span class="pre">skewness</span></code> function uses signed population
 central moments, with no bias correction: <span class="math notranslate nohighlight">\(g_1=m_3/m_2^{3/2}\)</span>, where <span class="math notranslate nohighlight">\(m_k=\sum(x-m)^k/n\)</span>. It returns zero
-for symmetric samples and reverses sign under reflection. Empty or zero-variance input returns NaN internally and
+for symmetric samples and reverses sign under reflection. Empty or zero-variance input returns <code class="docutils literal notranslate"><span class="pre">NaN</span></code> internally and
 becomes an expression domain error; no partial result is assigned to a named destination.</p>
 <p><a class="reference internal" href="expression-numerics-reference.html#c.Skewness" title="Skewness"><code class="xref c c-func docutils literal notranslate"><span class="pre">Skewness()</span></code></a> scales finite samples by their maximum absolute value before computing the mean and central
 moments. This avoids cubing raw magnitudes and keeps moment accumulation bounded for extreme finite values. It performs
@@ -1395,7 +1395,7 @@ zero-divisor result of zero. These names must not be treated as aliases for the 
 <h2>Full-storage extrema inputs<a class="headerlink" href="#full-storage-extrema-inputs" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="expression-numerics-reference.html#c.Rbc_VecMin" title="Rbc_VecMin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VecMin()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Rbc_VecMax" title="Rbc_VecMax"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VecMax()</span></code></a> require real vector storage and scan the complete array, ignoring the
 current first/last selection. They update the corresponding scalar cache but do not publish notifications, update
-extrema indices or clear invalidation flags. Empty or wholly nonfinite input returns NaN.</p>
+extrema indices or clear invalidation flags. Empty or wholly nonfinite input returns <code class="docutils literal notranslate"><span class="pre">NaN</span></code>.</p>
 </section>
 </section>
 

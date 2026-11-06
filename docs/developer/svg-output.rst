@@ -12,8 +12,8 @@ Document and context lifetime
 -----------------------------
 
 The SVG document callback appends an XML declaration and root element using the mapped graph width/height for both
-dimensions and viewBox. It traverses graph output, finishes embedded fonts after successful traversal, and appends the
-root close. On success it creates a Tcl string from the document buffer. The shared command checks export status and
+dimensions and ``viewBox``. It traverses graph output, finishes embedded fonts after successful traversal, and appends
+the root close. On success it creates a Tcl string from the document buffer. The shared command checks export status and
 owns delivery with UTF-8/LF settings. An unsuccessful partially generated document must not be returned as valid SVG.
 
 :c:func:`Rbc_RenderCreateSvg` allocates a zeroed context containing shared export state and bitmap-symbol definition
@@ -24,9 +24,9 @@ does not retain a DOM or a deferred scene.
 Definitions and scopes
 ----------------------
 
-Rectangular clip pushes increment ``nextResourceId``, emit a clipPath definition in user coordinates, and open a group
-referring to it. Pop closes the group. Common renderer depth tracking controls pairing and unwind. Plot output has a
-separate ``rbcPlot`` definition/group and paints its background before entering the plot clip. That fixed name belongs
+Rectangular clip pushes increment ``nextResourceId``, emit a ``clipPath`` definition in user coordinates, and open a
+group referring to it. Pop closes the group. Common renderer depth tracking controls pairing and unwind. Plot output has
+a separate ``rbcPlot`` definition/group and paints its background before entering the plot clip. That fixed name belongs
 to the current single-graph document; it is not a namespace scheme for concatenating independent SVG documents.
 
 Patterns and bitmap-symbol definitions also use document-generated identifiers. A fill context caches its pattern ID,
@@ -37,7 +37,8 @@ drawing and keep borrowed resources live.
 Tile patterns use photo blocks when available and otherwise capture generic Tk images. Their origin accounts for the
 widget's offset from its toplevel, matching native tile alignment. Stipple patterns read monochrome bits with XYPixmap,
 emit an optional background rectangle and foreground runs, and release the readback image. Pattern dimensions and
-contents use userSpaceOnUse coordinates. Definitions are emitted inline as needed, rather than collected in one header.
+contents use ``userSpaceOnUse`` coordinates. Definitions are emitted inline as needed, rather than collected in one
+header.
 
 Primitive geometry and paint
 ----------------------------
@@ -95,9 +96,9 @@ adds a zero PNG filter byte, and writes straight RGBA pixels. Unlike Cairo image
 premultiplied. A valid alpha offset distinct from RGB is used; otherwise alpha becomes 255. The producer must supply
 valid RGB offsets and readable backing storage.
 
-The helper rejects invalid basic storage and raw buffers exceeding its INT_MAX size checks. Empty dimensions produce no
-image. Tcl zlib compresses the raw scanlines; interpreter state is saved/restored around compression and the compressed
-result is retained while its bytes are used. Temporary raw and compressed objects are released explicitly.
+The helper rejects invalid basic storage and raw buffers exceeding its ``INT_MAX`` size checks. Empty dimensions produce
+no image. Tcl zlib compresses the raw scanlines; interpreter state is saved/restored around compression and the
+compressed result is retained while its bytes are used. Temporary raw and compressed objects are released explicitly.
 
 PNG assembly writes signature, IHDR, IDAT and IEND chunks, including chunk checksums. Base64 encodes the binary PNG into
 an image href with explicit mapped position and dimensions. Temporary PNG storage is freed after emission. Encoding is

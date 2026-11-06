@@ -1236,8 +1236,8 @@ handle empty vectors explicitly.</p>
 <p>Index expressions and numerical conversion can execute Tcl. Index-expression evaluation retains the vector and
 interpreter and detects their deletion before using the result; vector-reference parsing retains the object through
 range parsing so failure cannot restore selection into freed memory. In particular, index evaluation uses the owning
-interpreter even if the caller passes a NULL interpreter to suppress lookup diagnostics. Suppressing an error message is
-not a promise that lookup has no side effects.</p>
+interpreter even if the caller passes a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> interpreter to suppress lookup diagnostics. Suppressing an error
+message is not a promise that lookup has no side effects.</p>
 </section>
 <section id="mapped-arrays">
 <h2>Mapped arrays<a class="headerlink" href="#mapped-arrays" title="Link to this heading"></a></h2>
@@ -1313,11 +1313,11 @@ values. Consumers must validate the state they require after callback-capable pa
 <section id="finite-extrema-and-low-level-writes">
 <h2>Finite extrema and low-level writes<a class="headerlink" href="#finite-extrema-and-low-level-writes" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorUpdateRange" title="Rbc_VectorUpdateRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorUpdateRange()</span></code></a> scans the whole real vector, independently of its selection or external offset. It
-ignores both infinities and NaNs, keeps the first storage index for tied minima/maxima, and clears <code class="docutils literal notranslate"><span class="pre">UPDATE_RANGE</span></code>
-after installing the cache. Empty and entirely nonfinite vectors use NaN bounds and indices of -1. Complex vectors use
-that same cache representation rather than ordering complex values.</p>
-<p><a class="reference internal" href="vector-reference.html#c.Rbc_VectorGetRange" title="Rbc_VectorGetRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorGetRange()</span></code></a> rejects complex vectors without writing its outputs. For real vectors it recomputes only
-an invalid cache and returns the bounds; NaN bounds for an empty/nonfinite vector are a successful result. Both output
+ignores both infinities and <code class="docutils literal notranslate"><span class="pre">NaN</span></code> s, keeps the first storage index for tied minima/maxima, and clears <code class="docutils literal notranslate"><span class="pre">UPDATE_RANGE</span></code>
+after installing the cache. Empty and entirely nonfinite vectors use <code class="docutils literal notranslate"><span class="pre">NaN</span></code> bounds and indices of -1. Complex vectors
+use that same cache representation rather than ordering complex values.</p>
+<p><a class="reference internal" href="vector-reference.html#c.Rbc_VectorGetRange" title="Rbc_VectorGetRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorGetRange()</span></code></a> rejects complex vectors without writing its outputs. For real vectors it recomputes only an
+invalid cache and returns the bounds; <code class="docutils literal notranslate"><span class="pre">NaN</span></code> bounds for an empty/nonfinite vector are a successful result. Both output
 pointers are required. Neither helper publishes an update.</p>
 <p><a class="reference internal" href="vector-access-reference.html#c.Rbc_ReplicateValue" title="Rbc_ReplicateValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ReplicateValue()</span></code></a> is deliberately a low-level real-storage loop. Its caller must validate type, writability
 and bounds, then invalidate or maintain extrema and publish the change. It does not perform these steps
@@ -1337,12 +1337,12 @@ returns a borrowed namespace and a tail pointer into the input; these are not in
 namespace syntax prevents the current/global fallback used for unqualified names. No lookup helper creates a missing
 namespace.</p>
 <p><a class="reference internal" href="vector-storage-private-reference.html#c.BuildQualifiedName" title="BuildQualifiedName"><code class="xref c c-func docutils literal notranslate"><span class="pre">BuildQualifiedName()</span></code></a> and <a class="reference internal" href="vector-storage-private-reference.html#c.GetQualifiedName" title="GetQualifiedName"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetQualifiedName()</span></code></a> initialize a caller DString and return its borrowed
-buffer. The caller frees the DString after use; it must not free the returned character pointer separately. A NULL name
-passed to <a class="reference internal" href="vector-storage-private-reference.html#c.BuildQualifiedName" title="BuildQualifiedName"><code class="xref c c-func docutils literal notranslate"><span class="pre">BuildQualifiedName()</span></code></a> is exceptional: the DString is not initialized at all.</p>
+buffer. The caller frees the DString after use; it must not free the returned character pointer separately. A <code class="docutils literal notranslate"><span class="pre">NULL</span></code>
+name passed to <a class="reference internal" href="vector-storage-private-reference.html#c.BuildQualifiedName" title="BuildQualifiedName"><code class="xref c c-func docutils literal notranslate"><span class="pre">BuildQualifiedName()</span></code></a> is exceptional: the DString is not initialized at all.</p>
 <p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorSortIndex" title="Rbc_VectorSortIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorSortIndex()</span></code></a> creates an owned permutation of storage indices, not a reordered vector or a Tcl
 list. Every key vector must contain the first vector’s selected indices. The helper rejects complex keys but does not
-check matching lengths. The caller frees the permutation with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>, including the non-NULL allocation returned for
-an empty successful selection.</p>
+check matching lengths. The caller frees the permutation with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>, including the non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> allocation returned
+for an empty successful selection.</p>
 </section>
 </section>
 

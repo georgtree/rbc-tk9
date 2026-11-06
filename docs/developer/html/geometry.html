@@ -1247,8 +1247,9 @@ corner inside the polygon. That final check handles a rectangle wholly inside a 
 </section>
 <section id="line-and-polygon-clipping-differ">
 <h2>Line and polygon clipping differ<a class="headerlink" href="#line-and-polygon-clipping-differ" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="geometry-reference.html#c.Rbc_LineRectClip" title="Rbc_LineRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LineRectClip()</span></code></a> uses Liang-Barsky clipping against the supplied bounds. Its output pointer may be NULL for
-visibility testing. With separate output storage, endpoints remain unchanged; rejected input leaves output untouched.</p>
+<p><a class="reference internal" href="geometry-reference.html#c.Rbc_LineRectClip" title="Rbc_LineRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LineRectClip()</span></code></a> uses Liang-Barsky clipping against the supplied bounds. Its output pointer may be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>
+for visibility testing. With separate output storage, endpoints remain unchanged; rejected input leaves output
+untouched.</p>
 <p><a class="reference internal" href="geometry-reference.html#c.Rbc_PolyRectClip" title="Rbc_PolyRectClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PolyRectClip()</span></code></a> preserves a historical pixel-area convention: left/top are used directly, while right/bottom
 are expanded by one coordinate unit. It also perturbs zero edge deltas by <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> internally. It is therefore
 not an interchangeable polygon version of the line clipper for arbitrary mathematical coordinates.</p>

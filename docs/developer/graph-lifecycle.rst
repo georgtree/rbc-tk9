@@ -53,7 +53,7 @@ separate live fields:
      - Title-shadow color and offset
      - Move the acquired color, then release the old shadow.
    * - Tile
-     - Tile client or NULL
+     - Tile client or ``NULL``
      - Move the client, register the callback, then release the old client.
 
 The transaction context borrows the original option/value vector. It must have an even length and remain valid
@@ -64,7 +64,7 @@ rather than only the last value retained by Tk. An invalid earlier occurrence is
 valid occurrence.
 
 Scalar candidates own no resources. Shadow and tile staging acquire a new candidate before releasing an earlier one, and
-prepare failure cleans up that candidate. An empty tile is a staged NULL, distinct from an unstaged value. Commit
+prepare failure cleans up that candidate. An empty tile is a staged ``NULL``, distinct from an unstaged value. Commit
 transfers resource ownership and disarms the candidate; cleanup must never release a successfully transferred resource a
 second time.
 
@@ -275,7 +275,7 @@ releases the pixmap before returning an error. The normal photo path captures in
 pixmap.
 
 On Windows the same command also supports EMF and WMF. It records drawing into an enhanced-metafile DC, then copies an
-EMF or converts the recording to a placeable WMF file. The special CLIPBOARD target requests system ownership of the
+EMF or converts the recording to a placeable WMF file. The special ``CLIPBOARD`` target requests system ownership of the
 enhanced metafile. These are native recording paths, separate from the renderer-independent document exporters.
 
 The snapshot wrapper saves graph dimensions and existing flags before capture. It marks temporary rendering as export
@@ -292,8 +292,8 @@ be ignored for compatibility.
 Construction helpers and notification ownership
 -----------------------------------------------
 
-:c:func:`rbcGraphLifecycle.InitPens` initializes the registry and creates activeLine before activeBar. A failure leaves
-already-created resources for the enclosing graph teardown; it is not an independently repeatable initialization
+:c:func:`rbcGraphLifecycle.InitPens` initializes the registry and creates ``activeLine`` before ``activeBar``. A failure
+leaves already-created resources for the enclosing graph teardown; it is not an independently repeatable initialization
 operation. The successful constructor creates bindings only after all components and widget options have been
 configured. Trackgraph selection is initially a distinct constructor UID, then becomes a line-element class plus the
 trackGraph flag on the instance.
@@ -310,8 +310,8 @@ separates named-font changes from ordinary option parsing and ownership.
 The geometry-settling record owns its sample array but only borrows window identities. Each idle pass walks the current
 ancestry and compares identity, position, size and border width. It never dereferences a previously sampled window
 handle. Two consecutive unchanged passes are required after the latest change. A pending settle request absorbs later
-ordinary redraw requests via REDRAW_PENDING. Freeing the sampling record alone does not cancel an idle call; destruction
-must cancel scheduling separately before releasing it.
+ordinary redraw requests via ``REDRAW_PENDING``. Freeing the sampling record alone does not cancel an idle call;
+destruction must cancel scheduling separately before releasing it.
 
 :c:func:`rbcGraphLifecycle.Rbc_GetGraphFromWindowData` searches the supplied window and its ancestors for RBC instance
 data. The result is borrowed, with no added preservation or class check. This supports graph descendants but is not a
@@ -339,5 +339,5 @@ borrows the recording and reference DC. The file path still uses the native ANSI
 
 The snapshot command builds the EMF description as application-name/NUL, picture-name/NUL, followed by the DString
 terminator. Reference-DC acquisition, recording completion and EMF copy failures now produce diagnostics. Clipboard
-ownership transfers only when SetClipboardData succeeds; otherwise RBC deletes the recording. These checks preserve the
-existing snapshot wrapper's screen geometry restoration and do not alter the SVG/PDF/PostScript exporters.
+ownership transfers only when ``SetClipboardData`` succeeds; otherwise RBC deletes the recording. These checks preserve
+the existing snapshot wrapper's screen geometry restoration and do not alter the SVG/PDF/PostScript exporters.

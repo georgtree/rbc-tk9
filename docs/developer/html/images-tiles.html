@@ -1266,13 +1266,13 @@ evidence of success.</p>
 <h2>Allocation and photo-block conversion<a class="headerlink" href="#allocation-and-photo-block-conversion" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.GetColorImagePixelCount" title="rbcImageStorage.GetColorImagePixelCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.GetColorImagePixelCount()</span></code></a> checks nonnegative dimensions and the size_t pixel
 product. <a class="reference internal" href="image-tile-reference.html#c.Rbc_CreateColorImage" title="Rbc_CreateColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateColorImage()</span></code></a> then allocates the record and the zeroed pixel array separately through the
-checked allocator. An empty result still requires <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>; it is not represented by NULL. Raw image
-mutations do not notify any Tk image or attached graph. Publishing pixels into a photo is a separate operation with Tk’s
-own change-notification behavior.</p>
+checked allocator. An empty result still requires <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>; it is not represented by <code class="docutils literal notranslate"><span class="pre">NULL</span></code>. Raw
+image mutations do not notify any Tk image or attached graph. Publishing pixels into a photo is a separate operation
+with Tk’s own change-notification behavior.</p>
 <p>The conversion routines use row pitch and pixel size rather than assuming the photo is tightly packed. A four-byte block
 copies RGB and alpha through all four channel offsets; a three-byte block copies RGB and supplies alpha 255. The region
-converter computes its starting displacement in Tcl_WideInt and checks ptrdiff_t representability, then walks each row
-using the photo pitch. That arithmetic check does not validate arbitrary image-block metadata or replace the
+converter computes its starting displacement in <code class="docutils literal notranslate"><span class="pre">Tcl_WideInt</span></code> and checks <code class="docutils literal notranslate"><span class="pre">ptrdiff_t</span></code> representability, then walks
+each row using the photo pitch. That arithmetic check does not validate arbitrary image-block metadata or replace the
 requirement for a live, valid photo handle.</p>
 <p>For pixel sizes other than three or four, both whole-photo and region conversion replicate offset[0] into RGB and supply
 alpha 255. This preserves the existing whole-photo fallback policy: even a two-byte grayscale/alpha layout produces
@@ -1288,11 +1288,11 @@ separate runtime change across callers.</p>
 <p><a class="reference internal" href="image-tile-reference.html#c.Rbc_SnapPhoto" title="Rbc_SnapPhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SnapPhoto()</span></code></a> first validates dimensions and gamma and resolves an existing photo name. It then delegates
 native acquisition and gamma handling to <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_DrawableToColorImage" title="rbcX11Image.Rbc_DrawableToColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawableToColorImage</span></code></a> on
 X11 or its <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_DrawableToColorImage" title="rbcWindowsImages.Rbc_DrawableToColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Windows</span> <span class="pre">counterpart</span></code></a>. A missing photo or failed capture
-returns TCL_ERROR with an interpreter diagnostic. If requested destination dimensions differ, the captured image is
+returns <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code> with an interpreter diagnostic. If requested destination dimensions differ, the captured image is
 box-filtered in both directions and replaced by the resampled allocation. The final photo write is followed by image
 cleanup.</p>
 <p>Zero destination dimensions are accepted literally; they do not mean use the capture dimensions. The helper does not
-create a missing photo or own its handle. A TCL_OK result indicates that capture and processing reached the legacy
+create a missing photo or own its handle. A <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> result indicates that capture and processing reached the legacy
 writer, whose write errors are not propagated. Native capture policy and visibility limitations remain
 platform-specific.</p>
 </section>
@@ -1352,7 +1352,7 @@ filtering. Bitmap transforms are covered in <a class="reference internal" href="
 </section>
 <section id="registry-and-refresh-implementation">
 <h2>Registry and refresh implementation<a class="headerlink" href="#registry-and-refresh-implementation" title="Link to this heading"></a></h2>
-<p>Despite the TILE_THREAD_KEY macro name, the registry belongs to interpreter associated data.
+<p>Despite the <code class="docutils literal notranslate"><span class="pre">TILE_THREAD_KEY</span></code> macro name, the registry belongs to interpreter associated data.
 <a class="reference internal" href="image-tile-reference.html#c.rbcTileLifecycle.TileInterpData" title="rbcTileLifecycle.TileInterpData"><code class="xref c c-struct docutils literal notranslate"><span class="pre">TileInterpData</span></code></a> owns the
 table; it is not process-global or thread-local sharing. A server is registered only after image acquisition and initial
 redraw succeed. The first client is appended after that registration. Failure to acquire the Tk image removes the newly
@@ -1366,10 +1366,10 @@ chain link.</p>
 callback pointers, so replacing another client’s callback changes that client’s delivery in the same pass. It also does
 not save the interpreter result around callbacks. Clients which evaluate Tcl must apply their own result-preservation
 policy where needed.</p>
-<p>The refresh path has a different callback boundary from notification delivery. Tk_GetImage and Tk_RedrawImage can
-invoke an image provider. Initial redraw occurs before any client is attached; subsequent redraw uses the first client’s
-borrowed window before membership is snapshotted. The client-notification preserves do not by themselves make arbitrary
-provider reentrancy safe. This is a separate lifetime boundary to review when extending supported image types.</p>
+<p>The refresh path has a different callback boundary from notification delivery. <code class="docutils literal notranslate"><span class="pre">Tk_GetImage</span></code> and <code class="docutils literal notranslate"><span class="pre">Tk_RedrawImage</span></code>
+can invoke an image provider. Initial redraw occurs before any client is attached; subsequent redraw uses the first
+client’s borrowed window before membership is snapshotted. The client-notification preserves do not by themselves make
+arbitrary provider reentrancy safe. This is a separate lifetime boundary to review when extending supported image types.</p>
 <p>Redraw replaces a size-dependent pixmap before releasing its predecessor, then refreshes the tiled GC, dimensions and
 optional photo mask. A deleted image’s idle update only clears the pixmap; it does not reset the cached dimensions, mask
 or GC at that point. Final server destruction releases those resources. Consumers must use the deleted-image-aware
@@ -1381,8 +1381,8 @@ helpers rather than infer liveness from cached dimensions alone.</p>
 produce an error status. The caller must provide a live client and drawable with compatible depth/display and a usable
 pixmap. Windows repetition additionally requires positive tile width and height. A deleted image with stale cached
 dimensions is not a valid tile source merely because its size query is nonzero.</p>
-<p>Rectangle helpers consistently ignore None drawables and nonpositive sizes; batch helpers also ignore NULL arrays and
-nonpositive counts. Polygon callers must provide nonempty arrays: Windows computes bounds from the first point, and
+<p>Rectangle helpers consistently ignore None drawables and nonpositive sizes; batch helpers also ignore <code class="docutils literal notranslate"><span class="pre">NULL</span></code> arrays
+and nonpositive counts. Polygon callers must provide nonempty arrays: Windows computes bounds from the first point, and
 X11’s masked path does likewise. These are XPoint/XRectangle interfaces, so geometry has already crossed the native
 short-coordinate boundary.</p>
 <table class="docutils align-default" id="id1">
@@ -1400,8 +1400,8 @@ short-coordinate boundary.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Rectangle</p></td>
-<td><p>Repeated BitBlt copies aligned to the client origin.</p></td>
-<td><p>XFillRectangle with the server’s tiled GC.</p></td>
+<td><p>Repeated <code class="docutils literal notranslate"><span class="pre">BitBlt</span></code> copies aligned to the client origin.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">XFillRectangle</span></code> with the server’s tiled GC.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Rectangle batch</p></td>
 <td><p>One source/destination DC setup for the whole batch.</p></td>
@@ -1409,23 +1409,23 @@ short-coordinate boundary.</p>
 </tr>
 <tr class="row-even"><td><p>Polygon</p></td>
 <td><p>Polygon region clips repetitions over the inclusive bounding box.</p></td>
-<td><p>XFillPolygon uses Complex and CoordModeOrigin; transparency adds a polygon-sized one-bit clip mask.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">XFillPolygon</span></code> uses <code class="docutils literal notranslate"><span class="pre">Complex</span></code> and <code class="docutils literal notranslate"><span class="pre">CoordModeOrigin</span></code>; transparency adds a polygon-sized one-bit clip mask.</p></td>
 </tr>
 </tbody>
 </table>
 <p>Windows <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsTiles.TileRegion" title="rbcWindowsTiles.TileRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsTiles.TileRegion()</span></code></a> aligns the first repetition at or before the destination origin, then crops
-color copies along the boundary. Opaque copies use SRCCOPY. Masked copies use SRCAND followed by SRCPAINT, with
-destination text/background colors set for monochrome expansion. Source and mask DCs are borrowed by this inner helper;
-the enclosing shape function owns acquisition, selection and release. It restores the old source bitmap before deleting
-the memory DC.</p>
+color copies along the boundary. Opaque copies use <code class="docutils literal notranslate"><span class="pre">SRCCOPY</span></code>. Masked copies use <code class="docutils literal notranslate"><span class="pre">SRCAND</span></code> followed by <code class="docutils literal notranslate"><span class="pre">SRCPAINT</span></code>,
+with destination text/background colors set for monochrome expansion. Source and mask DCs are borrowed by this inner
+helper; the enclosing shape function owns acquisition, selection and release. It restores the old source bitmap before
+deleting the memory DC.</p>
 <p>Windows masked copies use the same source coordinates for the mask and color passes, including cropped first rows and
 columns. The private tile harness checks resulting pixels against the tile origin for both positive and negative
 origins, including untouched pixels outside the requested rectangle.</p>
 <p>X11 <a class="reference internal" href="image-tile-reference.html#c.rbcTileMasks.RectangleMask" title="rbcTileMasks.RectangleMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">RectangleMask</span></code></a> translates the client origin into rectangle-local coordinates
-and fills an owned one-bit pixmap with FillOpaqueStippled. <a class="reference internal" href="image-tile-reference.html#c.rbcTileMasks.PolygonMask" title="rbcTileMasks.PolygonMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTileMasks.PolygonMask()</span></code></a> translates copied points
-into bounding-box coordinates, clears its bitmap, then uses FillStippled for the polygon interior. Both release
-temporary GCs and return pixmaps which the drawing caller must free. Transparency is represented by binary masks here,
-not continuous-alpha compositing.</p>
+and fills an owned one-bit pixmap with <code class="docutils literal notranslate"><span class="pre">FillOpaqueStippled</span></code>. <a class="reference internal" href="image-tile-reference.html#c.rbcTileMasks.PolygonMask" title="rbcTileMasks.PolygonMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTileMasks.PolygonMask()</span></code></a> translates copied
+points into bounding-box coordinates, clears its bitmap, then uses <code class="docutils literal notranslate"><span class="pre">FillStippled</span></code> for the polygon interior. Both
+release temporary GCs and return pixmaps which the drawing caller must free. Transparency is represented by binary masks
+here, not continuous-alpha compositing.</p>
 <p>Masked X11 drawing temporarily installs that mask and its destination origin on the shared tile GC, then explicitly
 resets the clip to None and origin to zero. It does not save a caller’s previous server-GC clip. Likewise, origin
 setters change shared GC state, while Windows repetition reads the individual client’s stored origin. Consumers must

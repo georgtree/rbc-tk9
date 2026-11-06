@@ -47,14 +47,14 @@ Allocation and photo-block conversion
 
 :c:func:`rbcImageStorage.GetColorImagePixelCount` checks nonnegative dimensions and the size_t pixel
 product. :c:func:`Rbc_CreateColorImage` then allocates the record and the zeroed pixel array separately through the
-checked allocator. An empty result still requires :c:func:`Rbc_FreeColorImage`; it is not represented by NULL. Raw image
-mutations do not notify any Tk image or attached graph. Publishing pixels into a photo is a separate operation with Tk's
-own change-notification behavior.
+checked allocator. An empty result still requires :c:func:`Rbc_FreeColorImage`; it is not represented by ``NULL``. Raw
+image mutations do not notify any Tk image or attached graph. Publishing pixels into a photo is a separate operation
+with Tk's own change-notification behavior.
 
 The conversion routines use row pitch and pixel size rather than assuming the photo is tightly packed. A four-byte block
 copies RGB and alpha through all four channel offsets; a three-byte block copies RGB and supplies alpha 255. The region
-converter computes its starting displacement in Tcl_WideInt and checks ptrdiff_t representability, then walks each row
-using the photo pitch. That arithmetic check does not validate arbitrary image-block metadata or replace the
+converter computes its starting displacement in ``Tcl_WideInt`` and checks ``ptrdiff_t`` representability, then walks
+each row using the photo pitch. That arithmetic check does not validate arbitrary image-block metadata or replace the
 requirement for a live, valid photo handle.
 
 For pixel sizes other than three or four, both whole-photo and region conversion replicate offset[0] into RGB and supply
@@ -73,12 +73,12 @@ Snapshot pipeline
 :c:func:`Rbc_SnapPhoto` first validates dimensions and gamma and resolves an existing photo name. It then delegates
 native acquisition and gamma handling to :c:func:`Rbc_DrawableToColorImage <rbcX11Image.Rbc_DrawableToColorImage>` on
 X11 or its :c:func:`Windows counterpart <rbcWindowsImages.Rbc_DrawableToColorImage>`. A missing photo or failed capture
-returns TCL_ERROR with an interpreter diagnostic. If requested destination dimensions differ, the captured image is
+returns ``TCL_ERROR`` with an interpreter diagnostic. If requested destination dimensions differ, the captured image is
 box-filtered in both directions and replaced by the resampled allocation. The final photo write is followed by image
 cleanup.
 
 Zero destination dimensions are accepted literally; they do not mean use the capture dimensions. The helper does not
-create a missing photo or own its handle. A TCL_OK result indicates that capture and processing reached the legacy
+create a missing photo or own its handle. A ``TCL_OK`` result indicates that capture and processing reached the legacy
 writer, whose write errors are not propagated. Native capture policy and visibility limitations remain
 platform-specific.
 
@@ -150,7 +150,7 @@ filtering. Bitmap transforms are covered in :doc:`image-transforms` and color pr
 Registry and refresh implementation
 -----------------------------------
 
-Despite the TILE_THREAD_KEY macro name, the registry belongs to interpreter associated data.
+Despite the ``TILE_THREAD_KEY`` macro name, the registry belongs to interpreter associated data.
 :c:struct:`TileInterpData <rbcTileLifecycle.TileInterpData>` owns the
 table; it is not process-global or thread-local sharing. A server is registered only after image acquisition and initial
 redraw succeed. The first client is appended after that registration. Failure to acquire the Tk image removes the newly
@@ -167,10 +167,10 @@ callback pointers, so replacing another client's callback changes that client's 
 not save the interpreter result around callbacks. Clients which evaluate Tcl must apply their own result-preservation
 policy where needed.
 
-The refresh path has a different callback boundary from notification delivery. Tk_GetImage and Tk_RedrawImage can
-invoke an image provider. Initial redraw occurs before any client is attached; subsequent redraw uses the first client's
-borrowed window before membership is snapshotted. The client-notification preserves do not by themselves make arbitrary
-provider reentrancy safe. This is a separate lifetime boundary to review when extending supported image types.
+The refresh path has a different callback boundary from notification delivery. ``Tk_GetImage`` and ``Tk_RedrawImage``
+can invoke an image provider. Initial redraw occurs before any client is attached; subsequent redraw uses the first
+client's borrowed window before membership is snapshotted. The client-notification preserves do not by themselves make
+arbitrary provider reentrancy safe. This is a separate lifetime boundary to review when extending supported image types.
 
 Redraw replaces a size-dependent pixmap before releasing its predecessor, then refreshes the tiled GC, dimensions and
 optional photo mask. A deleted image's idle update only clears the pixmap; it does not reset the cached dimensions, mask
@@ -185,8 +185,8 @@ produce an error status. The caller must provide a live client and drawable with
 pixmap. Windows repetition additionally requires positive tile width and height. A deleted image with stale cached
 dimensions is not a valid tile source merely because its size query is nonzero.
 
-Rectangle helpers consistently ignore None drawables and nonpositive sizes; batch helpers also ignore NULL arrays and
-nonpositive counts. Polygon callers must provide nonempty arrays: Windows computes bounds from the first point, and
+Rectangle helpers consistently ignore None drawables and nonpositive sizes; batch helpers also ignore ``NULL`` arrays
+and nonpositive counts. Polygon callers must provide nonempty arrays: Windows computes bounds from the first point, and
 X11's masked path does likewise. These are XPoint/XRectangle interfaces, so geometry has already crossed the native
 short-coordinate boundary.
 
@@ -198,30 +198,30 @@ short-coordinate boundary.
      - Windows
      - X11
    * - Rectangle
-     - Repeated BitBlt copies aligned to the client origin.
-     - XFillRectangle with the server's tiled GC.
+     - Repeated ``BitBlt`` copies aligned to the client origin.
+     - ``XFillRectangle`` with the server's tiled GC.
    * - Rectangle batch
      - One source/destination DC setup for the whole batch.
      - Opaque requests are chunked to the server request limit; masked rectangles are handled separately.
    * - Polygon
      - Polygon region clips repetitions over the inclusive bounding box.
-     - XFillPolygon uses Complex and CoordModeOrigin; transparency adds a polygon-sized one-bit clip mask.
+     - ``XFillPolygon`` uses ``Complex`` and ``CoordModeOrigin``; transparency adds a polygon-sized one-bit clip mask.
 
 Windows :c:func:`rbcWindowsTiles.TileRegion` aligns the first repetition at or before the destination origin, then crops
-color copies along the boundary. Opaque copies use SRCCOPY. Masked copies use SRCAND followed by SRCPAINT, with
-destination text/background colors set for monochrome expansion. Source and mask DCs are borrowed by this inner helper;
-the enclosing shape function owns acquisition, selection and release. It restores the old source bitmap before deleting
-the memory DC.
+color copies along the boundary. Opaque copies use ``SRCCOPY``. Masked copies use ``SRCAND`` followed by ``SRCPAINT``,
+with destination text/background colors set for monochrome expansion. Source and mask DCs are borrowed by this inner
+helper; the enclosing shape function owns acquisition, selection and release. It restores the old source bitmap before
+deleting the memory DC.
 
 Windows masked copies use the same source coordinates for the mask and color passes, including cropped first rows and
 columns. The private tile harness checks resulting pixels against the tile origin for both positive and negative
 origins, including untouched pixels outside the requested rectangle.
 
 X11 :c:func:`RectangleMask <rbcTileMasks.RectangleMask>` translates the client origin into rectangle-local coordinates
-and fills an owned one-bit pixmap with FillOpaqueStippled. :c:func:`rbcTileMasks.PolygonMask` translates copied points
-into bounding-box coordinates, clears its bitmap, then uses FillStippled for the polygon interior. Both release
-temporary GCs and return pixmaps which the drawing caller must free. Transparency is represented by binary masks here,
-not continuous-alpha compositing.
+and fills an owned one-bit pixmap with ``FillOpaqueStippled``. :c:func:`rbcTileMasks.PolygonMask` translates copied
+points into bounding-box coordinates, clears its bitmap, then uses ``FillStippled`` for the polygon interior. Both
+release temporary GCs and return pixmaps which the drawing caller must free. Transparency is represented by binary masks
+here, not continuous-alpha compositing.
 
 Masked X11 drawing temporarily installs that mask and its destination origin on the shared tile GC, then explicitly
 resets the clip to None and origin to zero. It does not save a caller's previous server-GC clip. Likewise, origin

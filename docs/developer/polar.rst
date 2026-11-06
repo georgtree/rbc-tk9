@@ -178,7 +178,7 @@ Segment cache construction and failure policy
 
 The mapping entry points consume prepared axes and require old X/Y grid caches to have been released by the shared grid
 lifecycle. They do not replace and free an existing cache themselves. Circle and spoke/arc allocations are independent:
-a failed allocation can leave one family present and the other absent. Overflow checks and Tcl_AttemptAlloc failures
+a failed allocation can leave one family present and the other absent. Overflow checks and ``Tcl_AttemptAlloc`` failures
 return silently, without a Tcl diagnostic. The next normal remapping starts from cleared caches again.
 
 Polar radial candidates are reconstructed from X-axis grid segments using :c:func:`PolarGridSegmentValue`. Inverted
@@ -231,15 +231,15 @@ than solving an analytic circle/rectangle intersection. Its accuracy therefore f
 approximation.
 
 Automatic inward anchors use eight direction sectors separated by 22.5 degrees plus multiples of 45 degrees. Degenerate
-screen segments select CENTER. Explicit polar anchors override automatic selection. Centered-view anchor selection uses
-data angles; cropped-view selection uses screen directions. These are current policies, not a promise that label
+screen segments select ``CENTER``. Explicit polar anchors override automatic selection. Centered-view anchor selection
+uses data angles; cropped-view selection uses screen directions. These are current policies, not a promise that label
 orientation is invariant under axis inversion or reversal. Anchors alone do not guarantee the complete text fits in the
 plot.
 
 All label paths copy the axis text style and force zero text rotation. Radial and Smith real labels use X-axis
-showTicks/style; angular and Smith reactive labels use Y-axis showTicks/style. Only major ticks are labelled. Screen
-drawing rounds positions before applying fixed offsets; export retains fractional positions. Both paths release their
-temporary renderer, labels and tick snapshots.
+``showTicks`` / ``style``; angular and Smith reactive labels use Y-axis ``showTicks`` / ``style``. Only major ticks are
+labelled. Screen drawing rounds positions before applying fixed offsets; export retains fractional positions. Both paths
+release their temporary renderer, labels and tick snapshots.
 
 Formatter callbacks and cancellation
 ------------------------------------
@@ -247,21 +247,21 @@ Formatter callbacks and cancellation
 Angular prefixes receive widget path and numeric degrees, without the default degree suffix. Smith prefixes receive
 widget path, impedance/admittance domain and the original signed normalized value, without the default j decoration. A
 prefix is duplicated before arguments are appended, and evaluation uses the current Tcl context, matching axis
-formatters. A NULL or empty prefix retains normal formatting. A successful empty result suppresses that label; an
+formatters. A ``NULL`` or empty prefix retains normal formatting. A successful empty result suppresses that label; an
 ordinary callback error is reported as a background exception and retains default text. The prior interpreter state is
 restored after callback evaluation.
 
-:c:func:`FormatGridLabel` shares the existing axisFormatActive/axisFormatInvalid mechanism. While it evaluates Tcl,
-recursive snapshot and export requests are rejected before they change dimensions or renderer state. Layout recursion is
-likewise rejected; read-only operations that need no layout may still succeed. Redraw requests or relevant window events
-during the callback mark the current pass invalid.
+:c:func:`FormatGridLabel` shares the existing ``axisFormatActive`` / ``axisFormatInvalid`` mechanism. While it evaluates
+Tcl, recursive snapshot and export requests are rejected before they change dimensions or renderer state. Layout
+recursion is likewise rejected; read-only operations that need no layout may still succeed. Redraw requests or relevant
+window events during the callback mark the current pass invalid.
 
 After formatting, validity is checked before any cached grid, axis or copied text-style resource is reused. Invalidation
-returns NULL while leaving the caller's DString initialized for cleanup. Each label loop stops and releases its owned
-temporary resources; Smith phase/domain dispatch and polar radial/angular dispatch also stop before moving to another
-phase. A surviving graph is queued for a fresh redraw. Snapshot/export callers receive the existing RBC GRAPH CALLBACK
-error rather than a completed image/document from stale state. Drawing already performed into an intermediate target is
-not rolled back.
+returns ``NULL`` while leaving the caller's DString initialized for cleanup. Each label loop stops and releases its
+owned temporary resources; Smith phase/domain dispatch and polar radial/angular dispatch also stop before moving to
+another phase. A surviving graph is queued for a fresh redraw. Snapshot/export callers receive the existing ``RBC GRAPH
+CALLBACK`` error rather than a completed image/document from stale state. Drawing already performed into an intermediate
+target is not rolled back.
 
 This guard does not undo application changes or prevent users from destroying the graph. The enclosing widget command or
 display wrapper retains the graph record across Tcl evaluation. Nor does the guard promise forward progress for a
@@ -288,13 +288,14 @@ confirmation of a finite result.
    * - Helpers
      - Input and output space
    * - :c:func:`ClipPolarRay`
-     - Degree angle in, near/far data-space ray endpoints out; output is valid only on TRUE.
+     - Degree angle in, near/far data-space ray endpoints out; output is valid only on ``TRUE``.
    * - :c:func:`MapPolarSpoke`
      - Degree angle in, mapped pixel segment out; it does not independently validate endpoint finiteness.
    * - :c:func:`MapCircle` / :c:func:`MapSmithResistanceCircle`
-     - Caller supplies buffers of POLAR_CIRCLE_SEGMENTS / SMITH_CIRCLE_SEGMENTS records respectively; outputs are mapped pixels.
+     - Caller supplies buffers of ``POLAR_CIRCLE_SEGMENTS`` / ``SMITH_CIRCLE_SEGMENTS`` records respectively; outputs
+       are mapped pixels.
    * - :c:func:`MapSmithReactanceArc`
-     - Caller supplies SMITH_ARC_SEGMENTS records; normalized reactive input produces mapped pixel chords.
+     - Caller supplies ``SMITH_ARC_SEGMENTS`` records; normalized reactive input produces mapped pixel chords.
    * - :c:func:`ClipSegmentToGridViewport`
      - Finite data-space endpoints in and clipped data-space endpoints out; neither screen mapping nor stroke clipping occurs.
    * - :c:func:`GetSmithReactiveEdgeAnchor`
@@ -315,13 +316,13 @@ Formatter storage and cancellation
 
 :c:func:`FormatPolarAngleLabel` and :c:func:`FormatSmithLabel` initialize the supplied DString themselves. Pass storage
 that does not already own an allocated buffer. Their common helper, :c:func:`FormatGridLabel`, instead requires an
-initialized DString already containing default text. All three return a borrowed pointer into that string, or NULL when
+initialized DString already containing default text. All three return a borrowed pointer into that string, or ``NULL`` when
 the drawing pass has been invalidated.
 
-The caller frees the DString on every path, including NULL. An empty non-NULL string means suppress this label and
-continue; NULL means stop the pass before accessing cached grid, axis or copied text-style resources again. The returned
-string does not retain any of those resources. The outer graph command or display wrapper must keep the graph record
-alive across callback evaluation.
+The caller frees the DString on every path, including ``NULL``. An empty non-``NULL`` string means suppress this label and
+continue; ``NULL`` means stop the pass before accessing cached grid, axis or copied text-style resources again. The
+returned string does not retain any of those resources. The outer graph command or display wrapper must keep the graph
+record alive across callback evaluation.
 
 Screen and export loops share this cancellation rule. Their drawable and export context remain borrowed; ending a
 temporary text renderer does not free the screen destination or finalize the enclosing document. Geometry sampling

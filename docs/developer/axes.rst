@@ -141,7 +141,7 @@ has already rejected unknown and ambiguous options. Prefix matching should not b
 each transaction family.
 
 Stage helpers acquire replacement storage before freeing an earlier candidate. An empty candidate is still meaningful:
-a staged NULL tick array clears the explicit-tick flag and restores automatic ticks. The staged flag or mask must
+a staged ``NULL`` tick array clears the explicit-tick flag and restores automatic ticks. The staged flag or mask must
 therefore be checked separately from the pointer. Commit transfers owned storage, clears the transferred candidate
 fields and releases the old live resource. Cleanup then remains safe after a successful commit. Scalar-only transactions
 need no resource destructor.
@@ -156,9 +156,9 @@ transaction pointer. The parameter sections in :doc:`axis-reference` identify th
 
 Lookup outputs also differ. :c:func:`rbcGrAxisRegistry.NameToAxis` clears its output on a failed
 lookup. :c:func:`rbcGrAxisRegistry.GetAxis` leaves the caller's output unchanged on
-error. :c:func:`rbcGrAxisRegistry.Rbc_GetAxisFromObj` sets it to NULL for an empty name, but retains the
+error. :c:func:`rbcGrAxisRegistry.Rbc_GetAxisFromObj` sets it to ``NULL`` for an empty name, but retains the
 unchanged-on-error rule for nonempty names. Check the status before consuming an output, and release a reference only
-when a successful lookup requested a non-NULL logical class.
+when a successful lookup requested a non-``NULL`` logical class.
 
 Parsing policies
 ~~~~~~~~~~~~~~~~
@@ -267,7 +267,7 @@ it are rejected. No minor is extrapolated after the final explicit major.
 degrade to empty arrays rather than a layout error. Allocation itself uses the fatal Tcl
 allocator. :c:func:`rbcGrAxisRanges.Rbc_AllocAxisMajorTicks` always returns an independent array: it copies an existing
 cache or generates from the sweep when no cache exists, notably for hidden Polar axes. Its copy path uses attempted
-allocation and can return NULL. Callers must both check that result and free successful results; they must not assume
+allocation and can return ``NULL``. Callers must both check that result and free successful results; they must not assume
 every cache is an explicitly supplied list.
 
 Numerical mapping boundary
@@ -307,7 +307,7 @@ restored. Callback errors are reported as background exceptions and normally fal
 A callback may also delete the axis, destroy the widget or replace layout resources. After evaluation,
 :c:func:`rbcGrAxisPresentation.Rbc_AllocAxisTickLabel` checks graph validity without dereferencing the old axis
 pointer. Invalidation releases the newly allocated label and returns
-NULL. :c:func:`rbcGrAxisPresentation.GetAxisGeometry` must stop immediately; its callers must check callback validity
+``NULL``. :c:func:`rbcGrAxisPresentation.GetAxisGeometry` must stop immediately; its callers must check callback validity
 before resuming their own traversal. A callback error and callback invalidation are therefore different outcomes.
 Neither a numeric fallback nor preserved graph storage proves an old axis or label-chain pointer is still valid.
 
@@ -328,7 +328,7 @@ not reported as a Tcl command error.
 
 :c:func:`rbcGrAxisPresentation.Rbc_GetAxisSegments` is a separate grid interface. It borrows cached ticks when available
 and generates temporary ticks otherwise, including for axes without visible rectangular decorations. It returns a
-caller-owned segment array or NULL/zero, and always releases its temporary tick arrays. Grid spanning uses the current
+caller-owned segment array or ``NULL``/zero, and always releases its temporary tick arrays. Grid spanning uses the current
 plot viewport; callers requesting local track grids must establish that viewport first.
 
 Picking is containment, not a distance minimization despite the name :c:func:`rbcGrAxisPresentation.Rbc_NearestAxis`. It

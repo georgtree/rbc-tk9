@@ -195,7 +195,7 @@ optional color for SVG/PDF. The corresponding PostScript setup is immediate: :c:
 :c:func:`Rbc_RenderPostscriptSymbol` and :c:func:`Rbc_RenderPostscriptBarSymbol` emit attributes or procedure
 definitions. The style pointers do not transfer ownership of colors or bitmaps.
 
-:c:func:`Rbc_RenderExportRasterImage` returns a caller-owned color image; NULL can mean ordinary omission or capture
+:c:func:`Rbc_RenderExportRasterImage` returns a caller-owned color image; ``NULL`` can mean ordinary omission or capture
 failure, so also inspect the document error state. :c:func:`Rbc_RenderExportSymbolRound` preserves legacy rounding
 halfway away from zero and requires a finite value whose adjusted result fits an int. Neither helper is a general
 input-validation boundary.

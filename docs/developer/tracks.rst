@@ -59,7 +59,7 @@ height instead. Both paths invalidate layout and schedule redraw; they do not di
 Local components and dispatch
 -----------------------------
 
-A NULL local grid means inheritance from the graph grid. A local grid keeps its own configuration and mapped segment
+A ``NULL`` local grid means inheritance from the graph grid. A local grid keeps its own configuration and mapped segment
 caches. Local legends use track geometry without contributing outer graph margins. Track bar mode ``-1`` means
 inheritance from the graph. See :doc:`grids`, :doc:`legends` and :doc:`bars` for component-specific behavior.
 

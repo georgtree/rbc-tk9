@@ -157,9 +157,9 @@ destroying the binding table.
 :c:func:`Rbc_ConfigureBindingsFromObj` accepts an already validated argument count: no arguments list sequences, one
 queries a sequence, and two set a script. Empty scripts delete a binding; a leading ``+`` appends. Its event-mask
 validation allows key, button, motion, crossing and virtual sequences. A newly created binding with an unsupported mask
-is deleted, not rolled back to a prior script. The native handler's switch has no direct VirtualEvent case; accepting a
-virtual sequence must not be confused with explicit dispatch of every synthetically generated virtual event by this
-module.
+is deleted, not rolled back to a prior script. The native handler's switch has no direct ``VirtualEvent`` case;
+accepting a virtual sequence must not be confused with explicit dispatch of every synthetically generated virtual event
+by this module.
 
 Lifetime and deletion
 ---------------------

@@ -176,7 +176,7 @@ side effects even when parsing fails.
      - Success advances the cursor and returns one retained Tcl object reference.
    * - :c:func:`ParseMathFunction`
      - At a possible function name in writable expression storage.
-     - TCL_RETURN means no recognized function; it is an internal lookup sentinel.
+     - ``TCL_RETURN`` means no recognized function; it is an internal lookup sentinel.
    * - :c:func:`NextValue`
      - At the next operand in shared parser state.
      - The terminating token is already scanned; the cursor is not rewound.

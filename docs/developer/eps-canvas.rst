@@ -3,18 +3,18 @@ EPS canvas item implementation
 
 ``rbcCanvEps.c`` registers a Tk ``eps`` canvas item. It is independent of graph markers and graph renderer dispatch. Tk
 owns the item record and invokes its creation, configuration, drawing, hit-testing, transformation, PostScript and
-destruction callbacks through a Tk_ItemType. The item uses legacy Tk_ConfigSpec and Tk_ConfigureWidget, not the
-component Tk_OptionTable transaction machinery.
+destruction callbacks through a ``Tk_ItemType``. The item uses legacy ``Tk_ConfigSpec`` and ``Tk_ConfigureWidget``, not the
+component ``Tk_OptionTable`` transaction machinery.
 
 Parsing and retained content
 ----------------------------
 
-:c:func:`OpenEpsFile` owns a binary stdio FILE and calls :c:func:`ReadPostScript`. Windows recognizes the DOS EPS header
-and records PostScript/preview section offsets and lengths. The parser seeks to the PostScript section and bounds reads
-by its nonzero length. Ordinary EPS input reads to EOF. Failed open/seek/header parsing returns a Tcl diagnostic;
+:c:func:`OpenEpsFile` owns a binary stdio ``FILE`` and calls :c:func:`ReadPostScript`. Windows recognizes the DOS EPS
+header and records PostScript/preview section offsets and lengths. The parser seeks to the PostScript section and bounds
+reads by its nonzero length. Ordinary EPS input reads to EOF. Failed open/seek/header parsing returns a Tcl diagnostic;
 :c:func:`OpenEpsFile` closes its stream on parse failure.
 
-:c:func:`ReadPostScript` requires a ``%!PS`` signature and a numeric integer BoundingBox in the header. Bounds and
+:c:func:`ReadPostScript` requires a ``%!PS`` signature and a numeric integer ``BoundingBox`` in the header. Bounds and
 extents must fit int, with positive width and height. This is a limited metadata parser: it does not implement general
 PostScript, trailer ``(atend)`` bounding-box resolution or arbitrary DSC processing. :c:func:`ReadPsLine` has a fixed
 buffer and may split long physical lines. :c:func:`AppendPsLine` adds a newline when a retained chunk lacks one;
@@ -34,40 +34,41 @@ Preview ownership and configuration
    * - Resource
      - Meaning
      - Release
-   * - preview
+   * - ``preview``
      - Tk image instance of the supplied photo
-     - Tk_FreeImage
+     - ``Tk_FreeImage``
    * - colorImage
      - Owned snapshot or decoded EPSI pixels
      - :c:func:`Rbc_FreeColorImage`
-   * - tmpImage
+   * - ``tmpImage``
      - Private named photo and retained display instance
      - :c:func:`Rbc_DestroyTemporaryImage`
-   * - dString / title
+   * - ``dString`` / ``title``
      - Retained PostScript body / parsed title
-     - Tcl_DStringFree / ckfree
-   * - psFile
+     - ``Tcl_DStringFree`` / ``ckfree``
+   * - ``psFile``
      - Open parser stream
      - :c:func:`CloseEpsFile`
-   * - fillGC / pixmap
+   * - ``fillGC`` / ``pixmap``
      - Tk GC reference / native pixmap
-     - Tk_FreeGC / Tk_FreePixmap
+     - ``Tk_FreeGC`` / ``Tk_FreePixmap``
 
-:c:func:`ConfigureEps` detects image, file and quick options with prefix matching after Tk_ConfigureWidget succeeds. It
-drops old resources and replaces them in steps; a later error is not a rollback to the previous complete preview. A
-supplied image must be a photo. Its pixels are copied rather than continuously used as a live source. Width/height zero
-derive dimensions from the preview or EPS bounding box. Changing quick mode invalidates cached scaled dimensions.
+:c:func:`ConfigureEps` detects image, file and quick options with prefix matching after ``Tk_ConfigureWidget``
+succeeds. It drops old resources and replaces them in steps; a later error is not a rollback to the previous complete
+preview. A supplied image must be a photo. Its pixels are copied rather than continuously used as a live
+source. Width/height zero derive dimensions from the preview or EPS bounding box. Changing quick mode invalidates cached
+scaled dimensions.
 
 :c:func:`DisplayEps` rescales the saved pixels when dimensions change: nearest-style resize for quick mode, box
-resampling otherwise. It publishes the result into tmpImage and frees the intermediate pixels. With no visible preview
-it draws a placeholder, optionally followed by a fitting title and relief border. All screen work uses Tk/native
+resampling otherwise. It publishes the result into ``tmpImage`` and frees the intermediate pixels. With no visible
+preview it draws a placeholder, optionally followed by a fitting title and relief border. All screen work uses Tk/native
 services, without a graph renderer context.
 
 :c:func:`ImageChangedProc` does not refresh the saved color snapshot on ordinary source photo writes. Its deletion
 branch clears the source name and schedules canvas redraw, but retains the deleted instance until image reconfiguration
-or item teardown. Tk's deletion loop still accesses the instance after the callback returns, so Tk_FreeImage must not
-run inside that callback. Keeping the token in the item allows its ordinary cleanup paths to release it exactly
-once. Teardown also detaches tmpImage before its deletion can notify other clients.
+or item teardown. Tk's deletion loop still accesses the instance after the callback returns, so ``Tk_FreeImage`` must
+not run inside that callback. Keeping the token in the item allows its ordinary cleanup paths to release it exactly
+once. Teardown also detaches ``tmpImage`` before its deletion can notify other clients.
 
 Coordinates and export
 ----------------------

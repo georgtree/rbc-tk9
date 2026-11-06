@@ -1343,7 +1343,7 @@ successful prepare in one family does not permit committing it while another fam
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Tags</p></td>
-<td><p>One Tcl-allocated block; empty input can be explicitly staged as NULL</p></td>
+<td><p>One Tcl-allocated block; empty input can be explicitly staged as <code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></td>
 <td><p>Commit moves it and frees old live tags; free releases the candidate</p></td>
 </tr>
 <tr class="row-odd"><td><p>Axes</p></td>
@@ -1352,7 +1352,7 @@ successful prepare in one family does not permit committing it while another fam
 </tr>
 <tr class="row-even"><td><p>State</p></td>
 <td><p>Scalar value and staged flag, no owned resource</p></td>
-<td><p>Commit only after TCL_OK; failed preparation can retain an earlier staged scalar</p></td>
+<td><p>Commit only after <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>; failed preparation can retain an earlier staged scalar</p></td>
 </tr>
 <tr class="row-odd"><td><p>Data</p></td>
 <td><p>Owned numeric arrays or named-vector client IDs</p></td>
@@ -1420,11 +1420,11 @@ ownership, not ownership of the named source vector or its storage.</p>
 <section id="parsing-allocation-and-extrema">
 <h2>Parsing, allocation and extrema<a class="headerlink" href="#parsing-allocation-and-extrema" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.GetElemArrayByteCount" title="rbcGrElemData.GetElemArrayByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetElemArrayByteCount</span></code></a> rejects negative counts, zero element size and
-products that exceed SIZE_MAX, assigning its result
+products that exceed <code class="docutils literal notranslate"><span class="pre">SIZE_MAX</span></code>, assigning its result
 only on success. Zero count is valid. This check cannot repair overflow that occurred while a caller computed the count
 before invoking it.</p>
-<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.EvalExprListObj" title="rbcGrElemData.EvalExprListObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvalExprListObj</span></code></a> initializes its outputs to zero/NULL and uses Tcl_AttemptAlloc
-for a nonempty result. Each list member is evaluated with Tcl_ExprDouble; an error releases the temporary numeric array.
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.EvalExprListObj" title="rbcGrElemData.EvalExprListObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvalExprListObj</span></code></a> initializes its outputs to zero/<code class="docutils literal notranslate"><span class="pre">NULL</span></code> and uses <code class="docutils literal notranslate"><span class="pre">Tcl_AttemptAlloc</span></code>
+for a nonempty result. Each list member is evaluated with <code class="docutils literal notranslate"><span class="pre">Tcl_ExprDouble</span></code>; an error releases the temporary numeric array.
 The helper borrows the list’s object-pointer array across evaluation. It does not take an immutable snapshot or add an
 owner-preservation boundary, so this local allocation cleanup must not be confused with protection against callbacks
 that mutate owners or input representations.</p>
@@ -1454,16 +1454,16 @@ lookup.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.FindRange" title="rbcGrElemData.FindRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindRange</span></code></a></p></td>
 <td><p>Scans literal data, ignoring nonfinite samples</p></td>
-<td><p>Empty/NULL leaves cached extrema untouched; all-nonfinite nonempty data gives DBL_MAX/-DBL_MAX</p></td>
+<td><p>Empty/<code class="docutils literal notranslate"><span class="pre">NULL</span></code> leaves cached extrema untouched; all-nonfinite nonempty data gives <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> / <code class="docutils literal notranslate"><span class="pre">-DBL_MAX</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_FindElemVectorMinimum" title="rbcGrElemData.Rbc_FindElemVectorMinimum"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindElemVectorMinimum</span></code></a></p></td>
-<td><p>Returns the smallest finite value at or above minLimit</p></td>
-<td><p>Returns minLimit if its accumulator remains DBL_MAX</p></td>
+<td><p>Returns the smallest finite value at or above <code class="docutils literal notranslate"><span class="pre">minLimit</span></code></p></td>
+<td><p>Returns minLimit if its accumulator remains <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code></p></td>
 </tr>
 </tbody>
 </table>
 <p>Neither scanning helper computes and stores a separate positive minimum. The bounded-minimum helper also treats a sole
-qualifying DBL_MAX value as its unchanged sentinel and returns minLimit. That is current compatibility behavior, not a
+qualifying <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> value as its unchanged sentinel and returns <code class="docutils literal notranslate"><span class="pre">minLimit</span></code>. That is current compatibility behavior, not a
 promise that every finite sample has a distinct successful result.</p>
 </section>
 <section id="notification-metadata-and-synchronous-refresh">
@@ -1474,9 +1474,9 @@ precise ranges until the owning mapping code consumes or resets that pending sta
 indices nor fetches data. Reading the vector’s client-specific changed range belongs inside
 <a class="reference internal" href="element-reference.html#c.rbcGrElemData.VectorChangedProc" title="rbcGrElemData.VectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorChangedProc</span></code></a>, while
 that notification snapshot is valid.</p>
-<p>The destruction notification clears clientId, valueArr and nValues and records a full change. It does not zero vecPtr,
-capacity or extrema. Those remaining fields must not be treated as valid source storage after destruction; the cleared
-live-data fields govern subsequent use.</p>
+<p>The destruction notification clears <code class="docutils literal notranslate"><span class="pre">clientId</span></code>, <code class="docutils literal notranslate"><span class="pre">valueArr</span></code> and <code class="docutils literal notranslate"><span class="pre">nValues</span></code> and records a full change. It does not
+zero <code class="docutils literal notranslate"><span class="pre">vecPtr</span></code>, capacity or extrema. Those remaining fields must not be treated as valid source storage after
+destruction; the cleared live-data fields govern subsequent use.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_SyncElementVectors" title="rbcGrElemData.Rbc_SyncElementVectors"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SyncElementVectors</span></code></a> visits the registry rather than only the visible
 display list. Pending common X/Y, weight and error inputs refresh their borrowed arrays and mark a full change before
 immediate layout or export. It neither delivers nor cancels the queued notification and does not independently queue a
@@ -1486,9 +1486,9 @@ axes and mapping dirty, but only schedules backing-store redraw for plotted elem
 <section id="value-label-formatting">
 <h2>Value-label formatting<a class="headerlink" href="#value-label-formatting" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_ValidateValueFormat" title="rbcGrElemData.Rbc_ValidateValueFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ValidateValueFormat</span></code></a> accepts literal-only strings, escaped percent
-signs and at most one floating conversion. Formatting passes one double at a time; even SHOW_BOTH formats X and Y
+signs and at most one floating conversion. Formatting passes one double at a time; even <code class="docutils literal notranslate"><span class="pre">SHOW_BOTH</span></code> formats X and Y
 separately with the same format and joins them with a comma. Dynamic widths/precisions and conversions requiring another
-argument type are rejected. Format length, width and precision are each bounded by the current VALUE_FORMAT_LIMIT of
+argument type are rejected. Format length, width and precision are each bounded by the current <code class="docutils literal notranslate"><span class="pre">VALUE_FORMAT_LIMIT</span></code> of
 200. Validation does not guarantee that every formatted number fits the destination buffer.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.FormatValueLabel" title="rbcGrElemData.FormatValueLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatValueLabel</span></code></a> supplies terminated, bounded fallback text. It avoids
 appending Y when X has already been truncated.
@@ -1507,7 +1507,7 @@ ints, commits both together, and accepts no screen-unit suffixes. It stores the 
 <section id="closest-result-source-values-and-traces">
 <h2>Closest-result source values and traces<a class="headerlink" href="#closest-result-source-values-and-traces" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.ClosestErrorValue" title="rbcGrElemData.ClosestErrorValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClosestErrorValue</span></code></a> rejects a pending named-vector update before touching its
-borrowed array. It also rejects out-of-range indices, NULL arrays and nonfinite samples.
+borrowed array. It also rejects out-of-range indices, <code class="docutils literal notranslate"><span class="pre">NULL</span></code> arrays and nonfinite samples.
 <a class="reference internal" href="element-reference.html#c.rbcGrElemData.AppendClosestErrors" title="rbcGrElemData.AppendClosestErrors"><code class="xref c c-func docutils literal notranslate"><span class="pre">AppendClosestErrors</span></code></a> reports the original source error values, including
 explicit low/high bounds, rather than transformed or bar-translated positions. A nonempty symmetric-error vector takes
 precedence; an unusable symmetric sample does not fall back to explicit bounds. Explicit low and high must both be
@@ -1556,7 +1556,7 @@ rollback alone cannot undo arbitrary writes to live C fields. The optional outpu
 registry while the Tk window remains usable, including elements omitted from the display list. Repeated resource release
 is guarded. <a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.Rbc_DestroyElements" title="rbcGrElemLifecycle.Rbc_DestroyElements"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.Rbc_DestroyElements()</span></code></a> later destroys records without deleting hash entries during
 hash traversal, then deletes both hash tables and the display chain. <a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.DestroyElement" title="rbcGrElemLifecycle.DestroyElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.DestroyElement()</span></code></a>
-releases resources and registry membership immediately, but uses Tcl_EventuallyFree for the record itself so an
+releases resources and registry membership immediately, but uses <code class="docutils literal notranslate"><span class="pre">Tcl_EventuallyFree</span></code> for the record itself so an
 activation callback can retain its identity until validation ends. Preservation does not keep released resources
 usable. That final container destruction is not an idempotent operation.</p>
 </section>
@@ -1579,7 +1579,7 @@ current.</p>
 </section>
 <section id="command-dispatch-and-query-domains">
 <h2>Command dispatch and query domains<a class="headerlink" href="#command-dispatch-and-query-domains" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.Rbc_ElementOp" title="rbcGrElemCommands.Rbc_ElementOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.Rbc_ElementOp()</span></code></a> validates the operation and argument count using the typed elemOps table
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.Rbc_ElementOp" title="rbcGrElemCommands.Rbc_ElementOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.Rbc_ElementOp()</span></code></a> validates the operation and argument count using the typed <code class="docutils literal notranslate"><span class="pre">elemOps</span></code> table
 before calling a handler. The supplied class UID selects creation behavior; most other handlers operate on the named
 record regardless of that UID. This entry point does not add record lifetime protection around Tcl evaluation.</p>
 <p>Queries do not all enumerate the same collection:</p>
@@ -1598,7 +1598,7 @@ record regardless of that UID. This entry point does not add record lifetime pro
 <td><p>Exact registry lookup, including hidden records.</p></td>
 </tr>
 <tr class="row-even"><td><p>activate without a name</p></td>
-<td><p>Registry hash order filtered by ELEM_ACTIVE, including hidden records.</p></td>
+<td><p>Registry hash order filtered by <code class="docutils literal notranslate"><span class="pre">ELEM_ACTIVE</span></code>, including hidden records.</p></td>
 </tr>
 <tr class="row-odd"><td><p>show</p></td>
 <td><p>Display-chain order, including hideplot entries.</p></td>
@@ -1637,7 +1637,7 @@ redraw request is not reached. These operations do not promise command-wide atom
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ActivateOp" title="rbcGrElemCommands.ActivateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ActivateOp()</span></code></a> stages explicit indices before replacing the old selection. Allocation or
 ordinary conversion failure frees the candidate without changing the old selection. No explicit indices means
 whole-element activation, represented by a count of -1. Explicit indices retain order and duplicates, and successful
-commit sets both ELEM_ACTIVE and ACTIVE_PENDING.</p>
+commit sets both <code class="docutils literal notranslate"><span class="pre">ELEM_ACTIVE</span></code> and <code class="docutils literal notranslate"><span class="pre">ACTIVE_PENDING</span></code>.</p>
 <p>Index expressions may invoke application code. <a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ActivateOp" title="rbcGrElemCommands.ActivateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ActivateOp()</span></code></a> preserves the element record
 during evaluation, while the widget dispatcher preserves the graph. After each successful evaluation it checks window
 existence and the element’s resource-release flag before accessing data again. Deletion, same-name recreation, or widget
@@ -1656,9 +1656,9 @@ selection with its own candidate.</p>
 <section id="closest-search-phases">
 <h2>Closest-search phases<a class="headerlink" href="#closest-search-phases" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ClosestOp" title="rbcGrElemCommands.ClosestOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ClosestOp()</span></code></a> synchronizes common data inputs and resets axes when requested before parsing
-coordinates and switches. It does not map dirty elements as part of the search: records marked MAP_ITEM or with pending
-X/Y notifications are skipped. Explicit hidden or unplotted names cause an error; an implicit search skips them and
-visits the display chain in reverse. Track eligibility additionally requires a noncollapsed viewport containing the
+coordinates and switches. It does not map dirty elements as part of the search: records marked <code class="docutils literal notranslate"><span class="pre">MAP_ITEM</span></code> or with
+pending X/Y notifications are skipped. Explicit hidden or unplotted names cause an error; an implicit search skips them
+and visits the display chain in reverse. Track eligibility additionally requires a noncollapsed viewport containing the
 query position.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ParseClosestOptions" title="rbcGrElemCommands.ParseClosestOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ParseClosestOptions()</span></code></a> starts at argument six and accepts unambiguous switch
 abbreviations. Direction values must be exactly x, y or both; halo values use nonnegative screen-distance conversion;
@@ -1699,7 +1699,7 @@ option. These are display-geometry operations, not vector edits.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.ScaleSymbol" title="rbcGrLineGeometry.ScaleSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.ScaleSymbol()</span></code></a> captures axis-range baselines when requested, applies valid range ratios and
 returns a bounded odd pixel size. <a class="reference internal" href="element-reference.html#c.rbcGrLineGeometry.MapActiveSymbols" title="rbcGrLineGeometry.MapActiveSymbols"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineGeometry.MapActiveSymbols()</span></code></a> separately rebuilds explicit active
 selections, retaining their original indices and filtering them through symbol-map extents. It discards old active
-geometry before allocating and clears ACTIVE_PENDING even on allocation failure; retained selection indices are
+geometry before allocating and clears <code class="docutils literal notranslate"><span class="pre">ACTIVE_PENDING</span></code> even on allocation failure; retained selection indices are
 unchanged.</p>
 </section>
 <section id="reset-versus-destruction">
@@ -1797,7 +1797,7 @@ picking. A both-direction segment search has no such fallback.</p>
 </section>
 <section id="source-picking-after-reduction">
 <h3>Source picking after reduction<a class="headerlink" href="#source-picking-after-reduction" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="element-reference.html#c.rbcGrLinePicking.ClosestPoint" title="rbcGrLinePicking.ClosestPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLinePicking.ClosestPoint()</span></code></a> uses retained centers unless pointMapOmitted requests a source
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLinePicking.ClosestPoint" title="rbcGrLinePicking.ClosestPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLinePicking.ClosestPoint()</span></code></a> uses retained centers unless <code class="docutils literal notranslate"><span class="pre">pointMapOmitted</span></code> requests a source
 search. <a class="reference internal" href="element-reference.html#c.rbcGrLinePicking.ClosestSourcePoint" title="rbcGrLinePicking.ClosestSourcePoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLinePicking.ClosestSourcePoint()</span></code></a> maps original samples on demand, rejecting nonfinite coordinates
 and centers outside the viewport. Cached monotonic source X can restrict candidate ranges, but the range restriction
 must be justified by the actual screen-distance metric.</p>
@@ -1915,8 +1915,8 @@ smoothing flag.</p>
 <h3>Scalar adapters and ownership<a class="headerlink" href="#scalar-adapters-and-ownership" title="Link to this heading"></a></h3>
 <p>The pen-color parser <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GetLinePenColorFromObj" title="rbcGrLineConfiguration.GetLinePenColorFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.GetLinePenColorFromObj()</span></code></a> uses
 <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.IsLinePenPrefix" title="rbcGrLineConfiguration.IsLinePenPrefix"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.IsLinePenPrefix()</span></code></a> to accept nonempty prefixes of defcolor as an inherited-color
-sentinel. Empty values produce NULL only when permitted; actual Tk colors carry an acquired
-reference. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.FreeLinePenColor" title="rbcGrLineData.FreeLinePenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.FreeLinePenColor()</span></code></a> releases actual Tk colors while ignoring NULL and the
+sentinel. Empty values produce <code class="docutils literal notranslate"><span class="pre">NULL</span></code> only when permitted; actual Tk colors carry an acquired
+reference. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.FreeLinePenColor" title="rbcGrLineData.FreeLinePenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.FreeLinePenColor()</span></code></a> releases actual Tk colors while ignoring <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and the
 sentinel. Callers still clear their own fields after release. The local <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.Round" title="rbcGrLineConfiguration.Round"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.Round()</span></code></a> helper
 requires bounded finite input and does not provide checked conversion.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.PixelAbscissa" title="rbcGrLineConfiguration.PixelAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.PixelAbscissa()</span></code></a> and <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.PixelOrdinate" title="rbcGrLineConfiguration.PixelOrdinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">PixelOrdinate</span></code></a> select

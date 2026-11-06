@@ -1249,12 +1249,12 @@ intermediate arithmetic and returns an integer offset. Mode policy is intentiona
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Canvas</p></td>
-<td><p>Keep a full viewport inside a larger world. If the world is smaller, allow offsets from worldSize-windowSize
+<td><p>Keep a full viewport inside a larger world. If the world is smaller, allow offsets from <code class="docutils literal notranslate"><span class="pre">worldSize-windowSize</span></code>
 through zero, moving the small world within the viewport.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Listbox</p></td>
-<td><p>Permit trailing blank space. When the offset reaches/exceeds worldSize, replace it by worldSize-scrollUnits, then
-clamp negative values to zero.</p></td>
+<td><p>Permit trailing blank space. When the offset reaches/exceeds <code class="docutils literal notranslate"><span class="pre">worldSize</span></code>, replace it by
+<code class="docutils literal notranslate"><span class="pre">worldSize-scrollUnits</span></code>, then clamp negative values to zero.</p></td>
 </tr>
 <tr class="row-even"><td><p>Hierbox</p></td>
 <td><p>Keep the viewport inside the world and clamp to zero when the world fits.</p></td>
@@ -1309,8 +1309,8 @@ release. See <a class="reference internal" href="graph-lifecycle.html"><span cla
 </section>
 <section id="integer-conversion-boundary">
 <h2>Integer conversion boundary<a class="headerlink" href="#integer-conversion-boundary" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="scroll-reference.html#c.ClampScrollValue" title="ClampScrollValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClampScrollValue()</span></code></a> is documented in <a class="reference internal" href="scroll-reference.html"><span class="doc">Scrolling C reference</span></a>. Its input must not be NaN. It saturates outside the
-integer range and otherwise truncates toward zero; it does not apply the selected viewport policy. The legacy parser
+<p><a class="reference internal" href="scroll-reference.html#c.ClampScrollValue" title="ClampScrollValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClampScrollValue()</span></code></a> is documented in <a class="reference internal" href="scroll-reference.html"><span class="doc">Scrolling C reference</span></a>. Its input must not be <code class="docutils literal notranslate"><span class="pre">NaN</span></code>. It saturates outside
+the integer range and otherwise truncates toward zero; it does not apply the selected viewport policy. The legacy parser
 first truncates/saturates the requested delta, then separately adds and clamps that integer delta. Combining these steps
 into one floating-point addition can change historical results for fractional page deltas, especially across zero. The
 double-valued request parser deliberately leaves this policy to its owner.</p>

@@ -110,7 +110,7 @@ reduction or drawing fields additionally use a paired viewport scope:
 
 Entry saves both directions but changes only the stacking direction's bounds, scale and padding, along with
 ``activeTrack``. Visible bounds supply clipping limits while full world bounds supply offsets and ranges. Entry with a
-NULL track still changes the active-track state and must be paired with leave. Nested scopes need separate saved
+``NULL`` track still changes the active-track state and must be paired with leave. Nested scopes need separate saved
 records and restoration in reverse order. These helpers neither install a renderer clip nor preserve object lifetime;
 cleanup on every return path remains the caller's responsibility.
 

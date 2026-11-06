@@ -45,14 +45,14 @@ Records, names and storage
 ``VectorObject`` is the internal alias of the opaque :c:type:`Rbc_Vector` record. It holds type, length, capacity,
 storage ownership, command identity, optional variable mapping, observer chain and cached extrema.
 
-A new internal record starts real and empty: its data pointer is NULL and its length and capacity are zero. Growth
+A new internal record starts real and empty: its data pointer is ``NULL`` and its length and capacity are zero. Growth
 allocates storage; there is no inline array. Real storage contains doubles; complex storage contains
 :c:struct:`Rbc_Complex` records with separate real and imaginary doubles. Length and capacity count values, not bytes or
 individual complex components.
 
-:c:func:`Rbc_VectorData` and :c:func:`Rbc_VectorComplexData` return borrowed storage, or NULL for the wrong type. NULL
-can also represent an empty vector, so query type and length rather than using the pointer alone as a type
-test. Reacquire pointers after resize/reset and before using data following callbacks or Tcl evaluation. The vector
+:c:func:`Rbc_VectorData` and :c:func:`Rbc_VectorComplexData` return borrowed storage, or ``NULL`` for the wrong
+type. ``NULL`` can also represent an empty vector, so query type and length rather than using the pointer alone as a
+type test. Reacquire pointers after resize/reset and before using data following callbacks or Tcl evaluation. The vector
 record itself becomes invalid on destruction.
 
 Registered names are borrowed hash-key strings. Rename retains vector identity and observer connections, but invalidates
@@ -84,7 +84,7 @@ vice versa. Validation includes writability, nonnegative sizes, length not excee
    * - Custom ``Tcl_FreeProc``
      - RBC calls this procedure to release the adopted buffer.
 
-A NULL pointer or zero capacity denotes empty storage after size validation. Replacement frees the previous owned
+A ``NULL`` pointer or zero capacity denotes empty storage after size validation. Replacement frees the previous owned
 buffer only if its address differs from the installed address. A same-address reset still updates the complete ownership
 contract. Do not use reset merely to announce a value change: accidentally changing its release policy can leak or
 incorrectly free storage.
@@ -140,7 +140,7 @@ suppress updates. Do not assume that a mutation API always returns before its no
 :c:func:`Rbc_VectorNotifyPending` tests the idle-pending flag only; it is not a general dirty test and its nonzero value
 is not necessarily 1.
 
-Destruction cancels pending idle notification and sends DESTROY synchronously, regardless of the ordinary update
+Destruction cancels pending idle notification and sends ``DESTROY`` synchronously, regardless of the ordinary update
 policy. The vector's length is already zero at this point. A client discards its saved ID and borrowed data pointers,
 marks its own view invalid, and schedules any later owner work. After callbacks return, RBC frees the remaining IDs and
 vector storage. Do not query or free those IDs later. An API's disconnected-token check does not make freed memory safe
@@ -148,8 +148,8 @@ to use.
 
 Notification delivery snapshots and preserves client IDs before calling them. Removing another observer before its turn
 skips that observer. Added observers join a subsequent delivery, not the already captured pass. Destroying the vector
-during UPDATE delivers DESTROY synchronously and stops the remaining UPDATE callbacks. Recursive destruction of the same
-vector is ignored.
+during ``UPDATE`` delivers ``DESTROY`` synchronously and stops the remaining ``UPDATE`` callbacks. Recursive destruction
+of the same vector is ignored.
 
 The old registry entry is removed before destruction callbacks, allowing a new vector with the same name to be
 created. The old vector keeps a temporary name copy during delivery, and its cleanup does not remove the replacement.
@@ -170,14 +170,14 @@ between separate writes.
 
 Real extrema are cached along with their source indices. A ranged update can scan just the changed interval when no
 cached extremum was overwritten. If an old extremum was touched, or the cache was already invalid, a full scan is
-needed. :c:func:`Rbc_VectorGetRange` refreshes the cache on demand; empty or entirely non-finite real data has NaN
+needed. :c:func:`Rbc_VectorGetRange` refreshes the cache on demand; empty or entirely non-finite real data has ``NaN``
 extrema. Complex storage has no real min/max range through this function.
 
 Graph consumers
 ---------------
 
-``rbcGrElem.c`` owns the graph element's observer callback. UPDATE records the changed interval, borrows the vector
-again and synchronizes element data. DESTROY clears the saved client ID and data pointer and sets the value count to
+``rbcGrElem.c`` owns the graph element's observer callback. ``UPDATE`` records the changed interval, borrows the vector
+again and synchronizes element data. ``DESTROY`` clears the saved client ID and data pointer and sets the value count to
 zero. Both invalidate mapping and axis limits; visible elements also invalidate the plot backing store and request
 redraw.
 

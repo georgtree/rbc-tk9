@@ -1221,13 +1221,13 @@ These are private RBC facilities. Their <code class="docutils literal notranslat
 <section id="private-layout-access">
 <h2>Private-layout access<a class="headerlink" href="#private-layout-access" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageIsDeleted" title="Tk_ImageIsDeleted"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageIsDeleted()</span></code></a> inspects the instance’s master and type pointers. It can recognize a deleted image while the
-caller still owns a retained instance; it cannot make a NULL or dangling instance pointer
+caller still owns a retained instance; it cannot make a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or dangling instance pointer
 safe. <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetMaster" title="Tk_ImageGetMaster"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetMaster()</span></code></a> returns a borrowed pointer. <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetType" title="Tk_ImageGetType"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetType()</span></code></a> requires that master to exist
-and can return NULL after deletion.</p>
+and can return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> after deletion.</p>
 <p><a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetPhotoPixmap" title="Tk_ImageGetPhotoPixmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetPhotoPixmap()</span></code></a> and <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetPhotoGC" title="Tk_ImageGetPhotoGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetPhotoGC()</span></code></a> require a live type before checking whether it is a
 photo. They expose Tk-owned display resources rather than independent pixel data. Callers must not free these resources
 or assume that they remain stable across image changes. The GC is not caller-owned scratch state. A different live image
-type yields <code class="docutils literal notranslate"><span class="pre">None</span></code> or NULL respectively.</p>
+type yields <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> respectively.</p>
 <p><a class="reference internal" href="image-compatibility-reference.html#c.Rbc_NameOfImage" title="Rbc_NameOfImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NameOfImage()</span></code></a> passes the borrowed master to <code class="docutils literal notranslate"><span class="pre">Tk_NameOfImage</span></code>. Its result is a borrowed name, not a
 retained Tcl object. Copy the name before any operation that could invalidate its owner. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for
 independent photo snapshots, which use photo blocks instead of these display-resource accessors.</p>
@@ -1259,8 +1259,9 @@ separate release mechanisms; do not substitute one for another.</p>
 <section id="deletion-and-failure-ownership">
 <h2>Deletion and failure ownership<a class="headerlink" href="#deletion-and-failure-ownership" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="image-compatibility-reference.html#c.Rbc_DestroyTemporaryImage" title="Rbc_DestroyTemporaryImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTemporaryImage()</span></code></a> copies the name of a live image, deletes it with <code class="docutils literal notranslate"><span class="pre">Tk_DeleteImage</span></code> and releases the
-retained instance with <code class="docutils literal notranslate"><span class="pre">Tk_FreeImage</span></code>. An already-deleted image still has its instance released. NULL is a successful
-no-op. Cleanup always consumes a non-NULL token and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>; callers must not retry with that token.</p>
+retained instance with <code class="docutils literal notranslate"><span class="pre">Tk_FreeImage</span></code>. An already-deleted image still has its instance released. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> is a
+successful no-op. Cleanup always consumes a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> token and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>; callers must not retry with that
+token.</p>
 <p>Deletion uses Tk’s C API rather than evaluating the replaceable Tcl <code class="docutils literal notranslate"><span class="pre">image</span></code> command. A failing wrapper or a renamed
 command therefore cannot block private resource release. The helper preserves the interpreter and saves/restores its
 state around cleanup, retaining the caller’s result and error information.</p>

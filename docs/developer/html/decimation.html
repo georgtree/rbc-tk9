@@ -1338,8 +1338,8 @@ intermediate search bound.</p>
 <p>Representative append helpers sort first/minimum/maximum/last source indices and remove duplicates within that
 bucket. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.AppendPixelBucket" title="rbcGrLineCache.AppendPixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.AppendPixelBucket()</span></code></a> relies on caller
 capacity. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.AppendSourcePixelBucket" title="rbcGrLineCache.AppendSourcePixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.AppendSourcePixelBucket()</span></code></a> checks each write but can fail after partial appends, so its
-FALSE return is not an unchanged-output guarantee. Break flags mark the first representative of a later run; duplicates
-across distinct buckets are not removed by these helpers.</p>
+<code class="docutils literal notranslate"><span class="pre">FALSE</span></code> return is not an unchanged-output guarantee. Break flags mark the first representative of a later run;
+duplicates across distinct buckets are not removed by these helpers.</p>
 <p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.CanPreMapDecimateLine" title="rbcGrLineCache.CanPreMapDecimateLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.CanPreMapDecimateLine()</span></code></a> is only an eligibility check. It excludes normal symbols, value labels
 and error data because they require full center/style mappings. Explicit active selections can be mapped independently,
 whereas whole-element active symbols or labels require retained centers. Density and cache validity remain separate
@@ -1361,9 +1361,9 @@ symbols.</p>
 <h2>Pixel-bucket output ownership<a class="headerlink" href="#pixel-bucket-output-ownership" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="decimation-reference.html#c.BuildPixelDecimatedScreenPoints" title="BuildPixelDecimatedScreenPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">BuildPixelDecimatedScreenPoints()</span></code></a> requires the caller to select an eligible real Cartesian element and its track
 viewport. It initializes an empty output and attempts to return representative mapped points, original indices and
-optional discontinuity flags. TRUE includes a successfully empty result; FALSE requests ordinary mapping after temporary
-allocations are released. Successful arrays transfer to the caller, which releases them with ckfree. Do not pass an
-output record still owning arrays.</p>
+optional discontinuity flags. <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> includes a successfully empty result; <code class="docutils literal notranslate"><span class="pre">FALSE</span></code> requests ordinary mapping after
+temporary allocations are released. Successful arrays transfer to the caller, which releases them with ckfree. Do not
+pass an output record still owning arrays.</p>
 </section>
 </section>
 

@@ -43,7 +43,7 @@ The current writer emits a single-page PDF 1.4 document with fixed leading objec
    * - 2
      - Pages tree with one child
    * - 3
-     - Page, scaled MediaBox, resource and content references
+     - Page, scaled ``MediaBox``, resource and content references
    * - 4
      - Page resource dictionary
    * - 5
@@ -56,10 +56,10 @@ resource-owned ``Tcl_DString``; an identical entry reuses its number. The search
 blocks of 32 pointers. IDs remain stable as the pointer array grows. Neither source pointers nor caller buffers are
 retained.
 
-Categories ``F``, ``G``, ``I`` and ``P`` populate the page's Font, ExtGState, XObject and Pattern dictionaries
-respectively, with names such as ``/F6``. Other categories are still serialized as objects but are not automatically
-listed in those dictionaries. Font support uses ``D`` for indirectly referenced objects such as font programs, mappings
-and descriptors.
+Categories ``F``, ``G``, ``I`` and ``P`` populate the page's ``Font``, ``ExtGState``, ``XObject`` and ``Pattern``
+dictionaries respectively, with names such as ``/F6``. Other categories are still serialized as objects but are not
+automatically listed in those dictionaries. Font support uses ``D`` for indirectly referenced objects such as font
+programs, mappings and descriptors.
 
 This is byte interning, not semantic PDF deduplication: differently formatted but equivalent dictionaries are different
 resources. Explicit lengths are required for binary data; negative resource lengths use ``strlen``. Callers supply valid

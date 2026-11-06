@@ -1269,7 +1269,7 @@ objects. <code class="docutils literal notranslate"><span class="pre">BarRectang
 <td><p><a class="reference internal" href="element-reference.html#c.Rbc_FreeElemVector" title="Rbc_FreeElemVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeElemVector()</span></code></a> during concrete destruction</p></td>
 </tr>
 <tr class="row-odd"><td><p>Duplicate-X records</p></td>
-<td><p><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a> owns freqArr; hash values borrow its records</p></td>
+<td><p><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a> owns <code class="docutils literal notranslate"><span class="pre">freqArr</span></code>; hash values borrow its records</p></td>
 <td><p>Frequency-table rebuild or graph teardown</p></td>
 </tr>
 </tbody>
@@ -1310,7 +1310,7 @@ label offset, command-prefix syntax, format, finite rotation, pixel widths, erro
 builds replacement GCs and commits them together with the parsed values. On failure it releases staged colors; old
 derived resources remain live. The value command is validated here, not executed. Direct candidate Tk fields still need
 the caller’s rollback.</p>
-<p>Error-color conversion accepts an empty value as NULL and any nonempty, case-sensitive prefix of <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> as
+<p>Error-color conversion accepts an empty value as <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and any nonempty, case-sensitive prefix of <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> as
 <code class="docutils literal notranslate"><span class="pre">COLOR_DEFAULT</span></code>. The latter is a sentinel, not a Tk color reference; <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.FreeBarPenColor" title="rbcGrBarConfiguration.FreeBarPenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.FreeBarPenColor()</span></code></a>
 must not pass it to <code class="docutils literal notranslate"><span class="pre">Tk_FreeColor</span></code>. Fill GC defaults choose foreground, then border color, then screen black. With
 both foreground and border, stipple gaps can be opaque; without both, the GC uses transparent stippling.</p>
@@ -1541,8 +1541,8 @@ match.</p>
 </section>
 <section id="resource-and-output-contracts">
 <h2>Resource and output contracts<a class="headerlink" href="#resource-and-output-contracts" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarPenColorFromObj" title="rbcGrBarConfiguration.GetBarPenColorFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarPenColorFromObj()</span></code></a> can return NULL, the <code class="docutils literal notranslate"><span class="pre">COLOR_DEFAULT</span></code> sentinel, or an acquired Tk
-color. Use <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.FreeBarPenColor" title="rbcGrBarConfiguration.FreeBarPenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.FreeBarPenColor()</span></code></a> for these staged results. By contrast,
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarPenColorFromObj" title="rbcGrBarConfiguration.GetBarPenColorFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarPenColorFromObj()</span></code></a> can return <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, the <code class="docutils literal notranslate"><span class="pre">COLOR_DEFAULT</span></code> sentinel, or an
+acquired Tk color. Use <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.FreeBarPenColor" title="rbcGrBarConfiguration.FreeBarPenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.FreeBarPenColor()</span></code></a> for these staged results. By contrast,
 <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarColor" title="rbcGrBarConfiguration.GetBarColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarColor()</span></code></a> returns a borrowed resolved color or the supplied fallback storage. It
 acquires no reference; keep fallback storage alive until the renderer has finished using it.</p>
 <p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.DestroyPen" title="rbcGrBarConfiguration.DestroyPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.DestroyPen()</span></code></a> does not free the pen allocation, and <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.DestroyBar" title="rbcGrBarGeometry.DestroyBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.DestroyBar()</span></code></a>

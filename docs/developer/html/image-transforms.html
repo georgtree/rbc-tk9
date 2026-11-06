@@ -1348,8 +1348,8 @@ destination pixels back to source coordinates; samples outside the source are le
 discrete one-bit sampling with no partially covered pixels.</p>
 <p>X11 implementations obtain source and destination <code class="docutils literal notranslate"><span class="pre">XImage</span></code> objects, populate the destination and upload it with
 <code class="docutils literal notranslate"><span class="pre">XPutImage</span></code>. Temporary XImages are released with <code class="docutils literal notranslate"><span class="pre">XDestroyImage</span></code>. Windows rotation works through monochrome bitmap
-bytes and DIB metadata, including DWORD-aligned scanlines and checked buffer sizes. Those byte-layout rules must not be
-replaced with packed RGBA assumptions.</p>
+bytes and DIB metadata, including <code class="docutils literal notranslate"><span class="pre">DWORD</span></code>-aligned scanlines and checked buffer sizes. Those byte-layout rules must not
+be replaced with packed RGBA assumptions.</p>
 </section>
 <section id="scaling-and-virtual-regions">
 <h2>Scaling and virtual regions<a class="headerlink" href="#scaling-and-virtual-regions" title="Link to this heading"></a></h2>
@@ -1372,23 +1372,23 @@ nonpositive dimensions explicitly; Windows scaling relies on its caller and nati
 returns its allocated pixmap without propagating <code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code> failure.</p>
 <p>The rotation dimension outputs are not portable failure indicators. X11 writes them on success; Windows clears them
 after initial argument validation and before later operations. Always check the returned pixmap first, and require
-non-NULL output pointers on both platforms. These helpers do not provide a uniform Tcl diagnostic interface.</p>
+non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> output pointers on both platforms. These helpers do not provide a uniform Tcl diagnostic interface.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
 <p>Use an asymmetric pattern to detect mirroring and rotation direction. Check zero, positive and negative right angles,
 angles near quadrant boundaries, non-square images and arbitrary rotations. For color images, inspect RGBA values at
-transparent edges as well as appearance. For bitmaps, exercise scanline widths around byte and DWORD boundaries, scaling
-and contained virtual regions on both Windows and X11. Verify returned dimensions, source preservation and matching
-resource cleanup independently of the rendered result.</p>
+transparent edges as well as appearance. For bitmaps, exercise scanline widths around byte and <code class="docutils literal notranslate"><span class="pre">DWORD</span></code> boundaries,
+scaling and contained virtual regions on both Windows and X11. Verify returned dimensions, source preservation and
+matching resource cleanup independently of the rendered result.</p>
 </section>
 <section id="x11-capture-dimensions-and-visual-channels">
 <h2>X11 capture dimensions and visual channels<a class="headerlink" href="#x11-capture-dimensions-and-visual-channels" title="Link to this heading"></a></h2>
 <p>The X11 helpers distinguish geometric dimensions, pixel counts and packed row sizes.
 <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetBitmapDimension" title="rbcX11Image.GetBitmapDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetBitmapDimension()</span></code></a> rounds upward with <code class="docutils literal notranslate"><span class="pre">ceil</span></code> and returns zero when the result is nonfinite,
 below one or above <code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code>. Pixel-count and packed row helpers instead treat negative arguments as internal
-programming errors and panic. A packed one-bit row occupies ceiling(width/8) bytes; it is not the DWORD-aligned Windows
-representation.</p>
+programming errors and panic. A packed one-bit row occupies ceiling(width/8) bytes; it is not the <code class="docutils literal notranslate"><span class="pre">DWORD</span></code>-aligned
+Windows representation.</p>
 <p>Drawable capture installs a temporary Tk handler for <code class="docutils literal notranslate"><span class="pre">BadMatch</span></code> from <code class="docutils literal notranslate"><span class="pre">X_GetImage</span></code>.
 <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.XGetImageErrorProc" title="rbcX11Image.XGetImageErrorProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.XGetImageErrorProc()</span></code></a> only records failure in the caller’s status slot. <code class="docutils literal notranslate"><span class="pre">XSync</span></code> runs before the
 handler is removed, keeping that slot alive while asynchronous errors are delivered. Capture frees any returned XImage
@@ -1414,7 +1414,7 @@ successful output with <a class="reference internal" href="image-tile-reference.
 <p><a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_PhotoImageMask" title="rbcX11Image.Rbc_PhotoImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_PhotoImageMask()</span></code></a> reads a supplied photo block, including its stride and alpha
 offset. <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_ColorImageMask" title="rbcX11Image.Rbc_ColorImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_ColorImageMask()</span></code></a> reads RBC RGBA pixels. Both treat zero alpha as transparent and nonzero
 alpha as opaque. On X11, fully opaque input returns None; otherwise the returned bitmap belongs to the caller and
-requires Tk_FreePixmap.</p>
+requires <code class="docutils literal notranslate"><span class="pre">Tk_FreePixmap</span></code>.</p>
 </section>
 </section>
 

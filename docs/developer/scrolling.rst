@@ -36,11 +36,11 @@ intermediate arithmetic and returns an integer offset. Mode policy is intentiona
    * - Mode
      - Offset policy
    * - Canvas
-     - Keep a full viewport inside a larger world. If the world is smaller, allow offsets from worldSize-windowSize
+     - Keep a full viewport inside a larger world. If the world is smaller, allow offsets from ``worldSize-windowSize``
        through zero, moving the small world within the viewport.
    * - Listbox
-     - Permit trailing blank space. When the offset reaches/exceeds worldSize, replace it by worldSize-scrollUnits, then
-       clamp negative values to zero.
+     - Permit trailing blank space. When the offset reaches/exceeds ``worldSize``, replace it by
+       ``worldSize-scrollUnits``, then clamp negative values to zero.
    * - Hierbox
      - Keep the viewport inside the world and clamp to zero when the world fits.
 
@@ -101,8 +101,8 @@ release. See :doc:`graph-lifecycle` and :doc:`bindings` for the surrounding life
 Integer conversion boundary
 ---------------------------
 
-:c:func:`ClampScrollValue` is documented in :doc:`scroll-reference`. Its input must not be NaN. It saturates outside the
-integer range and otherwise truncates toward zero; it does not apply the selected viewport policy. The legacy parser
+:c:func:`ClampScrollValue` is documented in :doc:`scroll-reference`. Its input must not be ``NaN``. It saturates outside
+the integer range and otherwise truncates toward zero; it does not apply the selected viewport policy. The legacy parser
 first truncates/saturates the requested delta, then separately adds and clamps that integer delta. Combining these steps
 into one floating-point addition can change historical results for fractional page deltas, especially across zero. The
 double-valued request parser deliberately leaves this policy to its owner.

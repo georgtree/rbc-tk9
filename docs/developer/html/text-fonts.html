@@ -1226,14 +1226,14 @@ with <code class="docutils literal notranslate"><span class="pre">ckfree</span><
 is used. Fragment counts are UTF byte counts; glyph processing must decode characters rather than index bytes as
 characters.</p>
 <p>Newlines terminate fragments, including empty lines. A trailing newline does not create an additional final empty
-fragment. NULL is treated as an empty string. Tk metrics and <code class="docutils literal notranslate"><span class="pre">Tk_TextWidth</span></code> supply line dimensions; padding, shadow
-offset, justification and interline leader determine the unrotated box and fragment baselines. Anchoring and rotation
-are applied later. Large dimensions are bounded to integer geometry, while impossible fragment/count allocations are
-fatal rather than Tcl command errors.</p>
-<p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextExtents" title="Rbc_GetTextExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextExtents()</span></code></a> is a separate measurement path, not an allocation-free alias for the layout algorithm. NULL
-produces zero extents regardless of padding. For nonempty multiline text it retains the final leader spacing, whereas
-the layout builder removes that final leader. Callers must choose the appropriate measurement rather than assume the two
-are interchangeable.</p>
+fragment. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> is treated as an empty string. Tk metrics and <code class="docutils literal notranslate"><span class="pre">Tk_TextWidth</span></code> supply line dimensions; padding,
+shadow offset, justification and interline leader determine the unrotated box and fragment baselines. Anchoring and
+rotation are applied later. Large dimensions are bounded to integer geometry, while impossible fragment/count
+allocations are fatal rather than Tcl command errors.</p>
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextExtents" title="Rbc_GetTextExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextExtents()</span></code></a> is a separate measurement path, not an allocation-free alias for the layout
+algorithm. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> produces zero extents regardless of padding. For nonempty multiline text it retains the final leader
+spacing, whereas the layout builder removes that final leader. Callers must choose the appropriate measurement rather
+than assume the two are interchangeable.</p>
 </section>
 <section id="styles-are-not-universal-owners">
 <h2>Styles are not universal owners<a class="headerlink" href="#styles-are-not-universal-owners" title="Link to this heading"></a></h2>
@@ -1243,8 +1243,8 @@ acquire Tk references. Components usually own font/color options; temporary styl
 <code class="docutils literal notranslate"><span class="pre">height</span></code>. Callers must initialize any such fields they use. <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetDrawTextStyle" title="rbcTextDrawing.Rbc_SetDrawTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetDrawTextStyle()</span></code></a> installs the
 supplied GC without acquiring it; this does not grant permission to release a caller-owned GC.</p>
 <p>For an owning style, <a class="reference internal" href="text-font-reference.html#c.Rbc_ResetTextStyle" title="Rbc_ResetTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetTextStyle()</span></code></a> obtains a Tk GC from the current font and optional foreground, then
-releases the previous GC. Its old GC must be NULL or a valid owned Tk GC. <a class="reference internal" href="text-font-reference.html#c.Rbc_FreeTextStyle" title="Rbc_FreeTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTextStyle()</span></code></a> releases only that
-GC; it does not free font, colors, border or the style itself, and does not clear the GC field. Repeated cleanup
+releases the previous GC. Its old GC must be <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or a valid owned Tk GC. <a class="reference internal" href="text-font-reference.html#c.Rbc_FreeTextStyle" title="Rbc_FreeTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTextStyle()</span></code></a> releases only
+that GC; it does not free font, colors, border or the style itself, and does not clear the GC field. Repeated cleanup
 therefore requires an explicit reset. These are existing helper contracts, not an automatic resource-management
 convention.</p>
 </section>
@@ -1294,9 +1294,9 @@ foreground. Callers must supply any colors or border required by the selected st
 mutation. <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetPrintTextStyle" title="rbcTextDrawing.Rbc_SetPrintTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetPrintTextStyle()</span></code></a> does not initialize a GC and is not sufficient preparation for
 native drawing.</p>
 <p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawText" title="rbcTextDrawing.Rbc_DrawText"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawText()</span></code></a> and <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawText2" title="rbcTextDrawing.Rbc_DrawText2"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawText2()</span></code></a> build and release temporary layouts
-while borrowing the input string. Both skip NULL and empty strings; the latter also zeros a supplied result area on that
-path. Its nonempty result is the rounded rotated layout size, independent of the anchor position. Exporters retain their
-own text serialization paths; these native draw calls do not embed fonts.</p>
+while borrowing the input string. Both skip <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and empty strings; the latter also zeros a supplied result area on
+that path. Its nonempty result is the rounded rotated layout size, independent of the anchor position. Exporters retain
+their own text serialization paths; these native draw calls do not embed fonts.</p>
 </section>
 <section id="bitmap-gc-lifetime">
 <h2>Bitmap GC lifetime<a class="headerlink" href="#bitmap-gc-lifetime" title="Link to this heading"></a></h2>
@@ -1363,11 +1363,11 @@ resource writer.</p>
 <h2>Reader trust boundaries<a class="headerlink" href="#reader-trust-boundaries" title="Link to this heading"></a></h2>
 <p>The small big-endian readers and writers do not check buffer lengths. Their callers establish readable/writable spans
 first. <a class="reference internal" href="text-font-reference.html#c.Rbc_FontGetTable" title="Rbc_FontGetTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontGetTable()</span></code></a> similarly assumes a directory rebuilt by <a class="reference internal" href="text-font-reference.html#c.FontProgram" title="FontProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontProgram()</span></code></a>; it is not an entry
-point for arbitrary unvalidated file bytes. A missing table returns a NULL/zero slice. Present slices borrow the owning
-program and cannot outlive it.</p>
+point for arbitrary unvalidated file bytes. A missing table returns a <code class="docutils literal notranslate"><span class="pre">NULL</span></code>/zero slice. Present slices borrow the
+owning program and cannot outlive it.</p>
 <p><a class="reference internal" href="text-font-reference.html#c.FontProgram" title="FontProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontProgram()</span></code></a> accepts TrueType, the legacy true signature and OpenType OTTO. It checks the directory count and
 table spans, omits DSIG signatures, rejects fvar variable-font tables and limits rebuilt storage to 64 MiB. Table data
-is padded to four-byte boundaries, checksums are recalculated and head.checkSumAdjustment is repaired. The original
+is padded to four-byte boundaries, checksums are recalculated and <code class="docutils literal notranslate"><span class="pre">head.checkSumAdjustment</span></code> is repaired. The original
 table order is retained. This creates an independent sfnt for a selected collection face, without removing unused
 outlines.</p>
 <p>The destination owns its allocation as soon as rebuilding starts. An error in a later table or a missing head table
@@ -1390,11 +1390,11 @@ relationships or all possible OpenType extensions.</p>
 <li><p>Windows Symbol format 4 using the legacy unoffset byte range.</p></li>
 </ol>
 <p>Unicode candidates use platform 0 or Windows Unicode encoding records. Format-12 lookup binary-searches groups and
-checks the resulting glyph against glyphCount; its search assumes sorted groups. Format 4 walks segments, handles
-idDelta and relative glyph arrays, and preserves glyph zero as missing. Malformed bounds or unsupported subtables are
-skipped, so another candidate can still resolve the character. Bounds checks do not promise acceptance or rejection of
-every malformed cmap arrangement.</p>
-<p>For Symbol records, a retained Tcl encoding named after the lowercased family converts a Unicode character to one byte
+checks the resulting glyph against <code class="docutils literal notranslate"><span class="pre">glyphCount</span></code>; its search assumes sorted groups. Format 4 walks segments, handles
+<code class="docutils literal notranslate"><span class="pre">idDelta</span></code> and relative glyph arrays, and preserves glyph zero as missing. Malformed bounds or unsupported subtables
+are skipped, so another candidate can still resolve the character. Bounds checks do not promise acceptance or rejection
+of every malformed cmap arrangement.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">Symbol</span></code> records, a retained Tcl encoding named after the lowercased family converts a Unicode character to one byte
 where possible. Without that encoding, only direct byte values and the F000–F0FF range can use this fallback. The cache
 keeps Unicode characters distinct even when multiple characters resolve to one native glyph; text extraction must not
 infer Unicode from glyph numbers alone.</p>
@@ -1402,16 +1402,17 @@ infer Unicode from glyph numbers alone.</p>
 <section id="name-keyed-cff-metadata">
 <h2>Name-keyed CFF metadata<a class="headerlink" href="#name-keyed-cff-metadata" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="text-font-reference.html#c.CffIndex" title="CffIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">CffIndex()</span></code></a> checks its count, offset width, initial one-based offset, monotonic following offsets and final data
-extent. Success advances the caller’s cursor and returns a borrowed complete INDEX; failure does not advance the cursor,
-but its output slice may already be partially written. <a class="reference internal" href="text-font-reference.html#c.CffItem" title="CffItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">CffItem()</span></code></a> is deliberately lighter: it requires an already
-validated INDEX and returns a borrowed item, which can be empty. It performs no repeated directory validation.</p>
-<p><a class="reference internal" href="text-font-reference.html#c.FontCffInit" title="FontCffInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontCffInit()</span></code></a> supports CFF version 1 with one name and one Top DICT. It reads the charset and CharStrings
-offsets needed by export, checks the CharStrings count against the sfnt glyph count, then constructs a glyph-to-SID
-array. ISOAdobe, Expert and ExpertSubset predefined charsets and explicit formats 0/1/2 are supported. Standard SIDs
-refer to static names; custom SIDs refer to String INDEX items. Names must be nonempty and at most 127 bytes before PDF
-serialization. They are byte slices, not necessarily NUL-terminated strings.</p>
+extent. Success advances the caller’s cursor and returns a borrowed complete <code class="docutils literal notranslate"><span class="pre">INDEX</span></code>; failure does not advance the
+cursor, but its output slice may already be partially written. <a class="reference internal" href="text-font-reference.html#c.CffItem" title="CffItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">CffItem()</span></code></a> is deliberately lighter: it requires an
+already validated <code class="docutils literal notranslate"><span class="pre">INDEX</span></code> and returns a borrowed item, which can be empty. It performs no repeated directory
+validation.</p>
+<p><a class="reference internal" href="text-font-reference.html#c.FontCffInit" title="FontCffInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontCffInit()</span></code></a> supports CFF version 1 with one name and one <code class="docutils literal notranslate"><span class="pre">Top</span> <span class="pre">DICT</span></code>. It reads the charset and
+<code class="docutils literal notranslate"><span class="pre">CharStrings</span></code> offsets needed by export, checks the <code class="docutils literal notranslate"><span class="pre">CharStrings</span></code> count against the sfnt glyph count, then constructs
+a glyph-to-SID array. <code class="docutils literal notranslate"><span class="pre">ISOAdobe</span></code>, <code class="docutils literal notranslate"><span class="pre">Expert</span></code> and <code class="docutils literal notranslate"><span class="pre">ExpertSubset</span></code> predefined charsets and explicit formats 0/1/2 are
+supported. Standard SIDs refer to static names; custom SIDs refer to <code class="docutils literal notranslate"><span class="pre">String</span> <span class="pre">INDEX</span></code> items. Names must be nonempty and
+at most 127 bytes before PDF serialization. They are byte slices, not necessarily NUL-terminated strings.</p>
 <p>CID-keyed CFF and CFF2 are outside this path. The parser interprets selected metadata and bounds its operand stack; it
-does not execute or fully validate charstring programs or every unused DICT operator. Partial SID allocations remain
+does not execute or fully validate charstring programs or every unused <code class="docutils literal notranslate"><span class="pre">DICT</span></code> operator. Partial SID allocations remain
 attached to the font for normal failure cleanup.</p>
 </section>
 <section id="svg-cmap-reconstruction">
@@ -1443,16 +1444,16 @@ unchanged. Retaining every outline is deliberate full embedding, not glyph subse
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Nonembedded</p></td>
-<td><p>One-byte WinAnsi; unsupported characters fail explicitly.</p></td>
+<td><p>One-byte <code class="docutils literal notranslate"><span class="pre">WinAnsi</span></code>; unsupported characters fail explicitly.</p></td>
 <td><p>Standard Courier, Times or Helvetica family/style dictionaries.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Embedded TrueType</p></td>
 <td><p>One-based document-local CID, emitted with four hexadecimal digits.</p></td>
-<td><p>Full sfnt, descriptor, CIDToGIDMap, widths, ToUnicode and Identity-H Type0 font.</p></td>
+<td><p>Full <code class="docutils literal notranslate"><span class="pre">sfnt</span></code>, <code class="docutils literal notranslate"><span class="pre">descriptor</span></code>, <code class="docutils literal notranslate"><span class="pre">CIDToGIDMap</span></code>, <code class="docutils literal notranslate"><span class="pre">widths</span></code>, <code class="docutils literal notranslate"><span class="pre">ToUnicode</span></code> and <code class="docutils literal notranslate"><span class="pre">Identity-H</span> <span class="pre">Type0</span></code> font.</p></td>
 </tr>
 <tr class="row-even"><td><p>Embedded name-keyed CFF</p></td>
 <td><p>Codes 1–255 within each block, emitted with two hexadecimal digits.</p></td>
-<td><p>Shared CFF program/descriptor; separate Type1 encoding, widths and ToUnicode per block.</p></td>
+<td><p>Shared CFF program/descriptor; separate Type1 encoding, widths and <code class="docutils literal notranslate"><span class="pre">ToUnicode</span></code> per block.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1462,7 +1463,7 @@ they share the program rather than duplicate it. The shared cache limits a font 
 must finalize once and stop collecting text at that point: the API does not freeze the cache or prevent repeated
 finalization.</p>
 <p>Widths and descriptor geometry scale native units to 1,000-unit PDF text space. Glyphs beyond the long-metric count use
-the last horizontal advance. TrueType CIDToGIDMap controls which outline is drawn, while ToUnicode independently
+the last horizontal advance. TrueType <code class="docutils literal notranslate"><span class="pre">CIDToGIDMap</span></code> controls which outline is drawn, while <code class="docutils literal notranslate"><span class="pre">ToUnicode</span></code> independently
 controls extraction. BMP values use one UTF-16 code unit and supplementary values use a surrogate pair; mapping blocks
 contain at most 100 entries. CFF Differences names escape PDF delimiters and nonprintable bytes instead of assuming all
 glyph names are directly usable PDF names.</p>
@@ -1506,7 +1507,7 @@ in the lookup path.</p></td>
 <td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_PdfFontCharacter" title="Rbc_PdfFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFontCharacter()</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><p>PDF character code</p></td>
-<td><p>WinAnsi byte, TrueType CID or CFF block-local code for the selected resource.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WinAnsi</span></code> byte, TrueType CID or CFF block-local code for the selected resource.</p></td>
 <td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_PdfFontCharacter" title="Rbc_PdfFontCharacter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFontCharacter()</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Size and advance</p></td>
@@ -1545,13 +1546,13 @@ and rebuilt program must not be treated as aliases.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextLayout" title="Rbc_GetTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextLayout()</span></code></a></p></td>
-<td><p>Unrotated fragment baselines and extents; removes the final leader when fragments exist. NULL is treated as empty
-text, with style padding.</p></td>
+<td><p>Unrotated fragment baselines and extents; removes the final leader when fragments exist. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> is treated as
+empty text, with style padding.</p></td>
 <td><p>Returns one owned allocation; fragments borrow the input text.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextExtents" title="Rbc_GetTextExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextExtents()</span></code></a></p></td>
-<td><p>Unrotated extents without fragments; retains final leader spacing.
-NULL returns zero without consulting the style.</p></td>
+<td><p>Unrotated extents without fragments; retains final leader spacing. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> returns zero without consulting the
+style.</p></td>
 <td><p>Writes both required output pointers; allocates no layout.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawTextLayout" title="rbcTextDrawing.Rbc_DrawTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawTextLayout()</span></code></a></p></td>
@@ -1559,8 +1560,8 @@ NULL returns zero without consulting the style.</p></td>
 <td><p>Borrows the layout; normalizes style theta and may change GC foreground.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_DrawText2" title="rbcTextDrawing.Rbc_DrawText2"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_DrawText2()</span></code></a></p></td>
-<td><p>Draws and optionally returns rotated bounding dimensions, independent of anchor position. NULL/empty text returns
-zero dimensions.</p></td>
+<td><p>Draws and optionally returns rotated bounding dimensions, independent of anchor position. <code class="docutils literal notranslate"><span class="pre">NULL</span></code>/empty text
+returns zero dimensions.</p></td>
 <td><p>Builds and frees a temporary layout; inherits drawing state mutations.</p></td>
 </tr>
 </tbody>
@@ -1571,11 +1572,11 @@ origin to those helpers applies the anchor offset twice.</p>
 <p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_GetBoundingBox" title="rbcTextDrawing.Rbc_GetBoundingBox"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_GetBoundingBox()</span></code></a> returns floating extents and optional centered corners. It does not place
 the box on a drawable. Use <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_TranslateAnchor" title="rbcTextDrawing.Rbc_TranslateAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_TranslateAnchor()</span></code></a> for saturated integer placement or
 <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_TranslatePoint" title="rbcTextDrawing.Rbc_TranslatePoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_TranslatePoint()</span></code></a> to retain half-pixel center offsets. The <code class="docutils literal notranslate"><span class="pre">TK_ANCHOR_NULL</span></code> enum leaves a
-position unchanged; it does not permit a NULL input point or missing required output pointers.</p>
+position unchanged; it does not permit a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> input point or missing required output pointers.</p>
 <p><a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetDrawTextStyle" title="rbcTextDrawing.Rbc_SetDrawTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetDrawTextStyle()</span></code></a> borrows its GC without acquiring a Tk
-reference. <a class="reference internal" href="text-font-reference.html#c.Rbc_ResetTextStyle" title="Rbc_ResetTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetTextStyle()</span></code></a> and <a class="reference internal" href="text-font-reference.html#c.Rbc_FreeTextStyle" title="Rbc_FreeTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTextStyle()</span></code></a> require an owned Tk GC or NULL, so do not apply
-them directly to a style containing someone else’s GC. The print setter’s <code class="docutils literal notranslate"><span class="pre">activeColor</span></code> is an active foreground, not a
-background color; <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetPrintTextStyle" title="rbcTextDrawing.Rbc_SetPrintTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetPrintTextStyle()</span></code></a> does not initialize a GC or prepare the style for
+reference. <a class="reference internal" href="text-font-reference.html#c.Rbc_ResetTextStyle" title="Rbc_ResetTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetTextStyle()</span></code></a> and <a class="reference internal" href="text-font-reference.html#c.Rbc_FreeTextStyle" title="Rbc_FreeTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTextStyle()</span></code></a> require an owned Tk GC or <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, so do not
+apply them directly to a style containing someone else’s GC. The print setter’s <code class="docutils literal notranslate"><span class="pre">activeColor</span></code> is an active foreground,
+not a background color; <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetPrintTextStyle" title="rbcTextDrawing.Rbc_SetPrintTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetPrintTextStyle()</span></code></a> does not initialize a GC or prepare the style for
 native drawing.</p>
 </section>
 </section>

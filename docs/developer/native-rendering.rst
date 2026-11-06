@@ -64,7 +64,7 @@ separate because the same function name can have different resource and failure 
      - :c:func:`rbcNativeWindows.Rbc_NativeBeginTrace` also retains a DC and
        selected objects; :c:func:`rbcNativeWindows.Rbc_NativeEndTrace` restores them.
    * - Fill-only polygon batch
-     - :c:func:`rbcNativeX11.Rbc_NativeBeginPolygonBatch` returns NULL;
+     - :c:func:`rbcNativeX11.Rbc_NativeBeginPolygonBatch` returns ``NULL``;
        use the ordinary fill path.
      - :c:func:`rbcNativeWindows.Rbc_NativeBeginPolygonBatch` reserves vertex
        workspace. Each :c:func:`rbcNativeWindows.Rbc_NativeBatchPolygon` must fit it.
@@ -120,7 +120,7 @@ for error bands in :doc:`fills`.
 
 The Windows fill-only polygon batch owns point workspace, a solid brush and DC state. It selects a null pen, installs
 the GC fill rule, and restores the old fill mode and objects on completion. Its point conversion deliberately retains
-the short-coordinate conversion used by the original path. X11 returns NULL from this optional batch constructor,
+the short-coordinate conversion used by the original path. X11 returns ``NULL`` from this optional batch constructor,
 leaving the caller's ordinary fill path in charge. A missing optimization is different from a valid empty clip target.
 
 Symbol backends batch circles, squares and polygons while preserving symbol selection counters, fill/outline order and
@@ -225,7 +225,7 @@ symbol-type or interval dispatch. Larger symbols preserve their historical templ
 are platform batches, simple crosses are independent segments, and filled shapes use polygon templates. The helper named
 :c:func:`rbcNativeShared.Round` rounds ties away from zero; it assumes a finite result that fits int.
 
-Native bar filling tests whether fillOpacity is positive; it does not implement fractional alpha blending
+Native bar filling tests whether ``fillOpacity`` is positive; it does not implement fractional alpha blending
 here. Representable rectangles are batched; an out-of-range XRectangle flushes that batch before the wider-argument Xlib
 call. That fallback avoids premature narrowing in RBC, but does not remove limits of the eventual platform API. Relief
 borders follow fills, with a platform batch attempt before the ordinary rectangle loop.
@@ -239,15 +239,15 @@ Arc strokes and arrowheads
 --------------------------
 
 Arc strokes combine segments only when successive endpoints compare exactly equal. Each connected run becomes one
-XDrawLines request; a gap starts another request and therefore another native dash phase. The current path converts to
-short coordinates without the protocol clipping and request-size chunking used by
+``XDrawLines`` request; a gap starts another request and therefore another native dash phase. The current path converts
+to short coordinates without the protocol clipping and request-size chunking used by
 :c:func:`rbcNativeShared.DrawSegments`. Its callers must supply bounded mapped runs. A failed outer allocation skips the
 stroke; a failed per-run allocation skips only that run.
 
 Arrowheads instead retain floating-point vertices until scan conversion. At each integer row, half-open edges avoid
 counting shared vertices twice; sorted intersections define filled pixel spans. The helper clips spans to graph and
 signed-short bounds and batches at most 128 rectangles. The renderer's enclosing clip still determines which pixels
-belong to a track. Replacing this with a rounded XFillPolygon changes diagonal neck coverage and shaft alignment.
+belong to a track. Replacing this with a rounded ``XFillPolygon`` changes diagonal neck coverage and shaft alignment.
 
 Native legend line samples deliberately use two separate line requests. Merging them into one polyline would change dash
 restart and the connection between rows. Text-background polygons similarly retain addition of the anchor before short
@@ -259,8 +259,9 @@ X11 request and fallback contracts
 The X11 backend owns conversion workspace, but borrows component GCs and already mapped input. A trace context and its
 point buffer share one allocation. The base chunk capacity is one less than the XPoint request limit; the spare slot
 lets continuation requests repeat the preceding endpoint without exceeding that limit. This preserves connectivity. Each
-chunk is still a separate XDrawLines request, with no explicit accumulated dash offset carried between requests. Trace
-conversion directly narrows to short; independent strips use the shared segment helper's protocol clipping instead.
+chunk is still a separate ``XDrawLines`` request, with no explicit accumulated dash offset carried between
+requests. Trace conversion directly narrows to short; independent strips use the shared segment helper's protocol
+clipping instead.
 
 Circle and square symbol helpers allocate workspace for the complete incoming center array, then submit request-sized
 batches. Request batching therefore bounds server requests, not peak client allocation. Each batch is filled before its
@@ -281,17 +282,17 @@ the caller's mutable counter for every examined center; skipped centers still co
      - Result
      - Shared caller action
    * - Fill-only polygon batch
-     - NULL context
+     - ``NULL`` context
      - Use ordinary polygon drawing.
    * - Optimized bar borders
-     - FALSE
+     - ``FALSE``
      - Draw relief rectangles individually.
    * - Direct platform clip
-     - FALSE, output untouched
+     - ``FALSE``, output untouched
      - Use a reusable scratch pixmap.
    * - Opaque bitmap batch
-     - FALSE, no drawing
-     - Replay the complete run with XCopyPlane.
+     - ``FALSE``, no drawing
+     - Replay the complete run with ``XCopyPlane``.
    * - Generic native run
      - Synchronous callback
      - Use the original drawable; no DC wrapper is needed.
@@ -301,19 +302,18 @@ rendering or as successfully installed empty clips. X11 clip payload size is zer
 owns its scratch pixmap and bounds. Platform cleanup is a no-op; shared pop performs the visible-region copy back to the
 parent target.
 
-Single polygon requests are checked against both INT_MAX and the XPoint request limit. An oversized polygon is rejected
+Single polygon requests are checked against both ``INT_MAX`` and the XPoint request limit. An oversized polygon is rejected
 rather than naively split: independent pieces need not reproduce its interior. Bar-fill batches are already packed and
-bounded by the shared caller, so the X11 endpoint simply issues XFillRectangles.
+bounded by the shared caller, so the X11 endpoint simply issues ``XFillRectangles``.
 
 Windows batch eligibility and ownership
 ---------------------------------------
 
 Windows batches retain a drawable DC and selected objects across many primitives. Trace state owns a pen, brush and
-trailing POINT workspace. :c:func:`Rbc_NativeEndTrace <rbcNativeWindows.Rbc_NativeEndTrace>` restores previous
-selections before deleting the batch objects and releasing DC
-state. Polyline coordinates convert to int; strips convert to LONG. The polygon marker batch intentionally converts
-through short first to preserve its earlier native rasterization. These paths do not share a universal
-coordinate-conversion rule.
+trailing ``POINT`` workspace. :c:func:`Rbc_NativeEndTrace <rbcNativeWindows.Rbc_NativeEndTrace>` restores previous
+selections before deleting the batch objects and releasing DC state. Polyline coordinates convert to ``int``; strips
+convert to ``LONG``. The polygon marker batch intentionally converts through short first to preserve its earlier native
+rasterization. These paths do not share a universal coordinate-conversion rule.
 
 Circle batching asks GDI to generate an Ellipse path once, using a bounding box of diameter ``2*radius+1``. Translated
 copies reproduce that geometry without substituting an independently approximated circle. The template arrays and batch
@@ -327,20 +327,20 @@ buffers are owned by the call and released even when setup selects fallback.
      - Batch choice
      - Fallback or ordering constraint
    * - Filled circles
-     - At most 32 figures with WINDING fill.
+     - At most 32 figures with ``WINDING`` fill.
      - GXcopy only; combined fill/outline also requires equal colors.
    * - Circle outlines
      - 512 figures, or 64 with wide outlines.
      - GXcopy only; failed batches replay individual Ellipse calls.
    * - Polygon fills
      - Plus: 16; cross: 8; other templates: 32.
-     - Copy fills use WINDING unions; non-copy fills remain individual.
+     - Copy fills use ``WINDING`` unions; non-copy fills remain individual.
    * - Polygon outlines
      - 16384-point budget, or 1360 for wide pens.
-     - Copy paths use PolyPolyline; non-copy outlines remain individual.
+     - Copy paths use ``PolyPolyline``; non-copy outlines remain individual.
    * - Independent strips
      - 8192 segments, or 680 with wide pens.
-     - Each PolyPolyline entry contains exactly two points.
+     - Each ``PolyPolyline`` entry contains exactly two points.
 
 Polygon fill batches omit the repeated closing vertex; outline batches include it. All fills precede all outlines. A
 failed copy batch can replay individual shapes because repeating copy painting is safe. That argument does not apply to
@@ -349,16 +349,17 @@ selects the existing per-symbol path; it must not silently broaden eligibility t
 
 Bar bevel batching handles raised/sunken widths one and two. One-pixel bevels reproduce Tk strip order and
 tiny-rectangle clamping. Two-pixel bevels reproduce RBC's special outer layer followed by the inner Tk-style
-bevel. Other reliefs and widths return FALSE for ordinary shared fallback. TRUE reports that the configuration was
-handled, not that every GDI operation was checked.
+bevel. Other reliefs and widths return ``FALSE`` for ordinary shared fallback. ``TRUE`` reports that the configuration
+was handled, not that every GDI operation was checked.
 
 Failure and cleanup boundaries
 ------------------------------
 
-Direct clip setup always returns TRUE on Windows, including acquisition or SaveDC failure. The shared caller initializes
-the output to None and treats a missing target as unavailable drawing, while still calling unclip. Successful setup
-promotes the intersection to a meta region before wrapping the DC; bitmap clip-mask changes therefore cannot bypass the
-enclosing rectangle. Cleanup frees the wrapper, restores saved state and releases any acquired record.
+Direct clip setup always returns ``TRUE`` on Windows, including acquisition or ``SaveDC`` failure. The shared caller
+initializes the output to None and treats a missing target as unavailable drawing, while still calling
+unclip. Successful setup promotes the intersection to a meta region before wrapping the DC; bitmap clip-mask changes
+therefore cannot bypass the enclosing rectangle. Cleanup frees the wrapper, restores saved state and releases any
+acquired record.
 
 Generic runs have a different policy: failed acquisition or wrapping invokes the callback once on the original
 drawable. Successful runs invoke it on the wrapper and then release that temporary target. Callback data and borrowed
@@ -372,8 +373,9 @@ paths handle particular failures; they are not a blanket recovery guarantee for 
 Windows compatibility resource boundary
 ---------------------------------------
 
-The resource helpers in rbcWinDraw.c isolate private Tk Windows types. A drawable wrapper, a DC acquisition record and a
-pixmap wrapper have different ownership rules even though each bridges native Windows handles to Tk representations.
+The resource helpers in ``rbcWinDraw.c`` isolate private Tk Windows types. A drawable wrapper, a DC acquisition record
+and a pixmap wrapper have different ownership rules even though each bridges native Windows handles to Tk
+representations.
 
 .. list-table:: Windows wrapper ownership
    :header-rows: 1
@@ -386,46 +388,46 @@ pixmap wrapper have different ownership rules even though each bridges native Wi
      - Owned wrapper, borrowed HDC.
      - Free the wrapper; restore/release the HDC separately.
    * - Drawable DC acquisition
-     - Owned state record, even if the DC is NULL.
+     - Owned state record, even if the DC is ``NULL``.
      - Always release the record once.
-   * - Window from HWND
+   * - Window from ``HWND``
      - One static wrapper overwritten on each call.
      - Do not free, retain across calls, or treat as thread-local storage.
-   * - Pixmap from HBITMAP
+   * - Pixmap from ``HBITMAP``
      - Tk bitmap wrapper with native bitmap lifetime.
      - Use normal Tk pixmap destruction; do not double-delete the HBITMAP.
    * - Pixmap handle lookup
-     - Borrowed HBITMAP.
+     - Borrowed ``HBITMAP``.
      - Do not delete it independently.
    * - System palette copy
-     - Owned HPALETTE, or NULL.
-     - DeleteObject when no longer used.
+     - Owned ``HPALETTE``, or ``NULL``.
+     - ``DeleteObject`` when no longer used.
 
 The acquisition record preserves Tk's drawable state; it does not remove the backend's responsibility to restore
 explicitly selected pens, brushes and saved GDI attributes. :c:func:`Rbc_GCToPen <rbcWindowsResources.Rbc_GCToPen>`
-creates an owned pen but also sets TRANSPARENT
+creates an owned pen but also sets ``TRANSPARENT``
 background mode on its borrowed DC. It maps caps/joins and bounded GC dash bytes; a single dash value is duplicated for
 the Windows repeating user style. Pen creation is asserted, rather than returned as a Tcl error.
 
 Monochrome readback and fast paths
 ----------------------------------
 
-:c:func:`Rbc_GetBitmapData <rbcWindowsResources.Rbc_GetBitmapData>` requests positive-height one-bit BI_RGB data. Rows
-are bottom-up and padded to DWORD boundaries. The
-returned pitch describes that padding; the buffer contains bits only, without the DIB header or color table. The caller
-frees it with ckfree. Temporary global-memory headers and DC acquisitions remain internal. A zero or undersized
-biSizeImage is replaced by the calculated minimum storage requirement. The current success check accepts any nonzero
-GetDIBits return, rather than verifying the full requested row count.
+:c:func:`Rbc_GetBitmapData <rbcWindowsResources.Rbc_GetBitmapData>` requests positive-height one-bit ``BI_RGB``
+data. Rows are bottom-up and padded to ``DWORD`` boundaries. The returned pitch describes that padding; the buffer
+contains bits only, without the DIB header or color table. The caller frees it with ckfree. Temporary global-memory
+headers and DC acquisitions remain internal. A zero or undersized ``biSizeImage`` is replaced by the calculated minimum
+storage requirement. The current success check accepts any nonzero ``GetDIBits`` return, rather than verifying the full
+requested row count.
 
 The opaque-stipple fast path uses a monochrome pattern brush. It sets DC text color from GC background and DC background
 color from GC foreground to preserve stipple expansion, and applies the GC tile/stipple origin. It restores those
-attributes and the previous brush after painting. Its FALSE result can mean partial output; the caller can replay
+attributes and the previous brush after painting. Its ``FALSE`` result can mean partial output; the caller can replay
 because eligibility is limited to GXcopy. Failed DC acquisition releases both the allocated acquisition record and the
-pattern brush before requesting fallback. A NULL DC does not imply that the acquisition record is absent.
+pattern brush before requesting fallback. A ``NULL`` DC does not imply that the acquisition record is absent.
 
 Opaque bitmap runs similarly retain source and destination DCs across the run, restore background mode/colors, and
-release acquired state. The helper uses SRCCOPY and relies on its caller for unmasked copy eligibility; it does not
-inspect the GC operation to enforce that contract. A FALSE result after partial painting therefore supports complete
+release acquired state. The helper uses ``SRCCOPY`` and relies on its caller for unmasked copy eligibility; it does not
+inspect the GC operation to enforce that contract. A ``FALSE`` result after partial painting therefore supports complete
 replay only under that caller contract.
 
 Border-color extraction and rectangle fills use private Tk Windows helpers so bevel geometry and shades remain
@@ -435,10 +437,10 @@ compatibility services are not independent renderers and should not become new e
 Windows compatibility primitives
 --------------------------------
 
-The remaining rbcWinDraw.c entry points implement Xlib-shaped rectangle, arc, segment, point and text operations. They
-are lower-level compatibility services, not graph mappers. Arrays and GCs remain borrowed, and the caller supplies valid
-mapped geometry. Most entry points reject empty arrays or None targets, but do not turn every GDI failure into a Tcl
-error or restore already painted pixels.
+The remaining ``rbcWinDraw.c`` entry points implement Xlib-shaped rectangle, arc, segment, point and text
+operations. They are lower-level compatibility services, not graph mappers. Arrays and GCs remain borrowed, and the
+caller supplies valid mapped geometry. Most entry points reject empty arrays or None targets, but do not turn every GDI
+failure into a Tcl error or restore already painted pixels.
 
 Rectangles and arcs
 ~~~~~~~~~~~~~~~~~~~
@@ -468,37 +470,37 @@ identity, so no destination readback is required for composition.
 
 Each segment is drawn as an independent Polyline into that bitmap. This keeps dash restart and cancellation at
 intersections consistent whether crosshairs are shown, hidden, or moved using a combined old/new segment set. Once all
-segments have been composed, a single SRCINVERT operation presents the result. This avoids displaying the intermediate
+segments have been composed, a single ``SRCINVERT`` operation presents the result. This avoids displaying the intermediate
 erased crosshair state.
 
 A failed offscreen attempt selects direct fallback. That path still uses one Polyline per XOR segment; it must not
-switch to grouped XOR PolyPolyline calls, which previously made erasure depend on batch grouping. Other raster
-operations use bounded PolyPolyline batches, with MoveToEx/LineTo per-segment fallback if a batch is rejected. The
-direct path may expose intermediate drawing and does not provide transactional rollback. Setup, composition and
-destination-copy failure must therefore be distinguished when changing replay policy.
+switch to grouped XOR ``PolyPolyline`` calls, which previously made erasure depend on batch grouping. Other raster
+operations use bounded ``PolyPolyline`` batches, with ``MoveToEx`` / ``LineTo`` per-segment fallback if a batch is
+rejected. The direct path may expose intermediate drawing and does not provide transactional rollback. Setup,
+composition and destination-copy failure must therefore be distinguished when changing replay policy.
 
 Points and text
 ~~~~~~~~~~~~~~~
 
-Point drawing selects the GC raster operation but writes foreground colors with SetPixelV. It does not implement an
-explicit pixel-combination algorithm of its own. Absolute mode uses each XPoint directly; other modes accumulate offsets
-in LONG coordinates without an overflow check. Do not infer complete X11 raster semantics solely from the presence of
-the ROP2 setup call.
+Point drawing selects the GC raster operation but writes foreground colors with ``SetPixelV``. It does not implement an
+explicit pixel-combination algorithm of its own. Absolute mode uses each ``XPoint`` directly; other modes accumulate
+offsets in ``LONG`` coordinates without an overflow check. Do not infer complete X11 raster semantics solely from the
+presence of the ROP2 setup call.
 
-String drawing delegates directly to Tk_DrawChars with the Tk_Font stored in the GC, the counted string and baseline
-coordinates. Font ownership, encoding interpretation and actual native text drawing remain with that Tk service. The
-compatibility wrapper neither creates a separate font nor retains text.
+String drawing delegates directly to ``Tk_DrawChars`` with the ``Tk_Font`` stored in the GC, the counted string and
+baseline coordinates. Font ownership, encoding interpretation and actual native text drawing remain with that Tk
+service. The compatibility wrapper neither creates a separate font nor retains text.
 
 Windows bitmap capture and transforms
 -------------------------------------
 
-The Windows image backend sits below the common image API. Its temporary monochrome buffers use DWORD-aligned rows and
-MSB-first bit addressing. ``GetBit`` and ``SetBit`` translate logical Y through ``height-y-1``. The byte stride is
+The Windows image backend sits below the common image API. Its temporary monochrome buffers use ``DWORD``-aligned rows
+and MSB-first bit addressing. ``GetBit`` and ``SetBit`` translate logical Y through ``height-y-1``. The byte stride is
 ``((width+31)&~31)/8``; the helper rejects widths that would overflow this alignment calculation. Individual callers
 still own height/product validation.
 
-Drawable capture uses a 32-bit DIB and SRCCOPY. Conversion reverses bottom-up rows, reads BGR channels using the DIB row
-stride and sets output alpha to 255. The gamma lookup applies ``pow(channel/255, inputGamma)``, with positive finite
+Drawable capture uses a 32-bit DIB and ``SRCCOPY``. Conversion reverses bottom-up rows, reads BGR channels using the DIB
+row stride and sets output alpha to 255. The gamma lookup applies ``pow(channel/255, inputGamma)``, with positive finite
 gamma required. Captured pixels therefore represent the drawable's composed appearance, not an extraction of original
 source-image alpha. The caller owns the resulting RBC color image; temporary DC, bitmap and palette resources stay
 inside the capture routine.
@@ -506,8 +508,8 @@ inside the capture routine.
 Transparency masks are binary: only alpha zero sets a mask bit. Partial alpha is treated as opaque. None can mean that
 no transparent pixels were found as well as an invalid-size or creation failure, so it is not a diagnostic status.
 Photo blocks are traversed using their own pitch, pixel size and alpha offset. The photo-mask path and RBC color-image
-mask path retain different row traversal orders before CreateBitmapIndirect; they should not be consolidated by assuming
-identical source storage. Both return owned Tk pixmaps when a mask is created.
+mask path retain different row traversal orders before ``CreateBitmapIndirect``; they should not be consolidated by
+assuming identical source storage. Both return owned Tk pixmaps when a mask is created.
 
 .. list-table:: Monochrome transform contracts
    :header-rows: 1
@@ -521,24 +523,24 @@ identical source storage. Both return owned Tk pixmaps when a mask is created.
      - Checks dimensions and storage, bounds-checks samples, publishes output dimensions only on success after initial
        argument validation.
    * - Scale bitmap
-     - StretchBlt with SRCCOPY.
+     - ``StretchBlt`` with ``SRCCOPY``.
      - Caller supplies valid dimensions; drawing success is not checked.
    * - Scale/rotate region
      - Region coordinates mapped through a virtual destination size.
      - Positive sizes and storage are checked; caller supplies an in-bounds, representable region. Quadrant sampling has
        no per-pixel bounds check.
 
-The whole-bitmap rotation rounds its enclosing dimensions upward and checks both size_t allocation limits and the DWORD
-biSizeImage boundary. The regional operation allocates only the requested region, avoiding a full virtual bitmap. Both
-release a destination pixmap on checked readback/upload failure. Their SetDIBits success test is nonzero return, not an
-exact scanline-count check. :c:func:`Rbc_ScaleBitmap <rbcWindowsImages.Rbc_ScaleBitmap>` is less defensive: it returns
-the allocated pixmap after StretchBlt without
-separately validating DC acquisition or the copy result. These contracts must not be generalized into a promise that
-every returned native bitmap has been fully verified.
+The whole-bitmap rotation rounds its enclosing dimensions upward and checks both size_t allocation limits and the
+``DWORD biSizeImage`` boundary. The regional operation allocates only the requested region, avoiding a full virtual
+bitmap. Both release a destination pixmap on checked readback/upload failure. Their ``SetDIBits`` success test is
+nonzero return, not an exact scanline-count check. :c:func:`Rbc_ScaleBitmap <rbcWindowsImages.Rbc_ScaleBitmap>` is less
+defensive: it returns the allocated pixmap after ``StretchBlt`` without separately validating DC acquisition or the copy
+result. These contracts must not be generalized into a promise that every returned native bitmap has been fully
+verified.
 
 :c:func:`Rbc_LastError <rbcWindowsImages.Rbc_LastError>` captures the Windows error code and formats it into one static
 buffer. The text is borrowed until the next call and is not thread-local. It strips trailing line endings and supplies a
-numeric fallback, but uses the ANSI FormatMessage variant. Callers retaining it or presenting it to a UTF-8 Tcl
+numeric fallback, but uses the ANSI ``FormatMessage`` variant. Callers retaining it or presenting it to a UTF-8 Tcl
 interface must account for lifetime and encoding separately.
 
 Internal template and buffer contracts
@@ -563,7 +565,7 @@ historical outer-border adjustment before delegating the remaining fill to Tk.
 Bitmap packing and output ownership
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:c:func:`rbcWindowsImages.GetMonoBitmapStride` returns DWORD-aligned row bytes;
+:c:func:`rbcWindowsImages.GetMonoBitmapStride` returns ``DWORD``-aligned row bytes;
 :c:func:`rbcX11Image.GetPackedBitmapRowBytes` returns tightly packed row bytes. Neither alone validates the complete
 image allocation. The X11 pixel-count helper :c:func:`rbcX11Image.GetUnixImagePixelCount` checks dimension
 multiplication, while :c:func:`rbcX11Image.GetBitmapDimension` converts a finite rounded extent. These helpers have

@@ -27,8 +27,8 @@ handle empty vectors explicitly.
 Index expressions and numerical conversion can execute Tcl. Index-expression evaluation retains the vector and
 interpreter and detects their deletion before using the result; vector-reference parsing retains the object through
 range parsing so failure cannot restore selection into freed memory. In particular, index evaluation uses the owning
-interpreter even if the caller passes a NULL interpreter to suppress lookup diagnostics. Suppressing an error message is
-not a promise that lookup has no side effects.
+interpreter even if the caller passes a ``NULL`` interpreter to suppress lookup diagnostics. Suppressing an error
+message is not a promise that lookup has no side effects.
 
 Mapped arrays
 -------------
@@ -118,12 +118,12 @@ Finite extrema and low-level writes
 -----------------------------------
 
 :c:func:`Rbc_VectorUpdateRange` scans the whole real vector, independently of its selection or external offset. It
-ignores both infinities and NaNs, keeps the first storage index for tied minima/maxima, and clears ``UPDATE_RANGE``
-after installing the cache. Empty and entirely nonfinite vectors use NaN bounds and indices of -1. Complex vectors use
-that same cache representation rather than ordering complex values.
+ignores both infinities and ``NaN`` s, keeps the first storage index for tied minima/maxima, and clears ``UPDATE_RANGE``
+after installing the cache. Empty and entirely nonfinite vectors use ``NaN`` bounds and indices of -1. Complex vectors
+use that same cache representation rather than ordering complex values.
 
-:c:func:`Rbc_VectorGetRange` rejects complex vectors without writing its outputs. For real vectors it recomputes only
-an invalid cache and returns the bounds; NaN bounds for an empty/nonfinite vector are a successful result. Both output
+:c:func:`Rbc_VectorGetRange` rejects complex vectors without writing its outputs. For real vectors it recomputes only an
+invalid cache and returns the bounds; ``NaN`` bounds for an empty/nonfinite vector are a successful result. Both output
 pointers are required. Neither helper publishes an update.
 
 :c:func:`Rbc_ReplicateValue` is deliberately a low-level real-storage loop. Its caller must validate type, writability
@@ -147,10 +147,10 @@ namespace syntax prevents the current/global fallback used for unqualified names
 namespace.
 
 :c:func:`BuildQualifiedName` and :c:func:`GetQualifiedName` initialize a caller DString and return its borrowed
-buffer. The caller frees the DString after use; it must not free the returned character pointer separately. A NULL name
-passed to :c:func:`BuildQualifiedName` is exceptional: the DString is not initialized at all.
+buffer. The caller frees the DString after use; it must not free the returned character pointer separately. A ``NULL``
+name passed to :c:func:`BuildQualifiedName` is exceptional: the DString is not initialized at all.
 
 :c:func:`Rbc_VectorSortIndex` creates an owned permutation of storage indices, not a reordered vector or a Tcl
 list. Every key vector must contain the first vector's selected indices. The helper rejects complex keys but does not
-check matching lengths. The caller frees the permutation with ``ckfree``, including the non-NULL allocation returned for
-an empty successful selection.
+check matching lengths. The caller frees the permutation with ``ckfree``, including the non-``NULL`` allocation returned
+for an empty successful selection.

@@ -81,7 +81,7 @@ directly.
 Consult :doc:`reference` for the native arc, symbol and specialized Cairo families. Do not use this table to infer extra
 capabilities.
 
-Finish each allocated context with :c:func:`Rbc_RenderEnd`. It requires a non-NULL live context, unwinds outstanding
+Finish each allocated context with :c:func:`Rbc_RenderEnd`. It requires a non-``NULL`` live context, unwinds outstanding
 rectangular clips, and calls the backend destructor. It does not destroy borrowed graph, document or component
 resources. Stack-based one-shot screen adapters manage their own lifetime.
 
@@ -120,7 +120,7 @@ its clip. Geometry transforms do not scale stroke widths or dashes.
 
 :c:func:`Rbc_RenderPolygonPointLimit` reports the selected backend's request capacity before a context exists. The
 component reserves closure/clipping vertices and splits at shared samples. Native X11 has a request-size limit; the
-other selected outputs report TCL_SIZE_MAX.
+other selected outputs report ``TCL_SIZE_MAX``.
 
 Native details and fallback policy
 ----------------------------------
@@ -133,7 +133,7 @@ Preserve conversion order and batching when moving code: text backgrounds add th
 arrowheads keep doubles through scan conversion; legend samples retain stipple origins. Marker run callbacks are
 synchronous, and no callback data escapes the call.
 
-The Cairo-attempt helpers can return NULL or false. Their callers select the native fallback. This is distinct from
+The Cairo-attempt helpers can return ``NULL`` or false. Their callers select the native fallback. This is distinct from
 invoking an unsupported operation on an already-created context, which is a caller error.
 
 Common dispatch and constructor state
@@ -144,7 +144,7 @@ embeds :c:struct:`Rbc_RenderContext` first so backend callbacks can recover the 
 polygon batch records are owned; windows, drawables, GCs, tiles, styles and mapped arc arrays are borrowed. A bar style
 is copied by value, but its Tk resources are still borrowed.
 
-Select operations from the constructor's contract, not merely from non-NULL entries in its operation table. Several
+Select operations from the constructor's contract, not merely from non-``NULL`` entries in its operation table. Several
 constructors share a table while initializing different state. For example, a native trace context owns trace scratch
 storage, whereas a segment-only context does not. Likewise, native symbol, fill, bar and arc constructors populate
 different fields of the shared geometry record. Calling a sibling operation can therefore be invalid even when the table
@@ -234,11 +234,11 @@ records: :c:func:`Rbc_RenderSegments` counts :c:struct:`Segment2D` values, not i
 pair.
 
 :c:func:`Rbc_RenderFillPolygon` suppresses counts below three; :c:func:`Rbc_RenderFillRectangles` and
-:c:func:`Rbc_RenderSymbolPoints` suppress nonpositive counts. This does not establish a universal validation policy
-for every operation. Most wrappers immediately dispatch through the operation table, so callers must supply a live,
-capable context and valid geometry even when another operation tolerates a null pointer or empty batch. In
-particular, :c:func:`Rbc_RenderArc` and :c:func:`Rbc_RenderFillArc` accepting a NULL context does not make NULL safe
-for :c:func:`Rbc_RenderEnd`.
+:c:func:`Rbc_RenderSymbolPoints` suppress nonpositive counts. This does not establish a universal validation policy for
+:c:every operation. Most wrappers immediately dispatch through the operation table, so callers must supply a live,
+:c:capable context and valid geometry even when another operation tolerates a null pointer or empty batch. In
+:c:particular, :c:func:`Rbc_RenderArc` and :c:func:`Rbc_RenderFillArc` accepting a ``NULL`` context does not make
+:c:``NULL`` safe for :c:func:`Rbc_RenderEnd`.
 
 :c:func:`Rbc_RenderBeginStroke` uses supplied color, width and dash data for Cairo, while its native fallback uses the
 borrowed GC. The caller must prepare that GC consistently; passing a new color argument does not recolor the native
@@ -267,7 +267,7 @@ and backend omissions still apply; a shared interface does not promise equal sup
 
 A marker-pass target has a separate lifetime from a renderer context. :c:func:`Rbc_RenderBeginMarkerPass` may replace
 the caller's drawable and install a temporary graph target. On failure it leaves the original drawable
-usable. :c:func:`Rbc_RenderEndMarkerPass` presents and releases a successful target and accepts NULL, but does not
+usable. :c:func:`Rbc_RenderEndMarkerPass` presents and releases a successful target and accepts ``NULL``, but does not
 restore the caller's drawable variable. The replacement drawable must not be used afterward. Do not pass this target to
 :c:func:`Rbc_RenderEnd`.
 
@@ -277,7 +277,7 @@ Export scopes and completion
 :c:func:`Rbc_RenderBeginExportOutput` borrows a supported document token; it does not open or finish a
 file. :c:func:`Rbc_RenderPlotBegin` and :c:func:`Rbc_RenderPlotEnd` delimit backend plot setup and must be balanced
 before releasing the context. They are distinct from the common rectangular clip stack. :c:func:`Rbc_RenderEnd` unwinds
-clips, but does not substitute for PlotEnd or document finalization.
+clips, but does not substitute for ``PlotEnd`` or document finalization.
 
 :c:func:`Rbc_RenderBackgroundPolygon`, :c:func:`Rbc_RenderBackgroundRectangles`, :c:func:`Rbc_RenderBorder` and
 :c:func:`Rbc_RenderClearRectangle` consume resolved presentation data. :c:func:`Rbc_RenderBitmapMask` preserves the
@@ -295,7 +295,7 @@ Internal adapter contracts
 The common callbacks in :doc:`reference` now identify the context family they
 require. :c:func:`rbcRenderDispatch.BeginNativeGeometry` installs a shared table but initializes only its common
 fields. Specialized constructors still have to populate symbol, bar, polygon or arc state before the corresponding
-callback can be used. A non-NULL callback pointer alone is not a capability check.
+callback can be used. A non-``NULL`` callback pointer alone is not a capability check.
 
 :c:func:`rbcRenderDispatch.NativePolyline` requires a retained native trace;
 :c:func:`NativeSegments <rbcRenderDispatch.NativeSegments>` consumes independent endpoint pairs.

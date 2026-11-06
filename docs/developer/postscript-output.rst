@@ -12,7 +12,7 @@ protection, geometry restoration, file delivery and the Windows EPS preview wrap
 Token ownership
 ---------------
 
-:c:func:`Rbc_GetPsToken` allocates a token with an empty DString, NULL font/color map names and color output
+:c:func:`Rbc_GetPsToken` allocates a token with an empty DString, ``NULL`` font/color map names and color output
 selected. Its interpreter and Tk window are borrowed. The command assigns mapping variable names from its PostScript
 configuration; the token does not own those strings. :c:func:`Rbc_ReleasePsToken` frees the DString and token, but none
 of these borrowed objects.
@@ -65,16 +65,16 @@ context. Their coordinates are already mapped. They rely on the enclosing transf
 validate geometry or save/restore graphics state. Components should still use renderer operations rather than add direct
 calls to these legacy helpers.
 
-Foreground and background conversion use the upper eight bits of each XColor component. The default prolog maps
+Foreground and background conversion use the upper eight bits of each ``XColor`` component. The default prolog maps
 foreground to black and background to white in monochrome mode, or converts to grey in greyscale mode. An optional Tcl
 color-array entry instead supplies raw PostScript code and bypasses these operators. A lookup may execute a read trace,
 so this is a callback boundary, not just a color-table read. The enclosing export must protect borrowed lifetimes; the
 void color helpers do not expose lookup errors or undo output.
 :c:func:`rbcPsPrimitives.Rbc_ClearBackgroundToPostScript` merely selects white: it clears no pixels.
 
-Line attributes have their own compatibility rules: zero-width lines become one user unit, CapNotLast maps to butt, and
-dash phase is always zero. The combined attribute helper also replaces ``DashesProc`` with an empty procedure. Callers
-that need a dash-background pass must define it after that setup.
+Line attributes have their own compatibility rules: zero-width lines become one user unit, ``CapNotLast`` maps to
+``butt``, and dash phase is always zero. The combined attribute helper also replaces ``DashesProc`` with an empty
+procedure. Callers that need a dash-background pass must define it after that setup.
 
 .. list-table:: Legacy path effects
    :header-rows: 1
@@ -189,7 +189,7 @@ implements the bit-order conversion; wrapping counts complete output bytes.
      - Capture and cleanup
      - Existing failure behavior
    * - X11
-     - XGetImage plane-one capture; XDestroyImage after encoding.
+     - ``XGetImage`` plane-one capture; ``XDestroyImage`` after encoding.
      - No payload if capture fails; no pixel access or Tcl status.
    * - Windows
      - Owned bottom-up DIB bytes, reverse row traversal, then ckfree.
@@ -218,20 +218,20 @@ font programs or resolve fallback glyphs per character. Font selection follows t
    * - Source
      - Behavior
    * - Configured font-map array
-     - Lookup by Tk_NameOfFont. A found entry ends the search, even when its list or size is malformed.
+     - Lookup by ``Tk_NameOfFont``. A found entry ends the search, even when its list or size is malformed.
    * - Recognized family prefix
-     - Case-insensitive prefix match against the static alias list, followed by Tk_PostscriptFontName for the actual
+     - Case-insensitive prefix match against the static alias list, followed by ``Tk_PostscriptFontName`` for the actual
        name and size.
    * - X11 core font properties
-     - XLoadQueryFont by Tk name, optional POINT_SIZE divided by ten, then FULL_NAME/FOUNDRY/FAMILY_NAME mapping. This
-       stage is absent on Windows.
+     - ``XLoadQueryFont`` by Tk name, optional ``POINT_SIZE`` divided by ten, then ``FULL_NAME`` / ``FOUNDRY`` /
+       ``FAMILY_NAME`` mapping. This stage is absent on Windows.
    * - Final fallback
-     - Helvetica-Bold, with size twelve unless an X11 point-size property was obtained during the preceding attempt.
+     - ``Helvetica-Bold``, with size twelve unless an X11 point-size property was obtained during the preceding attempt.
 
 A font-map entry's first element replaces the name. Its size is used only for an exactly two-element list with a valid
 integer second element. A one-element mapping retains the initial size twelve; it does not inherit the Tk font size. An
 empty list retains the Tk name. An invalid list or size may leave an interpreter diagnostic, but the helper still emits
-SetFont and returns void. Mapped names are inserted as PostScript name syntax without escaping or validation, so
+``SetFont`` and returns ``void``. Mapped names are inserted as PostScript name syntax without escaping or validation, so
 callers must supply usable PostScript names.
 
 For core X11 fonts, property mapping requires all three named properties. Adobe families remain unchanged. Other
@@ -248,16 +248,16 @@ Text transforms and fragment widths
 -----------------------------------
 
 :c:func:`rbcPsText.Rbc_TextToPostScript` builds a borrowed-string layout, computes the rotated box, translates the
-requested anchor to that box's center, and emits BeginText. The prolog saves graphics state, translates to the center,
-rotates by the negative angle, then translates to the unrotated layout origin. Font selection and any shadow pass
-follow; the main pass selects active or normal foreground. EndText restores graphics state. No native disabled/emphasis
-relief pass is implemented here, and the style's angle is not rewritten.
+requested anchor to that box's center, and emits ``BeginText``. The prolog saves graphics state, translates to the
+center, rotates by the negative angle, then translates to the unrotated layout origin. Font selection and any shadow
+pass follow; the main pass selects active or normal foreground. ``EndText`` restores graphics state. No native
+disabled/emphasis relief pass is implemented here, and the style's angle is not rewritten.
 
-Each nonempty fragment emits its escaped literal string, measured screen width and baseline through DrawAdjText. That
-prolog procedure adjusts character spacing to match the requested width, flips the vertical scale and uses ashow. Empty
-fragments contribute layout spacing but emit no string, avoiding division by zero in the prolog's length-based
-adjustment. The string encoding remains ISO-8859-1 with unsupported characters replaced by spaces; width adjustment does
-not recover glyphs lost during that conversion.
+Each nonempty fragment emits its escaped literal string, measured screen width and baseline through
+``DrawAdjText``. That prolog procedure adjusts character spacing to match the requested width, flips the vertical scale
+and uses ashow. Empty fragments contribute layout spacing but emit no string, avoiding division by zero in the prolog's
+length-based adjustment. The string encoding remains ISO-8859-1 with unsupported characters replaced by spaces; width
+adjustment does not recover glyphs lost during that conversion.
 
 Font and color mapping can execute Tcl variable traces while the layout borrows its original string. The helper does not
 preserve the enclosing graph, style, font or string itself; callers own that lifetime protection. Temporary layouts,
@@ -266,7 +266,7 @@ font-description objects, split-list arrays and mapped-name DStrings are release
 Fragment baselines and shadow offsets are added in ``Tcl_WideInt`` and emitted without narrowing to int. Normal
 coordinates retain the same decimal output; large sums no longer overflow signed int. The bounding-box calculation
 normalizes the angle remainder into [0, 360), so equivalent negative and positive rotations use the same anchor
-position. BeginText still receives the original angle and the style is unchanged. Callers must keep input angles and
+position. ``BeginText`` still receives the original angle and the style is unchanged. Callers must keep input angles and
 rounded dimensions within the conversion helpers' ranges.
 
 Graph options and export lifetime
@@ -278,17 +278,17 @@ failure. Destruction detaches the record first, releases Tk options and the opti
 must run while the graph's Tk configuration context is still usable.
 
 Configuration has two layers: Tk option objects and derived numeric fields. Dimensions, padding, color mode and preview
-format are converted into locals before committing any derived field. If conversion fails after Tk_SetOptions,
+format are converted into locals before committing any derived field. If conversion fails after ``Tk_SetOptions``,
 :c:func:`rbcGraphPostscript.SetPostScriptOptions` restores the saved options and error state. Successful callers release
-the saved options. Queries use Tk_GetOptionValue and Tk_GetOptionInfo without rendering.
+the saved options. Queries use ``Tk_GetOptionValue`` and ``Tk_GetOptionInfo`` without rendering.
 
 Options supplied to ``postscript output`` are persistent settings. They remain installed even if a later prolog,
 rendering or file operation fails. This is separate from restoration of screen
 geometry. :c:func:`rbcGraphPostscript.GraphToPostScript` pairs :c:func:`Rbc_ExportBeginGraph` with
-:c:func:`Rbc_ExportEndGraph` on both success and failure. For a surviving window, EndGraph resets dimensions to the live
-window, marks mapping work and schedules redraw. It does not immediately restore all mapped arrays or revert requested
-PostScript dimensions. The enclosing widget command owns callback lifetime protection; these helpers do not acquire it
-independently.
+:c:func:`Rbc_ExportEndGraph` on both success and failure. For a surviving window, ``EndGraph`` resets dimensions to the
+live window, marks mapping work and schedules redraw. It does not immediately restore all mapped arrays or revert
+requested PostScript dimensions. The enclosing widget command owns callback lifetime protection; these helpers do not
+acquire it independently.
 
 Page layout and preview paths
 -----------------------------
@@ -306,26 +306,27 @@ transforms. Metadata includes the current time; byte-for-byte output comparisons
 remain protected throughout export.
 
 EPSI uses a native graph snapshot, converts it to grayscale, rotates it for landscape and encodes eight-bit preview
-rows. Resizing to a thumbnail is enabled only by THUMBNAIL_PREVIEW; the ordinary path uses the current export layout
+rows. Resizing to a thumbnail is enabled only by ``THUMBNAIL_PREVIEW``; the ordinary path uses the current export layout
 size. Failure to capture an image omits the preview without a separate error. Drawing invalidation is checked before
 capture and again by the preamble. This snapshot path is distinct from the vector document traversal.
 
 The preview parser accepts nonempty prefixes, with EPSI on all platforms and WMF on Windows. TIFF and its prefixes are
-rejected on every build, including those defining HAVE_TIFF_H, because no TIFF preview encoder exists. Windows binary
-packaging is selected explicitly for WMF. String output returns the PostScript payload without that binary wrapper.
+rejected on every build, including those defining ``HAVE_TIFF_H``, because no TIFF preview encoder exists. Windows
+binary packaging is selected explicitly for WMF. String output returns the PostScript payload without that binary
+wrapper.
 
 Delivery and ownership
 ----------------------
 
-:c:func:`rbcGraphPostscript.OutputOp` owns the PostScript token and staging DString, while the token borrows the
+:c:func:`rbcGraphPostscript.OutputOp` owns the PostScript token and staging ``DString``, while the token borrows the
 component's font/color mapping names. Rendering and any binary preview assembly finish before opening the destination
 through Tcl's filesystem API. Binary channel translation preserves document bytes. Short writes and close failures
 propagate, and cleanup preserves an earlier error instead of replacing it with a close diagnostic. Successful file
 output has an empty Tcl result.
 
 This ordering avoids truncating a destination on a rendering failure, but is not an atomic replacement protocol: an
-open, write or close failure can leave an empty or partial destination. The temporary token and DString are released on
-every :c:func:`rbcGraphPostscript.OutputOp` exit after their creation. Component options outlive them.
+open, write or close failure can leave an empty or partial destination. The temporary token and ``DString`` are released
+on every :c:func:`rbcGraphPostscript.OutputOp` exit after their creation. Component options outlive them.
 
 Maintenance checks
 ------------------
@@ -343,7 +344,7 @@ borrowed and can move on the next append; :c:func:`Rbc_ScratchBufferFromToken` i
 by formatting and prolog reads. Neither accessor returns an independent copy. Do not feed either buffer back into an
 operation that overwrites or relocates it before consuming the input.
 
-:c:func:`Rbc_AppendToPostScript` takes NUL-terminated strings and a pointer-valued NULL
+:c:func:`Rbc_AppendToPostScript` takes NUL-terminated strings and a pointer-valued ``NULL``
 sentinel. :c:func:`Rbc_AppendPostScriptString` instead accepts an explicit UTF byte count ending on a character boundary
 and escapes literal contents. It is still a text converter, not a binary append or general Unicode font encoder. Its
 caller supplies the parentheses.
@@ -374,10 +375,10 @@ caller supplies the parentheses.
      - Count is the number of independent segment records.
      - Nonpositive count emits nothing, including no initial path reset.
 
-The foreground/background helpers require a non-NULL color. Their mapping lookups can run Tcl traces, and mapped values
-are raw PostScript programs. :c:func:`rbcPsPrimitives.XColorToPostScript` is the narrower pure conversion: it emits RGB
-operands without a lookup or color-setting operator. These are separate contracts, not interchangeable ways to set color
-safely during reentry.
+The foreground/background helpers require a non-``NULL`` color. Their mapping lookups can run Tcl traces, and mapped
+values are raw PostScript programs. :c:func:`rbcPsPrimitives.XColorToPostScript` is the narrower pure conversion: it
+emits RGB operands without a lookup or color-setting operator. These are separate contracts, not interchangeable ways to
+set color safely during reentry.
 
 Native resources remain borrowed. In particular, :c:func:`rbcPsRaster.Rbc_ColorImageToPostScript` may mutate the
 caller's image in noncolor mode, whereas :c:func:`rbcPsRaster.Rbc_PhotoToPostScript` and

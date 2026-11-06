@@ -47,7 +47,8 @@ command renaming, mapping or lifecycle.
 the vector. It is allowed for protected vectors and explicitly flushes even when automatic flushing is disabled. The
 cache normally retains only its ``end`` entry after recreation; subsequent reads materialize values again. User
 unset/write traces may run during flushing, and their side effects can include data changes, remapping or
-destruction. The handler returns TCL_OK after the void helper and does not report lower-level cache recreation status.
+destruction. The handler returns ``TCL_OK`` after the void helper and does not report lower-level cache recreation
+status.
 
 :c:func:`VariableOp <rbcVectorCommands.VariableOp>` queries the stored mapping name, or delegates replacement/removal to
 :c:func:`Rbc_VectorMapVariable`. An empty argument removes the association; it does not rename the vector command or
@@ -92,8 +93,8 @@ Sorting
 :c:func:`Rbc_VectorSortIndex` builds an owned array of indices without moving values. The first vector's selected
 interval determines the indices; callers must provide valid corresponding storage in every key vector. Keys are compared
 lexicographically, and a heap sort constructs the permutation. Sorting is not stable and does not define a total
-ordering for NaNs. Complex keys are rejected. An empty successful sort still returns an allocation so NULL denotes
-failure.
+ordering for ``NaN`` s. Complex keys are rejected. An empty successful sort still returns an allocation so ``NULL``
+denotes failure.
 
 :c:func:`SortOp <rbcVectorCommands.SortOp>` resolves and retains all destination objects, validates them, and allocates
 the permutation and one reusable scratch array. It applies every permutation before invoking any variable trace or
@@ -229,14 +230,14 @@ the vector's metadata or publish data. The ownership transition depends on the h
      - Caller responsibility
    * - :c:func:`PrepareCommandWrite <rbcVectorCommands.PrepareCommandWrite>`
        / :c:func:`PrepareCommandResize <rbcVectorCommands.PrepareCommandResize>`
-     - Current borrowed pointer, independent allocation, or NULL for a zero-capacity resize.
+     - Current borrowed pointer, independent allocation, or ``NULL`` for a zero-capacity resize.
      - Initialize required values; commit or release only independently allocated storage.
    * - :c:func:`AllocateCommandData <rbcVectorCommands.AllocateCommandData>`
      - Independent, uninitialized allocation, including for zero values.
      - Release with ``ckfree`` or transfer at commit.
    * - :c:func:`ConvertCommandList <rbcVectorCommands.ConvertCommandList>`
-     - Independent converted values; NULL for an empty list.
-     - Release non-NULL storage or transfer at commit.
+     - Independent converted values; ``NULL`` for an empty list.
+     - Release non-``NULL`` storage or transfer at commit.
    * - :c:func:`FinishCommandWrite <rbcVectorCommands.FinishCommandWrite>`
      - Completed storage installed in the vector; no output allocation is returned.
      - Do not free transferred storage. Recheck liveness before further vector access.
@@ -257,7 +258,7 @@ must not unconditionally free it. Callers must supply nonnegative requested leng
 
 :c:func:`AllocateCommandData <rbcVectorCommands.AllocateCommandData>` always returns independent uninitialized storage,
 with a one-byte allocation for an empty result. :c:func:`ConvertCommandList <rbcVectorCommands.ConvertCommandList>`
-instead uses NULL for an empty successful conversion and retains a private outer Tcl list while converting its
+instead uses ``NULL`` for an empty successful conversion and retains a private outer Tcl list while converting its
 elements. Neither helper installs destination metadata. Conversion failure frees staged storage; effects of conversion
 callbacks remain.
 
@@ -300,9 +301,9 @@ indices, and every key vector must support those same indices. The allocation he
 sizes, but does not validate all key lengths for its callers.
 
 :c:func:`CompareVectorIndices <rbcVectorCommands.CompareVectorIndices>` examines keys lexicographically. Equal
-comparisons advance to the next key; a NaN also advances because both ordered comparisons are false. No original-index
-tie-breaker is added. :c:func:`SortVectorIndices <rbcVectorCommands.SortVectorIndices>` uses :c:func:`SiftVectorIndices
-<rbcVectorCommands.SiftVectorIndices>` to repair the heap. Sorting therefore remains unstable and does not define a
-total ordering for NaNs. It uses constant auxiliary storage beyond the permutation and O(n log n) comparisons, each
-potentially examining every key. The numerical vectors remain untouched until a command handler applies the resulting
-permutation.
+comparisons advance to the next key; a ``NaN`` also advances because both ordered comparisons are false. No
+original-index tie-breaker is added. :c:func:`SortVectorIndices <rbcVectorCommands.SortVectorIndices>` uses
+:c:func:`SiftVectorIndices <rbcVectorCommands.SiftVectorIndices>` to repair the heap. Sorting therefore remains unstable
+and does not define a total ordering for ``NaN`` s. It uses constant auxiliary storage beyond the permutation and ``O(n
+log n)`` comparisons, each potentially examining every key. The numerical vectors remain untouched until a command
+handler applies the resulting permutation.

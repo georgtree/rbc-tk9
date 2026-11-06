@@ -66,9 +66,9 @@ expressions.
    * - :c:func:`Rbc_NameOfVector`
      - Current registered name; invalidated by rename or destruction
    * - :c:func:`Rbc_VectorData`
-     - Real storage, or NULL for a complex vector
+     - Real storage, or ``NULL`` for a complex vector
    * - :c:func:`Rbc_VectorComplexData`
-     - Complex storage, or NULL for a real vector
+     - Complex storage, or ``NULL`` for a real vector
    * - :c:func:`Rbc_VectorLength` / :c:func:`Rbc_VectorSize`
      - Used length / capacity, both in values rather than bytes
    * - :c:func:`Rbc_VectorGetType`
@@ -76,7 +76,7 @@ expressions.
    * - :c:func:`Rbc_VectorDirty`
      - Modification counter, not a boolean or pending-idle flag
 
-An empty vector can also have NULL storage. Query type and length separately. Raw pointers are not retained across
+An empty vector can also have ``NULL`` storage. Query type and length separately. Raw pointers are not retained across
 storage replacement, destruction or Tcl callbacks. The dirty counter advances through internal change scheduling,
 including when ordinary notifications are disabled; an unreported native write does not advance it. It is not an
 object-lifetime token.
@@ -94,7 +94,7 @@ That private primitive invalidates extrema but does not flush the mapped cache o
 with a generic message; it is not a name-based lookup API and requires a live vector pointer.
 
 The two public reset functions share :c:func:`ResetVectorStorage` after checking type. Reset validates nonnegative
-length/capacity, ``length <= capacity`` and byte-count overflow. NULL data or zero capacity produces empty static
+length/capacity, ``length <= capacity`` and byte-count overflow. ``NULL`` data or zero capacity produces empty static
 storage after validation. ``TCL_VOLATILE`` allocates capacity-sized storage and copies only used values; unused capacity
 is not initialized by this path. Other policies borrow or adopt the supplied pointer. See :doc:`vectors` for release
 ownership.
@@ -123,7 +123,7 @@ function checks writability; notification cannot retroactively authorize a write
 
 :c:func:`Rbc_FreeVector` delegates to private destruction, which retains the record and interpreter through callbacks
 and ignores recursive destruction. It deletes the command and mapping, removes registration, cancels pending idle
-delivery, and sends synchronous DESTROY with length zero. Registration has been removed before observer DESTROY
+delivery, and sends synchronous ``DESTROY`` with length zero. Registration has been removed before observer ``DESTROY``
 callbacks, allowing those observers to create a new identity with the same name. Command deletion/unmapping happen
 earlier and have their own callback boundaries. Remaining clients and owned numeric storage are released before deferred
 record reclamation. Preservation of a record does not keep its name, storage or logical identity usable after
@@ -203,7 +203,7 @@ either cached extremum index was overwritten, a full recomputation is required e
 elsewhere. Invalid intervals or inconsistent cache state likewise fall back to recomputation.
 
 Otherwise only changed finite values are scanned. Equal extrema retain the lowest index, and the no-finite-values state
-uses NaN bounds with negative indices. A successful incremental update commits both values and indices. Invalidation
+uses ``NaN`` bounds with negative indices. A successful incremental update commits both values and indices. Invalidation
 instead marks the cache dirty and stores those sentinel values; it does not itself notify observers. Correctness depends
 on callers reporting all modified indices, not merely the subset that changed visibly on a graph.
 
@@ -245,9 +245,9 @@ Creation parsers and bounded index strings
 ------------------------------------------
 
 The creation-option parsers report consumed argument counts: one on success, minus one on missing or invalid
-input. Boolean and size parsers write their output only after conversion. A successfully parsed Tcl_Size still needs the
-caller's vector length and allocation checks. The type parser accepts exact real/complex names and records whether the
-choice was explicit; it does not change an existing vector's type.
+input. Boolean and size parsers write their output only after conversion. A successfully parsed ``Tcl_Size`` still needs
+the caller's vector length and allocation checks. The type parser accepts exact real/complex names and records whether
+the choice was explicit; it does not change an existing vector's type.
 
 String-size conversion owns a temporary Tcl object. Bounded index parsing similarly copies a half-open character span,
 allowing a range endpoint to be parsed without modifying or NUL-terminating the caller's input buffer. It then delegates

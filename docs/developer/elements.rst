@@ -142,14 +142,14 @@ successful prepare in one family does not permit committing it while another fam
      - Preparation and ownership
      - Commit/abandon behavior
    * - Tags
-     - One Tcl-allocated block; empty input can be explicitly staged as NULL
+     - One Tcl-allocated block; empty input can be explicitly staged as ``NULL``
      - Commit moves it and frees old live tags; free releases the candidate
    * - Axes
      - One acquired reference per staged X/Y mapping
      - Commit moves staged references and releases old mappings; free releases candidates
    * - State
      - Scalar value and staged flag, no owned resource
-     - Commit only after TCL_OK; failed preparation can retain an earlier staged scalar
+     - Commit only after ``TCL_OK``; failed preparation can retain an earlier staged scalar
    * - Data
      - Owned numeric arrays or named-vector client IDs
      - Commit moves slots and binds callbacks to stable element fields; free releases candidates
@@ -226,12 +226,12 @@ Parsing, allocation and extrema
 -------------------------------
 
 :c:func:`GetElemArrayByteCount <rbcGrElemData.GetElemArrayByteCount>` rejects negative counts, zero element size and
-products that exceed SIZE_MAX, assigning its result
+products that exceed ``SIZE_MAX``, assigning its result
 only on success. Zero count is valid. This check cannot repair overflow that occurred while a caller computed the count
 before invoking it.
 
-:c:func:`EvalExprListObj <rbcGrElemData.EvalExprListObj>` initializes its outputs to zero/NULL and uses Tcl_AttemptAlloc
-for a nonempty result. Each list member is evaluated with Tcl_ExprDouble; an error releases the temporary numeric array.
+:c:func:`EvalExprListObj <rbcGrElemData.EvalExprListObj>` initializes its outputs to zero/``NULL`` and uses ``Tcl_AttemptAlloc``
+for a nonempty result. Each list member is evaluated with ``Tcl_ExprDouble``; an error releases the temporary numeric array.
 The helper borrows the list's object-pointer array across evaluation. It does not take an immutable snapshot or add an
 owner-preservation boundary, so this local allocation cleanup must not be confused with protection against callbacks
 that mutate owners or input representations.
@@ -257,13 +257,13 @@ The range helpers have distinct contracts:
      - Requires a live source vector
    * - :c:func:`FindRange <rbcGrElemData.FindRange>`
      - Scans literal data, ignoring nonfinite samples
-     - Empty/NULL leaves cached extrema untouched; all-nonfinite nonempty data gives DBL_MAX/-DBL_MAX
+     - Empty/``NULL`` leaves cached extrema untouched; all-nonfinite nonempty data gives ``DBL_MAX`` / ``-DBL_MAX``
    * - :c:func:`Rbc_FindElemVectorMinimum <rbcGrElemData.Rbc_FindElemVectorMinimum>`
-     - Returns the smallest finite value at or above minLimit
-     - Returns minLimit if its accumulator remains DBL_MAX
+     - Returns the smallest finite value at or above ``minLimit``
+     - Returns minLimit if its accumulator remains ``DBL_MAX``
 
 Neither scanning helper computes and stores a separate positive minimum. The bounded-minimum helper also treats a sole
-qualifying DBL_MAX value as its unchanged sentinel and returns minLimit. That is current compatibility behavior, not a
+qualifying ``DBL_MAX`` value as its unchanged sentinel and returns ``minLimit``. That is current compatibility behavior, not a
 promise that every finite sample has a distinct successful result.
 
 Notification metadata and synchronous refresh
@@ -276,9 +276,9 @@ indices nor fetches data. Reading the vector's client-specific changed range bel
 :c:func:`VectorChangedProc <rbcGrElemData.VectorChangedProc>`, while
 that notification snapshot is valid.
 
-The destruction notification clears clientId, valueArr and nValues and records a full change. It does not zero vecPtr,
-capacity or extrema. Those remaining fields must not be treated as valid source storage after destruction; the cleared
-live-data fields govern subsequent use.
+The destruction notification clears ``clientId``, ``valueArr`` and ``nValues`` and records a full change. It does not
+zero ``vecPtr``, capacity or extrema. Those remaining fields must not be treated as valid source storage after
+destruction; the cleared live-data fields govern subsequent use.
 
 :c:func:`Rbc_SyncElementVectors <rbcGrElemData.Rbc_SyncElementVectors>` visits the registry rather than only the visible
 display list. Pending common X/Y, weight and error inputs refresh their borrowed arrays and mark a full change before
@@ -290,9 +290,9 @@ Value-label formatting
 ----------------------
 
 :c:func:`Rbc_ValidateValueFormat <rbcGrElemData.Rbc_ValidateValueFormat>` accepts literal-only strings, escaped percent
-signs and at most one floating conversion. Formatting passes one double at a time; even SHOW_BOTH formats X and Y
+signs and at most one floating conversion. Formatting passes one double at a time; even ``SHOW_BOTH`` formats X and Y
 separately with the same format and joins them with a comma. Dynamic widths/precisions and conversions requiring another
-argument type are rejected. Format length, width and precision are each bounded by the current VALUE_FORMAT_LIMIT of
+argument type are rejected. Format length, width and precision are each bounded by the current ``VALUE_FORMAT_LIMIT`` of
 200. Validation does not guarantee that every formatted number fits the destination buffer.
 
 :c:func:`FormatValueLabel <rbcGrElemData.FormatValueLabel>` supplies terminated, bounded fallback text. It avoids
@@ -315,7 +315,7 @@ Closest-result source values and traces
 ---------------------------------------
 
 :c:func:`ClosestErrorValue <rbcGrElemData.ClosestErrorValue>` rejects a pending named-vector update before touching its
-borrowed array. It also rejects out-of-range indices, NULL arrays and nonfinite samples.
+borrowed array. It also rejects out-of-range indices, ``NULL`` arrays and nonfinite samples.
 :c:func:`AppendClosestErrors <rbcGrElemData.AppendClosestErrors>` reports the original source error values, including
 explicit low/high bounds, rather than transformed or bar-translated positions. A nonempty symmetric-error vector takes
 precedence; an unusable symmetric sample does not fall back to explicit bounds. Explicit low and high must both be
@@ -373,7 +373,7 @@ Resource teardown and record teardown are separate. :c:func:`rbcGrElemLifecycle.
 registry while the Tk window remains usable, including elements omitted from the display list. Repeated resource release
 is guarded. :c:func:`rbcGrElemLifecycle.Rbc_DestroyElements` later destroys records without deleting hash entries during
 hash traversal, then deletes both hash tables and the display chain. :c:func:`rbcGrElemLifecycle.DestroyElement`
-releases resources and registry membership immediately, but uses Tcl_EventuallyFree for the record itself so an
+releases resources and registry membership immediately, but uses ``Tcl_EventuallyFree`` for the record itself so an
 activation callback can retain its identity until validation ends. Preservation does not keep released resources
 usable. That final container destruction is not an idempotent operation.
 
@@ -400,7 +400,7 @@ current.
 Command dispatch and query domains
 -----------------------------------
 
-:c:func:`rbcGrElemCommands.Rbc_ElementOp` validates the operation and argument count using the typed elemOps table
+:c:func:`rbcGrElemCommands.Rbc_ElementOp` validates the operation and argument count using the typed ``elemOps`` table
 before calling a handler. The supplied class UID selects creation behavior; most other handlers operate on the named
 record regardless of that UID. This entry point does not add record lifetime protection around Tcl evaluation.
 
@@ -416,7 +416,7 @@ Queries do not all enumerate the same collection:
    * - exists / type / cget
      - Exact registry lookup, including hidden records.
    * - activate without a name
-     - Registry hash order filtered by ELEM_ACTIVE, including hidden records.
+     - Registry hash order filtered by ``ELEM_ACTIVE``, including hidden records.
    * - show
      - Display-chain order, including hideplot entries.
    * - bind without a tag
@@ -454,7 +454,7 @@ redraw request is not reached. These operations do not promise command-wide atom
 :c:func:`rbcGrElemCommands.ActivateOp` stages explicit indices before replacing the old selection. Allocation or
 ordinary conversion failure frees the candidate without changing the old selection. No explicit indices means
 whole-element activation, represented by a count of -1. Explicit indices retain order and duplicates, and successful
-commit sets both ELEM_ACTIVE and ACTIVE_PENDING.
+commit sets both ``ELEM_ACTIVE`` and ``ACTIVE_PENDING``.
 
 Index expressions may invoke application code. :c:func:`rbcGrElemCommands.ActivateOp` preserves the element record
 during evaluation, while the widget dispatcher preserves the graph. After each successful evaluation it checks window
@@ -477,9 +477,9 @@ Closest-search phases
 ---------------------
 
 :c:func:`rbcGrElemCommands.ClosestOp` synchronizes common data inputs and resets axes when requested before parsing
-coordinates and switches. It does not map dirty elements as part of the search: records marked MAP_ITEM or with pending
-X/Y notifications are skipped. Explicit hidden or unplotted names cause an error; an implicit search skips them and
-visits the display chain in reverse. Track eligibility additionally requires a noncollapsed viewport containing the
+coordinates and switches. It does not map dirty elements as part of the search: records marked ``MAP_ITEM`` or with
+pending X/Y notifications are skipped. Explicit hidden or unplotted names cause an error; an implicit search skips them
+and visits the display chain in reverse. Track eligibility additionally requires a noncollapsed viewport containing the
 query position.
 
 :c:func:`rbcGrElemCommands.ParseClosestOptions` starts at argument six and accepts unambiguous switch
@@ -529,7 +529,7 @@ option. These are display-geometry operations, not vector edits.
 :c:func:`rbcGrLineGeometry.ScaleSymbol` captures axis-range baselines when requested, applies valid range ratios and
 returns a bounded odd pixel size. :c:func:`rbcGrLineGeometry.MapActiveSymbols` separately rebuilds explicit active
 selections, retaining their original indices and filtering them through symbol-map extents. It discards old active
-geometry before allocating and clears ACTIVE_PENDING even on allocation failure; retained selection indices are
+geometry before allocating and clears ``ACTIVE_PENDING`` even on allocation failure; retained selection indices are
 unchanged.
 
 Reset versus destruction
@@ -645,7 +645,7 @@ picking. A both-direction segment search has no such fallback.
 Source picking after reduction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:c:func:`rbcGrLinePicking.ClosestPoint` uses retained centers unless pointMapOmitted requests a source
+:c:func:`rbcGrLinePicking.ClosestPoint` uses retained centers unless ``pointMapOmitted`` requests a source
 search. :c:func:`rbcGrLinePicking.ClosestSourcePoint` maps original samples on demand, rejecting nonfinite coordinates
 and centers outside the viewport. Cached monotonic source X can restrict candidate ranges, but the range restriction
 must be justified by the actual screen-distance metric.
@@ -785,8 +785,8 @@ Scalar adapters and ownership
 
 The pen-color parser :c:func:`rbcGrLineConfiguration.GetLinePenColorFromObj` uses
 :c:func:`rbcGrLineConfiguration.IsLinePenPrefix` to accept nonempty prefixes of defcolor as an inherited-color
-sentinel. Empty values produce NULL only when permitted; actual Tk colors carry an acquired
-reference. :c:func:`rbcGrLineData.FreeLinePenColor` releases actual Tk colors while ignoring NULL and the
+sentinel. Empty values produce ``NULL`` only when permitted; actual Tk colors carry an acquired
+reference. :c:func:`rbcGrLineData.FreeLinePenColor` releases actual Tk colors while ignoring ``NULL`` and the
 sentinel. Callers still clear their own fields after release. The local :c:func:`rbcGrLineConfiguration.Round` helper
 requires bounded finite input and does not provide checked conversion.
 

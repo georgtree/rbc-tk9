@@ -98,11 +98,11 @@ are two layout contexts, but only one element and one ``LABEL_ACTIVE`` flag.
      - Global legend
      - Track-local legend
    * - Owner pointer
-     - graphPtr->legend
-     - track->legend
+     - ``graphPtr->legend``
+     - ``track->legend``
    * - Binding table
      - Owned by the legend
-     - Borrowed graphPtr->trackLegendBindings
+     - Borrowed ``graphPtr->trackLegendBindings``
    * - Interned tag strings
      - Graph element tag table
      - Private legend tag table
@@ -113,8 +113,8 @@ are two layout contexts, but only one element and one ``LABEL_ACTIVE`` flag.
      - Owned by the legend
      - Owned by the legend
 
-:c:func:`rbcGrLegendConfiguration.Rbc_CreateLegend` initializes the ``legend``/``Legend`` option-database
-component. :c:func:`rbcGrLegendConfiguration.Rbc_CreateTrackLegend` initializes ``trackLegend``/``TrackLegend`` and
+:c:func:`rbcGrLegendConfiguration.Rbc_CreateLegend` initializes the ``legend`` / ``Legend`` option-database
+component. :c:func:`rbcGrLegendConfiguration.Rbc_CreateTrackLegend` initializes ``trackLegend`` / ``TrackLegend`` and
 lazily creates the graph-owned local binding table. Both constructors install their owner pointer before initializing
 options, so failure cleanup must clear it. A local creation failure retains the shared table for the graph. They assume
 no existing legend at their destination; they are not replacements.
@@ -298,7 +298,8 @@ cached origin.
    * - :c:func:`rbcGrLegendLayout.GetLegendPixelDimension`
      - Supply required int output storage; failure leaves its old value unchanged.
    * - :c:func:`rbcGrLegendConfiguration.GetLegendPositionFromObj`
-     - Supply staging storage and retain the input object while using windowName. Failure can leave partial staging values.
+     - Supply staging storage and retain the input object while using ``windowName``. Failure can leave partial staging
+       values.
    * - :c:func:`rbcGrLegendLifetime.PrepareLegendWindow`
      - Supply both handle outputs; success transfers responsibility to adopt or clean up the window and command together.
    * - :c:func:`rbcGrLegendBindings.LegendTag`
@@ -308,7 +309,7 @@ cached origin.
    * - :c:func:`rbcGrLegendBindings.PickTrackLegendEntry`
      - Context output is required and may identify a global occluding legend even when no local entry is returned.
 
-A non-NULL picking context is therefore not proof that an entry was selected. The returned element pointer determines
+A non-``NULL`` picking context is therefore not proof that an entry was selected. The returned element pointer determines
 whether an item was found; the context identifies the scope for subsequent tag collection. Neither result acquires an
 element or legend reference.
 

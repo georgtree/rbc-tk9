@@ -1355,7 +1355,7 @@ command ends with a valid <code class="docutils literal notranslate"><span class
 has already rejected unknown and ambiguous options. Prefix matching should not be reimplemented independently inside
 each transaction family.</p>
 <p>Stage helpers acquire replacement storage before freeing an earlier candidate. An empty candidate is still meaningful:
-a staged NULL tick array clears the explicit-tick flag and restores automatic ticks. The staged flag or mask must
+a staged <code class="docutils literal notranslate"><span class="pre">NULL</span></code> tick array clears the explicit-tick flag and restores automatic ticks. The staged flag or mask must
 therefore be checked separately from the pointer. Commit transfers owned storage, clears the transferred candidate
 fields and releases the old live resource. Cleanup then remains safe after a successful commit. Scalar-only transactions
 need no resource destructor.</p>
@@ -1367,9 +1367,9 @@ resources or copies scalars, then clears staging state. These are distinct contr
 transaction pointer. The parameter sections in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a> identify the required state at each boundary.</p>
 <p>Lookup outputs also differ. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.NameToAxis" title="rbcGrAxisRegistry.NameToAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.NameToAxis()</span></code></a> clears its output on a failed
 lookup. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.GetAxis" title="rbcGrAxisRegistry.GetAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.GetAxis()</span></code></a> leaves the caller’s output unchanged on
-error. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.Rbc_GetAxisFromObj" title="rbcGrAxisRegistry.Rbc_GetAxisFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.Rbc_GetAxisFromObj()</span></code></a> sets it to NULL for an empty name, but retains the
+error. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.Rbc_GetAxisFromObj" title="rbcGrAxisRegistry.Rbc_GetAxisFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.Rbc_GetAxisFromObj()</span></code></a> sets it to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for an empty name, but retains the
 unchanged-on-error rule for nonempty names. Check the status before consuming an output, and release a reference only
-when a successful lookup requested a non-NULL logical class.</p>
+when a successful lookup requested a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> logical class.</p>
 </section>
 <section id="parsing-policies">
 <h3>Parsing policies<a class="headerlink" href="#parsing-policies" title="Link to this heading"></a></h3>
@@ -1472,7 +1472,7 @@ it are rejected. No minor is extrapolated after the final explicit major.</p>
 degrade to empty arrays rather than a layout error. Allocation itself uses the fatal Tcl
 allocator. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.Rbc_AllocAxisMajorTicks" title="rbcGrAxisRanges.Rbc_AllocAxisMajorTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.Rbc_AllocAxisMajorTicks()</span></code></a> always returns an independent array: it copies an existing
 cache or generates from the sweep when no cache exists, notably for hidden Polar axes. Its copy path uses attempted
-allocation and can return NULL. Callers must both check that result and free successful results; they must not assume
+allocation and can return <code class="docutils literal notranslate"><span class="pre">NULL</span></code>. Callers must both check that result and free successful results; they must not assume
 every cache is an explicitly supplied list.</p>
 </section>
 <section id="numerical-mapping-boundary">
@@ -1506,7 +1506,7 @@ restored. Callback errors are reported as background exceptions and normally fal
 <p>A callback may also delete the axis, destroy the widget or replace layout resources. After evaluation,
 <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_AllocAxisTickLabel" title="rbcGrAxisPresentation.Rbc_AllocAxisTickLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_AllocAxisTickLabel()</span></code></a> checks graph validity without dereferencing the old axis
 pointer. Invalidation releases the newly allocated label and returns
-NULL. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.GetAxisGeometry" title="rbcGrAxisPresentation.GetAxisGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.GetAxisGeometry()</span></code></a> must stop immediately; its callers must check callback validity
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code>. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.GetAxisGeometry" title="rbcGrAxisPresentation.GetAxisGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.GetAxisGeometry()</span></code></a> must stop immediately; its callers must check callback validity
 before resuming their own traversal. A callback error and callback invalidation are therefore different outcomes.
 Neither a numeric fallback nor preserved graph storage proves an old axis or label-chain pointer is still valid.</p>
 </section>
@@ -1524,7 +1524,7 @@ and positions the already measured labels. Count overflow or segment allocation 
 not reported as a Tcl command error.</p>
 <p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_GetAxisSegments" title="rbcGrAxisPresentation.Rbc_GetAxisSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_GetAxisSegments()</span></code></a> is a separate grid interface. It borrows cached ticks when available
 and generates temporary ticks otherwise, including for axes without visible rectangular decorations. It returns a
-caller-owned segment array or NULL/zero, and always releases its temporary tick arrays. Grid spanning uses the current
+caller-owned segment array or <code class="docutils literal notranslate"><span class="pre">NULL</span></code>/zero, and always releases its temporary tick arrays. Grid spanning uses the current
 plot viewport; callers requesting local track grids must establish that viewport first.</p>
 <p>Picking is containment, not a distance minimization despite the name <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_NearestAxis" title="rbcGrAxisPresentation.Rbc_NearestAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_NearestAxis()</span></code></a>. It
 visits axes in registry order and tests tick-label polygons, title polygons and the axis line region, recording the

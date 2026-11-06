@@ -31,11 +31,11 @@ Filters and sampling weights
 ----------------------------
 
 :c:func:`Rbc_GetResampleFilterFromObj` resolves names and unambiguous abbreviations against the static filter
-table. Returned records are borrowed and must not be modified or freed. ``none`` resolves successfully to NULL; it
+table. Returned records are borrowed and must not be modified or freed. ``none`` resolves successfully to ``NULL``; it
 directs command-level policy rather than representing an identity filter that may be passed to the filtering kernel.
 
 The table includes box, triangle, bell, B-spline, Catmull-Rom, Mitchell, Lanczos, sinc, Gaussian and other historical
-filters with individual support radii. Horizontal and vertical passes can use different non-NULL filters.
+filters with individual support radii. Horizontal and vertical passes can use different non-``NULL`` filters.
 
 :c:func:`rbcImageResampling.ComputeWeights` builds one contribution record per destination coordinate, reused across all
 rows or columns in that pass. Downsampling broadens the support radius by the inverse scale; upsampling uses native
@@ -97,7 +97,7 @@ before downsampling broadens them. The aliases are distinct table entries even w
      - Piecewise cubic with B = C = 1/3 and signed lobes.
    * - ``none``
      - 0
-     - NULL procedure; lookup returns NULL for caller-selected resize policy.
+     - ``NULL`` procedure; lookup returns ``NULL`` for caller-selected resize policy.
    * - ``sinc``
      - 4
      - sin(pi*x)/(pi*x), with one at zero.
@@ -175,9 +175,9 @@ Nearest-neighbour implementation
 
 :c:func:`Rbc_ResizeColorImage` allocates its requested result before checking whether the effective source region is
 empty. A nonempty resize precomputes separate int maps for output columns and rows, copies full :c:union:`Pix32` values,
-then frees both maps. :c:func:`rbcImageStorage.MapNearestCoordinate` truncates position*span/destinationSpan and adds
-the clamped source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped origin
-rather than potentially overflowing endpoint addition.
+then frees both maps. :c:func:`rbcImageStorage.MapNearestCoordinate` truncates ``position*span`` / ``destinationSpan``
+and adds the clamped source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped
+origin rather than potentially overflowing endpoint addition.
 
 :c:func:`Rbc_ResizeColorSubimage` allocates only the requested region. Its maps add the region origin and output
 position in double before virtual scaling, avoiding signed-int coordinate

@@ -1345,7 +1345,7 @@ Tcl configure operation. It reuses validated settings and discards the private c
 <a class="reference internal" href="crosshair-reference.html#c.Rbc_DestroyCrosshairs" title="Rbc_DestroyCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyCrosshairs()</span></code></a> releases resources during teardown; it is not an erase operation for a window that will
 keep displaying the graph.</p>
 <p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.GetCrosshairPositionFromObj" title="rbcCrosshairs.GetCrosshairPositionFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.GetCrosshairPositionFromObj()</span></code></a> borrows its option object and copies parsed coordinates to required
-output storage. NULL and empty input select the off-plot sentinel, while an invalid nonempty input leaves the output
+output storage. <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and empty input select the off-plot sentinel, while an invalid nonempty input leaves the output
 unchanged. No object or coordinate pointer is retained.</p>
 <p><a class="reference internal" href="crosshair-reference.html#c.rbcCrosshairs.ConfigureCrosshairs" title="rbcCrosshairs.ConfigureCrosshairs"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcCrosshairs.ConfigureCrosshairs()</span></code></a> receives candidate Tk option fields but a still-active old GC and old
 geometry. Its mask determines which derived values need conversion. Tk rollback remains the responsibility of

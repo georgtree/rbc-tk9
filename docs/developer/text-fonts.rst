@@ -15,15 +15,15 @@ is used. Fragment counts are UTF byte counts; glyph processing must decode chara
 characters.
 
 Newlines terminate fragments, including empty lines. A trailing newline does not create an additional final empty
-fragment. NULL is treated as an empty string. Tk metrics and ``Tk_TextWidth`` supply line dimensions; padding, shadow
-offset, justification and interline leader determine the unrotated box and fragment baselines. Anchoring and rotation
-are applied later. Large dimensions are bounded to integer geometry, while impossible fragment/count allocations are
-fatal rather than Tcl command errors.
+fragment. ``NULL`` is treated as an empty string. Tk metrics and ``Tk_TextWidth`` supply line dimensions; padding,
+shadow offset, justification and interline leader determine the unrotated box and fragment baselines. Anchoring and
+rotation are applied later. Large dimensions are bounded to integer geometry, while impossible fragment/count
+allocations are fatal rather than Tcl command errors.
 
-:c:func:`Rbc_GetTextExtents` is a separate measurement path, not an allocation-free alias for the layout algorithm. NULL
-produces zero extents regardless of padding. For nonempty multiline text it retains the final leader spacing, whereas
-the layout builder removes that final leader. Callers must choose the appropriate measurement rather than assume the two
-are interchangeable.
+:c:func:`Rbc_GetTextExtents` is a separate measurement path, not an allocation-free alias for the layout
+algorithm. ``NULL`` produces zero extents regardless of padding. For nonempty multiline text it retains the final leader
+spacing, whereas the layout builder removes that final leader. Callers must choose the appropriate measurement rather
+than assume the two are interchangeable.
 
 Styles are not universal owners
 -------------------------------
@@ -36,8 +36,8 @@ acquire Tk references. Components usually own font/color options; temporary styl
 supplied GC without acquiring it; this does not grant permission to release a caller-owned GC.
 
 For an owning style, :c:func:`Rbc_ResetTextStyle` obtains a Tk GC from the current font and optional foreground, then
-releases the previous GC. Its old GC must be NULL or a valid owned Tk GC. :c:func:`Rbc_FreeTextStyle` releases only that
-GC; it does not free font, colors, border or the style itself, and does not clear the GC field. Repeated cleanup
+releases the previous GC. Its old GC must be ``NULL`` or a valid owned Tk GC. :c:func:`Rbc_FreeTextStyle` releases only
+that GC; it does not free font, colors, border or the style itself, and does not clear the GC field. Repeated cleanup
 therefore requires an explicit reset. These are existing helper contracts, not an automatic resource-management
 convention.
 
@@ -84,9 +84,9 @@ mutation. :c:func:`rbcTextDrawing.Rbc_SetPrintTextStyle` does not initialize a G
 native drawing.
 
 :c:func:`rbcTextDrawing.Rbc_DrawText` and :c:func:`rbcTextDrawing.Rbc_DrawText2` build and release temporary layouts
-while borrowing the input string. Both skip NULL and empty strings; the latter also zeros a supplied result area on that
-path. Its nonempty result is the rounded rotated layout size, independent of the anchor position. Exporters retain their
-own text serialization paths; these native draw calls do not embed fonts.
+while borrowing the input string. Both skip ``NULL`` and empty strings; the latter also zeros a supplied result area on
+that path. Its nonempty result is the rounded rotated layout size, independent of the anchor position. Exporters retain
+their own text serialization paths; these native draw calls do not embed fonts.
 
 Bitmap GC lifetime
 ------------------
@@ -164,12 +164,12 @@ Reader trust boundaries
 
 The small big-endian readers and writers do not check buffer lengths. Their callers establish readable/writable spans
 first. :c:func:`Rbc_FontGetTable` similarly assumes a directory rebuilt by :c:func:`FontProgram`; it is not an entry
-point for arbitrary unvalidated file bytes. A missing table returns a NULL/zero slice. Present slices borrow the owning
-program and cannot outlive it.
+point for arbitrary unvalidated file bytes. A missing table returns a ``NULL``/zero slice. Present slices borrow the
+owning program and cannot outlive it.
 
 :c:func:`FontProgram` accepts TrueType, the legacy true signature and OpenType OTTO. It checks the directory count and
 table spans, omits DSIG signatures, rejects fvar variable-font tables and limits rebuilt storage to 64 MiB. Table data
-is padded to four-byte boundaries, checksums are recalculated and head.checkSumAdjustment is repaired. The original
+is padded to four-byte boundaries, checksums are recalculated and ``head.checkSumAdjustment`` is repaired. The original
 table order is retained. This creates an independent sfnt for a selected collection face, without removing unused
 outlines.
 
@@ -195,12 +195,12 @@ Unicode and legacy Symbol lookup
 #. Windows Symbol format 4 using the legacy unoffset byte range.
 
 Unicode candidates use platform 0 or Windows Unicode encoding records. Format-12 lookup binary-searches groups and
-checks the resulting glyph against glyphCount; its search assumes sorted groups. Format 4 walks segments, handles
-idDelta and relative glyph arrays, and preserves glyph zero as missing. Malformed bounds or unsupported subtables are
-skipped, so another candidate can still resolve the character. Bounds checks do not promise acceptance or rejection of
-every malformed cmap arrangement.
+checks the resulting glyph against ``glyphCount``; its search assumes sorted groups. Format 4 walks segments, handles
+``idDelta`` and relative glyph arrays, and preserves glyph zero as missing. Malformed bounds or unsupported subtables
+are skipped, so another candidate can still resolve the character. Bounds checks do not promise acceptance or rejection
+of every malformed cmap arrangement.
 
-For Symbol records, a retained Tcl encoding named after the lowercased family converts a Unicode character to one byte
+For ``Symbol`` records, a retained Tcl encoding named after the lowercased family converts a Unicode character to one byte
 where possible. Without that encoding, only direct byte values and the F000--F0FF range can use this fallback. The cache
 keeps Unicode characters distinct even when multiple characters resolve to one native glyph; text extraction must not
 infer Unicode from glyph numbers alone.
@@ -209,18 +209,19 @@ Name-keyed CFF metadata
 -----------------------
 
 :c:func:`CffIndex` checks its count, offset width, initial one-based offset, monotonic following offsets and final data
-extent. Success advances the caller's cursor and returns a borrowed complete INDEX; failure does not advance the cursor,
-but its output slice may already be partially written. :c:func:`CffItem` is deliberately lighter: it requires an already
-validated INDEX and returns a borrowed item, which can be empty. It performs no repeated directory validation.
+extent. Success advances the caller's cursor and returns a borrowed complete ``INDEX``; failure does not advance the
+cursor, but its output slice may already be partially written. :c:func:`CffItem` is deliberately lighter: it requires an
+already validated ``INDEX`` and returns a borrowed item, which can be empty. It performs no repeated directory
+validation.
 
-:c:func:`FontCffInit` supports CFF version 1 with one name and one Top DICT. It reads the charset and CharStrings
-offsets needed by export, checks the CharStrings count against the sfnt glyph count, then constructs a glyph-to-SID
-array. ISOAdobe, Expert and ExpertSubset predefined charsets and explicit formats 0/1/2 are supported. Standard SIDs
-refer to static names; custom SIDs refer to String INDEX items. Names must be nonempty and at most 127 bytes before PDF
-serialization. They are byte slices, not necessarily NUL-terminated strings.
+:c:func:`FontCffInit` supports CFF version 1 with one name and one ``Top DICT``. It reads the charset and
+``CharStrings`` offsets needed by export, checks the ``CharStrings`` count against the sfnt glyph count, then constructs
+a glyph-to-SID array. ``ISOAdobe``, ``Expert`` and ``ExpertSubset`` predefined charsets and explicit formats 0/1/2 are
+supported. Standard SIDs refer to static names; custom SIDs refer to ``String INDEX`` items. Names must be nonempty and
+at most 127 bytes before PDF serialization. They are byte slices, not necessarily NUL-terminated strings.
 
 CID-keyed CFF and CFF2 are outside this path. The parser interprets selected metadata and bounds its operand stack; it
-does not execute or fully validate charstring programs or every unused DICT operator. Partial SID allocations remain
+does not execute or fully validate charstring programs or every unused ``DICT`` operator. Partial SID allocations remain
 attached to the font for normal failure cleanup.
 
 SVG cmap reconstruction
@@ -248,14 +249,14 @@ PDF character codes and finalization
      - Content codes
      - Resources
    * - Nonembedded
-     - One-byte WinAnsi; unsupported characters fail explicitly.
+     - One-byte ``WinAnsi``; unsupported characters fail explicitly.
      - Standard Courier, Times or Helvetica family/style dictionaries.
    * - Embedded TrueType
      - One-based document-local CID, emitted with four hexadecimal digits.
-     - Full sfnt, descriptor, CIDToGIDMap, widths, ToUnicode and Identity-H Type0 font.
+     - Full ``sfnt``, ``descriptor``, ``CIDToGIDMap``, ``widths``, ``ToUnicode`` and ``Identity-H Type0`` font.
    * - Embedded name-keyed CFF
      - Codes 1--255 within each block, emitted with two hexadecimal digits.
-     - Shared CFF program/descriptor; separate Type1 encoding, widths and ToUnicode per block.
+     - Shared CFF program/descriptor; separate Type1 encoding, widths and ``ToUnicode`` per block.
 
 Character lookup reserves placeholders before final dictionaries are known. :c:func:`Rbc_PdfFontsFinish` replaces them
 after all text has been collected and before final PDF serialization. CFF blocks split every 255 distinct characters;
@@ -264,7 +265,7 @@ must finalize once and stop collecting text at that point: the API does not free
 finalization.
 
 Widths and descriptor geometry scale native units to 1,000-unit PDF text space. Glyphs beyond the long-metric count use
-the last horizontal advance. TrueType CIDToGIDMap controls which outline is drawn, while ToUnicode independently
+the last horizontal advance. TrueType ``CIDToGIDMap`` controls which outline is drawn, while ``ToUnicode`` independently
 controls extraction. BMP values use one UTF-16 code unit and supplementary values use a surrogate pair; mapping blocks
 contain at most 100 entries. CFF Differences names escape PDF delimiters and nonprintable bytes instead of assuming all
 glyph names are directly usable PDF names.
@@ -300,7 +301,7 @@ following values interchangeable:
      - Object number identifying a font dictionary in this document.
      - :c:func:`Rbc_PdfFontCharacter`
    * - PDF character code
-     - WinAnsi byte, TrueType CID or CFF block-local code for the selected resource.
+     - ``WinAnsi`` byte, TrueType CID or CFF block-local code for the selected resource.
      - :c:func:`Rbc_PdfFontCharacter`
    * - Size and advance
      - Display pixels; PDF widths later use 1,000-unit font space.
@@ -332,19 +333,19 @@ Choosing a text helper
      - Geometry and result
      - Resources and mutation
    * - :c:func:`Rbc_GetTextLayout`
-     - Unrotated fragment baselines and extents; removes the final leader when fragments exist. NULL is treated as empty
-       text, with style padding.
+     - Unrotated fragment baselines and extents; removes the final leader when fragments exist. ``NULL`` is treated as
+       empty text, with style padding.
      - Returns one owned allocation; fragments borrow the input text.
    * - :c:func:`Rbc_GetTextExtents`
-     - Unrotated extents without fragments; retains final leader spacing.
-       NULL returns zero without consulting the style.
+     - Unrotated extents without fragments; retains final leader spacing. ``NULL`` returns zero without consulting the
+       style.
      - Writes both required output pointers; allocates no layout.
    * - :c:func:`rbcTextDrawing.Rbc_DrawTextLayout`
      - Anchors the rotated bounding box at the requested pixel position.
      - Borrows the layout; normalizes style theta and may change GC foreground.
    * - :c:func:`rbcTextDrawing.Rbc_DrawText2`
-     - Draws and optionally returns rotated bounding dimensions, independent of anchor position. NULL/empty text returns
-       zero dimensions.
+     - Draws and optionally returns rotated bounding dimensions, independent of anchor position. ``NULL``/empty text
+       returns zero dimensions.
      - Builds and frees a temporary layout; inherits drawing state mutations.
 
 The internal :c:func:`rbcTextDrawing.DrawTextLayout` takes an already anchored upper-left position. The externally named
@@ -354,10 +355,10 @@ origin to those helpers applies the anchor offset twice.
 :c:func:`rbcTextDrawing.Rbc_GetBoundingBox` returns floating extents and optional centered corners. It does not place
 the box on a drawable. Use :c:func:`rbcTextDrawing.Rbc_TranslateAnchor` for saturated integer placement or
 :c:func:`rbcTextDrawing.Rbc_TranslatePoint` to retain half-pixel center offsets. The ``TK_ANCHOR_NULL`` enum leaves a
-position unchanged; it does not permit a NULL input point or missing required output pointers.
+position unchanged; it does not permit a ``NULL`` input point or missing required output pointers.
 
 :c:func:`rbcTextDrawing.Rbc_SetDrawTextStyle` borrows its GC without acquiring a Tk
-reference. :c:func:`Rbc_ResetTextStyle` and :c:func:`Rbc_FreeTextStyle` require an owned Tk GC or NULL, so do not apply
-them directly to a style containing someone else's GC. The print setter's ``activeColor`` is an active foreground, not a
-background color; :c:func:`rbcTextDrawing.Rbc_SetPrintTextStyle` does not initialize a GC or prepare the style for
+reference. :c:func:`Rbc_ResetTextStyle` and :c:func:`Rbc_FreeTextStyle` require an owned Tk GC or ``NULL``, so do not
+apply them directly to a style containing someone else's GC. The print setter's ``activeColor`` is an active foreground,
+not a background color; :c:func:`rbcTextDrawing.Rbc_SetPrintTextStyle` does not initialize a GC or prepare the style for
 native drawing.

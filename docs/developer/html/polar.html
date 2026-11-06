@@ -1373,7 +1373,7 @@ interchangeable implementation of the common X/Y notification policy.</p>
 <h2>Segment cache construction and failure policy<a class="headerlink" href="#segment-cache-construction-and-failure-policy" title="Link to this heading"></a></h2>
 <p>The mapping entry points consume prepared axes and require old X/Y grid caches to have been released by the shared grid
 lifecycle. They do not replace and free an existing cache themselves. Circle and spoke/arc allocations are independent:
-a failed allocation can leave one family present and the other absent. Overflow checks and Tcl_AttemptAlloc failures
+a failed allocation can leave one family present and the other absent. Overflow checks and <code class="docutils literal notranslate"><span class="pre">Tcl_AttemptAlloc</span></code> failures
 return silently, without a Tcl diagnostic. The next normal remapping starts from cleared caches again.</p>
 <p>Polar radial candidates are reconstructed from X-axis grid segments using <a class="reference internal" href="polar-reference.html#c.PolarGridSegmentValue" title="PolarGridSegmentValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">PolarGridSegmentValue()</span></code></a>. Inverted
 graphs recover the tick from screen Y instead of screen X. Only finite positive radii within the viewport’s
@@ -1434,33 +1434,33 @@ a positive polar complete radius. Reactive cropped placement clips the same samp
 than solving an analytic circle/rectangle intersection. Its accuracy therefore follows the current 90-segment
 approximation.</p>
 <p>Automatic inward anchors use eight direction sectors separated by 22.5 degrees plus multiples of 45 degrees. Degenerate
-screen segments select CENTER. Explicit polar anchors override automatic selection. Centered-view anchor selection uses
-data angles; cropped-view selection uses screen directions. These are current policies, not a promise that label
+screen segments select <code class="docutils literal notranslate"><span class="pre">CENTER</span></code>. Explicit polar anchors override automatic selection. Centered-view anchor selection
+uses data angles; cropped-view selection uses screen directions. These are current policies, not a promise that label
 orientation is invariant under axis inversion or reversal. Anchors alone do not guarantee the complete text fits in the
 plot.</p>
 <p>All label paths copy the axis text style and force zero text rotation. Radial and Smith real labels use X-axis
-showTicks/style; angular and Smith reactive labels use Y-axis showTicks/style. Only major ticks are labelled. Screen
-drawing rounds positions before applying fixed offsets; export retains fractional positions. Both paths release their
-temporary renderer, labels and tick snapshots.</p>
+<code class="docutils literal notranslate"><span class="pre">showTicks</span></code> / <code class="docutils literal notranslate"><span class="pre">style</span></code>; angular and Smith reactive labels use Y-axis <code class="docutils literal notranslate"><span class="pre">showTicks</span></code> / <code class="docutils literal notranslate"><span class="pre">style</span></code>. Only major ticks are
+labelled. Screen drawing rounds positions before applying fixed offsets; export retains fractional positions. Both paths
+release their temporary renderer, labels and tick snapshots.</p>
 </section>
 <section id="formatter-callbacks-and-cancellation">
 <h2>Formatter callbacks and cancellation<a class="headerlink" href="#formatter-callbacks-and-cancellation" title="Link to this heading"></a></h2>
 <p>Angular prefixes receive widget path and numeric degrees, without the default degree suffix. Smith prefixes receive
 widget path, impedance/admittance domain and the original signed normalized value, without the default j decoration. A
 prefix is duplicated before arguments are appended, and evaluation uses the current Tcl context, matching axis
-formatters. A NULL or empty prefix retains normal formatting. A successful empty result suppresses that label; an
+formatters. A <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or empty prefix retains normal formatting. A successful empty result suppresses that label; an
 ordinary callback error is reported as a background exception and retains default text. The prior interpreter state is
 restored after callback evaluation.</p>
-<p><a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a> shares the existing axisFormatActive/axisFormatInvalid mechanism. While it evaluates Tcl,
-recursive snapshot and export requests are rejected before they change dimensions or renderer state. Layout recursion is
-likewise rejected; read-only operations that need no layout may still succeed. Redraw requests or relevant window events
-during the callback mark the current pass invalid.</p>
+<p><a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a> shares the existing <code class="docutils literal notranslate"><span class="pre">axisFormatActive</span></code> / <code class="docutils literal notranslate"><span class="pre">axisFormatInvalid</span></code> mechanism. While it evaluates
+Tcl, recursive snapshot and export requests are rejected before they change dimensions or renderer state. Layout
+recursion is likewise rejected; read-only operations that need no layout may still succeed. Redraw requests or relevant
+window events during the callback mark the current pass invalid.</p>
 <p>After formatting, validity is checked before any cached grid, axis or copied text-style resource is reused. Invalidation
-returns NULL while leaving the caller’s DString initialized for cleanup. Each label loop stops and releases its owned
-temporary resources; Smith phase/domain dispatch and polar radial/angular dispatch also stop before moving to another
-phase. A surviving graph is queued for a fresh redraw. Snapshot/export callers receive the existing RBC GRAPH CALLBACK
-error rather than a completed image/document from stale state. Drawing already performed into an intermediate target is
-not rolled back.</p>
+returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> while leaving the caller’s DString initialized for cleanup. Each label loop stops and releases its
+owned temporary resources; Smith phase/domain dispatch and polar radial/angular dispatch also stop before moving to
+another phase. A surviving graph is queued for a fresh redraw. Snapshot/export callers receive the existing <code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">GRAPH</span>
+<span class="pre">CALLBACK</span></code> error rather than a completed image/document from stale state. Drawing already performed into an intermediate
+target is not rolled back.</p>
 <p>This guard does not undo application changes or prevent users from destroying the graph. The enclosing widget command or
 display wrapper retains the graph record across Tcl evaluation. Nor does the guard promise forward progress for a
 formatter that changes graph options on every call: applications should make such changes outside formatting or only
@@ -1489,16 +1489,17 @@ confirmation of a finite result.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="polar-reference.html#c.ClipPolarRay" title="ClipPolarRay"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClipPolarRay()</span></code></a></p></td>
-<td><p>Degree angle in, near/far data-space ray endpoints out; output is valid only on TRUE.</p></td>
+<td><p>Degree angle in, near/far data-space ray endpoints out; output is valid only on <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="polar-reference.html#c.MapPolarSpoke" title="MapPolarSpoke"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapPolarSpoke()</span></code></a></p></td>
 <td><p>Degree angle in, mapped pixel segment out; it does not independently validate endpoint finiteness.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="polar-reference.html#c.MapCircle" title="MapCircle"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapCircle()</span></code></a> / <a class="reference internal" href="polar-reference.html#c.MapSmithResistanceCircle" title="MapSmithResistanceCircle"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapSmithResistanceCircle()</span></code></a></p></td>
-<td><p>Caller supplies buffers of POLAR_CIRCLE_SEGMENTS / SMITH_CIRCLE_SEGMENTS records respectively; outputs are mapped pixels.</p></td>
+<td><p>Caller supplies buffers of <code class="docutils literal notranslate"><span class="pre">POLAR_CIRCLE_SEGMENTS</span></code> / <code class="docutils literal notranslate"><span class="pre">SMITH_CIRCLE_SEGMENTS</span></code> records respectively; outputs
+are mapped pixels.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="polar-reference.html#c.MapSmithReactanceArc" title="MapSmithReactanceArc"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapSmithReactanceArc()</span></code></a></p></td>
-<td><p>Caller supplies SMITH_ARC_SEGMENTS records; normalized reactive input produces mapped pixel chords.</p></td>
+<td><p>Caller supplies <code class="docutils literal notranslate"><span class="pre">SMITH_ARC_SEGMENTS</span></code> records; normalized reactive input produces mapped pixel chords.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="polar-reference.html#c.ClipSegmentToGridViewport" title="ClipSegmentToGridViewport"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClipSegmentToGridViewport()</span></code></a></p></td>
 <td><p>Finite data-space endpoints in and clipped data-space endpoints out; neither screen mapping nor stroke clipping occurs.</p></td>
@@ -1521,12 +1522,12 @@ cropped-view anchors derive their direction from mapped segments instead.</p>
 <h2>Formatter storage and cancellation<a class="headerlink" href="#formatter-storage-and-cancellation" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="polar-reference.html#c.FormatPolarAngleLabel" title="FormatPolarAngleLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatPolarAngleLabel()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.FormatSmithLabel" title="FormatSmithLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatSmithLabel()</span></code></a> initialize the supplied DString themselves. Pass storage
 that does not already own an allocated buffer. Their common helper, <a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a>, instead requires an
-initialized DString already containing default text. All three return a borrowed pointer into that string, or NULL when
+initialized DString already containing default text. All three return a borrowed pointer into that string, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> when
 the drawing pass has been invalidated.</p>
-<p>The caller frees the DString on every path, including NULL. An empty non-NULL string means suppress this label and
-continue; NULL means stop the pass before accessing cached grid, axis or copied text-style resources again. The returned
-string does not retain any of those resources. The outer graph command or display wrapper must keep the graph record
-alive across callback evaluation.</p>
+<p>The caller frees the DString on every path, including <code class="docutils literal notranslate"><span class="pre">NULL</span></code>. An empty non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> string means suppress this label and
+continue; <code class="docutils literal notranslate"><span class="pre">NULL</span></code> means stop the pass before accessing cached grid, axis or copied text-style resources again. The
+returned string does not retain any of those resources. The outer graph command or display wrapper must keep the graph
+record alive across callback evaluation.</p>
 <p>Screen and export loops share this cancellation rule. Their drawable and export context remain borrowed; ending a
 temporary text renderer does not free the screen destination or finalize the enclosing document. Geometry sampling
 itself does not invoke label commands or establish a callback-preservation scope.</p>

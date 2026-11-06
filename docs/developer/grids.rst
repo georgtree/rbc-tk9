@@ -21,8 +21,8 @@ transaction rules.
 Inherited and local state
 -------------------------
 
-When ``track->grid`` is NULL, the track uses global grid settings. Its X axis comes from the global grid. If the global
-Y mapping is enabled and the track has axes, the inherited Y mapping uses the track's first axis; otherwise that
+When ``track->grid`` is ``NULL``, the track uses global grid settings. Its X axis comes from the global grid. If the
+global Y mapping is enabled and the track has axes, the inherited Y mapping uses the track's first axis; otherwise that
 direction is disabled. It does not blindly reuse another track's Y axis.
 
 :c:func:`rbcGrid.Rbc_TrackGridOp` builds a temporary view for inherited queries. A ``cget`` or configuration query
@@ -111,10 +111,10 @@ pointer, a count and a staged flag. The flag is necessary because these states h
      - Pointer/count
      - Commit meaning
    * - False
-     - NULL/0
+     - ``NULL``/0
      - Keep the existing active list
    * - True
-     - NULL/0
+     - ``NULL``/0
      - Replace the active list with an empty list
    * - True
      - Allocated/N
@@ -181,11 +181,12 @@ and clears its local pointer.
    * - Operation
      - Caller contract
    * - :c:func:`rbcGrid.ParsePolarAngleTicks` / :c:func:`rbcGrid.ParseSmithTicks`
-     - Required pointer/count outputs receive owned storage on success, or NULL/zero for empty input or failure.
+     - Required pointer/count outputs receive owned storage on success, or ``NULL``/zero for empty input or failure.
    * - :c:func:`rbcGrid.StageGridPolarAngleTicks` / :c:func:`rbcGrid.StageGridSmithTicks`
      - Transaction must already be initialized. A successful replacement frees only that slot's previous staged array.
    * - :c:func:`rbcGrid.PrepareGridPolarAngleTicksTransaction` / :c:func:`rbcGrid.PrepareGridSmithTicksTransaction`
-     - Output storage must not own arrays before entry: preparation zeroes it before processing defaults and explicit options.
+     - Output storage must not own arrays before entry: preparation zeroes it before processing defaults and explicit
+       options.
    * - :c:func:`rbcGrid.CommitGridPolarAngleTicksTransaction` / :c:func:`rbcGrid.CommitGridSmithTicksTransaction`
      - Successful preparation is required. Transferred pointers are detached before subsequent staging cleanup.
    * - :c:func:`rbcGrid.FreeGridPolarAngleTicksTransaction` / :c:func:`rbcGrid.FreeGridSmithTicksTransaction`
@@ -202,7 +203,7 @@ an adapted command for :c:func:`rbcGrid.Rbc_GridOp` and its handlers, where the 
 original option/value slice used by :c:func:`rbcGrid.ConfigureGrid` is borrowed only for that configuration call.
 Neither the adapter nor the tick transaction transfers ownership of Tcl command arguments.
 
-:c:func:`rbcGrid.DrawTrackGrids` takes either a screen drawable or a non-NULL export context. In the export case the
+:c:func:`rbcGrid.DrawTrackGrids` takes either a screen drawable or a non-``NULL`` export context. In the export case the
 drawable is ignored; in the screen case the destination remains borrowed. Both paths consume prepared segment caches,
 restore temporary track viewports and end renderer contexts without finalizing a document. A new configuration must be
 mapped before relying on these caches.

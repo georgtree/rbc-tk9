@@ -1342,17 +1342,17 @@ a string, synonym or resource-owning option requires extending that parser and i
 specification type reaches Tcl_Panic. Integer query objects report normalized values rather than the original input
 spelling. Initialization may write fields before failing; it belongs to graph construction, unlike the rollback
 guarantee of runtime configuration.</p>
-<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SvgDocument" title="rbcGraphExportCommands.SvgDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SvgDocument()</span></code></a> frames an XML document with pixel dimensions and an equal viewBox. After
-shared traversal succeeds, it finalizes font definitions, closes the SVG and copies the buffer into a new Tcl
-string. The closing tag is appended even on failure, but no partial document is
+<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SvgDocument" title="rbcGraphExportCommands.SvgDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SvgDocument()</span></code></a> frames an XML document with pixel dimensions and an equal
+<code class="docutils literal notranslate"><span class="pre">viewBox</span></code>. After shared traversal succeeds, it finalizes font definitions, closes the SVG and copies the buffer into a
+new Tcl string. The closing tag is appended even on failure, but no partial document is
 returned. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.PdfDocument" title="rbcGraphExportCommands.PdfDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.PdfDocument()</span></code></a> initializes the PDF builder using horizontal screen
 pixels/millimeters to obtain points per pixel, traverses the graph and invokes the binary serializer only on success.
 Neither adapter opens files or restores screen geometry.</p>
 <p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.OutputGraphExport" title="rbcGraphExportCommands.OutputGraphExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.OutputGraphExport()</span></code></a> acquires a reference to a document returned by the callback and
-releases it after delivery or failure. A callback must return a non-NULL new object on success; cleanup accepts NULL on
-failure. Backend cleanup still runs when initial layout fails before the document callback is entered. A new format must
-therefore separate backend teardown from shared font and buffer cleanup, and must tolerate that partially initialized
-state.</p>
+releases it after delivery or failure. A callback must return a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> new object on success; cleanup accepts
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code> on failure. Backend cleanup still runs when initial layout fails before the document callback is entered. A new
+format must therefore separate backend teardown from shared font and buffer cleanup, and must tolerate that partially
+initialized state.</p>
 </section>
 <section id="graph-traversal-and-geometry">
 <h2>Graph traversal and geometry<a class="headerlink" href="#graph-traversal-and-geometry" title="Link to this heading"></a></h2>
@@ -1397,11 +1397,11 @@ committing; <a class="reference internal" href="export-reference.html#c.Rbc_Init
 failure.</p>
 <p>The document callback output is also deliberately narrower than the command
 result. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SvgDocument" title="rbcGraphExportCommands.SvgDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SvgDocument()</span></code></a> leaves its output pointer unchanged on
-failure. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.PdfDocument" title="rbcGraphExportCommands.PdfDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.PdfDocument()</span></code></a> leaves it unchanged when traversal fails, but writes NULL when
-serialization fails. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.OutputGraphExport" title="rbcGraphExportCommands.OutputGraphExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.OutputGraphExport()</span></code></a> initializes that pointer to NULL, takes a
+failure. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.PdfDocument" title="rbcGraphExportCommands.PdfDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.PdfDocument()</span></code></a> leaves it unchanged when traversal fails, but writes <code class="docutils literal notranslate"><span class="pre">NULL</span></code> when
+serialization fails. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.OutputGraphExport" title="rbcGraphExportCommands.OutputGraphExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.OutputGraphExport()</span></code></a> initializes that pointer to <code class="docutils literal notranslate"><span class="pre">NULL</span></code>, takes a
 reference when a document is returned, and releases it after result delivery or failure. New callbacks must follow this
 ownership contract.</p>
-<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportAppend" title="Rbc_ExportAppend"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportAppend()</span></code></a> takes C strings terminated by a pointer-valued NULL sentinel, not a byte
+<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportAppend" title="Rbc_ExportAppend"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportAppend()</span></code></a> takes C strings terminated by a pointer-valued <code class="docutils literal notranslate"><span class="pre">NULL</span></code> sentinel, not a byte
 count. <a class="reference internal" href="export-reference.html#c.Rbc_ExportFormat" title="Rbc_ExportFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFormat()</span></code></a> takes printf arguments. Both append to the context’s current buffer, which may differ
 from its embedded storage; neither suppresses output because an earlier error was recorded. <a class="reference internal" href="export-reference.html#c.Rbc_ExportError" title="Rbc_ExportError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportError()</span></code></a>
 records the first static error string without setting the Tcl result. Final traversal or serialization must turn that

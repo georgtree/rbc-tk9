@@ -1315,27 +1315,27 @@ normally. This visibility commit is separate from the Tk option transaction, whi
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>cget / type</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cget</span></code> / <code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
 <td><p>Borrowed lookup, value or normalized class result</p></td>
 <td><p>No reference acquisition or mutation</p></td>
 </tr>
-<tr class="row-odd"><td><p>configure query</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">configure</span> <span class="pre">query</span></code></p></td>
 <td><p>First named pen only</p></td>
 <td><p>Zero options returns all metadata; one option returns its metadata</p></td>
 </tr>
-<tr class="row-even"><td><p>configure update</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">configure</span> <span class="pre">update</span></code></p></td>
 <td><p>Names checked before applying option pairs</p></td>
 <td><p>Per-pen commit; later failure retains earlier changes</p></td>
 </tr>
-<tr class="row-odd"><td><p>create</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">create</span></code></p></td>
 <td><p>Original name object returned on success</p></td>
 <td><p>New allocation or compatible retained-record revival</p></td>
 </tr>
-<tr class="row-even"><td><p>delete</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">delete</span></code></p></td>
 <td><p>Names processed in argument order</p></td>
 <td><p>Earlier deletions survive later failure</p></td>
 </tr>
-<tr class="row-odd"><td><p>names</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">names</span></code></p></td>
 <td><p>Visible names matching any supplied glob</p></td>
 <td><p>Hash traversal order; each name appears at most once</p></td>
 </tr>
@@ -1352,22 +1352,22 @@ ordinary option rollback must not be used as evidence of callback safety.</p>
 <section id="candidate-palettes-and-default-ranges">
 <h2>Candidate palettes and default ranges<a class="headerlink" href="#candidate-palettes-and-default-ranges" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="pen-reference.html#c.ParseStylesObj" title="ParseStylesObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseStylesObj()</span></code></a> clears its output pointer before doing any work. It always constructs the reserved normal-style
-entry, including for NULL or empty style lists, and borrows the element’s current normal pen there. Additional entries
+entry, including for <code class="docutils literal notranslate"><span class="pre">NULL</span></code> or empty style lists, and borrows the element’s current normal pen there. Additional entries
 use the concrete record size supplied by the caller, which must accommodate <a class="reference internal" href="pen-reference.html#c.PenStyle" title="PenStyle"><code class="xref c c-type docutils literal notranslate"><span class="pre">PenStyle</span></code></a>. The first additional
 entry defaults to range 0 through 1, the second to 1 through 2, and so on.</p>
 <p><a class="reference internal" href="pen-reference.html#c.GetPenStyleFromObj" title="GetPenStyleFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPenStyleFromObj()</span></code></a> accepts exactly one or three list elements. The three-item form converts both endpoints
 before acquiring a named pen, so invalid numeric input cannot leak that reference. It uses Tcl numeric conversion rather
 than expression evaluation. A one-item specification retains the initialized default range; three items replace it using
-<code class="docutils literal notranslate"><span class="pre">SetWeight</span></code>. Endpoint ordering is not rejected: <code class="docutils literal notranslate"><span class="pre">SetRange</span></code> uses DBL_EPSILON when max is not greater than min. This
+<code class="docutils literal notranslate"><span class="pre">SetWeight</span></code>. Endpoint ordering is not rejected: <code class="docutils literal notranslate"><span class="pre">SetRange</span></code> uses <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> when max is not greater than min. This
 compatibility behavior differs from rejecting reversed ranges or treating them as empty. Keep it distinct from the style
 mapper’s check for a stored nonpositive range.</p>
 <p>Palette pen compatibility is checked against the element’s class. The <code class="docutils literal notranslate"><span class="pre">penType</span></code> argument retained by
 <a class="reference internal" href="pen-reference.html#c.StageElemStyles" title="StageElemStyles"><code class="xref c c-func docutils literal notranslate"><span class="pre">StageElemStyles()</span></code></a> is currently unused; it does not override that class check. Stage helpers acquire/parse a
 successor before releasing the earlier candidate. This matters for repeated options and for delete-pending pens whose
 last reference could otherwise disappear.</p>
-<p><a class="reference internal" href="pen-reference.html#c.StageElemPen" title="StageElemPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">StageElemPen()</span></code></a> similarly records NULL as an explicitly staged choice: normal NULL selects the built-in pen at
-commit, whereas active NULL disables the active pen. An unsuccessful lookup retains the previous candidate. The outer
-transaction decides whether to continue, commit, or release all staged values.</p>
+<p><a class="reference internal" href="pen-reference.html#c.StageElemPen" title="StageElemPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">StageElemPen()</span></code></a> similarly records <code class="docutils literal notranslate"><span class="pre">NULL</span></code> as an explicitly staged choice: normal <code class="docutils literal notranslate"><span class="pre">NULL</span></code> selects the built-in
+pen at commit, whereas active <code class="docutils literal notranslate"><span class="pre">NULL</span></code> disables the active pen. An unsuccessful lookup retains the previous
+candidate. The outer transaction decides whether to continue, commit, or release all staged values.</p>
 <p>An unattached palette entry that fails parsing is freed separately. Entries already attached are cleaned through
 <a class="reference internal" href="pen-reference.html#c.DestroyPalette" title="DestroyPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">DestroyPalette()</span></code></a>, which releases counted style pens and destroys the chain without releasing the borrowed first
 pen. Neither staging nor cleanup implicitly replaces the live element palette.</p>

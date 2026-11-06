@@ -1223,8 +1223,8 @@ command-level layout, restoration and delivery, and <a class="reference internal
 <section id="document-and-context-lifetime">
 <h2>Document and context lifetime<a class="headerlink" href="#document-and-context-lifetime" title="Link to this heading"></a></h2>
 <p>The SVG document callback appends an XML declaration and root element using the mapped graph width/height for both
-dimensions and viewBox. It traverses graph output, finishes embedded fonts after successful traversal, and appends the
-root close. On success it creates a Tcl string from the document buffer. The shared command checks export status and
+dimensions and <code class="docutils literal notranslate"><span class="pre">viewBox</span></code>. It traverses graph output, finishes embedded fonts after successful traversal, and appends
+the root close. On success it creates a Tcl string from the document buffer. The shared command checks export status and
 owns delivery with UTF-8/LF settings. An unsuccessful partially generated document must not be returned as valid SVG.</p>
 <p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a> allocates a zeroed context containing shared export state and bitmap-symbol definition
 state. It borrows the token and its buffer; renderer completion frees the context without closing the document. All
@@ -1233,9 +1233,9 @@ does not retain a DOM or a deferred scene.</p>
 </section>
 <section id="definitions-and-scopes">
 <h2>Definitions and scopes<a class="headerlink" href="#definitions-and-scopes" title="Link to this heading"></a></h2>
-<p>Rectangular clip pushes increment <code class="docutils literal notranslate"><span class="pre">nextResourceId</span></code>, emit a clipPath definition in user coordinates, and open a group
-referring to it. Pop closes the group. Common renderer depth tracking controls pairing and unwind. Plot output has a
-separate <code class="docutils literal notranslate"><span class="pre">rbcPlot</span></code> definition/group and paints its background before entering the plot clip. That fixed name belongs
+<p>Rectangular clip pushes increment <code class="docutils literal notranslate"><span class="pre">nextResourceId</span></code>, emit a <code class="docutils literal notranslate"><span class="pre">clipPath</span></code> definition in user coordinates, and open a
+group referring to it. Pop closes the group. Common renderer depth tracking controls pairing and unwind. Plot output has
+a separate <code class="docutils literal notranslate"><span class="pre">rbcPlot</span></code> definition/group and paints its background before entering the plot clip. That fixed name belongs
 to the current single-graph document; it is not a namespace scheme for concatenating independent SVG documents.</p>
 <p>Patterns and bitmap-symbol definitions also use document-generated identifiers. A fill context caches its pattern ID,
 so repeated polygons with the same style reuse that definition. This is not PDF-style document-wide byte interning.
@@ -1244,7 +1244,8 @@ drawing and keep borrowed resources live.</p>
 <p>Tile patterns use photo blocks when available and otherwise capture generic Tk images. Their origin accounts for the
 widget’s offset from its toplevel, matching native tile alignment. Stipple patterns read monochrome bits with XYPixmap,
 emit an optional background rectangle and foreground runs, and release the readback image. Pattern dimensions and
-contents use userSpaceOnUse coordinates. Definitions are emitted inline as needed, rather than collected in one header.</p>
+contents use <code class="docutils literal notranslate"><span class="pre">userSpaceOnUse</span></code> coordinates. Definitions are emitted inline as needed, rather than collected in one
+header.</p>
 </section>
 <section id="primitive-geometry-and-paint">
 <h2>Primitive geometry and paint<a class="headerlink" href="#primitive-geometry-and-paint" title="Link to this heading"></a></h2>
@@ -1292,9 +1293,9 @@ after an encoding helper has partially emitted XML and recorded an error.</p>
 adds a zero PNG filter byte, and writes straight RGBA pixels. Unlike Cairo image surfaces, these channels are not
 premultiplied. A valid alpha offset distinct from RGB is used; otherwise alpha becomes 255. The producer must supply
 valid RGB offsets and readable backing storage.</p>
-<p>The helper rejects invalid basic storage and raw buffers exceeding its INT_MAX size checks. Empty dimensions produce no
-image. Tcl zlib compresses the raw scanlines; interpreter state is saved/restored around compression and the compressed
-result is retained while its bytes are used. Temporary raw and compressed objects are released explicitly.</p>
+<p>The helper rejects invalid basic storage and raw buffers exceeding its <code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code> size checks. Empty dimensions produce
+no image. Tcl zlib compresses the raw scanlines; interpreter state is saved/restored around compression and the
+compressed result is retained while its bytes are used. Temporary raw and compressed objects are released explicitly.</p>
 <p>PNG assembly writes signature, IHDR, IDAT and IEND chunks, including chunk checksums. Base64 encodes the binary PNG into
 an image href with explicit mapped position and dimensions. Temporary PNG storage is freed after emission. Encoding is
 in memory and does not create temporary image files or invoke a Tcl image format command.</p>

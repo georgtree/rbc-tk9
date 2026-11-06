@@ -1239,10 +1239,10 @@ borrowed source intact and return independent storage released with <a class="re
 <section id="filters-and-sampling-weights">
 <h2>Filters and sampling weights<a class="headerlink" href="#filters-and-sampling-weights" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="resampling-reference.html#c.Rbc_GetResampleFilterFromObj" title="Rbc_GetResampleFilterFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetResampleFilterFromObj()</span></code></a> resolves names and unambiguous abbreviations against the static filter
-table. Returned records are borrowed and must not be modified or freed. <code class="docutils literal notranslate"><span class="pre">none</span></code> resolves successfully to NULL; it
+table. Returned records are borrowed and must not be modified or freed. <code class="docutils literal notranslate"><span class="pre">none</span></code> resolves successfully to <code class="docutils literal notranslate"><span class="pre">NULL</span></code>; it
 directs command-level policy rather than representing an identity filter that may be passed to the filtering kernel.</p>
 <p>The table includes box, triangle, bell, B-spline, Catmull-Rom, Mitchell, Lanczos, sinc, Gaussian and other historical
-filters with individual support radii. Horizontal and vertical passes can use different non-NULL filters.</p>
+filters with individual support radii. Horizontal and vertical passes can use different non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> filters.</p>
 <p><a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> builds one contribution record per destination coordinate, reused across all
 rows or columns in that pass. Downsampling broadens the support radius by the inverse scale; upsampling uses native
 filter support. Source support bounds are clipped to the image. Contributions are normalized by their sum (with a
@@ -1318,7 +1318,7 @@ before downsampling broadens them. The aliases are distinct table entries even w
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">none</span></code></p></td>
 <td><p>0</p></td>
-<td><p>NULL procedure; lookup returns NULL for caller-selected resize policy.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NULL</span></code> procedure; lookup returns <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for caller-selected resize policy.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sinc</span></code></p></td>
 <td><p>4</p></td>
@@ -1390,9 +1390,9 @@ dimensions.</p>
 <h2>Nearest-neighbour implementation<a class="headerlink" href="#nearest-neighbour-implementation" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorImage" title="Rbc_ResizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a> allocates its requested result before checking whether the effective source region is
 empty. A nonempty resize precomputes separate int maps for output columns and rows, copies full <a class="reference internal" href="image-transform-reference.html#c.Pix32" title="Pix32"><code class="xref c c-union docutils literal notranslate"><span class="pre">Pix32</span></code></a> values,
-then frees both maps. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapNearestCoordinate" title="rbcImageStorage.MapNearestCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapNearestCoordinate()</span></code></a> truncates position*span/destinationSpan and adds
-the clamped source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped origin
-rather than potentially overflowing endpoint addition.</p>
+then frees both maps. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapNearestCoordinate" title="rbcImageStorage.MapNearestCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapNearestCoordinate()</span></code></a> truncates <code class="docutils literal notranslate"><span class="pre">position*span</span></code> / <code class="docutils literal notranslate"><span class="pre">destinationSpan</span></code>
+and adds the clamped source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped
+origin rather than potentially overflowing endpoint addition.</p>
 <p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a> allocates only the requested region. Its maps add the region origin and output
 position in double before virtual scaling, avoiding signed-int coordinate
 addition. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapVirtualCoordinate" title="rbcImageStorage.MapVirtualCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapVirtualCoordinate()</span></code></a> clamps values beyond the virtual extent to source edges before
