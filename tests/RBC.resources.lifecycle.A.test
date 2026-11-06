@@ -1,4 +1,4 @@
-# Private EPS/window/color ownership checks; normal suite runs skip this harness.
+# Private EPS/window/color ownership checks; run in a dedicated interpreter.
 package provide resources.lifecycle
 package require tcltest
 namespace import tcltest::*

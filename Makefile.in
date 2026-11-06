@@ -346,9 +346,13 @@ install-doc:
 	@echo " Install $(srcdir)/license.terms $(DOC_INSTALL_DIR)/license.terms"
 	@$(INSTALL_DATA) "$(srcdir)/license.terms" "$(DOC_INSTALL_DIR)/license.terms"
 
-test: binaries libraries $(TEST_CAPI_LIB)
+test: binaries libraries $(TEST_CAPI_LIB) $(TEST_NOTIFY_LIB) $(TEST_TILE_LIB) $(TEST_IMAGE_LIB) $(TEST_RESOURCE_LIB)
 	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` $(TESTFLAGS)
+	RBC_NOTIFY_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_NOTIFY_LIB)`" \
+	RBC_TILE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_TILE_LIB)`" \
+	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
+	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` all $(TESTFLAGS)
 
 # Compile header contracts without linking or opening a display.
 test-headers:
@@ -368,7 +372,7 @@ test-vector: binaries libraries $(TEST_CAPI_LIB)
 # Run in a fresh Tcl process, separately from the installed/stubs consumer tests.
 test-vector-notify: $(TEST_NOTIFY_LIB)
 	RBC_NOTIFY_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_NOTIFY_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.vector.notify.A.test` $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` notify $(TESTFLAGS)
 
 rbcVectorNotifyTest.$(OBJEXT): $(srcdir)/tests/rbcVectorNotifyTest.c $(PKG_HEADERS) $(srcdir)/generic/rbcVectorInt.h
 	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcVectorNotifyTest.c` -o $@
@@ -380,7 +384,7 @@ $(TEST_NOTIFY_LIB): $(PKG_OBJECTS) rbcVectorNotifyTest.$(OBJEXT)
 # Include rbcTile.c in the harness to inspect private resource ownership.
 test-tile: $(TEST_TILE_LIB)
 	RBC_TILE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_TILE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.tile.notify.A.test` $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` tile $(TESTFLAGS)
 
 rbcTileTest.$(OBJEXT): $(srcdir)/tests/rbcTileTest.c $(srcdir)/generic/rbcTile.c $(PKG_HEADERS)
 	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcTileTest.c` -o $@
@@ -392,9 +396,9 @@ $(TEST_TILE_LIB): $(PKG_OBJECTS) rbcTileTest.$(OBJEXT)
 # Include rbcImage.c in the harness to inspect private resource ownership.
 test-image: $(TEST_IMAGE_LIB)
 	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.image.temporary.A.test` $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` temporary $(TESTFLAGS)
 	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.image.photo.A.test` $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` photo $(TESTFLAGS)
 
 rbcImageTest.$(OBJEXT): $(srcdir)/tests/rbcImageTest.c $(srcdir)/generic/rbcImage.c $(srcdir)/generic/rbcUnixImage.c $(PKG_HEADERS)
 	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcImageTest.c` -o $@
@@ -406,9 +410,9 @@ $(TEST_IMAGE_LIB): $(PKG_OBJECTS) rbcImageTest.$(OBJEXT)
 # Inspect EPS/color releases and inject native parent-query failure.
 test-resources: $(TEST_RESOURCE_LIB)
 	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.resources.lifecycle.A.test` $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` resources $(TESTFLAGS)
 	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/RBC.postscript.primitives.A.test` $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` ps $(TESTFLAGS)
 
 rbcResourceTest.$(OBJEXT): $(srcdir)/tests/rbcResourceTest.c $(srcdir)/generic/rbcCanvEps.c $(srcdir)/generic/rbcWindow.c $(srcdir)/generic/rbcGrMisc.c $(srcdir)/generic/rbcPs.c $(PKG_HEADERS)
 	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcResourceTest.c` -o $@
@@ -561,7 +565,7 @@ dist-zip: dist
 #========================================================================
 
 clean:  
-	-rm -rf _build/developer
+	-rm -rf _build "$(srcdir)/_build"
 	-rm -rf "$(srcdir)/docs/developer/__pycache__" "$(srcdir)/docs/developer/html/.doctrees" "$(srcdir)/docs/developer/html/_sources"
 	-rm -f "$(srcdir)/docs/developer/html/.buildinfo"
 	-rm -rf header-probes

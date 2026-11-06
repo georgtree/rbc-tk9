@@ -143,7 +143,7 @@ Keep the complete matching vcpkg runtime dependency set available. Copying only 
 | `TCLSH=path`           | Installed Tcl executable used by `test` and `shell`.                             |
 | `OUT_DIR=path`         | Output directory for the DLL, package index, and runtime files.                  |
 | `TMP_DIR=path`         | Intermediate object directory.                                                   |
-| `TESTFLAGS=arguments`  | Arguments for `tests/all.tcl`.                                                   |
+| `TESTFLAGS=arguments`  | Tcltest selection options for the runtime suites.                                                   |
 | `INSTALLDIR=path`      | Tcl installation/package destination, following the standard rules.              |
 
 The example explicitly selects `build-cairo` and `build-cairo\obj`; directory separation is not automatic. For a

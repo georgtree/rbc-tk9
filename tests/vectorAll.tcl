@@ -1,10 +1,3 @@
-# Run package-loading and public vector C API tests without initializing Tk.
-package require tcltest 2
-package require rbc::vector
-if {[package provide Tk] ne {}} {
-    error {vectorAll.tcl must start in a Tcl-only interpreter}
-}
-::tcltest::configure -testdir [file dirname [file normalize [info script]]]\
-        -file {RBC.vector.load.A.test RBC.vector.capi.A.test RBC.vector.readonly.A.test RBC.vector.parentheses.A.test RBC.vector.namespace.A.test RBC.vector.rename.A.test RBC.vector.map.A.test RBC.vector.fft.A.test RBC.vector.ifft.A.test RBC.vector.fftfreq.A.test RBC.vector.window.A.test RBC.vector.simplify.A.test RBC.graph.legacy.headless.A.test} -singleproc 1
-::tcltest::configure {*}$argv
-::tcltest::runAllTests
+# Standalone vector suite; make test also runs the other runtime suites.
+set argv [linsert $argv 0 vector]
+source [file join [file dirname [info script]] runtimeTests.tcl]

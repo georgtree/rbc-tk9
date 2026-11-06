@@ -1,4 +1,4 @@
-# Private tile harness; ordinary suite runs skip it.
+# Private tile harness; run in a dedicated interpreter.
 package provide tile.notify
 package require tcltest
 namespace import tcltest::*

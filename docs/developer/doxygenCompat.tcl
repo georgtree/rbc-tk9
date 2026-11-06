@@ -19,9 +19,8 @@ proc ::rbcDocBuild::normalizeCallbackXml {xml} {
         set last [expr {$closing+[string length </memberdef>]-1}]
         append result [string range $xml $offset [expr {$first-1}]]
         set member [string range $xml $first $last]
-        if {[regexp {^<memberdef\s[^>]*\mkind="variable"} $member] &&
-            [regexp {<argsstring>\s*\(} $member] &&
-            [regsub {(<type>[^<]*\(\s*\*)\s*\)(\s*</type>)} $member {\1\2} fixed]} {
+        if {[regexp {^<memberdef\s[^>]*\mkind="variable"} $member] && [regexp {<argsstring>\s*\(} $member] &&\
+                    [regsub {(<type>[^<]*\(\s*\*)\s*\)(\s*</type>)} $member {\1\2} fixed]} {
             regsub {(<argsstring>)\s*(\()} $fixed {\1)\2} member
         }
         append result $member

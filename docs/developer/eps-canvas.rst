@@ -92,7 +92,7 @@ the other ``RBC.eps.*`` files cover canvas options and lifecycle cases. Review m
 replacement, quick-mode cache invalidation, source-image deletion, anchor picking and PostScript body preservation when
 changing these paths. Use :doc:`image-compatibility` for temporary-photo acquisition and release.
 
-The optional ``make test-resources`` harness counts source-instance releases on deletion followed by reconfiguration or
+The ``make test-resources`` harness (also run by ``make test``) counts source-instance releases on deletion followed by reconfiguration or
 teardown, without relying on process memory measurements. It runs separately from the ordinary suite.
 
 Preview-byte decoding details

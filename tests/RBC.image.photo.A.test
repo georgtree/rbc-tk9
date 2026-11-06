@@ -1,4 +1,4 @@
-# Photo-block conversion harness; ordinary suite runs skip it.
+# Photo-block conversion harness; run in a dedicated interpreter.
 package provide image.photo
 package require tcltest
 namespace import tcltest::*

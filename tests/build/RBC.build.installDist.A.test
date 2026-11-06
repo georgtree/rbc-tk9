@@ -331,7 +331,7 @@ test RBC.build.installDist.A.13.1 {make doc forwards the selected Python executa
 test RBC.build.installDist.A.14.1 {clean removes developer intermediates but preserves sources and published files} -setup {
     set build [::build.installDist::Fixture]
     set dev [file join ${::build.installDist::work} source docs developer]
-    set temp [list [file join $build _build developer] [file join $dev __pycache__] \
+    set temp [list [file join $build _build] [file join ${::build.installDist::work} source _build] [file join $dev __pycache__] \
                   [file join $dev html .doctrees] [file join $dev html _sources]]
     foreach dir $temp {::build.installDist::Write [file join $dir generated] data}
     set info [file join $dev html .buildinfo]
@@ -345,7 +345,7 @@ test RBC.build.installDist.A.14.1 {clean removes developer intermediates but pre
     list $remaining [lmap name $keep {::build.installDist::Read [file join $dev $name]}]
 } -cleanup {
     file delete -force ${::build.installDist::work}
-} -result {{0 0 0 0 0} {KEEP KEEP KEEP KEEP KEEP}}
+} -result {{0 0 0 0 0 0} {KEEP KEEP KEEP KEEP KEEP}}
 
 cleanupTests
 

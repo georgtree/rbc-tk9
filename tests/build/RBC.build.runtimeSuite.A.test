@@ -1,0 +1,46 @@
+# Exercise the aggregate runner without building RBC or opening a display.
+package provide build.runtimeSuite
+package require tcltest 2
+namespace import tcltest::*
+
+namespace eval build.runtimeSuite {
+    set runner [file normalize [file join [file dirname [info script]] .. runtimeTests.tcl]]
+    test RBC.build.runtimeSuite.A.1.1 {filtered private suites run once in isolated children and propagate failure} -setup {
+        set work [makeDirectory runtime-suite-[pid]]
+        file copy $runner $work
+        set log [file join $work seen]
+        set script {
+            package require tcltest 2
+            namespace import tcltest::*
+            set f [open [file join [file dirname [info script]] seen] a]
+            puts $f [list [file tail [info script]] [pid] [lsort [array names ::env RBC_*_TEST_LIB]]]
+            close $f
+            test fixture-1 {} -body {file exists [file join [file dirname [info script]] fail]} -result 0
+            cleanupTests
+        }
+        set files {RBC.image.photo.A.test RBC.resources.lifecycle.A.test}
+        foreach name $files {makeFile $script [file join $work $name]}
+        set vars {RBC_NOTIFY_TEST_LIB RBC_TILE_TEST_LIB RBC_IMAGE_TEST_LIB RBC_RESOURCE_TEST_LIB RBC_CAPI_TEST_LIB}
+        set saved {}
+        foreach var $vars {
+            if {[info exists ::env($var)]} {dict set saved $var $::env($var)}
+            unset -nocomplain ::env($var)
+        }
+        foreach var {RBC_IMAGE_TEST_LIB RBC_RESOURCE_TEST_LIB} {set ::env($var) $runner}
+    } -body {
+        set cmd [list [info nameofexecutable] [file join $work runtimeTests.tcl] all -file $files]
+        exec {*}$cmd 2>@1
+        set f [open $log]
+        try {set entries [split [string trim [read $f]] \n]} finally {close $f}
+        lassign $entries img res
+        makeFile {} [file join $work fail]
+        set failed [catch {exec {*}$cmd 2>@1} msg options]
+        list [lmap entry $entries {lindex $entry 0}] [expr {[lindex $img 1] != [lindex $res 1]}] \
+            [lindex $img 2] [lindex $res 2] $failed [lindex [dict get $options -errorcode] 2]
+    } -cleanup {
+        foreach var $vars {unset -nocomplain ::env($var)}
+        dict for {var value} $saved {set ::env($var) $value}
+        removeDirectory $work
+    } -result {{RBC.image.photo.A.test RBC.resources.lifecycle.A.test} 1 RBC_IMAGE_TEST_LIB RBC_RESOURCE_TEST_LIB 1 1}
+}
+cleanupTests

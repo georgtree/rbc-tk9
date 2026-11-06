@@ -481,10 +481,11 @@ Run the automated test suite from the build directory:
 make test
 ```
 
-This target builds the package and the public C API test extension, then runs `tests/all.tcl` with the appropriate build
-environment. The automated runner sets native as the option-database default to preserve the existing pixel tests.
-Dedicated renderer tests explicitly select Cairo and verify the compiled default. Manual tests and demos retain the
-build default: Cairo when enabled, native otherwise.
+This target runs the widget suite, the headless vector suite, and the private vector notification, tile, image and
+resource/PostScript harnesses. Each runs in a fresh Tcl process. Vector tests shared by the first two suites exercise
+both Tk-loaded and Tcl-only configurations. Widget pixel tests use native rendering unless a test selects a renderer.
+File and test-name filters apply across the suites. Header probes, build and documentation checks, benchmarks, and manual
+tests remain separate.
 
 Run the Tcl-only package-loading, public vector C API, literal-name, namespace, rename, and expression callback tests
 without a display:
@@ -502,8 +503,7 @@ make test-vector-notify
 
 This relinks RBC objects into a test-only library and runs `RBC.vector.notify.A.test` in a fresh Tcl interpreter.
 It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.
-These private APIs are not added to the public stubs table. The ordinary suite skips this file without the dedicated
-harness. The MSVC makefile provides the same target.
+These private APIs are not added to the public stubs table. The aggregate target runs this file only in its dedicated harness process. The MSVC makefile provides the same target.
 
 The suite uses `tcltest`. Pass test selection options through `TESTFLAGS`.
 

@@ -1,4 +1,4 @@
-# Private temporary-image lifecycle harness; ordinary suite runs skip it.
+# Private temporary-image lifecycle harness; run in a dedicated interpreter.
 package provide image.temporary
 package require tcltest
 namespace import tcltest::*

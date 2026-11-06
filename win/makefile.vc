@@ -23,7 +23,7 @@ CAIRO = 0
 !error CAIRO must be 0 or 1.
 !endif
 
-PRJ_OBJS = \
+RBC_COMMON_OBJS = \
     $(TMP_DIR)\rbcRender.obj \
     $(TMP_DIR)\rbcRenderCairo.obj \
     $(TMP_DIR)\rbcRenderPostscript.obj \
@@ -34,7 +34,6 @@ PRJ_OBJS = \
     $(TMP_DIR)\rbcRenderNativeWin.obj \
     $(TMP_DIR)\rbcAlloc.obj \
     $(TMP_DIR)\rbcBind.obj \
-    $(TMP_DIR)\rbcCanvEps.obj \
     $(TMP_DIR)\rbcChain.obj \
     $(TMP_DIR)\rbcConfig.obj \
     $(TMP_DIR)\rbcGraph.obj \
@@ -46,7 +45,6 @@ PRJ_OBJS = \
     $(TMP_DIR)\rbcGrLegd.obj \
     $(TMP_DIR)\rbcGrLine.obj \
     $(TMP_DIR)\rbcGrMarker.obj \
-    $(TMP_DIR)\rbcGrMisc.obj \
     $(TMP_DIR)\rbcGeometry.obj \
     $(TMP_DIR)\rbcScroll.obj \
     $(TMP_DIR)\rbcDraw.obj \
@@ -63,7 +61,6 @@ PRJ_OBJS = \
     $(TMP_DIR)\rbcImage.obj \
     $(TMP_DIR)\rbcInt.obj \
     $(TMP_DIR)\rbcList.obj \
-    $(TMP_DIR)\rbcPs.obj \
     $(TMP_DIR)\rbcSpline.obj \
     $(TMP_DIR)\rbcText.obj \
     $(TMP_DIR)\rbcTile.obj \
@@ -72,12 +69,15 @@ PRJ_OBJS = \
     $(TMP_DIR)\rbcVecFft.obj \
     $(TMP_DIR)\rbcVecCmd.obj \
     $(TMP_DIR)\rbcVector.obj \
-    $(TMP_DIR)\rbcWindow.obj \
     $(TMP_DIR)\rbcWinop.obj \
     $(TMP_DIR)\rbcStubInit.obj \
     $(TMP_DIR)\rbcWinDraw.obj \
     $(TMP_DIR)\rbcWinImage.obj \
     $(TMP_DIR)\rbcWinUtil.obj
+
+# These four implementations are included in the private resource harness.
+RBC_RESOURCE_OBJS = $(TMP_DIR)\rbcCanvEps.obj $(TMP_DIR)\rbcGrMisc.obj $(TMP_DIR)\rbcPs.obj $(TMP_DIR)\rbcWindow.obj
+PRJ_OBJS = $(RBC_COMMON_OBJS) $(RBC_RESOURCE_OBJS)
 
 PRJ_STUBOBJS = $(TMP_DIR)\rbcStubLib.obj
 PRJ_HEADERS = $(GENERICDIR)\*.h
@@ -148,9 +148,13 @@ $(CAPI_OBJS): makefile.vc
 $(CAPI_DLL): $(CAPI_OBJS)
 	$(link32) $(dlllflags) /out:"$@" $(CAPI_OBJS) "$(TCLSTUBLIB)" kernel32.lib ucrt.lib
 
-test: $(PROJECT) $(CAPI_DLL)
-	@echo Running RBC tests...
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" $(TESTFLAGS)"
+NOTIFY_DLL = $(OUT_DIR)\rbcnotifytest.dll
+TILE_DLL = $(OUT_DIR)\rbctiletest.dll
+IMAGE_DLL = $(OUT_DIR)\rbcimagetest.dll
+RESOURCE_DLL = $(OUT_DIR)\rbcresourcetest.dll
+
+test: $(PROJECT) $(CAPI_DLL) $(NOTIFY_DLL) $(TILE_DLL) $(IMAGE_DLL) $(RESOURCE_DLL)
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && set "RBC_NOTIFY_TEST_LIB=$(NOTIFY_DLL)" && set "RBC_TILE_TEST_LIB=$(TILE_DLL)" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" all $(TESTFLAGS)"
 
 test-headers:
 	@if not exist "$(TMP_DIR)" mkdir "$(TMP_DIR)"
@@ -164,7 +168,6 @@ test-vector: $(PROJECT) $(CAPI_DLL)
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\vectorAll.tcl" $(TESTFLAGS)"
 
 # Relink private notification APIs into a dedicated test DLL, never installed.
-NOTIFY_DLL = $(OUT_DIR)\rbcnotifytest.dll
 NOTIFY_OBJ = $(TMP_DIR)\rbcVectorNotifyTest.obj
 $(NOTIFY_OBJ): $(TESTDIR)\rbcVectorNotifyTest.c $(PRJ_HEADERS)
 	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcVectorNotifyTest.c"
@@ -172,9 +175,8 @@ $(NOTIFY_DLL): $(PRJ_OBJS) $(NOTIFY_OBJ)
 	$(DLLCMD) $(PRJ_OBJS) $(NOTIFY_OBJ)
 	$(_VC_MANIFEST_EMBED_DLL)
 test-vector-notify: $(PROJECT) $(NOTIFY_DLL)
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_NOTIFY_TEST_LIB=$(NOTIFY_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\RBC.vector.notify.A.test" $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_NOTIFY_TEST_LIB=$(NOTIFY_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" notify $(TESTFLAGS)"
 
-TILE_DLL = $(OUT_DIR)\rbctiletest.dll
 TILE_OBJ = $(TMP_DIR)\rbcTileTest.obj
 $(TILE_OBJ): $(TESTDIR)\rbcTileTest.c $(GENERICDIR)\rbcTile.c $(PRJ_HEADERS)
 	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcTileTest.c"
@@ -182,7 +184,27 @@ $(TILE_DLL): $(PRJ_OBJS) $(TILE_OBJ)
 	$(DLLCMD) $(PRJ_OBJS:rbcTile.obj=rbcTileTest.obj)
 	$(_VC_MANIFEST_EMBED_DLL)
 test-tile: $(PROJECT) $(TILE_DLL)
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_TILE_TEST_LIB=$(TILE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\RBC.tile.notify.A.test" $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_TILE_TEST_LIB=$(TILE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" tile $(TESTFLAGS)"
+
+IMAGE_OBJ = $(TMP_DIR)\rbcImageTest.obj
+$(IMAGE_OBJ): $(TESTDIR)\rbcImageTest.c $(PRJ_HEADERS) $(GENERICDIR)\rbcImage.c
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcImageTest.c"
+$(IMAGE_DLL): $(PRJ_OBJS) $(IMAGE_OBJ)
+	$(DLLCMD) $(PRJ_OBJS:rbcImage.obj=rbcImageTest.obj)
+	$(_VC_MANIFEST_EMBED_DLL)
+test-image: $(PROJECT) $(IMAGE_DLL)
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" temporary $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" photo $(TESTFLAGS)"
+
+RESOURCE_OBJ = $(TMP_DIR)\rbcResourceTest.obj
+$(RESOURCE_OBJ): $(TESTDIR)\rbcResourceTest.c $(PRJ_HEADERS) $(GENERICDIR)\rbcCanvEps.c $(GENERICDIR)\rbcGrMisc.c $(GENERICDIR)\rbcPs.c $(GENERICDIR)\rbcWindow.c
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcResourceTest.c"
+$(RESOURCE_DLL): $(PRJ_OBJS) $(RESOURCE_OBJ)
+	$(DLLCMD) $(RBC_COMMON_OBJS) $(RESOURCE_OBJ)
+	$(_VC_MANIFEST_EMBED_DLL)
+test-resources: $(PROJECT) $(RESOURCE_DLL)
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" resources $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" ps $(TESTFLAGS)"
 
 shell: $(PROJECT)
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && $(DEBUGGER) "$(TCLSH)""
@@ -213,7 +235,7 @@ check-doc-dev:
 clean realclean: clean-doc-dev-temporaries
 
 clean-doc-dev-temporaries:
-	@if exist "$(ROOT)\_build\developer" rmdir /s /q "$(ROOT)\_build\developer"
+	@if exist "$(ROOT)\_build" rmdir /s /q "$(ROOT)\_build"
 	@if exist "$(ROOT)\docs\developer\__pycache__" rmdir /s /q "$(ROOT)\docs\developer\__pycache__"
 	@if exist "$(ROOT)\docs\developer\html\.doctrees" rmdir /s /q "$(ROOT)\docs\developer\html\.doctrees"
 	@if exist "$(ROOT)\docs\developer\html\_sources" rmdir /s /q "$(ROOT)\docs\developer\html\_sources"
