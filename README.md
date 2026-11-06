@@ -505,7 +505,8 @@ This relinks RBC objects into a test-only library and runs `RBC.vector.notify.A.
 It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.
 These private APIs are not added to the public stubs table. The aggregate target runs this file only in its dedicated harness process. The MSVC makefile provides the same target.
 
-The suite uses `tcltest`. Pass test selection options through `TESTFLAGS`.
+Runtime tests live in `tests/runtime/<group>/`, for example `tests/runtime/graph/` and `tests/runtime/vector/`.
+Pass `tcltest` selection options through `TESTFLAGS`. The `-file` and `-notfile` patterns match the filename without its directory.
 
 For example, run the line-decimation test file:
 ```sh

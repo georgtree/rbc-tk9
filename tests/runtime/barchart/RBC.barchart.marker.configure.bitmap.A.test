@@ -67,7 +67,7 @@ namespace eval barchart.marker {
 		.barchart1 marker create bitmap -name marker1
 	} -body {
 		.barchart1 marker configure marker1 \
-			-bitmap @[file join [file dirname [info script]] greenback.xbm]
+			-bitmap @[file join [file dirname [info script]] .. .. greenback.xbm]
 		.barchart1 marker cget marker1 -bitmap
 	} -cleanup {
 	    .barchart1 marker delete marker1
@@ -473,9 +473,9 @@ namespace eval barchart.marker {
         barchart marker configure bitmap: mask - valid bitmap
     } -setup {
         barchart .barchart1
-        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] circle.xbm]
+        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] .. .. circle.xbm]
     } -body {
-        .barchart1 marker configure Marker1 -mask @[file join [file dirname [info script]] circle_mask.xbm]
+        .barchart1 marker configure Marker1 -mask @[file join [file dirname [info script]] .. .. circle_mask.xbm]
         .barchart1 marker cget Marker1 -mask
     } -cleanup {
         .barchart1 marker delete Marker1
@@ -489,8 +489,8 @@ namespace eval barchart.marker {
         barchart marker configure bitmap: clear mask
     } -setup {
         barchart .barchart1
-        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] circle.xbm]\
-                -mask @[file join [file dirname [info script]] circle_mask.xbm]
+        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] .. .. circle.xbm]\
+                -mask @[file join [file dirname [info script]] .. .. circle_mask.xbm]
     } -body {
         .barchart1 marker configure Marker1 -mask {}
         .barchart1 marker cget Marker1 -mask
@@ -506,10 +506,10 @@ namespace eval barchart.marker {
         barchart marker configure bitmap: mismatched mask dimensions
     } -setup {
         barchart .barchart1
-        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] circle.xbm]
+        .barchart1 marker create bitmap -name Marker1 -bitmap @[file join [file dirname [info script]] .. .. circle.xbm]
     } -body {
         catch {
-            .barchart1 marker configure Marker1 -mask @[file join [file dirname [info script]] circle_mask_bad.xbm]
+            .barchart1 marker configure Marker1 -mask @[file join [file dirname [info script]] .. .. circle_mask_bad.xbm]
         } message
         set message
     } -cleanup {
@@ -524,7 +524,7 @@ namespace eval barchart.marker {
     test RBC.barchart.marker.configure.bitmap.A.11.1 {
         barchart marker configure bitmap: mask resource lifetime
     } -setup {
-        set testDir [file dirname [info script]]
+        set testDir [file join [file dirname [info script]] .. ..]
         set bitmapFile @[file join $testDir circle.xbm]
         set maskFile @[file join $testDir circle_mask.xbm]
 
@@ -564,7 +564,7 @@ namespace eval barchart.marker {
     test RBC.barchart.marker.configure.bitmap.A.12.1 {
         bitmap marker configuration is atomic
     } -setup {
-        set testDir [file dirname [info script]]
+        set testDir [file join [file dirname [info script]] .. ..]
         set bitmapFile @[file join $testDir circle.xbm]
         set maskFile @[file join $testDir circle_mask.xbm]
         set badMaskFile @[file join $testDir circle_mask_bad.xbm]

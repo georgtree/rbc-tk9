@@ -36,7 +36,9 @@ set include [::tcltest::configure -file]
 set exclude [::tcltest::configure -notfile]
 if {$suite eq "widgets"} {lappend exclude {*}$privateFiles}
 switch -- $suite {
-    widgets {set candidates [glob -tails -directory $here RBC.*.test]}
+    widgets {
+        set candidates [lmap path [glob -directory $here runtime/*/RBC.*.test] {file tail $path}]
+    }
     vector {
         set candidates {
             RBC.vector.load.A.test RBC.vector.capi.A.test RBC.vector.readonly.A.test
@@ -52,7 +54,10 @@ foreach file $candidates {
     set selected 0
     foreach pattern $include {if {[string match $pattern $file]} {set selected 1; break}}
     foreach pattern $exclude {if {[string match $pattern $file]} {set selected 0; break}}
-    if {$selected} {lappend files $file}
+    if {$selected} {
+        # RBC.<group>.<test>.test lives under runtime/<group>.
+        lappend files [file join runtime [lindex [split $file .] 1] $file]
+    }
 }
 if {![llength $files]} {exit 0}
 
@@ -73,7 +78,7 @@ if {$suite eq "widgets"} {
         error "missing $suite test library: $var"
     }
 }
-::tcltest::configure -testdir $here -file $files -asidefromdir * -singleproc 1
+::tcltest::configure -testdir $here -file $files -notfile {} -asidefromdir * -singleproc 1
 # Some tcltest versions call an unqualified exit from cleanupTests when Tk
 # is loaded. Let the runner return its actual failure status to make.
 proc ::tcltest::exit {args} {

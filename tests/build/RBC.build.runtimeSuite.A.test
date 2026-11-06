@@ -12,14 +12,18 @@ namespace eval build.runtimeSuite {
         set script {
             package require tcltest 2
             namespace import tcltest::*
-            set f [open [file join [file dirname [info script]] seen] a]
+            set f [open [file join [file dirname [info script]] .. .. seen] a]
             puts $f [list [file tail [info script]] [pid] [lsort [array names ::env RBC_*_TEST_LIB]]]
             close $f
-            test fixture-1 {} -body {file exists [file join [file dirname [info script]] fail]} -result 0
+            test fixture-1 {} -body {file exists [file join [file dirname [info script]] .. .. fail]} -result 0
             cleanupTests
         }
         set files {RBC.image.photo.A.test RBC.resources.lifecycle.A.test}
-        foreach name $files {makeFile $script [file join $work $name]}
+        foreach name $files {
+            set groupDir [file join $work runtime [lindex [split $name .] 1]]
+            file mkdir $groupDir
+            makeFile $script [file join $groupDir $name]
+        }
         set vars {RBC_NOTIFY_TEST_LIB RBC_TILE_TEST_LIB RBC_IMAGE_TEST_LIB RBC_RESOURCE_TEST_LIB RBC_CAPI_TEST_LIB}
         set saved {}
         foreach var $vars {

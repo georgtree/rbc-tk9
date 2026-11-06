@@ -67,7 +67,7 @@ namespace eval stripchart.marker {
 		.stripchart1 marker create bitmap -name marker1
 	} -body {
 		.stripchart1 marker configure marker1 \
-			-bitmap @[file join [file dirname [info script]] greenback.xbm]
+			-bitmap @[file join [file dirname [info script]] .. .. greenback.xbm]
 		.stripchart1 marker cget marker1 -bitmap
 	} -cleanup {
 	    .stripchart1 marker delete marker1
@@ -469,7 +469,7 @@ namespace eval stripchart.marker {
     test RBC.stripchart.marker.configure.bitmap.A.8.1 {
         bitmap marker configuration is atomic
     } -setup {
-        set testDir [file dirname [info script]]
+        set testDir [file join [file dirname [info script]] .. ..]
         set bitmapFile @[file join $testDir circle.xbm]
         set maskFile @[file join $testDir circle_mask.xbm]
         set badMaskFile @[file join $testDir circle_mask_bad.xbm]

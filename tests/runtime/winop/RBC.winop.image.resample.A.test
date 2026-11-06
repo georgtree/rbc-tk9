@@ -1,7 +1,7 @@
-# RBC.winop.resample.A.test --
+# RBC.winop.image.resample.A.test --
 #
 ###Abstract
-# This file contains the automatic tests that test the resample 
+# This file contains the automatic tests that test the image resample 
 # function of the winop BLT component.
 #
 ###Copyright
@@ -12,26 +12,24 @@
 # SVN: $Id$
 
 ###Package Definition
-package provide winop.resample
+package provide winop.image
 
 package require rbc
 namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-namespace eval winop.resample {
+namespace eval winop.image {
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'bell' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.1 {
-	    winop resample: bell
+	test RBC.winop.image.resample.A.1.1 {
+	    winop image resample: bell
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest bell}]} {
+	    if {[catch {winop image resample $src $dest bell}]} {
 			return 1
 	    } else {
 			return 0
@@ -39,21 +37,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'bessel' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.2 {
-	    winop resample: bessel
+	test RBC.winop.image.resample.A.1.2 {
+	    winop image resample: bessel
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest bessel}]} {
+	    if {[catch {winop image resample $src $dest bessel}]} {
 			return 1
 	    } else {
 			return 0
@@ -61,21 +56,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'box' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.3 {
-	    winop resample: box
+	test RBC.winop.image.resample.A.1.3 {
+	    winop image resample: box
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest box}]} {
+	    if {[catch {winop image resample $src $dest box}]} {
 			return 1
 	    } else {
 			return 0
@@ -83,21 +75,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'bspline' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.4 {
-	    winop resample: bspline
+	test RBC.winop.image.resample.A.1.4 {
+	    winop image resample: bspline
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest bspline}]} {
+	    if {[catch {winop image resample $src $dest bspline}]} {
 			return 1
 	    } else {
 			return 0
@@ -105,21 +94,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'catrom' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.5 {
-	    winop resample: catrom
+	test RBC.winop.image.resample.A.1.5 {
+	    winop image resample: catrom
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest catrom}]} {
+	    if {[catch {winop image resample $src $dest catrom}]} {
 			return 1
 	    } else {
 			return 0
@@ -127,21 +113,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'default' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.6 {
-	    winop resample: default
+	test RBC.winop.image.resample.A.1.6 {
+	    winop image resample: default
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest default}]} {
+	    if {[catch {winop image resample $src $dest default}]} {
 			return 1
 	    } else {
 			return 0
@@ -149,21 +132,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'dummy' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.7 {
-	    winop resample: dummy
+	test RBC.winop.image.resample.A.1.7 {
+	    winop image resample: dummy
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest dummy}]} {
+	    if {[catch {winop image resample $src $dest dummy}]} {
 			return 1
 	    } else {
 			return 0
@@ -171,21 +151,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'gauss8' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.8 {
-	    winop resample: gauss8
+	test RBC.winop.image.resample.A.1.8 {
+	    winop image resample: gauss8
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest gauss8}]} {
+	    if {[catch {winop image resample $src $dest gauss8}]} {
 			return 1
 	    } else {
 			return 0
@@ -193,21 +170,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'gaussian' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.9 {
-	    winop resample: gaussian
+	test RBC.winop.image.resample.A.1.9 {
+	    winop image resample: gaussian
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest gaussian}]} {
+	    if {[catch {winop image resample $src $dest gaussian}]} {
 			return 1
 	    } else {
 			return 0
@@ -215,21 +189,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'gi' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.10 {
-	    winop resample: gi
+	test RBC.winop.image.resample.A.1.10 {
+	    winop image resample: gi
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest gi}]} {
+	    if {[catch {winop image resample $src $dest gi}]} {
 			return 1
 	    } else {
 			return 0
@@ -237,21 +208,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'lanczos3' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.11 {
-	    winop resample: lanczos3
+	test RBC.winop.image.resample.A.1.11 {
+	    winop image resample: lanczos3
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest lanczos3}]} {
+	    if {[catch {winop image resample $src $dest lanczos3}]} {
 			return 1
 	    } else {
 			return 0
@@ -259,21 +227,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'mitchell' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.12 {
-	    winop resample: mitchell
+	test RBC.winop.image.resample.A.1.12 {
+	    winop image resample: mitchell
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest mitchell}]} {
+	    if {[catch {winop image resample $src $dest mitchell}]} {
 			return 1
 	    } else {
 			return 0
@@ -281,21 +246,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'none' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.13 {
-	    winop resample: bell
+	test RBC.winop.image.resample.A.1.13 {
+	    winop image resample: bell
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest none}]} {
+	    if {[catch {winop image resample $src $dest none}]} {
 			return 1
 	    } else {
 			return 0
@@ -303,21 +265,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'sinc' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.14 {
-	    winop resample: sinc
+	test RBC.winop.image.resample.A.1.14 {
+	    winop image resample: sinc
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest sinc}]} {
+	    if {[catch {winop image resample $src $dest sinc}]} {
 			return 1
 	    } else {
 			return 0
@@ -325,21 +284,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with the 'triangle' filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.15 {
-	    winop resample: triangle
+	test RBC.winop.image.resample.A.1.15 {
+	    winop image resample: triangle
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest triangle}]} {
+	    if {[catch {winop image resample $src $dest triangle}]} {
 			return 1
 	    } else {
 			return 0
@@ -347,21 +303,18 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly with an invalid filter.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.1.16 {
-	    winop resample: invalid
+	test RBC.winop.image.resample.A.1.16 {
+	    winop image resample: invalid
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest invalid}]} {
+	    if {[catch {winop image resample $src $dest invalid}]} {
 			return 0
 	    } else {
 			return 1
@@ -369,22 +322,19 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly when given 2 filters (one for
 	# horizontal and one for vertical).
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.2.1 {
-	    winop resample: 2 filters
+	test RBC.winop.image.resample.A.2.1 {
+	    winop image resample: 2 filters
 	} -setup {
-	    graph .graph1
-	    pack .graph1
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 		set dest [image create photo -height 200 -width 200]
 	} -body {
-	    if {[catch {winop resample $src $dest box triangle}]} {
+	    if {[catch {winop image resample $src $dest box triangle}]} {
 			return 1
 	    } else {
 			return 0
@@ -392,45 +342,42 @@ namespace eval winop.resample {
 	} -cleanup {
 		image delete $src
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly when given a non-existent Tk
 	# photo as the source image.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.3.1 {
-	    winop resample: non-existent Tk photo source
+	test RBC.winop.image.resample.A.3.1 {
+	    winop image resample: non-existent Tk photo source
 	} -setup {
-		set dest [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set dest [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 	} -body {
-	    if {[catch {winop resample $src $dest sinc}]} {
+	    if {[catch {winop image resample $src $dest sinc}]} {
 			return 0
 	    } else {
 			return 1
 	    }
 	} -cleanup {
 		image delete $dest
-	    destroy .graph1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the resample command works properly when given a non-existent Tk
 	# photo as the destination image.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.winop.resample.A.3.2 {
-	    winop resample: non-existent Tk photo destination
+	test RBC.winop.image.resample.A.3.2 {
+	    winop image resample: non-existent Tk photo destination
 	} -setup {
-		set src [image create photo -file [file join [file dirname [info script]] rain.gif]]
+		set src [image create photo -file [file join [file dirname [info script]] .. .. rain.gif]]
 	} -body {
-	    if {[catch {winop resample $src $dest sinc}]} {
+	    if {[catch {winop image resample $src $dest sinc}]} {
 			return 0
 	    } else {
 			return 1
 	    }
 	} -cleanup {
 		image delete $src
-	    destroy .graph1
 	} -result {0}	
 	
 	cleanupTests

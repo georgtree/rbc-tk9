@@ -1,6 +1,6 @@
 # Manual visual tests
 
-The manual suite complements `tests/RBC.*.A.test`. It exercises appearance, mouse interaction and platform-dependent
+The manual suite complements `tests/runtime/*/RBC.*.A.test`. It exercises appearance, mouse interaction and platform-dependent
 display behavior. Successful script execution is not a visual pass.
 
 ## Running tests

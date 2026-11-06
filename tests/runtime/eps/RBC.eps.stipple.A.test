@@ -1,7 +1,7 @@
-# RBC.eps.image.A.test --
+# RBC.eps.stipple.A.test --
 #
 ###Abstract
-# This file contains the automatic tests that test the image 
+# This file contains the automatic tests that test the stipple 
 # function of the eps BLT component.
 #
 ###Copyright
@@ -12,45 +12,41 @@
 # SVN: $Id$
 
 ###Package Definition
-package provide eps.image
+package provide eps.stipple
 
 package require rbc
 namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-namespace eval eps.image {
+namespace eval eps.stipple {
 	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the image command works properly when given an existing image 
-	# pointer.
+	# Purpose: Ensure the stipple command works properly when given a valid color name.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.eps.image.A.1.1 {
-	    eps image: valid image
+	test RBC.eps.stipple.A.1.1 {
+	    eps stipple: valid color
 	} -setup {
 	    canvas .canvas1
 		.canvas1 create eps 0 0
 	} -body {
-		set img [image create photo image.a.1.1 \
-			-file [file join [file dirname [info script]] stopsign.gif]]
-		.canvas1 itemconfigure 1 -image $img
-		.canvas1 itemcget 1 -image
+		.canvas1 itemconfigure 1 \
+			-stipple @[file join [file dirname [info script]] .. .. greenback.xbm]
+		.canvas1 itemcget 1 -stipple
 	} -cleanup {
-		image delete $img
 		.canvas1 delete 1
 	    destroy .canvas1
-	} -result {image.a.1.1}
+	} -match glob -result {@*greenback.xbm}
 	
 	# ------------------------------------------------------------------------------------
-	# Purpose: Ensure the image command works properly when given an invalid image
-	# pointer.
+	# Purpose: Ensure the stipple command works properly when given an invalid color name.
 	# ------------------------------------------------------------------------------------ 
-	test RBC.eps.image.A.1.2 {
-	    eps image: invalid image
+	test RBC.eps.stipple.A.1.2 {
+	    eps stipple: invalid color
 	} -setup {
 	    canvas .canvas1
 		.canvas1 create eps 0 0
 	} -body {
-		if {[catch {.canvas1 itemconfigure 1 -image invalid}]} {
+		if {[catch {.canvas1 itemconfigure 1 -stipple invalid}]} {
 			return 0
 		} else {
 			return 1

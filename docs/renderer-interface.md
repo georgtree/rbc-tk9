@@ -41,7 +41,7 @@ writer and require no additional dependency. The SVG command renders and validat
 PostScript limitations remain unchanged: area opacity is ignored, tiled areas export their configured background,
 and failed window capture uses the existing gray rectangle fallback. Font/color maps stay in the PS backend.
 
-Tests are in `tests/RBC.graph.svg.A.test` and `tests/RBC.graph.postscript.*.test`. The SVG tests also exercise
+Tests are in `tests/runtime/graph/RBC.graph.svg.A.test` and `tests/runtime/graph/RBC.graph.postscript.*.test`. The SVG tests also exercise
 alternating exports and recovery after an export error. Screen renderer tests remain separate.
 
 ## Direct PDF backend
@@ -64,7 +64,7 @@ Glyph codes and Unicode mappings are separate so characters sharing a glyph reta
 Complete font programs are embedded; subsetting, variable fonts, CID-keyed CFF/CFF2 and color fonts are not implemented.
 The font data reader checks table bounds and embedding permissions; fonts are not sourced from the PDF viewer.
 
-Regression tests: `tests/RBC.graph.pdf.A.test` and `tests/RBC.graph.pdf.font.A.test`. They validate all object offsets
+Regression tests: `tests/runtime/graph/RBC.graph.pdf.A.test` and `tests/runtime/graph/RBC.graph.pdf.font.A.test`. They validate all object offsets
 and stream lengths, binary file roundtrips, option isolation, resource growth, font errors before opening files,
 transparency and geometry restoration.
 
@@ -77,4 +77,4 @@ and explicit per-character positions, preserving the original Unicode in text/ts
 family aliases and rebuilds Unicode cmap formats 4/12 for used characters, including legacy Symbol fonts.
 All glyph outlines are retained; table checksums and head checksumAdjustment are rebuilt. Embedding
 permissions and supported-font restrictions match PDF. Importers must support CSS webfonts and data URLs.
-Option/default/error recovery coverage is in `tests/RBC.graph.export.font.A.test`.
+Option/default/error recovery coverage is in `tests/runtime/graph/RBC.graph.export.font.A.test`.

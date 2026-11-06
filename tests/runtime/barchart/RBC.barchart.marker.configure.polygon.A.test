@@ -1,8 +1,8 @@
-# RBC.stripchart.marker.configure.polygon.A.test --
+# RBC.barchart.marker.configure.polygon.A.test --
 #
 ###Abstract
 # This file contains the automatic tests that test the polygon marker configure
-# function of the stripchart BLT component.
+# function of the barchart BLT component.
 #
 ###Copyright
 # See the file "license.terms" for information on usage and
@@ -12,546 +12,546 @@
 # SVN: $Id$
 
 ###Package Definition
-package provide stripchart.marker
+package provide barchart.marker
 
 package require rbc
 namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
-namespace eval stripchart.marker {	
+namespace eval barchart.marker {	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -dashes command works correctly when given a
 	# valid dash list.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.1.1 { 
-		stripchart marker configure: dashes - valid dash list
+	test RBC.barchart.marker.configure.polygon.A.1.1 {
+		barchart marker configure: dashes - valid dash list
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -dashes {2 3 2 4}
-		.stripchart1 marker cget Marker1 -dashes
+		.barchart1 marker configure Marker1 -dashes {2 3 2 4}
+		.barchart1 marker cget Marker1 -dashes
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {2 3 2 4}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -dashes command works correctly when given an
 	# empty dash list.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.1.2 {
-		stripchart marker configure: dashes - empty dash list
+	test RBC.barchart.marker.configure.polygon.A.1.2 {
+		barchart marker configure: dashes - empty dash list
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -dashes ""
-		.stripchart1 marker cget Marker1 -dashes
+		.barchart1 marker configure Marker1 -dashes ""
+		.barchart1 marker cget Marker1 -dashes
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -dashes command works correctly when given a
 	# dash list that is too long.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.1.3 {
-		stripchart marker configure: dashes - long dash list
+	test RBC.barchart.marker.configure.polygon.A.1.3 {
+		barchart marker configure: dashes - long dash list
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -dashes {2 3 2 4 2 3 2 4 2 3 2 4}}]} {
+		if {[catch {.barchart1 marker configure Marker1 -dashes {2 3 2 4 2 3 2 4 2 3 2 4}}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -dashes command works correctly when given an
 	# invalid numerical dash list.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.1.4 {
-		stripchart marker configure: dashes - invalid numerical dash list
+	test RBC.barchart.marker.configure.polygon.A.1.4 {
+		barchart marker configure: dashes - invalid numerical dash list
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -dashes {2 3 2 -1 2}}]} {
+		if {[catch {.barchart1 marker configure Marker1 -dashes {2 3 2 -1 2}}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -dashes command works correctly when given a
 	# dash list with characters.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.1.5 {
-		stripchart marker configure: dashes - dash list with characters
+	test RBC.barchart.marker.configure.polygon.A.1.5 {
+		barchart marker configure: dashes - dash list with characters
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -dashes {2 3 2 a 2}}]} {
+		if {[catch {.barchart1 marker configure Marker1 -dashes {2 3 2 a 2}}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -fill command works correctly for polygon 
 	# polygon when given a valid color name.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.2.1 {
-		stripchart marker configure polygon: fill - valid color name
+	test RBC.barchart.marker.configure.polygon.A.2.1 {
+		barchart marker configure polygon: fill - valid color name
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -fill black
-		.stripchart1 marker cget Marker1 -fill
+		.barchart1 marker configure Marker1 -fill black
+		.barchart1 marker cget Marker1 -fill
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -fill command works correctly for polygon 
 	# markers when given an invalid color name.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.2.2 {
-		stripchart marker configure polygon: fill - invalid color name
+	test RBC.barchart.marker.configure.polygon.A.2.2 {
+		barchart marker configure polygon: fill - invalid color name
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -fill invalid}]} {
+		if {[catch {.barchart1 marker configure Marker1 -fill invalid}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
 	# an integer pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.3.1 {
-		stripchart marker configure: linewidth - integer input
+	test RBC.barchart.marker.configure.polygon.A.3.1 {
+		barchart marker configure: linewidth - integer input
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -linewidth 2
-		.stripchart1 marker cget Marker1 -linewidth
+		.barchart1 marker configure Marker1 -linewidth 2
+		.barchart1 marker cget Marker1 -linewidth
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {2}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
 	# an invalid integer pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.3.2 {
-		stripchart marker configure: linewidth - invalid integer input
+	test RBC.barchart.marker.configure.polygon.A.3.2 {
+		barchart marker configure: linewidth - invalid integer input
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -linewidth -1}]} {
+		if {[catch {.barchart1 marker configure Marker1 -linewidth -1}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
 	# a decimal pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.3.3 {
-		stripchart marker configure: linewidth - decimal input
+	test RBC.barchart.marker.configure.polygon.A.3.3 {
+		barchart marker configure: linewidth - decimal input
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -linewidth 3.5
-		.stripchart1 marker cget Marker1 -linewidth
+		.barchart1 marker configure Marker1 -linewidth 3.5
+		.barchart1 marker cget Marker1 -linewidth
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {3.5}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
 	# an invalid decimal pixel value.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.3.4 {
-		stripchart marker configure: linewidth - invalid decimal input
+	test RBC.barchart.marker.configure.polygon.A.3.4 {
+		barchart marker configure: linewidth - invalid decimal input
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -linewidth -1.5}]} {
+		if {[catch {.barchart1 marker configure Marker1 -linewidth -1.5}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
 	# a character as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.3.5 {
-		stripchart marker configure: linewidth - character input
+	test RBC.barchart.marker.configure.polygon.A.3.5 {
+		barchart marker configure: linewidth - character input
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -linewidth a}]} {
+		if {[catch {.barchart1 marker configure Marker1 -linewidth a}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -linewidth command works correctly when given
 	# 0 as input.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.3.6 {
-		stripchart marker configure: linewidth - zero
+	test RBC.barchart.marker.configure.polygon.A.3.6 {
+		barchart marker configure: linewidth - zero
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -linewidth 0
-		.stripchart1 marker cget Marker1 -linewidth
+		.barchart1 marker configure Marker1 -linewidth 0
+		.barchart1 marker cget Marker1 -linewidth
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -outline command works correctly for polygon 
 	# polygon when given a valid color name.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.4.1 {
-		stripchart marker configure polygon: outline - valid color name
+	test RBC.barchart.marker.configure.polygon.A.4.1 {
+		barchart marker configure polygon: outline - valid color name
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -outline black
-		.stripchart1 marker cget Marker1 -outline
+		.barchart1 marker configure Marker1 -outline black
+		.barchart1 marker cget Marker1 -outline
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {black}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -outline command works correctly for polygon 
 	# markers when given an invalid color name.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.4.2 {
-		stripchart marker configure polygon: outline - invalid color name
+	test RBC.barchart.marker.configure.polygon.A.4.2 {
+		barchart marker configure polygon: outline - invalid color name
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -outline invalid}]} {
+		if {[catch {.barchart1 marker configure Marker1 -outline invalid}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure configuring stipple changes the coresponding option value pair
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.5.1 {
+	test RBC.barchart.marker.configure.polygon.A.5.1 {
 	    Configure Stipple
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 \
-			-stipple @[file join [file dirname [info script]] greenback.xbm]
-		.stripchart1 marker cget Marker1 -stipple
+		.barchart1 marker configure Marker1 \
+			-stipple @[file join [file dirname [info script]] .. .. greenback.xbm]
+		.barchart1 marker cget Marker1 -stipple
 	} -cleanup {
-	    .stripchart1 marker delete Marker1
-		destroy .stripchart1
+	    .barchart1 marker delete Marker1
+		destroy .barchart1
 	} -match glob -result {@*greenback.xbm}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -cap command works correctly when given 'butt'.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.6.1 {
-		stripchart marker configure: cap - butt
+	test RBC.barchart.marker.configure.polygon.A.6.1 {
+		barchart marker configure: cap - butt
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -cap butt
-		.stripchart1 marker cget Marker1 -cap
+		.barchart1 marker configure Marker1 -cap butt
+		.barchart1 marker cget Marker1 -cap
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {butt}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -cap command works correctly when given
 	# 'projecting'.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.6.2 {
-		stripchart marker configure: cap - projecting
+	test RBC.barchart.marker.configure.polygon.A.6.2 {
+		barchart marker configure: cap - projecting
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -cap projecting
-		.stripchart1 marker cget Marker1 -cap
+		.barchart1 marker configure Marker1 -cap projecting
+		.barchart1 marker cget Marker1 -cap
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {projecting}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -cap command works correctly when given
 	# 'round'.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.6.3 {
-		stripchart marker configure: cap - round
+	test RBC.barchart.marker.configure.polygon.A.6.3 {
+		barchart marker configure: cap - round
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -cap round
-		.stripchart1 marker cget Marker1 -cap
+		.barchart1 marker configure Marker1 -cap round
+		.barchart1 marker cget Marker1 -cap
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {round}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -join command works correctly when given 
 	# 'bevel'.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.7.1 {
-		stripchart marker configure: join - bevel
+	test RBC.barchart.marker.configure.polygon.A.7.1 {
+		barchart marker configure: join - bevel
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -join bevel
-		.stripchart1 marker cget Marker1 -join
+		.barchart1 marker configure Marker1 -join bevel
+		.barchart1 marker cget Marker1 -join
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {bevel}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -join command works correctly when given
 	# 'miter'.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.7.2 {
-		stripchart marker configure: join - miter
+	test RBC.barchart.marker.configure.polygon.A.7.2 {
+		barchart marker configure: join - miter
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -join miter
-		.stripchart1 marker cget Marker1 -join
+		.barchart1 marker configure Marker1 -join miter
+		.barchart1 marker cget Marker1 -join
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {miter}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -join command works correctly when given
 	# 'round'.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.7.3 {
-		stripchart marker configure: join - round
+	test RBC.barchart.marker.configure.polygon.A.7.3 {
+		barchart marker configure: join - round
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -join round
-		.stripchart1 marker cget Marker1 -join
+		.barchart1 marker configure Marker1 -join round
+		.barchart1 marker cget Marker1 -join
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {round}
 
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xor command works correctly when given 1.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.8.1 {
-		stripchart marker configure: xor - 1
+	test RBC.barchart.marker.configure.polygon.A.8.1 {
+		barchart marker configure: xor - 1
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -xor 1
-		.stripchart1 marker cget Marker1 -xor
+		.barchart1 marker configure Marker1 -xor 1
+		.barchart1 marker cget Marker1 -xor
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xor command works correctly when given 0.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.8.2 {
-		stripchart marker configure: xor - 0
+	test RBC.barchart.marker.configure.polygon.A.8.2 {
+		barchart marker configure: xor - 0
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -xor 0
-		.stripchart1 marker cget Marker1 -xor
+		.barchart1 marker configure Marker1 -xor 0
+		.barchart1 marker cget Marker1 -xor
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xor command works correctly when given true.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.8.3 {
-		stripchart marker configure: xor - true
+	test RBC.barchart.marker.configure.polygon.A.8.3 {
+		barchart marker configure: xor - true
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -xor true
-		.stripchart1 marker cget Marker1 -xor
+		.barchart1 marker configure Marker1 -xor true
+		.barchart1 marker cget Marker1 -xor
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xor command works correctly when given false.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.8.4 {
-		stripchart marker configure: xor - false
+	test RBC.barchart.marker.configure.polygon.A.8.4 {
+		barchart marker configure: xor - false
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -xor false
-		.stripchart1 marker cget Marker1 -xor
+		.barchart1 marker configure Marker1 -xor false
+		.barchart1 marker cget Marker1 -xor
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xor command works correctly when given yes.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.8.5 {
-		stripchart marker configure: xor - yes
+	test RBC.barchart.marker.configure.polygon.A.8.5 {
+		barchart marker configure: xor - yes
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -xor yes
-		.stripchart1 marker cget Marker1 -xor
+		.barchart1 marker configure Marker1 -xor yes
+		.barchart1 marker cget Marker1 -xor
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {1}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xor command works correctly when given no.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.8.6 {
-		stripchart marker configure: xor - no
+	test RBC.barchart.marker.configure.polygon.A.8.6 {
+		barchart marker configure: xor - no
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		.stripchart1 marker configure Marker1 -xor no
-		.stripchart1 marker cget Marker1 -xor
+		.barchart1 marker configure Marker1 -xor no
+		.barchart1 marker cget Marker1 -xor
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the marker configure -xor command works correctly when given an 
 	# invalid input value.
 	# ------------------------------------------------------------------------------------
-	test RBC.stripchart.marker.configure.polygon.A.8.7 {
-		stripchart marker configure: xor - invalid input
+	test RBC.barchart.marker.configure.polygon.A.8.7 {
+		barchart marker configure: xor - invalid input
 	} -setup {
-		stripchart .stripchart1
-		.stripchart1 marker create polygon -name Marker1
+		barchart .barchart1
+		.barchart1 marker create polygon -name Marker1
 	} -body {
-		if {[catch {.stripchart1 marker configure Marker1 -xor invalid}]} {
+		if {[catch {.barchart1 marker configure Marker1 -xor invalid}]} {
 			return 0
 		} else {
 			return 1
 		}
 	} -cleanup {
-		.stripchart1 marker delete Marker1
-		destroy .stripchart1
+		.barchart1 marker delete Marker1
+		destroy .barchart1
 	} -result {0}
 
-    test RBC.stripchart.marker.configure.polygon.A.9.1 {
+    test RBC.barchart.marker.configure.polygon.A.9.1 {
         polygon marker configuration is atomic
     } -setup {
-        stripchart .stripchart1
-        .stripchart1 marker create polygon -name Marker1 -coords {0 0 1 0 1 1} -fill {red white} -outline {black yellow}\
+        barchart .barchart1
+        .barchart1 marker create polygon -name Marker1 -coords {0 0 1 0 1 1} -fill {red white} -outline {black yellow}\
                 -linewidth 2
-        set oldCoords [.stripchart1 marker cget Marker1 -coords]
-        set oldFill [.stripchart1 marker cget Marker1 -fill]
-        set oldOutline [.stripchart1 marker cget Marker1 -outline]
-        set oldWidth [.stripchart1 marker cget Marker1 -linewidth]
+        set oldCoords [.barchart1 marker cget Marker1 -coords]
+        set oldFill [.barchart1 marker cget Marker1 -fill]
+        set oldOutline [.barchart1 marker cget Marker1 -outline]
+        set oldWidth [.barchart1 marker cget Marker1 -linewidth]
     } -body {
-        set code [catch {.stripchart1 marker configure Marker1 -coords {2 2 3 2 3 3} -fill {red blue green} -outline\
+        set code [catch {.barchart1 marker configure Marker1 -coords {2 2 3 2 3 3} -fill {red blue green} -outline\
                                   white -linewidth 3.5} message]
-        list $code [expr {[.stripchart1 marker cget Marker1 -coords] eq $oldCoords}]\
-                [expr {[.stripchart1 marker cget Marker1 -fill] eq $oldFill}]\
-                [expr {[.stripchart1 marker cget Marker1 -outline] eq $oldOutline}]\
-                [expr {[.stripchart1 marker cget Marker1 -linewidth] eq $oldWidth}]
+        list $code [expr {[.barchart1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.barchart1 marker cget Marker1 -fill] eq $oldFill}]\
+                [expr {[.barchart1 marker cget Marker1 -outline] eq $oldOutline}]\
+                [expr {[.barchart1 marker cget Marker1 -linewidth] eq $oldWidth}]
     } -cleanup {
-        destroy .stripchart1
+        destroy .barchart1
         unset -nocomplain oldCoords oldFill oldOutline oldWidth code message
     } -result {1 1 1 1 1}
 	

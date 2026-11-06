@@ -8,7 +8,7 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.legacy.headless {
-    variable sourceFile [file normalize [file join [file dirname [info script]] .. library graph.tcl]]
+    variable sourceFile [file normalize [file join [file dirname [info script]] .. .. .. library graph.tcl]]
     proc New {} {
         variable sourceFile
         interp create legacyChild
