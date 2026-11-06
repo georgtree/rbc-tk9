@@ -562,6 +562,8 @@ dist-zip: dist
 
 clean:  
 	-rm -rf _build/developer
+	-rm -rf "$(srcdir)/docs/developer/__pycache__" "$(srcdir)/docs/developer/html/.doctrees" "$(srcdir)/docs/developer/html/_sources"
+	-rm -f "$(srcdir)/docs/developer/html/.buildinfo"
 	-rm -rf header-probes
 	-test -z "$(BINARIES)" || rm -f $(BINARIES)
 	-rm -f $(TEST_NOTIFY_LIB) $(TEST_TILE_LIB) $(TEST_IMAGE_LIB) $(TEST_RESOURCE_LIB)

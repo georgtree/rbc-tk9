@@ -34,3 +34,5 @@ configure~
 # Generated developer manual (source is docs/developer).
 /_build/
 /docs/developer/__pycache__/
+/docs/developer/html/.doctrees/
+/docs/developer/html/.buildinfo

@@ -208,3 +208,13 @@ doc-dev:
 
 check-doc-dev:
 	"$(TCLSH)" "$(ROOT)\docs\developer\build.tcl" --python "$(DOC_DEV_PYTHON)" --strict --doxygen "$(DOXYGEN)" --build-dir "$(DOC_DEV_BUILD)" --html-dir "$(DOC_DEV_HTML)"
+
+# Keep the published developer manual; remove only build intermediates.
+clean realclean: clean-doc-dev-temporaries
+
+clean-doc-dev-temporaries:
+	@if exist "$(ROOT)\_build\developer" rmdir /s /q "$(ROOT)\_build\developer"
+	@if exist "$(ROOT)\docs\developer\__pycache__" rmdir /s /q "$(ROOT)\docs\developer\__pycache__"
+	@if exist "$(ROOT)\docs\developer\html\.doctrees" rmdir /s /q "$(ROOT)\docs\developer\html\.doctrees"
+	@if exist "$(ROOT)\docs\developer\html\_sources" rmdir /s /q "$(ROOT)\docs\developer\html\_sources"
+	@if exist "$(ROOT)\docs\developer\html\.buildinfo" del /q "$(ROOT)\docs\developer\html\.buildinfo"

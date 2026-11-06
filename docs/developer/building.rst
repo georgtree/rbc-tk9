@@ -59,7 +59,9 @@ Generated files and validation
 
 Maintained sources live in ``docs/developer``. Doxygen configuration, XML, warning logs and Sphinx caches live under the
 build directory. HTML is published separately under ``docs/developer/html``. Commit that directory to publish the manual
-with GitHub Pages. It is retained by ``make clean``. Use ``--html-dir PATH`` for a different HTML destination. XML is
+with GitHub Pages. The published pages, assets and ``.nojekyll`` are retained by ``make clean``. With the default paths, clean removes
+``_build/developer``, the developer source's Python bytecode cache, and Sphinx's ``.doctrees``, ``_sources`` and
+``.buildinfo`` from the developer HTML directory. Use ``--html-dir PATH`` for a different HTML destination. XML is
 regenerated and all pages rebuilt on each invocation.
 
 ``Doxyfile.in`` explicitly lists the two renderer headers and the common graph header/source pair, the public/private

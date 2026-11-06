@@ -328,6 +328,25 @@ test RBC.build.installDist.A.13.1 {make doc forwards the selected Python executa
     file delete -force ${::build.installDist::work}
 } -result {C:/Python Tools/python.exe}
 
+test RBC.build.installDist.A.14.1 {clean removes developer intermediates but preserves sources and published files} -setup {
+    set build [::build.installDist::Fixture]
+    set dev [file join ${::build.installDist::work} source docs developer]
+    set temp [list [file join $build _build developer] [file join $dev __pycache__] \
+                  [file join $dev html .doctrees] [file join $dev html _sources]]
+    foreach dir $temp {::build.installDist::Write [file join $dir generated] data}
+    set info [file join $dev html .buildinfo]
+    ::build.installDist::Write $info metadata
+    set keep {index.rst rbc_navigation.py html/index.html html/.nojekyll html/_static/css/theme.css}
+    foreach name $keep {::build.installDist::Write [file join $dev $name] KEEP}
+} -body {
+    exec make -s -C $build clean 2>@1
+    exec make -s -C $build clean 2>@1
+    set remaining [lmap path [linsert $temp end $info] {file exists $path}]
+    list $remaining [lmap name $keep {::build.installDist::Read [file join $dev $name]}]
+} -cleanup {
+    file delete -force ${::build.installDist::work}
+} -result {{0 0 0 0 0} {KEEP KEEP KEEP KEEP KEEP}}
+
 cleanupTests
 
 }
