@@ -4,6 +4,15 @@ package require rbc::graphtoolbar
 
 set docDir [file dirname [file normalize [info script]]]
 set sourceDir [file join $docDir ..]
+# These maintained files must be present before generation. Missing styles
+# otherwise become nonfatal Sphinx warnings and leave an unstyled manual.
+set themeStyles {rbc.css rbc-layout.css}
+foreach name $themeStyles {
+    set path [file join $docDir theme $name]
+    if {![file isfile $path] || ![file readable $path]} {
+        error "missing documentation stylesheet: $path"
+    }
+}
 source [file join $docDir startPage.ruff]
 source [file join $docDir tclTk9Upgrade.ruff]
 source [file join $docDir graph.ruff]
@@ -48,18 +57,27 @@ try {
     }
 }
 
-::fileutil::appendToFile [file join $docDir sphinx conf.py] {html_theme = "classic"
-extensions = [
+::fileutil::appendToFile [file join $docDir sphinx conf.py] {
+from pathlib import Path
+
+extensions = list(dict.fromkeys(globals().get("extensions", []) + [
+    "sphinx_rtd_theme",
     "sphinx.ext.githubpages",
-]
+]))
 suppress_warnings = [
     "image.not_readable",
 ]
-html_theme = "classic"
+html_theme = "sphinx_rtd_theme"
 html_theme_options = {
-    "stickysidebar": True,
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+    "navigation_depth": 4,
+    "includehidden": True,
+    "titles_only": False,
 }
-html_css_files = ["custom.css"]
+html_static_path = list(globals().get("html_static_path", []))
+html_static_path.append(str(Path(__file__).resolve().parent.parent / "theme"))
+html_css_files = list(globals().get("html_css_files", [])) + ["rbc.css", "rbc-layout.css"]
 from pygments.lexers.tcl import TclLexer
 from pygments.token import Operator
 
@@ -84,8 +102,29 @@ def setup(app):
     lexers["tcl"] = MyTclLexer()
 }
 
-catch {exec sphinx-build -E -a -b html [file join $docDir sphinx] [file join $docDir]} errorStr
-puts $errorStr
+# Use the same interpreter for Sphinx and its theme dependencies. A failed
+# HTML build must fail make doc rather than merely printing the diagnostic.
+set python python
+if {[info exists ::env(RBC_DOC_PYTHON)] && $::env(RBC_DOC_PYTHON) ne {}} {
+    set python $::env(RBC_DOC_PYTHON)
+}
+# Stage maintained styles explicitly before Sphinx computes asset hashes.
+# Do not depend on its static-file overwrite policy for existing HTML output.
+file mkdir [file join $docDir _static]
+foreach name $themeStyles {
+    file copy -force [file join $docDir theme $name] [file join $docDir _static $name]
+}
+exec -- $python -m sphinx -E -a -b html [file join $docDir sphinx] $docDir >@stdout 2>@stderr
+
+# Confirm that publication/install will receive the current custom styles,
+# rather than silently retaining an old output file after a failed copy.
+foreach name $themeStyles {
+    set output [file join $docDir _static $name]
+    if {![file isfile $output] ||
+        [::fileutil::cat $output] ne [::fileutil::cat [file join $docDir theme $name]]} {
+        error "documentation stylesheet was not copied correctly: $output"
+    }
+}
 
 # nroff pages names processing
 foreach file [glob -directory $docDir *.n] {

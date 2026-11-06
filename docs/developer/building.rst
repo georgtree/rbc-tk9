@@ -4,12 +4,13 @@ Building this manual
 Dependencies
 ------------
 
-Use Python 3 with Sphinx and Breathe, and Doxygen. In an MSYS2 UCRT64 shell:
+Use Python 3 with Sphinx, the Read the Docs theme and Breathe, and Doxygen. In an MSYS2 UCRT64 shell:
 
 .. code-block:: sh
 
    pacman -S --needed mingw-w64-ucrt-x86_64-doxygen \
        mingw-w64-ucrt-x86_64-python-sphinx \
+       mingw-w64-ucrt-x86_64-python-sphinx_rtd_theme \
        mingw-w64-ucrt-x86_64-python-breathe
 
 Graphviz is optional and is not used by this manual. No compiler, Tk
@@ -53,7 +54,7 @@ executable paths and output location:
 The runner uses only Tcl core commands. Python remains required by Sphinx and
 Breathe, and for Sphinx's small ``conf.py`` configuration. The runner invokes
 Sphinx through the executable selected by ``--python`` (default: ``python``); install
-Breathe and Sphinx for that interpreter. Do not mix MSYS, UCRT64 and a separate Windows
+Breathe, Sphinx and sphinx-rtd-theme for that interpreter. Do not mix MSYS, UCRT64 and a separate Windows
 Python installation accidentally. Paths containing spaces are supported.
 Each executable override names one executable, not a command with extra flags.
 
@@ -110,3 +111,75 @@ unchanged; no warning suppression or dependency upgrade is required.
 The helper's regression checks run without Tk, RBC or documentation tools::
 
     tclsh tests/build/RBC.build.doxygenCompat.A.test
+
+Theme and publishing
+--------------------
+
+Both manuals use ``sphinx_rtd_theme`` with expandable navigation and RTD's default
+content width. Shared styles live in
+``docs/theme/rbc.css`` and ``docs/theme/rbc-layout.css``. Edit these sources,
+not the generated ``_static`` copies. Tables wrap within the content column;
+field lists use bounded columns and stack labels above descriptions on narrow
+screens. These rules do not change C declaration signature layout. Images
+retain their natural sizes unless they need to shrink to fit, and expandable
+examples retain their highlighted controls.
+
+The developer-only ``docs/theme/rbc-developer.css`` also bounds deep sidebar
+indentation and wraps long C identifiers.
+
+Both builders copy the maintained stylesheets before Sphinx computes asset
+hashes and verify the resulting copies. Missing sources or mismatched output
+copies fail the build rather than publishing stale styles.
+
+Keep ``docs/.nojekyll`` at the GitHub Pages publishing root. The developer
+build also emits ``docs/developer/html/.nojekyll`` so its output can be hosted
+independently. Publish each complete HTML output tree, including ``_static``
+CSS, JavaScript and fonts. The theme requires no Read the Docs hosting service.
+Existing page names and C reference targets are unchanged by the theme.
+
+After a full MSYS2 update (``pacman -Syu``), verify the selected interpreter::
+
+   python -m sphinx --version
+   python -c "import sphinx_rtd_theme, breathe; print(sphinx_rtd_theme.__file__)"
+
+Use UCRT64 packages together; do not install the theme into a different Python
+from the one selected by ``DOC_DEV_PYTHON``. For non-MSYS2 environments, install
+``sphinx``, ``breathe`` and ``sphinx-rtd-theme`` into the Python environment used
+by the documentation builder.
+
+Sidebar hierarchy
+-----------------
+
+``index.rst`` is the single source of navigation grouping. Subsystem and
+component headings contain ordinary toctrees pointing directly to substantive
+chapters and reference pages. Add or move a chapter there; no navigation-only
+landing page is needed. Existing substantive chapter URLs and C anchors remain
+unchanged. Obsolete generated ``manual-*.html`` landing pages can be removed
+from an existing output directory; fresh output contains none.
+
+The local Sphinx extension ``rbc_navigation.py`` builds the sidebar from these
+headings. Group labels link to their section on the main contents page; RTD's
+expand/collapse buttons expose their children without changing pages.
+``collapse_navigation = False`` and ``navigation_depth = -1`` retain the full
+group hierarchy. Only declarations belonging to the current reference page
+appear in the sidebar. In-page toctrees omit declarations everywhere, including
+on the main contents page. Function/structure documentation and cross-reference
+anchors are unaffected.
+
+Keep ``toc_object_entries = True``. Do not install the earlier
+``omit_c_objects_from_navigation`` or ``contextual_sidebar`` hooks alongside
+this extension: the former removes declarations needed on reference pages and
+the latter replaces the grouped sidebar. Breathe can populate declaration TOC
+entries independently of Sphinx's setting; filtering is deliberately performed
+on resolved navigation trees, not on the C definitions or shared inventory.
+
+The build runner remains Tcl. The Python module is a Sphinx extension, using
+Sphinx's toctree resolver to retain reference sections and relative links. The
+optional regression test requires Sphinx and the RTD theme, but not Doxygen,
+Breathe, Tk or RBC::
+
+    tclsh tests/build/RBC.build.docNavigation.A.test
+
+It checks main-page grouping and declaration suppression, full inactive groups,
+current-page functions/structures/members, and preserved declaration anchors.
+Use ``RBC_DOC_PYTHON`` to select another Python executable for this test.

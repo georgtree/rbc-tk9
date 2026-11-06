@@ -16,15 +16,292 @@ not a claim that every function in its module has been audited or made callback
 safe. Chapters identify current limitations separately from intended guarantees.
 
 Start with :doc:`architecture` and :doc:`calling-conventions`, or select a
-subsystem below. Existing chapter filenames and C reference pages remain stable.
+subsystem below. Expand the sidebar groups directly or follow chapter links here.
+
+Architecture and conventions
+----------------------------
 
 .. toctree::
-   :maxdepth: 3
-   :titlesonly:
+   :maxdepth: 2
 
-   manual-foundations
-   manual-vectors
-   manual-graphs
-   manual-rendering
-   manual-images
-   manual-infrastructure
+   building
+   architecture
+   headers
+   initialization
+   initialization-reference
+   calling-conventions
+   commenting
+
+Vectors and numerical operations
+--------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   vectors
+   vector-reference
+   vector-storage
+   vector-storage-reference
+   vector-storage-private-reference
+   vector-access
+   vector-access-reference
+   vector-commands
+   vector-command-reference
+   vector-operations
+   vector-edit-reference
+   vector-numerics
+   vector-numeric-reference
+   expressions
+   expression-reference
+   expression-engine
+   expression-engine-reference
+   expression-numerics
+   expression-numerics-reference
+   fft
+   fft-reference
+   splines
+   spline-reference
+
+Graphs and components
+---------------------
+
+Graph widget
+~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   graph-lifecycle
+   graph-reference
+
+Axes
+~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   axes
+   axis-reference
+
+Coordinate mapping
+~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   mapping
+   mapping-reference
+
+Elements
+~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   elements
+   element-reference
+
+Pens
+~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   pens
+   pen-reference
+
+Bars
+~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   bars
+   bar-reference
+
+Area fills and error bands
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   fills
+   fill-reference
+
+Decimation
+~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   decimation
+   decimation-reference
+
+Polar graphs
+~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   polar
+   polar-reference
+
+Tracks
+~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   tracks
+   track-reference
+
+Markers
+~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   markers
+   marker-reference
+
+Legends
+~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   legends
+   legend-reference
+
+Grids
+~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   grids
+   grid-reference
+
+Crosshairs
+~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   crosshairs
+   crosshair-reference
+
+Scrolling
+~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   scrolling
+   scroll-reference
+
+Rendering and document export
+-----------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   rendering
+   reference
+   exports
+   export-reference
+   document-rendering
+   document-render-reference
+
+Native renderers
+~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   native-rendering
+   native-reference
+   native-windows-reference
+
+Cairo renderer
+~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   cairo-rendering
+   cairo-reference
+
+SVG exporter
+~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   svg-output
+   svg-reference
+
+PDF exporter
+~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   pdf-builder
+   pdf-builder-reference
+
+PostScript exporter
+~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   postscript-output
+   postscript-reference
+
+Images, fonts and windows
+-------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   images-tiles
+   image-tile-reference
+   image-resampling
+   resampling-reference
+   image-transforms
+   image-transform-reference
+   image-colors
+   image-color-reference
+   image-compatibility
+   image-compatibility-reference
+   text-fonts
+   text-font-reference
+   window-services
+   window-service-reference
+   winop-internals
+   winop-reference
+   eps-canvas
+   eps-reference
+
+Shared infrastructure
+---------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   configuration
+   configuration-reference
+   bindings
+   binding-reference
+   geometry
+   geometry-reference
+   containers
+   container-reference
+   utility-ownership
+   utility-reference
+   command-dispatch
+   dispatch-reference
+   value-conversion
+   value-reference
+   math-reference

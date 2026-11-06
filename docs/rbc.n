@@ -21,6 +21,9 @@ This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current packag
 \fIDocumentation\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/]
 .TP
 \(bu
+\fIC developer manual sources and build instructions\fP [URL: docs/developer/README\&.md]
+.TP
+\(bu
 \fIChanges and modernization\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-TclTk9Upgrade\&.html]
 .TP
 \(bu
@@ -571,6 +574,19 @@ make test-vector
 This runs tests/vectorAll\&.tcl\&. GUI upgrade/load-order tests run in the normal make test suite and are skipped
 by the headless runner\&. Regenerate your Makefile with \&./config\&.status after updating Makefile\&.in\&.
 .PP
+Run the internal C notification callback tests separately, without a display:
+.PP
+.RS 4n
+.nf
+make test-vector-notify
+.fi
+.RE
+.PP
+This relinks RBC objects into a test-only library and runs RBC\&.vector\&.notify\&.A\&.test in a fresh Tcl interpreter\&.
+It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks\&.
+These private APIs are not added to the public stubs table\&. The ordinary suite skips this file without the dedicated
+harness\&. The MSVC makefile provides the same target\&.
+.PP
 The suite uses tcltest\&. Pass test selection options through TESTFLAGS\&.
 .PP
 For example, run the line-decimation test file:
@@ -716,13 +732,27 @@ The Tcl ruff package with Sphinx and nroff output support\&.
 Tcllib's fileutil and textutil::adjust packages\&.
 .TP
 \(bu
-Python Sphinx, with sphinx-build available through PATH\&.
+Python with Sphinx and the sphinx-rtd-theme package installed for that interpreter\&.
 .TP
 \(bu
 ditaa and its Java runtime when rendering diagrams that use the configured diagram generator\&.
 .PP
 The published documentation uses a modified Ruff package that is not currently public\&. Other Ruff versions may produce
 different output or lack the required output formats\&.
+.PP
+Both HTML manuals use the Read the Docs theme\&. In an updated MSYS2 UCRT64 environment, install it with:
+.PP
+.RS 4n
+.nf
+pacman -S --needed mingw-w64-ucrt-x86_64-python-sphinx_rtd_theme
+python -m sphinx --version
+python -c "import sphinx_rtd_theme; print(sphinx_rtd_theme\&.__file__)"
+.fi
+.RE
+.PP
+Use pacman -Syu for a full MSYS2 update before installation when needed\&. Keep Python, Sphinx and the theme in the
+same UCRT64 environment\&. The developer manual additionally requires Doxygen and Breathe; see
+\fIits build instructions\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/developer/html/building\&.html]\&.
 .PP
 From an in-tree build, run:
 .PP
@@ -757,8 +787,17 @@ tclsh9\&.0 tests/RBC\&.docs\&.tables\&.A\&.test
 .fi
 .RE
 .PP
-Review the generator output and resulting pages before publishing\&. The current generator prints Sphinx diagnostics, so
-the Make command's exit status alone is not a complete documentation-build check\&.
+Select another Python executable with make doc DOC_PYTHON=python3; the developer builder uses
+DOC_DEV_PYTHON\&. When invoking docs/doc_gen\&.tcl directly, use the RBC_DOC_PYTHON environment variable\&.
+Executable overrides name a single executable, without extra command-line flags\&. Sphinx errors fail the user-documentation
+build; review warnings and the rendered pages before publishing\&.
+.PP
+The shared stylesheet is maintained in docs/theme/rbc\&.css\&. User-manual table and option-list layout overrides live in
+docs/theme/rbc-user\&.css; they do not change the developer manual's C reference layout\&. The user generator verifies that
+both stylesheets reach the HTML output and fails if a source stylesheet is missing or its output copy is stale\&. Ruff's generated theme settings are maintained in
+docs/doc_gen\&.tcl; developer settings are in docs/developer/conf\&.py\&. Keep docs/\&.nojekyll and publish the complete
+HTML output trees, including _static CSS, JavaScript and fonts\&. GitHub Pages serves the theme directly; no Read the Docs
+account or hosting integration is required\&. Existing user and developer page URLs remain the same\&.
 .PP
 README\&.md supplies the shared introduction and build instructions\&. docs/startPage\&.ruff reads that file as the
 documentation preamble\&.

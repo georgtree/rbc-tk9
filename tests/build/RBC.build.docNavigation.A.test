@@ -1,0 +1,152 @@
+# Optional Sphinx navigation tests; neither RBC, Tk nor Doxygen is required.
+# See license.terms for copyright and redistribution terms.
+
+###Package Definition
+package provide build.docNavigation
+package require tcltest
+namespace import tcltest::*
+
+namespace eval build.docNavigation {
+    variable root [file normalize [file join [file dirname [info script]] ../..]]
+    variable work [file join [temporaryDirectory] doc-navigation-[pid]]
+    variable python {}
+    if {[info exists ::env(RBC_DOC_PYTHON)] && $::env(RBC_DOC_PYTHON) ne {}} {
+        set python $::env(RBC_DOC_PYTHON)
+    } else {
+        foreach name {python3 python} {
+            if {[auto_execok $name] ne {}} {set python $name; break}
+        }
+    }
+    testConstraint docNavigation [expr {$python ne {} &&
+        ![catch {exec -- $python -c {import sphinx, sphinx_rtd_theme}}]}]
+
+    proc Write {name contents} {
+        variable work
+        set f [open [file join $work $name] w]
+        try {
+            chan configure $f -encoding utf-8 -translation lf
+            puts -nonewline $f $contents
+        } finally {close $f}
+    }
+
+    proc Read {name} {
+        variable work
+        set f [open [file join $work html $name.html] r]
+        try {return [read $f]} finally {close $f}
+    }
+
+    proc Navigation {html} {
+        if {![regexp {(?s)<div class="wy-menu wy-menu-vertical".*?</div>} $html nav]} {
+            error {RTD navigation missing}
+        }
+        return $nav
+    }
+
+    proc Build {} {
+        variable root
+        variable work
+        variable python
+        file delete -force $work
+        file mkdir $work
+        file copy [file join $root docs developer rbc_navigation.py] $work
+        Write conf.py {
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+extensions = ['sphinx_rtd_theme', 'rbc_navigation']
+root_doc = 'index'
+exclude_patterns = ['html']
+html_theme = 'sphinx_rtd_theme'
+html_theme_options = {'collapse_navigation': False, 'navigation_depth': -1}
+toc_object_entries = True
+}
+        Write index.rst {Manual
+======
+
+Graphs
+------
+
+Axes
+~~~~
+
+.. toctree::
+   :maxdepth: 3
+
+   axis
+
+Grids
+~~~~~
+
+.. toctree::
+   :maxdepth: 3
+
+   grid
+}
+        Write axis.rst {Axis reference
+==============
+
+Commands
+--------
+
+.. c:function:: void AxisFunction(void)
+
+   Axis contract.
+
+Structures
+----------
+
+.. c:struct:: AxisRecord
+
+   Axis storage.
+
+   .. c:member:: int value
+
+      Stored value.
+}
+        Write grid.rst {Grid reference
+==============
+
+Commands
+--------
+
+.. c:function:: void GridFunction(void)
+
+   Grid contract.
+}
+        exec -- $python -m sphinx -E -a -W -b html $work [file join $work html] 2>@1
+    }
+
+    test RBC.build.docNavigation.A.1.1 {headings group navigation; only the current reference exposes declarations} \
+            -constraints docNavigation -body {
+        Build
+        set index [Read index]
+        set axis [Read axis]
+        set grid [Read grid]
+        set indexNav [Navigation $index]
+        set axisNav [Navigation $axis]
+        set gridNav [Navigation $grid]
+        list \
+            [expr {[string first {href="#graphs"} $indexNav]>=0 &&
+                   [string first {href="#axes"} $indexNav]>=0 &&
+                   [string first {href="#grids"} $indexNav]>=0}] \
+            [expr {[string first {axis.html#commands} $indexNav]>=0 &&
+                   [string first {grid.html#commands} $indexNav]>=0}] \
+            [expr {[string first {#c.} $index]<0}] \
+            [expr {[string first {href="#c.AxisFunction"} $axisNav]>=0 &&
+                   [string first {href="#c.AxisRecord"} $axisNav]>=0 &&
+                   [string first {href="#c.AxisRecord.value"} $axisNav]>=0}] \
+            [expr {[string first {GridFunction} $axisNav]<0 &&
+                   [string first {grid.html#commands} $axisNav]>=0}] \
+            [expr {[string first {href="#c.GridFunction"} $gridNav]>=0 &&
+                   [string first {AxisFunction} $gridNav]<0}] \
+            [expr {[string first {id="c.AxisFunction"} $axis]>=0 &&
+                   [string first {id="c.AxisRecord.value"} $axis]>=0}] \
+            [expr {[string first {class="toctree-l1 current"} $axisNav]>=0 &&
+                   [string first {class="toctree-l2 current"} $axisNav]>=0}] \
+            [expr {[string first {<ul class="simple"} $indexNav]<0 &&
+                   [regexp {(?s)href="#axes"[^>]*>Axes</a>\s*<ul>} $indexNav]}]
+    } -cleanup {
+        file delete -force $work
+    } -result {1 1 1 1 1 1 1 1 1}
+}
+cleanupTests

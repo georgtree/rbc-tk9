@@ -244,8 +244,10 @@ demos:
 
 # Documentation introspection loads the build-tree package via TCLLIBPATH.
 # Refresh its runtime scripts even when only install-binaries was run before.
+DOC_PYTHON = python
+
 doc: binaries libraries
-	$(TCLSH) $(srcdir)/docs/doc_gen.tcl
+	RBC_DOC_PYTHON="$(DOC_PYTHON)" $(TCLSH) $(srcdir)/docs/doc_gen.tcl
 
 # Private C manual; independent of package loading, Ruff and the display.
 DOC_DEV_PYTHON = python
@@ -320,7 +322,7 @@ install-doc:
 	@$(INSTALL_DATA_DIR) "$(DOC_INSTALL_DIR)"
 	@echo "Installing html documentation in $(DOC_INSTALL_DIR)"
 	@list='$(DOC_HTML_FILES)'; for p in $$list; do \
-	  case "$$p" in images/*|_images/*) continue ;; esac; \
+	  case "$$p" in _static/*|assets/*|images/*|_images/*) continue ;; esac; \
 	  if test -f "$(srcdir)/docs/$$p"; then \
 	    d=`dirname "$$p"`; \
 	    if test "x$$d" != "x."; then \
@@ -330,8 +332,8 @@ install-doc:
 	    $(INSTALL_DATA) "$(srcdir)/docs/$$p" "$(DOC_INSTALL_DIR)/$$p"; \
 	  fi; \
 	done
-# Discover images again: make doc may have generated them after configure.
-	@set -e; for directory in images; do \
+# Discover theme assets and images again: make doc may run after configure.
+	@set -e; for directory in _static assets images; do \
 	  if test -d "$(srcdir)/docs/$$directory"; then \
 	    (cd "$(srcdir)/docs" && find "$$directory" -type f -print) | \
 	    while IFS= read -r file; do \
@@ -662,7 +664,7 @@ uninstall-doc:
 	  case "$$p" in _images/*) continue ;; esac; \
 	  rm -f "$(DOC_INSTALL_DIR)/$$p"; \
 	done
-	@set -e; for directory in images; do \
+	@set -e; for directory in _static assets images; do \
 	  if test -d "$(srcdir)/docs/$$directory"; then \
 	    (cd "$(srcdir)/docs" && find "$$directory" -type f -print) | \
 	    while IFS= read -r file; do \

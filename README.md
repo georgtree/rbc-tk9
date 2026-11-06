@@ -604,12 +604,24 @@ Documentation generation requires:
 - A working Rbc build and its runtime dependencies.
 - The Tcl `ruff` package with Sphinx and nroff output support.
 - Tcllib's `fileutil` and `textutil::adjust` packages.
-- Python Sphinx, with `sphinx-build` available through `PATH`.
+- Python with Sphinx and the `sphinx-rtd-theme` package installed for that interpreter.
 - `ditaa` and its Java runtime when rendering diagrams that use the
   configured diagram generator.
 
 The published documentation uses a modified Ruff package that is not currently public. Other Ruff versions may produce
 different output or lack the required output formats.
+
+Both HTML manuals use the Read the Docs theme. In an updated MSYS2 UCRT64 environment, install it with:
+
+```sh
+pacman -S --needed mingw-w64-ucrt-x86_64-python-sphinx_rtd_theme
+python -m sphinx --version
+python -c "import sphinx_rtd_theme; print(sphinx_rtd_theme.__file__)"
+```
+
+Use `pacman -Syu` for a full MSYS2 update before installation when needed. Keep Python, Sphinx and the theme in the
+same UCRT64 environment. The developer manual additionally requires Doxygen and Breathe; see
+[its build instructions](https://georgtree.github.io/rbc-tk9/developer/html/building.html).
 
 From an in-tree build, run:
 
@@ -640,8 +652,18 @@ The helper regression tests require only Tcl, Tcllib and `tcltest`:
 tclsh9.0 tests/RBC.docs.tables.A.test
 ```
 
-Review the generator output and resulting pages before publishing. The current generator prints Sphinx diagnostics, so
-the Make command's exit status alone is not a complete documentation-build check.
+Select another Python executable with `make doc DOC_PYTHON=python3`; the developer builder uses
+`DOC_DEV_PYTHON`. When invoking `docs/doc_gen.tcl` directly, use the `RBC_DOC_PYTHON` environment variable.
+Executable overrides name a single executable, without extra command-line flags. Sphinx errors fail the user-documentation
+build; review warnings and the rendered pages before publishing.
+
+Shared styles are maintained in `docs/theme/rbc.css`, with table and field-list layout in
+`docs/theme/rbc-layout.css`. Both manuals use RTD's default content width; cells wrap and field lists stack on narrow
+screens. Both builders stage and verify the stylesheets in the HTML output, failing if a source is missing or an output
+copy differs. Ruff's generated theme settings are maintained in
+`docs/doc_gen.tcl`; developer settings are in `docs/developer/conf.py`. Keep `docs/.nojekyll` and publish the complete
+HTML output trees, including `_static` CSS, JavaScript and fonts. GitHub Pages serves the theme directly; no Read the Docs
+account or hosting integration is required. Existing user and developer page URLs remain the same.
 
 `README.md` supplies the shared introduction and build instructions. `docs/startPage.ruff` reads that file as the
 documentation preamble.

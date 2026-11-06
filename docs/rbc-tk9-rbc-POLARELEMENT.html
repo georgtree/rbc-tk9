@@ -1,48 +1,831 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<html lang="en" data-content_root="./">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polar element POLARELEMENT options &mdash; rbc  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/rbc.css?v=269a995a" />
+      <link rel="stylesheet" type="text/css" href="_static/rbc-user.css?v=6cc73ce8" />
 
-    <title>Polar element POLARELEMENT options &#8212; rbc  documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=f11ead97" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=306bc2d5" />
-    
-    <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Bar element BARELEMENT options" href="rbc-tk9-rbc-BARELEMENT.html" />
     <link rel="prev" title="Strip element STRIPELEMENT options" href="rbc-tk9-rbc-STRIPELEMENT.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="rbc-tk9-rbc-BARELEMENT.html" title="Bar element BARELEMENT options"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="rbc-tk9-rbc-STRIPELEMENT.html" title="Strip element STRIPELEMENT options"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options</a></li> 
-      </ul>
-    </div>  
+</head>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            rbc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#linux">Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#windows-with-msvc">Windows with MSVC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#windows-with-msys2-ucrt64">Windows with MSYS2/UCRT64</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#configure-options-and-renderer-defaults">Configure options and renderer defaults</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#linking-cairo-statically">Linking Cairo statically</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9.html#msys2-ucrt64">MSYS2/UCRT64</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9.html#static-cairo-on-linux">Static Cairo on Linux</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9.html#rebuilding-and-deployment">Rebuilding and deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#installation-locations">Installation locations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#uninstalling">Uninstalling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#creating-an-installation-archive">Creating an installation archive</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#loading-the-package">Loading the package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#using-an-uninstalled-build">Using an uninstalled build</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#running-demos">Running demos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#rendering-benchmarks">Rendering benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#r-documentation">Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#regenerating-documentation">Regenerating documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#reporting-problems">Reporting problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#history-and-acknowledgments">History and acknowledgments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#copyright-and-licensing">Copyright and licensing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html">Tcl/Tk 9 upgrade and additions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#user-visible-additions">User-visible additions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#stacked-tracks-with-shared-axes">Stacked tracks with shared axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bars-in-tracks">Bars in tracks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#track-xor-markers-dividers-and-decimation">Track XOR markers, dividers and decimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#window-marker-visibility-and-track-support">Window-marker visibility and track support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#configurable-logarithmic-bar-baseline">Configurable logarithmic bar baseline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#static-mingw-w64-threading-runtime">Static MinGW-w64 threading runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#literal-parentheses-in-vector-names">Literal parentheses in vector names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#tcl-only-vector-loading">Tcl-only vector loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#optional-toolbar-package">Optional toolbar package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#backward-compatible-graph-helpers">Backward-compatible graph helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#x-and-y-error-bands-for-lines-and-strips">X and Y error bands for lines and strips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#symbols-on-reduced-traces">Symbols on reduced traces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#msvc-builds-on-windows">MSVC builds on Windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#polar-smith-grid-configuration">Polar/Smith grid configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#optional-cairo-rendering">Optional Cairo rendering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#display-decimation-and-streaming-updates">Display decimation and streaming updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#graph-interaction-and-toolbar">Graph interaction and toolbar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#custom-closest-point-annotations">Custom closest-point annotations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#complex-vectors">Complex vectors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#polar-and-smith-charts">Polar and Smith charts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#area-closure-and-transparency">Area closure and transparency</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#plot-only-element-hiding">Plot-only element hiding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#circles-ellipses-and-arc-markers">Circles, ellipses and arc markers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bar-alignment-and-error-bar-positioning">Bar alignment and error-bar positioning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#arrowheads-for-line-markers">Arrowheads for line markers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bar-geometry-from-element-closest">Bar geometry from <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#custom-element-value-labels">Custom element value labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#vector-polyline-simplification">Vector polyline simplification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#vector-fft-and-inverse-fft">Vector FFT and inverse FFT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#fft-frequency-bins-and-windows">FFT frequency bins and windows</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#implementation-modernization">Implementation modernization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#tcl-9-command-and-object-api">Tcl 9 command and object API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bit-and-tcl-size-support">64-bit and <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#modern-tk-option-handling">Modern Tk option handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#component-option-database-lookup">Component option-database lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#graph-object-and-resource-lifetime">Graph object and resource lifetime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#axis-and-coordinate-system-modernization">Axis and coordinate-system modernization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#line-bar-and-element-processing">Line, bar and element processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#spline-subsystem">Spline subsystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#vector-subsystem">Vector subsystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#geometry-text-and-drawing">Geometry, text and drawing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#image-and-bitmap-handling">Image and bitmap handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#named-font-changes">Named-font changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#export-option-database-components">Export option-database components</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#pdf-output">PDF output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#svg-output">SVG output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#postscript-output">PostScript output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#windows-drawing-backend">Windows drawing backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#windows-rendering-performance">Windows rendering performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#remaining-private-tk-dependencies">Remaining private Tk dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#c-safety-and-hardening">C safety and hardening</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#bindings-and-tags">Bindings and tags</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#regression-testing">Regression testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-TclTk9Upgrade.html#remaining-compatibility-interfaces">Remaining compatibility interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc.html">::rbc</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc.html#commands">Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis"><code class="docutils literal notranslate"><span class="pre">AXIS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-bind"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">bind</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-cget"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-configure"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-create"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-delete"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-get"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">get</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-invtransform"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">invtransform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-limits"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-names"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-transform"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">transform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#axis-view"><code class="docutils literal notranslate"><span class="pre">AXIS</span> <span class="pre">view</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#barchart"><code class="docutils literal notranslate"><span class="pre">barchart</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#crosshairs"><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#crosshairs-cget"><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#crosshairs-configure"><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#crosshairs-off"><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">off</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#crosshairs-on"><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">on</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#crosshairs-toggle"><code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span> <span class="pre">toggle</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-activate"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">activate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-bind"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">bind</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-cget"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-closest"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-configure"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-create"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-deactivate"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">deactivate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-delete"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-exists"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">exists</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-get"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">get</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-names"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-show"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">show</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#element-type"><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graph"><code class="docutils literal notranslate"><span class="pre">graph</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">axis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-bar"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">bar</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-cget"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-configure"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-crosshairs"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">crosshairs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-element"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">element</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-extents"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">extents</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-grid"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">grid</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-inside"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">inside</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-invtransform"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">invtransform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-legend"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">legend</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-line"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">line</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-marker"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">marker</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-pdf"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pdf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-pen"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">pen</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-postscript"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">postscript</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-snap"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">snap</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-strip"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">strip</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-svg"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">svg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-track"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">track</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-transform"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">transform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-x2axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">x2axis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-xaxis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">xaxis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-y2axis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">y2axis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#graphinst-yaxis"><code class="docutils literal notranslate"><span class="pre">GRAPHINST</span> <span class="pre">yaxis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#grid"><code class="docutils literal notranslate"><span class="pre">GRID</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#grid-cget"><code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#grid-configure"><code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#grid-off"><code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">off</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#grid-on"><code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">on</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#grid-toggle"><code class="docutils literal notranslate"><span class="pre">GRID</span> <span class="pre">toggle</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#legend"><code class="docutils literal notranslate"><span class="pre">LEGEND</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#legend-activate"><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">activate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#legend-bind"><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">bind</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#legend-cget"><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#legend-configure"><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#legend-deactivate"><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">deactivate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#legend-get"><code class="docutils literal notranslate"><span class="pre">LEGEND</span> <span class="pre">get</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marginaxis"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marginaxis-bind"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">bind</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marginaxis-cget"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marginaxis-configure"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marginaxis-invtransform"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">invtransform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marginaxis-limits"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">limits</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marginaxis-transform"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">transform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marginaxis-use"><code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span> <span class="pre">use</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker"><code class="docutils literal notranslate"><span class="pre">MARKER</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-after"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">after</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-before"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">before</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-bind"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">bind</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-cget"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-configure"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-create"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-delete"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-exists"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">exists</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-find"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">find</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-get"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">get</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-names"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#marker-type"><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pdf"><code class="docutils literal notranslate"><span class="pre">PDF</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pdf-cget"><code class="docutils literal notranslate"><span class="pre">PDF</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pdf-configure"><code class="docutils literal notranslate"><span class="pre">PDF</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pdf-output"><code class="docutils literal notranslate"><span class="pre">PDF</span> <span class="pre">output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen"><code class="docutils literal notranslate"><span class="pre">PEN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen-cget"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen-configure"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen-create"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen-delete"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen-names"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#pen-type"><code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#polar"><code class="docutils literal notranslate"><span class="pre">polar</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#postscript"><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#postscript-cget"><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#postscript-configure"><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#postscript-output"><code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span> <span class="pre">output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#spline"><code class="docutils literal notranslate"><span class="pre">spline</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#spline-natural"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">natural</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#spline-parametric"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">parametric</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#spline-quadratic"><code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">quadratic</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#stripchart"><code class="docutils literal notranslate"><span class="pre">stripchart</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#svg"><code class="docutils literal notranslate"><span class="pre">SVG</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#svg-cget"><code class="docutils literal notranslate"><span class="pre">SVG</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#svg-configure"><code class="docutils literal notranslate"><span class="pre">SVG</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#svg-output"><code class="docutils literal notranslate"><span class="pre">SVG</span> <span class="pre">output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#id1"><code class="docutils literal notranslate"><span class="pre">trackgraph</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-bbox"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">bbox</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-bind"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">bind</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-cget"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-configure"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-create"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-delete"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-exists"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">exists</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-get"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">get</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-grid"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">grid</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-identify"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">identify</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-invtransform"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">invtransform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-legend"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">legend</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-names"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-order"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">order</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-sashpos"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">sashpos</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-separator"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">separator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-transform"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">transform</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-view"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">view</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#trackgraph-yview"><code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span> <span class="pre">yview</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst"><code class="docutils literal notranslate"><span class="pre">VECINST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst202a"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">*</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst202b"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">+</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst202d"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">-</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3avecinst202f"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">/</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-append"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">append</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-binread"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">binread</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-clear"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">clear</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-delete"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">delete</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-dup"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">dup</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-expr"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">expr</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-fft"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">fft</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-fftfreq"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">fftfreq</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-ifft"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">ifft</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-index"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">index</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-length"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">length</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-merge"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">merge</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-normalize"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">normalize</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-offset"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">offset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-populate"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">populate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-random"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">random</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-range"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">range</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-readonly"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">readonly</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-search"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">search</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-seq"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">seq</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-set"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">set</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-sort"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">sort</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-split"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">split</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-type"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-variable"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">variable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vecinst-window"><code class="docutils literal notranslate"><span class="pre">VECINST</span> <span class="pre">window</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vector"><code class="docutils literal notranslate"><span class="pre">vector</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vector-create"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">create</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vector-destroy"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">destroy</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vector-expr"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">expr</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vector-names"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vector-rename"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">rename</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#vector-simplify"><code class="docutils literal notranslate"><span class="pre">vector</span> <span class="pre">simplify</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop"><code class="docutils literal notranslate"><span class="pre">winop</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-changes"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">changes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-colormap"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">colormap</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-convolve"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">convolve</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-image"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">image</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-lower"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">lower</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-map"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">map</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-move"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">move</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-quantize"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">quantize</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-query"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">query</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-raise"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">raise</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-readjpeg"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">readjpeg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-resample"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">resample</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-snap"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">snap</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-subsample"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">subsample</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-unmap"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">unmap</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winop-warpto"><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">warpto</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winopimage"><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winopimage-convolve"><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">convolve</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winopimage-gradient"><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">gradient</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winopimage-readjpeg"><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">readjpeg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winopimage-resample"><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">resample</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winopimage-rotate"><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">rotate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winopimage-snap"><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">snap</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc.html#winopimage-subsample"><code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span> <span class="pre">subsample</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html">graphtoolbar</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#basic-example">Basic example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#stacked-track-interaction">Stacked-track interaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#control-surfaces">Control surfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#zooming-and-navigation">Zooming and navigation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#wheel-zoom">Wheel zoom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#panning">Panning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#cross-interactions">Cross-interactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#crosshairs">Crosshairs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#refreshing-beneath-a-stationary-pointer">Refreshing beneath a stationary pointer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#refresh-scheduling">Refresh scheduling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#streaming-graphs">Streaming graphs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#coordinate-marker-formats">Coordinate marker formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#custom-closest-point-text">Custom closest-point text</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#polar-and-smith-interaction">Polar and Smith interaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#active-legend">Active legend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#active-axes">Active axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#public-megawidget-access">Public megawidget access</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#reserved-internal-names">Reserved internal names</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#tk-option-database">Tk option database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#zoom-option-database-resources">Zoom option-database resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#crosshair-option-database-resources">Crosshair option-database resources</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#styling-example">Styling example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar"><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#constructor"><code class="docutils literal notranslate"><span class="pre">constructor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#destructor"><code class="docutils literal notranslate"><span class="pre">destructor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#getaxisactivescale"><code class="docutils literal notranslate"><span class="pre">getAxisActiveScale</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#graph"><code class="docutils literal notranslate"><span class="pre">graph</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#names"><code class="docutils literal notranslate"><span class="pre">names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#setaxisactivescale"><code class="docutils literal notranslate"><span class="pre">setAxisActiveScale</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#subwidget"><code class="docutils literal notranslate"><span class="pre">subwidget</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-graphtoolbar.html#widgetcommand"><code class="docutils literal notranslate"><span class="pre">widgetcommand</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html">Graph widget instance <code class="docutils literal notranslate"><span class="pre">GRAPHINST</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#margins">Margins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#plotting-area">Plotting area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#aspect-ratio">Aspect ratio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#layout">Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#coordinate-systems">Coordinate systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#polar-and-smith-charts">Polar and Smith charts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#automatic-equal-unit-aspect">Automatic equal-unit aspect</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#polar-autoscaling-without-visible-elements">Polar autoscaling without visible elements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#limitations-and-domain-rules">Limitations and domain rules</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#stacked-tracks">Stacked tracks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#rendering-backend">Rendering backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#widget-options">Widget options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#tk-option-database">Tk option database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#component-resource-names-and-classes">Component resource names and classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#when-option-database-values-are-applied">When option database values are applied</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#discovering-database-names-and-classes">Discovering database names and classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#bar-modes">Bar modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#buffering">Buffering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#svg-output">SVG output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#pdf-output">PDF output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#named-fonts-and-display-scaling">Named fonts and display scaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#numeric-values-and-expressions">Numeric values and expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#application-data">Application data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#graph-change-notification">Graph change notification</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#geometry-event-delivery-and-data">Geometry event delivery and data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#scope">Scope</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#axis-change-notifications">Axis change notifications</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#axis-event-delivery-and-data">Axis event delivery and data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#legacy-graph-helpers">Legacy graph helpers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html">Trackgraph widget instance <code class="docutils literal notranslate"><span class="pre">TRACKGRAPH</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#stacked-tracks">Stacked tracks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#track-configuration-and-lifecycle">Track configuration and lifecycle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#track-background-bindings">Track background bindings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#bars-in-tracks">Bars in tracks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#track-option-database">Track option database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#scrolling-tracks-and-their-data">Scrolling tracks and their data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#track-coordinate-conversion">Track coordinate conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#track-grid-selection">Track grid selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#inverted-tracks">Inverted tracks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#reordering-and-resizing-tracks">Reordering and resizing tracks</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html">Graph virtual axis <code class="docutils literal notranslate"><span class="pre">AXIS</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#virtual-axes">Virtual axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#axis-ranges">Axis ranges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#automatic-sliding-ranges">Automatic sliding ranges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#logarithmic-axes">Logarithmic axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#major-and-minor-ticks">Major and minor ticks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#tick-labels">Tick labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#axis-limits-display">Axis limits display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#axis-scrolling">Axis scrolling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#axis-bindings">Axis bindings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#callback-safety">Callback safety</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-AXIS.html#axis-options">Axis options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-MARGINAXIS.html">Graph margin axis <code class="docutils literal notranslate"><span class="pre">MARGINAXIS</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARGINAXIS.html#logical-and-physical-margins">Logical and physical margins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARGINAXIS.html#assigned-axes">Assigned axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARGINAXIS.html#axis-configuration">Axis configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARGINAXIS.html#coordinate-conversion">Coordinate conversion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html">Graph element <code class="docutils literal notranslate"><span class="pre">ELEMENT</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#element-names">Element names</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#element-data-and-axes">Element data and axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#display-list">Display list</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#active-elements-and-points">Active elements and points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#element-bindings">Element bindings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#finding-the-closest-element">Finding the closest element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#element-types">Element types</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html">Line element <code class="docutils literal notranslate"><span class="pre">LINEELEMENT</span></code> options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#data">Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#parameter-mapping">Parameter mapping</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#axis-mapping">Axis mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#line-drawing">Line drawing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#smoothing">Smoothing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#trace-direction">Trace direction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#display-decimation-for-large-data-sets">Display decimation for large data sets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#decimation-principle">Decimation principle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#when-automatic-decimation-is-used">When automatic decimation is used</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#fallback-behavior">Fallback behavior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#updates-to-vector-data">Updates to vector data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#interaction-with-reduce">Interaction with <code class="docutils literal notranslate"><span class="pre">-reduce</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#point-reduction">Point reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#symbols">Symbols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#error-bars-of-line-elements">Error bars of line elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#value-labels-of-line-elements">Value labels of line elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#x-and-y-error-bands">X and Y error bands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#value-label-position">Value-label position</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#custom-value-label-text">Custom value-label text</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#pens-weights-and-styles">Pens, weights, and styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#area-under-the-line">Area under the line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#line-element-options">Line element options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html">Strip element <code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#differences-from-line-elements">Differences from line elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#data">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#display-decimation">Display decimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#smoothing">Smoothing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#pens-and-symbols">Pens and symbols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#error-bars-of-strip-elements">Error bars of strip elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#x-and-y-error-bands-of-strip-elements">X and Y error bands of strip elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#value-labels-of-strip-elements">Value labels of strip elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#weights-and-styles">Weights and styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#strip-element-options">Strip element options</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-polar-element">Creating a polar element</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cartesian-data">Cartesian data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#complex-vector-data">Complex-vector data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#selecting-the-active-data-source">Selecting the active data source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#real-input-coordinates">Real input coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameter-mapping">Parameter mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#complex-data-formats">Complex data formats</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gamma">Gamma</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#impedance">Impedance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#admittance">Admittance</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#reference-impedance">Reference impedance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#singular-conversions-and-trace-gaps">Singular conversions and trace gaps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#smoothing">Smoothing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#axis-mapping">Axis mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-outside-the-smith-unit-circle">Data outside the Smith unit circle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#closest-point-information">Closest-point information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#postscript-svg-output">PostScript/SVG output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#polar-element-options">Polar element options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html">Bar element <code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#data">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#axis-mapping">Axis mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#bar-geometry">Bar geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#bar-width">Bar width</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#bar-alignment-and-offset">Bar alignment and offset</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#mixed-alignment-calculations">Mixed alignment calculations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#bar-modes">Bar modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#stacked-bars">Stacked bars</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#appearance">Appearance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#bar-fill-opacity">Bar fill opacity</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#pens">Pens</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#error-bars-of-bar-elements">Error bars of bar elements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#error-bar-position">Error-bar position</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#value-labels-of-bar-elements">Value labels of bar elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#weights-and-styles">Weights and styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#logarithmic-axes">Logarithmic axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#closest-searches">Closest searches</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#bar-element-options">Bar element options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-PEN.html">Graph pen <code class="docutils literal notranslate"><span class="pre">PEN</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#pen-types">Pen types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#built-in-active-pens">Built-in active pens</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#using-named-pens">Using named pens</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#pen-lifetime">Pen lifetime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#line-pens">Line pens</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#traces">Traces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#symbols">Symbols</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#error-bars-of-line-element-pen">Error bars of line element pen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#value-labels-of-line-element-pen">Value labels of line element pen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#line-pen-options">Line pen options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#bar-pens">Bar pens</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#bar-appearance">Bar appearance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#error-bars-of-bar-element-pen">Error bars of bar element pen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#value-labels-of-bar-element-pen">Value labels of bar element pen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#bar-pen-options">Bar pen options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PEN.html#option-database">Option database</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html">Graph marker <code class="docutils literal notranslate"><span class="pre">MARKER</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#marker-coordinates">Marker coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#drawing-order">Drawing order</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#element-association">Element association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#marker-bindings">Marker bindings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#marker-types-and-options">Marker types and options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#common-marker-options">Common marker options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#markers-in-stacked-tracks">Markers in stacked tracks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#bitmap-marker-options">Bitmap marker options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#image-marker-options">Image marker options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#line-marker-options">Line marker options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#arrowheads">Arrowheads</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#arc-marker-options">Arc marker options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#polygon-marker-options">Polygon marker options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#text-marker-options">Text marker options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#window-marker-options">Window marker options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-MARKER.html#option-database">Option database</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html">Graph legend <code class="docutils literal notranslate"><span class="pre">LEGEND</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#track-local-legends">Track-local legends</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#legend-entries">Legend entries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#legend-position">Legend position</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#legend-layout">Legend layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#active-entries">Active entries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#legend-bindings">Legend bindings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-LEGEND.html#legend-options">Legend options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-GRID.html">Graph grid <code class="docutils literal notranslate"><span class="pre">GRID</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#grid-axes">Grid axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#major-and-minor-grid-lines">Major and minor grid lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#showing-and-hiding-the-grid">Showing and hiding the grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#widget-specific-defaults">Widget-specific defaults</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#grid-options">Grid options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#polar-grid">Polar grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#smith-representation">Smith representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#smith-labels-during-zooming">Smith labels during zooming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#custom-smith-labels">Custom Smith labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#polar-smith-mapped-axes">Polar/Smith mapped axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-GRID.html#polar-smith-grid-options">Polar/Smith grid options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html">Graph crosshairs <code class="docutils literal notranslate"><span class="pre">CROSSHAIRS</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#crosshair-position">Crosshair position</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#crosshairs-when-the-graph-changes">Crosshairs when the graph changes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#showing-and-hiding-crosshairs">Showing and hiding crosshairs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#crosshair-appearance">Crosshair appearance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-CROSSHAIRS.html#crosshairs-options">Crosshairs options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html">Graph PostScript <code class="docutils literal notranslate"><span class="pre">POSTSCRIPT</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#generating-postscript">Generating PostScript</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#output-size">Output size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#centering-and-orientation">Centering and orientation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#color-modes">Color modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#color-maps">Color maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#font-maps">Font maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#decorations">Decorations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#footer">Footer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#preview-images">Preview images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-POSTSCRIPT.html#postscript-options">PostScript options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-SVG.html">Graph SVG <code class="docutils literal notranslate"><span class="pre">SVG</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#generating-svg">Generating SVG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#option-database">Option database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#svg-options">SVG options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#supported-content-and-limitations">Supported content and limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#commands">Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#cget"><code class="docutils literal notranslate"><span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#configure"><code class="docutils literal notranslate"><span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-SVG.html#output"><code class="docutils literal notranslate"><span class="pre">output</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-PDF.html">Graph PDF <code class="docutils literal notranslate"><span class="pre">PDF</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#generating-pdf">Generating PDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#option-database">Option database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#pdf-options">PDF options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#supported-content-and-limitations">Supported content and limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#commands">Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#cget"><code class="docutils literal notranslate"><span class="pre">cget</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#configure"><code class="docutils literal notranslate"><span class="pre">configure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-PDF.html#output"><code class="docutils literal notranslate"><span class="pre">output</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-vector.html"><code class="docutils literal notranslate"><span class="pre">vector</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-vector.html#read-only-vectors">Read-only vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-vector.html#loading-vectors-without-tk">Loading vectors without Tk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-vector.html#vector-types">Vector types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-vector.html#graph-and-spline-integration">Graph and spline integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-vector.html#vector-creation-forms">Vector creation forms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-vector.html#parentheses-in-vector-names">Parentheses in vector names</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-vector.html#vector-instances">Vector instances</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html">Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#vector-indices">Vector indices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#complex-vector-operations">Complex vector operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#vector-expressions">Vector expressions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#scalars-and-vectors">Scalars and vectors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#operators">Operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#circular-shifts">Circular shifts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#complex-expression-operators">Complex expression operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#mathematical-functions">Mathematical functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#component-functions">Component functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#scalar-functions">Scalar functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#vector-functions">Vector functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#mathematical-functions-on-complex-vectors">Mathematical functions on complex vectors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#tcl-callbacks-with-map">Tcl callbacks with map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#expression-results">Expression results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#fourier-transforms">Fourier transforms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#length-and-zero-padding">Length and zero padding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#sign-scaling-and-frequency-bins">Sign, scaling and frequency bins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#frequency-bin-generation">Frequency-bin generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#window-generation">Window generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#window-scaling">Window scaling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#c-language-api">C language API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#vector-representation">Vector representation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#public-vector-functions">Public vector functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#read-only-state-in-c-since-0-8-1">Read-only state in C (since 0.8.1)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#reading-vector-data">Reading vector data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#updating-vectors-from-c">Updating vectors from C</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#replacing-vector-storage">Replacing vector storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#creating-vectors-from-c">Creating vectors from C</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-spline.html">Spline interpolation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-spline.html#scalar-spline-interface">Scalar spline interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-spline.html#parametric-complex-interface">Parametric complex interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#scalar-source-data">Scalar source data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#scalar-evaluation-coordinates">Scalar evaluation coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#generating-scalar-evaluation-coordinates">Generating scalar evaluation coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#parametric-source-data">Parametric source data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#parametric-natural-cubic-spline">Parametric natural cubic spline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#parametric-quadratic-spline">Parametric quadratic spline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#output-vectors-and-transaction-behavior">Output vectors and transaction behavior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#scalar-natural-cubic-spline">Scalar natural cubic spline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#scalar-shape-preserving-quadratic-spline">Scalar shape-preserving quadratic spline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#errors">Errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#graph-smoothing">Graph smoothing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-spline.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-winop.html"><code class="docutils literal notranslate"><span class="pre">winop</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-winop.html#command-layout">Command layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-winop.html#window-operations">Window operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-winop.html#mapping-and-stacking">Mapping and stacking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-winop.html#pointer-position">Pointer position</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-winop.html#window-snapshots">Window snapshots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-winop.html#photo-image-operations">Photo-image operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-winop.html#convolution">Convolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-winop.html#color-quantization">Color quantization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-winop.html#jpeg-input">JPEG input</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-winop.html#image-resampling">Image resampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-winop.html#subsampling">Subsampling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-winop.html#platform-differences">Platform differences</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9-rbc-WINOPIMAGE.html">Winop image <code class="docutils literal notranslate"><span class="pre">WINOPIMAGE</span></code> command</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-WINOPIMAGE.html#gradients">Gradients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbc-tk9-rbc-WINOPIMAGE.html#rotation">Rotation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">rbc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/rbc-tk9-rbc-POLARELEMENT.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
   <section id="polar-element-polarelement-options">
-<span id="r-polar-element-polarelement-options"></span><span id="r-polar20element2060polarelement6020options"></span><span id="r-namespaceqz3a3arbc3a3apolarelement"></span><h1>Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options<a class="headerlink" href="#polar-element-polarelement-options" title="Link to this heading">¶</a></h1>
+<span id="r-polar-element-polarelement-options"></span><span id="r-polar20element2060polarelement6020options"></span><span id="r-namespaceqz3a3arbc3a3apolarelement"></span><h1>Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options<a class="headerlink" href="#polar-element-polarelement-options" title="Link to this heading"></a></h1>
 <p>This page documents the configuration and behavior of polar elements.</p>
 <p><code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> denotes an element whose concrete type is <code class="docutils literal notranslate"><span class="pre">PolarElement</span></code>. Polar elements are the default
 element type of a <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3apolar"><span class="std std-ref">::rbc::polar</span></a> widget:</p>
@@ -63,7 +846,7 @@ PostScript ignore it. See <a class="reference internal" href="rbc-tk9-rbc-LINEEL
 <p>Polar elements additionally support direct complex-vector data through <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> and can interpret complex
 values as reflection coefficient, impedance, or admittance.</p>
 <section id="creating-a-polar-element">
-<span id="r-rbc-polarelement-creating-a-polar-element"></span><span id="r-3a3arbc3a3apolarelementqzcreating20a20polar20element"></span><h2>Creating a polar element<a class="headerlink" href="#creating-a-polar-element" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-creating-a-polar-element"></span><span id="r-3a3arbc3a3apolarelementqzcreating20a20polar20element"></span><h2>Creating a polar element<a class="headerlink" href="#creating-a-polar-element" title="Link to this heading"></a></h2>
 <p>The generic <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">create</span></code> operation of a polar widget creates a <code class="docutils literal notranslate"><span class="pre">PolarElement</span></code>:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">polar</span><span class="w"> </span>.p
 <span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
@@ -80,7 +863,7 @@ values as reflection coefficient, impedance, or admittance.</p>
 <p>Such an explicitly created <code class="docutils literal notranslate"><span class="pre">LineElement</span></code> does not acquire the complex-data behavior of a <code class="docutils literal notranslate"><span class="pre">PolarElement</span></code>.</p>
 </section>
 <section id="cartesian-data">
-<span id="r-rbc-polarelement-cartesian-data"></span><span id="r-3a3arbc3a3apolarelementqzcartesian20data"></span><h2>Cartesian data<a class="headerlink" href="#cartesian-data" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-cartesian-data"></span><span id="r-3a3arbc3a3apolarelementqzcartesian20data"></span><h2>Cartesian data<a class="headerlink" href="#cartesian-data" title="Link to this heading"></a></h2>
 <p>A polar element may use the normal line-element data options:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-data
 -x
@@ -107,7 +890,7 @@ y = vertical Cartesian coordinate
 <p><img alt="polar_cartesian" src="images/polar_cartesian.svg" /></p>
 </section>
 <section id="complex-vector-data">
-<span id="r-rbc-polarelement-complex-vector-data"></span><span id="r-3a3arbc3a3apolarelementqzcomplex2dvector20data"></span><h2>Complex-vector data<a class="headerlink" href="#complex-vector-data" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-complex-vector-data"></span><span id="r-3a3arbc3a3apolarelementqzcomplex2dvector20data"></span><h2>Complex-vector data<a class="headerlink" href="#complex-vector-data" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-cdata</span></code> names an Rbc complex vector whose values provide the two-dimensional element data directly.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>gamma<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex
@@ -122,7 +905,7 @@ y = vertical Cartesian coordinate
 graph is redrawn automatically.</p>
 </section>
 <section id="selecting-the-active-data-source">
-<span id="r-rbc-polarelement-selecting-the-active-data-source"></span><span id="r-3a3arbc3a3apolarelementqzselecting20the20active20data20source"></span><h2>Selecting the active data source<a class="headerlink" href="#selecting-the-active-data-source" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-selecting-the-active-data-source"></span><span id="r-3a3arbc3a3apolarelementqzselecting20the20active20data20source"></span><h2>Selecting the active data source<a class="headerlink" href="#selecting-the-active-data-source" title="Link to this heading"></a></h2>
 <p>A polar element has one active data mode at a time:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ordinary X/Y data
 complex vector data
@@ -141,7 +924,7 @@ complex vector data
 processed in caller order and the final data-source selection determines the active mode.</p>
 </section>
 <section id="real-input-coordinates">
-<span id="r-rbc-polarelement-real-input-coordinates"></span><span id="r-3a3arbc3a3apolarelementqzreal20input20coordinates"></span><h2>Real input coordinates<a class="headerlink" href="#real-input-coordinates" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-real-input-coordinates"></span><span id="r-3a3arbc3a3apolarelementqzreal20input20coordinates"></span><h2>Real input coordinates<a class="headerlink" href="#real-input-coordinates" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">cartesian</span></code> (the default) interprets <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> as Cartesian X/Y. With
 <code class="docutils literal notranslate"><span class="pre">-datacoordinates</span> <span class="pre">polar</span></code>, <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> supplies theta in radians and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> supplies radius. Both options accept
 real vectors or lists. Interleaved <code class="docutils literal notranslate"><span class="pre">-data</span></code> accepts theta/radius pairs in this mode.</p>
@@ -166,7 +949,7 @@ the original theta/radius, including any complete turns or radius sign. Smoothin
 PostScript all use the converted Cartesian geometry.</p>
 </section>
 <section id="parameter-mapping">
-<span id="r-rbc-polarelement-parameter-mapping"></span><span id="r-3a3arbc3a3apolarelementqzparameter20mapping"></span><h2>Parameter mapping<a class="headerlink" href="#parameter-mapping" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-parameter-mapping"></span><span id="r-3a3arbc3a3apolarelementqzparameter20mapping"></span><h2>Parameter mapping<a class="headerlink" href="#parameter-mapping" title="Link to this heading"></a></h2>
 <p>Polar elements support the line-element <code class="docutils literal notranslate"><span class="pre">-param</span></code> option with either ordinary X/Y data or <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>. The
 parameter is independent of the coordinate representation and is not used when mapping or drawing the trace.</p>
 <p>A common use is to associate frequency with points on a Polar or Smith trace:</p>
@@ -180,8 +963,8 @@ parameter is independent of the coordinate representation and is not used when m
 </div>
 <p>A closest-point query can then recover both the plotted Smith-chart quantities and the corresponding frequency:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="k">{[</span><span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>closest<span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span>info<span class="w"> </span><span class="o">-</span>interpolate<span class="w"> </span>no<span class="w"> </span>S11<span class="k">]}</span><span class="w"> </span><span class="k">{</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;frequency </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(param)&quot;</span>
-<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Gamma     </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(gamma)&quot;</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">"frequency </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(param)"</span>
+<span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">"Gamma     </span><span class="o">=</span><span class="s2"> </span><span class="o">$</span><span class="s2">info(gamma)"</span>
 <span class="k">}</span>
 </pre></div>
 </div>
@@ -191,7 +974,7 @@ resized independently and temporarily have different lengths, plotting continues
 until the counts match again.</p>
 </section>
 <section id="complex-data-formats">
-<span id="r-rbc-polarelement-complex-data-formats"></span><span id="r-3a3arbc3a3apolarelementqzcomplex20data20formats"></span><h2>Complex data formats<a class="headerlink" href="#complex-data-formats" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-complex-data-formats"></span><span id="r-3a3arbc3a3apolarelementqzcomplex20data20formats"></span><h2>Complex data formats<a class="headerlink" href="#complex-data-formats" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-cdataformat</span></code> controls how values from <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> are interpreted.</p>
 <p>The accepted values are:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>gamma
@@ -202,7 +985,7 @@ admittance
 <p>The default is <code class="docutils literal notranslate"><span class="pre">gamma</span></code>.</p>
 <p>Interpretation does not depend on the <code class="docutils literal notranslate"><span class="pre">-representation</span></code> option of the graph.</p>
 <section id="gamma">
-<span id="r-rbc-polarelement-gamma"></span><span id="r-3a3arbc3a3apolarelementqzgamma"></span><h3>Gamma<a class="headerlink" href="#gamma" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-polarelement-gamma"></span><span id="r-3a3arbc3a3apolarelementqzgamma"></span><h3>Gamma<a class="headerlink" href="#gamma" title="Link to this heading"></a></h3>
 <p>With:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">-cdataformat</span><span class="w"> </span>gamma
 </pre></div>
@@ -225,7 +1008,7 @@ y = imag(Gamma)
 <p><img alt="polar_cdataformat_gamma" src="images/polar_cdataformat_gamma.svg" /></p>
 </section>
 <section id="impedance">
-<span id="r-rbc-polarelement-impedance"></span><span id="r-3a3arbc3a3apolarelementqzimpedance"></span><h3>Impedance<a class="headerlink" href="#impedance" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-polarelement-impedance"></span><span id="r-3a3arbc3a3apolarelementqzimpedance"></span><h3>Impedance<a class="headerlink" href="#impedance" title="Link to this heading"></a></h3>
 <p>With:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">-cdataformat</span><span class="w"> </span>impedance
 </pre></div>
@@ -252,7 +1035,7 @@ y = imag(Gamma)
 <p><img alt="smith_cdataformat_impedance" src="images/smith_cdataformat_impedance.svg" /></p>
 </section>
 <section id="admittance">
-<span id="r-rbc-polarelement-admittance"></span><span id="r-3a3arbc3a3apolarelementqzadmittance"></span><h3>Admittance<a class="headerlink" href="#admittance" title="Link to this heading">¶</a></h3>
+<span id="r-rbc-polarelement-admittance"></span><span id="r-3a3arbc3a3apolarelementqzadmittance"></span><h3>Admittance<a class="headerlink" href="#admittance" title="Link to this heading"></a></h3>
 <p>With:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">-cdataformat</span><span class="w"> </span>admittance
 </pre></div>
@@ -281,7 +1064,7 @@ impedance data element may still be displayed while the Smith grid is configured
 </section>
 </section>
 <section id="reference-impedance">
-<span id="r-rbc-polarelement-reference-impedance"></span><span id="r-3a3arbc3a3apolarelementqzreference20impedance"></span><h2>Reference impedance<a class="headerlink" href="#reference-impedance" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-reference-impedance"></span><span id="r-3a3arbc3a3apolarelementqzreference20impedance"></span><h2>Reference impedance<a class="headerlink" href="#reference-impedance" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-z0</span></code> specifies the reference impedance used by impedance and admittance conversion.</p>
 <p>The default is:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>50.0
@@ -295,7 +1078,7 @@ impedance data element may still be displayed while the Smith grid is configured
 <p><code class="docutils literal notranslate"><span class="pre">-z0</span></code> has no effect on complex data interpreted directly as <code class="docutils literal notranslate"><span class="pre">gamma</span></code>.</p>
 </section>
 <section id="singular-conversions-and-trace-gaps">
-<span id="r-rbc-polarelement-singular-conversions-and-trace-gaps"></span><span id="r-3a3arbc3a3apolarelementqzsingular20conversions20and20trace20gaps"></span><h2>Singular conversions and trace gaps<a class="headerlink" href="#singular-conversions-and-trace-gaps" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-singular-conversions-and-trace-gaps"></span><span id="r-3a3arbc3a3apolarelementqzsingular20conversions20and20trace20gaps"></span><h2>Singular conversions and trace gaps<a class="headerlink" href="#singular-conversions-and-trace-gaps" title="Link to this heading"></a></h2>
 <p>Some physical impedance or admittance values cannot be mapped to a finite reflection coefficient.</p>
 <p>For impedance, the conversion is singular when:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>z + 1 = 0
@@ -324,7 +1107,7 @@ impedance data element may still be displayed while the Smith grid is configured
 <p>Non-finite data and values invalid for the mapped axes similarly create trace breaks.</p>
 </section>
 <section id="smoothing">
-<span id="r-rbc-polarelement-smoothing"></span><span id="r-3a3arbc3a3apolarelementqzsmoothing"></span><h2>Smoothing<a class="headerlink" href="#smoothing" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-smoothing"></span><span id="r-3a3arbc3a3apolarelementqzsmoothing"></span><h2>Smoothing<a class="headerlink" href="#smoothing" title="Link to this heading"></a></h2>
 <p>Polar elements support the same <code class="docutils literal notranslate"><span class="pre">-smooth</span></code> names as line elements:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>linear
 step
@@ -371,7 +1154,7 @@ point as the final source point:</p>
 </div>
 </section>
 <section id="axis-mapping">
-<span id="r-rbc-polarelement-axis-mapping"></span><span id="r-3a3arbc3a3apolarelementqzaxis20mapping"></span><h2>Axis mapping<a class="headerlink" href="#axis-mapping" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-axis-mapping"></span><span id="r-3a3arbc3a3apolarelementqzaxis20mapping"></span><h2>Axis mapping<a class="headerlink" href="#axis-mapping" title="Link to this heading"></a></h2>
 <p>Polar elements support the normal line-element <code class="docutils literal notranslate"><span class="pre">-mapx</span></code> and <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> options:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>cdata<span class="w"> </span>gamma<span class="w"> </span><span class="o">-</span>mapx<span class="w"> </span>x2<span class="w"> </span><span class="o">-</span>mapy<span class="w"> </span>y2
 </pre></div>
@@ -385,7 +1168,7 @@ point as the final source point:</p>
 <p><code class="docutils literal notranslate"><span class="pre">-invertxy</span></code> on the owning polar widget is supported by Polar elements.</p>
 </section>
 <section id="data-outside-the-smith-unit-circle">
-<span id="r-rbc-polarelement-data-outside-the-smith-unit-circle"></span><span id="r-3a3arbc3a3apolarelementqzdata20outside20the20smith20unit20circle"></span><h2>Data outside the Smith unit circle<a class="headerlink" href="#data-outside-the-smith-unit-circle" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-data-outside-the-smith-unit-circle"></span><span id="r-3a3arbc3a3apolarelementqzdata20outside20the20smith20unit20circle"></span><h2>Data outside the Smith unit circle<a class="headerlink" href="#data-outside-the-smith-unit-circle" title="Link to this heading"></a></h2>
 <p>Smith representation does not clip element data to:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>|Gamma| &lt;= 1
 </pre></div>
@@ -407,7 +1190,7 @@ ranges.</p>
 <p><img alt="smith_outside_unit_circle" src="images/smith_outside_unit_circle.svg" /></p>
 </section>
 <section id="closest-point-information">
-<span id="r-rbc-polarelement-closest-point-information"></span><span id="r-3a3arbc3a3apolarelementqzclosest2dpoint20information"></span><h2>Closest-point information<a class="headerlink" href="#closest-point-information" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-closest-point-information"></span><span id="r-3a3arbc3a3apolarelementqzclosest2dpoint20information"></span><h2>Closest-point information<a class="headerlink" href="#closest-point-information" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">ELEMENT</span> <span class="pre">closest</span></code> works with Polar elements in the same way as line elements:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.p</span><span class="w"> </span>element<span class="w"> </span>closest<span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span>info<span class="w"> </span><span class="o">-</span>along<span class="w"> </span>both<span class="w"> </span><span class="o">-</span>interpolate<span class="w"> </span>yes
 </pre></div>
@@ -469,13 +1252,13 @@ the source element was supplied as Gamma, impedance, or admittance.</p>
 <p>At the Smith endpoints, an equivalent impedance or admittance may be infinite.</p>
 </section>
 <section id="postscript-svg-output">
-<span id="r-rbc-polarelement-postscript-svg-output"></span><span id="r-3a3arbc3a3apolarelementqzpostscript2fsvg20output"></span><h2>PostScript/SVG output<a class="headerlink" href="#postscript-svg-output" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-postscript-svg-output"></span><span id="r-3a3arbc3a3apolarelementqzpostscript2fsvg20output"></span><h2>PostScript/SVG output<a class="headerlink" href="#postscript-svg-output" title="Link to this heading"></a></h2>
 <p>Polar elements use the same mapped trace for window drawing and PostScript/SVG output.</p>
 <p>Complex-data conversion, trace breaks, parametric smoothing, symbols, pens, and other line-rendering
 attributes therefore apply to PostScript/SVG output as well as on-screen drawing.</p>
 </section>
 <section id="polar-element-options">
-<span id="r-rbc-polarelement-polar-element-options"></span><span id="r-3a3arbc3a3apolarelementqzpolar20element20options"></span><h2>Polar element options<a class="headerlink" href="#polar-element-options" title="Link to this heading">¶</a></h2>
+<span id="r-rbc-polarelement-polar-element-options"></span><span id="r-3a3arbc3a3apolarelementqzpolar20element20options"></span><h2>Polar element options<a class="headerlink" href="#polar-element-options" title="Link to this heading"></a></h2>
 <p>Polar elements support the configuration options documented for <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>, except for <code class="docutils literal notranslate"><span class="pre">-decimate</span></code> and the
 <code class="docutils literal notranslate"><span class="pre">-errorband*</span></code> options, which require Cartesian line or strip elements. Polar elements also provide the
 Polar-specific additions below.</p>
@@ -526,91 +1309,34 @@ and complex-data mapping, the differences are described above.</p>
 </section>
 
 
-            <div class="clearer"></div>
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options</a><ul>
-<li><a class="reference internal" href="#creating-a-polar-element">Creating a polar element</a></li>
-<li><a class="reference internal" href="#cartesian-data">Cartesian data</a></li>
-<li><a class="reference internal" href="#complex-vector-data">Complex-vector data</a></li>
-<li><a class="reference internal" href="#selecting-the-active-data-source">Selecting the active data source</a></li>
-<li><a class="reference internal" href="#real-input-coordinates">Real input coordinates</a></li>
-<li><a class="reference internal" href="#parameter-mapping">Parameter mapping</a></li>
-<li><a class="reference internal" href="#complex-data-formats">Complex data formats</a><ul>
-<li><a class="reference internal" href="#gamma">Gamma</a></li>
-<li><a class="reference internal" href="#impedance">Impedance</a></li>
-<li><a class="reference internal" href="#admittance">Admittance</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#reference-impedance">Reference impedance</a></li>
-<li><a class="reference internal" href="#singular-conversions-and-trace-gaps">Singular conversions and trace gaps</a></li>
-<li><a class="reference internal" href="#smoothing">Smoothing</a></li>
-<li><a class="reference internal" href="#axis-mapping">Axis mapping</a></li>
-<li><a class="reference internal" href="#data-outside-the-smith-unit-circle">Data outside the Smith unit circle</a></li>
-<li><a class="reference internal" href="#closest-point-information">Closest-point information</a></li>
-<li><a class="reference internal" href="#postscript-svg-output">PostScript/SVG output</a></li>
-<li><a class="reference internal" href="#polar-element-options">Polar element options</a></li>
-</ul>
-</li>
-</ul>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rbc-tk9-rbc-STRIPELEMENT.html" class="btn btn-neutral float-left" title="Strip element STRIPELEMENT options" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rbc-tk9-rbc-BARELEMENT.html" class="btn btn-neutral float-right" title="Bar element BARELEMENT options" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright George Yashin.</p>
   </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="rbc-tk9-rbc-STRIPELEMENT.html"
-                          title="previous chapter">Strip element <code class="docutils literal notranslate"><span class="pre">STRIPELEMENT</span></code> options</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="rbc-tk9-rbc-BARELEMENT.html"
-                          title="next chapter">Bar element <code class="docutils literal notranslate"><span class="pre">BARELEMENT</span></code> options</a></p>
-  </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/rbc-tk9-rbc-POLARELEMENT.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="rbc-tk9-rbc-BARELEMENT.html" title="Bar element BARELEMENT options"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="rbc-tk9-rbc-STRIPELEMENT.html" title="Strip element STRIPELEMENT options"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">rbc  documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Polar element <code class="docutils literal notranslate"><span class="pre">POLARELEMENT</span></code> options</a></li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright George Yashin.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
-    </div>
-  </body>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
 </html>

@@ -11,10 +11,11 @@ Start at `index.rst`. Shared parameter and lifetime terminology lives in
 chapter filenames and C reference targets are retained when navigation changes.
 Coverage is selective; a successful strict build is not a completeness audit.
 
-Install Doxygen, Python 3, Sphinx and Breathe. From MSYS2 UCRT64:
+Install Doxygen, Python 3, Sphinx, the Read the Docs theme and Breathe. From MSYS2 UCRT64:
 
     pacman -S --needed mingw-w64-ucrt-x86_64-doxygen \
         mingw-w64-ucrt-x86_64-python-sphinx \
+        mingw-w64-ucrt-x86_64-python-sphinx_rtd_theme \
         mingw-w64-ucrt-x86_64-python-breathe
 
 After configuring, run:
@@ -58,3 +59,21 @@ Vector command documentation includes the instance dispatch gates, reversible
 read-only state, type queries, expression assignment, and the distinction between
 clearing an array cache and changing numerical storage. Mapping and cache helpers
 describe their callback checks and nontransactional failure behavior.
+
+Both manuals use the Read the Docs theme. Shared custom styles live in
+`docs/theme/rbc.css` and `docs/theme/rbc-layout.css`; generated `_static` copies
+should not be edited. Tables and parameter fields wrap within RTD's default
+content width; narrow screens stack field labels above descriptions. C declaration
+signatures retain their existing layout. The builder stages the stylesheets before
+Sphinx runs and verifies the resulting copies. Keep
+`docs/.nojekyll` at the Pages publishing root and publish the complete generated
+HTML trees, including theme scripts, CSS and fonts. Run `pacman -Syu` before
+installing packages if the MSYS2 installation needs updating.
+
+The main contents page holds the subsystem and component hierarchy directly;
+there are no separate navigation-only landing pages. `rbc_navigation.py` uses
+these headings for expandable sidebar groups. All groups are available from
+any page, while declaration entries appear only for the current reference page.
+In-page contents lists omit declarations, keeping the main page compact.
+`docs/theme/rbc-developer.css` wraps long sidebar names and bounds indentation.
+See `building.rst` for navigation maintenance and the optional Sphinx test.

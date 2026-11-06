@@ -1,0 +1,21 @@
+/* Deep C-reference navigation must leave room for long identifiers. */
+.wy-menu-vertical a {
+    overflow-wrap: anywhere;
+}
+
+/* RTD progressively increases both current-link paddings. Bound indentation
+ * below the reference-section level so labels still fit the fixed sidebar. */
+.wy-menu-vertical .toctree-l1.current li.toctree-l5 > a {
+    padding-left: 4.5rem;
+    padding-right: 1rem;
+}
+
+.wy-menu-vertical .toctree-l1.current li.toctree-l6 > a,
+.wy-menu-vertical .toctree-l1.current li.toctree-l7 > a,
+.wy-menu-vertical .toctree-l1.current li.toctree-l8 > a,
+.wy-menu-vertical .toctree-l1.current li.toctree-l9 > a,
+.wy-menu-vertical .toctree-l1.current li.toctree-l10 > a,
+.wy-menu-vertical .toctree-l1.current li.toctree-l11 > a {
+    padding-left: 5rem;
+    padding-right: 1rem;
+}

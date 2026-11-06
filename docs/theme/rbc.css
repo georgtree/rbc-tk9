@@ -1,0 +1,44 @@
+/* Shared source stylesheet for the user and developer RTD manuals. */
+
+/* Keep small diagrams/GIFs at their natural size; shrink only to fit. */
+.rst-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.rst-content details {
+    margin: 1em 0;
+    padding: 0;
+    border: none;
+}
+
+.rst-content details > summary {
+    display: list-item;
+    box-sizing: border-box;
+    padding: 0.6em 1em;
+    border: 1px solid #9aa7b4;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #edf4fa;
+    color: #175a92;
+    font-weight: bold;
+}
+
+.rst-content details > summary:hover,
+.rst-content details > summary:focus-visible {
+    background-color: #e0edf7;
+    text-decoration: underline;
+}
+
+.rst-content details[open] > summary {
+    margin-bottom: 0.8em;
+}
+
+.rst-content details > summary:focus-visible {
+    outline: 2px solid #175a92;
+    outline-offset: 2px;
+}
+
+.rst-content details > summary::marker {
+    color: #175a92;
+}

@@ -1,48 +1,1219 @@
+
+
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<html lang="en" data-content_root="./">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marker lifecycle and drawing &mdash; RBC 0.8.5 Developer Manual</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/rbc.css?v=269a995a" />
+      <link rel="stylesheet" type="text/css" href="_static/rbc-layout.css?v=25cbdcf0" />
+      <link rel="stylesheet" type="text/css" href="_static/rbc-developer.css?v=4f245762" />
 
-    <title>Marker lifecycle and drawing &#8212; RBC 0.8.5 Developer Manual</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
-    
-    <script src="_static/documentation_options.js?v=84dcd668"></script>
-    <script src="_static/doctools.js?v=fd6eb6e6"></script>
-    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-    
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=84dcd668"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Marker C reference" href="marker-reference.html" />
     <link rel="prev" title="Track ownership C reference" href="track-reference.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="marker-reference.html" title="Marker C reference"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="track-reference.html" title="Track ownership C reference"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="manual-graphs.html" accesskey="U">Graphs and components</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Marker lifecycle and drawing</a></li> 
-      </ul>
-    </div>  
+</head>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            RBC Developer Manual
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#architecture-and-conventions">Architecture and conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="building.html">Building this manual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="building.html#dependencies">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building.html#targets">Targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building.html#generated-files-and-validation">Generated files and validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building.html#doxygen-callback-declaration-compatibility">Doxygen callback declaration compatibility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building.html#theme-and-publishing">Theme and publishing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building.html#sidebar-hierarchy">Sidebar hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html">Implementation overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#supporting-modules">Supporting modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#lifetime-and-callbacks">Lifetime and callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#object-interaction">Object interaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#core-record-index">Core record index</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="headers.html">Header structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="headers.html#record-coverage">Record coverage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="initialization.html">Package loading and stubs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="initialization.html#loader-sequence">Loader sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="initialization.html#interpreter-state-and-registration">Interpreter state and registration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="initialization.html#failure-boundaries">Failure boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="initialization.html#client-stubs-and-abi-maintenance">Client stubs and ABI maintenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="initialization.html#loader-callbacks-versus-package-initialization">Loader callbacks versus package initialization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="initialization-reference.html">Package initialization C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="initialization-reference.html#private-registration-helpers">Private registration helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="initialization-reference.html#windows-loader-wrappers">Windows loader wrappers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="calling-conventions.html">C calling conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="calling-conventions.html#writing-parameter-contracts">Writing parameter contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-and-member-comment-placement">Contract and member comment placement</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#vectors-and-numerical-operations">Vectors and numerical operations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vectors.html">Vector ownership and notifications</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vectors.html#module-boundaries">Module boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vectors.html#records-names-and-storage">Records, names and storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vectors.html#storage-replacement-versus-in-place-modification">Storage replacement versus in-place modification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vectors.html#read-only-state">Read-only state</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vectors.html#observers-and-callback-lifetime">Observers and callback lifetime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vectors.html#changed-intervals-and-extrema">Changed intervals and extrema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vectors.html#graph-consumers">Graph consumers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-reference.html">Vector client C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-reference.html#types">Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-reference.html#observers-and-range-access">Observers and range access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-reference.html#private-update-helpers">Private update helpers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage.html">Vector C API and storage primitives</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#public-versus-private-entry-points">Public versus private entry points</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#registry-and-creation">Registry and creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#lookup-and-borrowed-views">Lookup and borrowed views</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#resizing-resetting-and-copying">Resizing, resetting and copying</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#protection-publication-and-destruction">Protection, publication and destruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#callback-boundaries-and-ownership-commits">Callback boundaries and ownership commits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#post-callback-checks-and-publication">Post-callback checks and publication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#observer-snapshots-and-interval-scope">Observer snapshots and interval scope</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#incremental-extrema-maintenance">Incremental extrema maintenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#variable-trace-errors-use-tcl-object-results">Variable-trace errors use Tcl object results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#names-namespaces-and-access-surfaces">Names, namespaces and access surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage.html#creation-parsers-and-bounded-index-strings">Creation parsers and bounded index strings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-reference.html">Vector storage public C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-storage-private-reference.html">Vector storage private C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage-private-reference.html#parameter-and-ownership-conventions">Parameter and ownership conventions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-storage-private-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-access.html">Vector names, indices and mapped arrays</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-access.html#names-and-selections">Names and selections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-access.html#mapped-arrays">Mapped arrays</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-access.html#value-objects">Value objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-access.html#index-parsing-branches-and-caller-obligations">Index parsing branches and caller obligations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-access.html#finite-extrema-and-low-level-writes">Finite extrema and low-level writes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-access.html#literal-registry-lookup-and-temporary-names">Literal registry lookup and temporary names</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-access-reference.html">Vector access C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-access-reference.html#scalar-complex-helpers">Scalar complex helpers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-commands.html">Vector instance commands and binary input</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-commands.html#dispatch-and-mutation-boundaries">Dispatch and mutation boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-commands.html#control-operations-and-array-access">Control operations and array access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-commands.html#append-and-replacement">Append and replacement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-commands.html#sorting">Sorting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-commands.html#binary-channel-input">Binary channel input</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-commands.html#vector-ensemble-and-registry-operations">Vector ensemble and registry operations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vector-commands.html#ensemble-argument-and-callback-contracts">Ensemble argument and callback contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vector-commands.html#creation-and-reuse">Creation and reuse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vector-commands.html#named-expression-results">Named expression results</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vector-commands.html#rename-destruction-and-enumeration">Rename, destruction and enumeration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vector-commands.html#shared-command-helper-ownership">Shared command-helper ownership</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vector-commands.html#output-identity-and-partial-creation">Output identity and partial creation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vector-commands.html#permutation-mechanics">Permutation mechanics</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html">Vector command C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-operations.html">Vector indexed edits and rearrangement</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-operations.html#mutation-boundaries">Mutation boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-operations.html#indexed-access-and-deletion">Indexed access and deletion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-operations.html#length-and-offset">Length and offset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-operations.html#copying-interleaving-and-splitting">Copying, interleaving and splitting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-operations.html#population-and-source-aliasing">Population and source aliasing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-operations.html#paired-vector-simplification">Paired-vector simplification</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vector-operations.html#distance-and-subdivision">Distance and subdivision</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vector-operations.html#commit-and-observer-lifetime">Commit and observer lifetime</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-edit-reference.html">Vector edit C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector-numerics.html">Vector queries and numerical generators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector-numerics.html#arithmetic-returns-values">Arithmetic returns values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-numerics.html#ranges-and-searches">Ranges and searches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-numerics.html#normalization-and-random-values">Normalization and random values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-numerics.html#sequence-length-and-endpoint-policy">Sequence length and endpoint policy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-numerics.html#scalar-helper-contracts">Scalar helper contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector-numeric-reference.html">Vector numerical operation C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html">Vector expression evaluation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="expressions.html#entry-points-and-result-ownership">Entry points and result ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expressions.html#parsing-and-input-snapshots">Parsing and input snapshots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expressions.html#real-and-complex-temporaries">Real and complex temporaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expressions.html#assignment-and-named-creation">Assignment and named creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expressions.html#map-callback-boundary">Map callback boundary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="expression-reference.html">Vector expression C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="expression-reference.html#registry-initialization">Registry initialization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine.html">Expression parser and adapter internals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine.html#parser-state-and-precedence">Parser state and precedence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine.html#token-recognition-and-substitutions">Token recognition and substitutions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine.html#temporary-storage-and-type-changes">Temporary storage and type changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine.html#function-adapters-and-validation">Function adapters and validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine.html#scalar-conversion-and-operand-reuse">Scalar conversion and operand reuse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine.html#parser-argument-and-completion-contracts">Parser argument and completion contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine.html#adapter-data-and-temporary-failure-states">Adapter data and temporary failure states</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine.html#registry-value-ownership">Registry value ownership</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html">Expression engine internal C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="expression-numerics.html">Expression reductions and scalar kernels</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="expression-numerics.html#selection-finite-samples-and-ownership">Selection, finite samples and ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-numerics.html#implemented-reduction-formulas">Implemented reduction formulas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-numerics.html#real-order-statistics-and-normalization">Real order statistics and normalization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-numerics.html#higher-moments-and-compatibility">Higher moments and compatibility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-numerics.html#complex-elementary-functions">Complex elementary functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-numerics.html#scalar-ownership-and-dispatch">Scalar ownership and dispatch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-numerics.html#return-values-and-mutation-boundaries">Return values and mutation boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-numerics.html#full-storage-extrema-inputs">Full-storage extrema inputs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="expression-numerics-reference.html">Expression numerical C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fft.html">FFT workspace and output ownership</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fft.html#dispatch-and-validation">Dispatch and validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fft.html#transform-length-and-normalization">Transform length and normalization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fft.html#workspace-and-commit-sequence">Workspace and commit sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fft.html#callback-lifetime-and-reentry">Callback lifetime and reentry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fft.html#frequency-and-window-generators">Frequency and window generators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fft.html#internal-helper-boundaries">Internal helper boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fft.html#count-and-ownership-conventions">Count and ownership conventions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fft-reference.html">FFT and generator C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fft-reference.html#implementation-helpers">Implementation helpers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="splines.html">Spline interpolation and graph smoothing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="splines.html#coordinate-and-parameter-interfaces">Coordinate and parameter interfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="splines.html#cartesian-kernels">Cartesian kernels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="splines.html#parametric-paths">Parametric paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="splines.html#tcl-vector-ownership">Tcl vector ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="splines.html#graph-smoothing">Graph smoothing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="splines.html#private-helper-contracts">Private helper contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="splines.html#choosing-and-calling-an-entry-point">Choosing and calling an entry point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="splines.html#command-and-graph-boundaries">Command and graph boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="spline-reference.html">Spline C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="spline-reference.html#implementation-helpers">Implementation helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="spline-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html#graphs-and-components">Graphs and components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#graph-widget">Graph widget</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="graph-lifecycle.html">Graph lifecycle and redisplay</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#creation-and-ownership">Creation and ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#widget-option-transactions">Widget option transactions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#redraw-requests-and-dirty-state">Redraw requests and dirty state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#layout-and-cancellation">Layout and cancellation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#frame-drawing-and-presentation">Frame drawing and presentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#destruction">Destruction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#contributor-checks">Contributor checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#widget-commands-and-geometry-queries">Widget commands and geometry queries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#screen-composition-and-snapshot-capture">Screen composition and snapshot capture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#construction-helpers-and-notification-ownership">Construction helpers and notification ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-lifecycle.html#windows-metafile-layout-and-ownership">Windows metafile layout and ownership</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="graph-reference.html">Graph lifecycle C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#widget-ownership-and-layout-records">Widget ownership and layout records</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#shared-entry-points">Shared entry points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#internal-lifecycle-callbacks">Internal lifecycle callbacks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#widget-option-transactions">Widget option transactions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#commands-and-screen-composition">Commands and screen composition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#construction-and-redraw-support">Construction and redraw support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#windows-metafile-packaging">Windows metafile packaging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#axes">Axes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="axes.html">Axis ownership and commands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#names-references-and-margin-membership">Names, references and margin membership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#configuration-boundary">Configuration boundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#dispatch-and-bindings">Dispatch and bindings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#cleanup-and-failure-recovery">Cleanup and failure recovery</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#option-transaction-internals">Option transaction internals</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#transaction-argument-contracts">Transaction argument contracts</a></li>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#parsing-policies">Parsing policies</a></li>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#expression-evaluation-boundary">Expression evaluation boundary</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#ranges-and-tick-generation">Ranges and tick generation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#linear-sweep-policy">Linear sweep policy</a></li>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#logarithmic-sweep-policy">Logarithmic sweep policy</a></li>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#explicit-arrays-and-ownership">Explicit arrays and ownership</a></li>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#numerical-mapping-boundary">Numerical mapping boundary</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#labels-geometry-and-presentation">Labels, geometry and presentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#formatter-callback-boundary">Formatter callback boundary</a></li>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#geometry-and-picking">Geometry and picking</a></li>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#screen-and-document-output">Screen and document output</a></li>
+<li class="toctree-l5"><a class="reference internal" href="axes.html#limit-annotations-and-remaining-differences">Limit annotations and remaining differences</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#margin-layout-and-aspect">Margin layout and aspect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#queries-and-freshness">Queries and freshness</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#scrolling-state-and-local-views">Scrolling state and local views</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axes.html#notifications-and-delivery">Notifications and delivery</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="axis-reference.html">Axis control C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#registry-and-lifetime">Registry and lifetime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#configuration-entry-points">Configuration entry points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#commands-and-bindings">Commands and bindings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#option-transaction-internals">Option transaction internals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#ranges-coordinates-and-tick-sweeps">Ranges, coordinates and tick sweeps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#labels-geometry-and-presentation">Labels, geometry and presentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#layout-queries-scrolling-and-notifications">Layout, queries, scrolling and notifications</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#coordinate-mapping">Coordinate mapping</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mapping.html">Axes, mapping and track viewports</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mapping.html#preparing-geometry">Preparing geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mapping.html#coordinate-conventions">Coordinate conventions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mapping.html#full-tracks-and-visible-tracks">Full tracks and visible tracks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mapping.html#temporary-export-layouts">Temporary export layouts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mapping.html#useful-regression-coverage">Useful regression coverage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mapping.html#axis-space-helper-contracts">Axis-space helper contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mapping-reference.html">Coordinate mapping C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mapping-reference.html#data-and-screen-coordinates">Data and screen coordinates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mapping-reference.html#track-layout-and-viewport-scopes">Track layout and viewport scopes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mapping-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#elements">Elements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="elements.html">Element data and dispatch</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#data-slots">Data slots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#staging-and-commit">Staging and commit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#updates-and-invalidation">Updates and invalidation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#type-dispatch-and-display-order">Type dispatch and display order</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#destruction">Destruction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#synchronous-layout-before-idle-notifications">Synchronous layout before idle notifications</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#transaction-records-and-failure-rules">Transaction records and failure rules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#original-arguments-and-repeated-options">Original arguments and repeated options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#retained-coordinate-representations">Retained coordinate representations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#callback-boundaries">Callback boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#parsing-allocation-and-extrema">Parsing, allocation and extrema</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#notification-metadata-and-synchronous-refresh">Notification metadata and synchronous refresh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#value-label-formatting">Value-label formatting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#closest-result-source-values-and-traces">Closest-result source values and traces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#registry-and-display-list-ownership">Registry and display-list ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#option-initialization-and-resource-lifetime">Option initialization and resource lifetime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#normal-active-and-export-passes">Normal, active and export passes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#command-dispatch-and-query-domains">Command dispatch and query domains</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#binding-tokens">Binding tokens</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#mutation-boundaries">Mutation boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#closest-search-phases">Closest-search phases</a></li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#line-family-geometry-ownership">Line-family geometry ownership</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#mapped-points-and-discontinuities">Mapped points and discontinuities</a></li>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#reset-versus-destruction">Reset versus destruction</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#line-mapping-pipeline">Line mapping pipeline</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#smoothing-gaps-and-symbol-selection">Smoothing, gaps and symbol selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#clipping-and-palette-grouping">Clipping and palette grouping</a></li>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#source-extents">Source extents</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#line-family-picking-and-metadata">Line-family picking and metadata</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#point-and-trace-metrics">Point and trace metrics</a></li>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#source-picking-after-reduction">Source picking after reduction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#collect-before-publishing">Collect before publishing</a></li>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#screen-stroke-adapters">Screen stroke adapters</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#line-symbols-and-output-dispatch">Line symbols and output dispatch</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#symbol-selection-and-fallback">Symbol selection and fallback</a></li>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#fills-and-labels">Fills and labels</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#line-configuration-and-continuous-run-smoothing">Line configuration and continuous-run smoothing</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#ordinary-and-parametric-resampling">Ordinary and parametric resampling</a></li>
+<li class="toctree-l5"><a class="reference internal" href="elements.html#scalar-adapters-and-ownership">Scalar adapters and ownership</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="elements.html#pen-palette-and-error-geometry-boundaries">Pen, palette and error-geometry boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="element-reference.html">Element data C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#element-ownership-data-and-picking-records">Element ownership, data and picking records</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#data-slots">Data slots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#common-data-transactions">Common data transactions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#type-dispatch-signatures">Type dispatch signatures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#configuration-transaction-internals">Configuration transaction internals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#data-observation-and-value-presentation">Data observation and value presentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#lifecycle-and-display-dispatch">Lifecycle and display dispatch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#commands-and-binding-tags">Commands and binding tags</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-geometry-and-resource-lifecycle">Line geometry and resource lifecycle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-mapping-pipeline">Line mapping pipeline</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-picking-and-stroke-dispatch">Line picking and stroke dispatch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-symbol-and-output-dispatch">Line symbol and output dispatch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-configuration-and-smoothing">Line configuration and smoothing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#shared-error-bar-geometry">Shared error-bar geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#pens">Pens</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pens.html">Pens and style palettes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pens.html#named-and-embedded-pens">Named and embedded pens</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pens.html#configuration-and-redraw">Configuration and redraw</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pens.html#palette-ownership">Palette ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pens.html#selecting-a-style">Selecting a style</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pens.html#resource-teardown">Resource teardown</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pens.html#creation-and-command-boundaries">Creation and command boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pens.html#candidate-palettes-and-default-ranges">Candidate palettes and default ranges</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pen-reference.html">Pen and palette C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pen-reference.html#pen-ownership-and-palette-records">Pen ownership and palette records</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pen-reference.html#pen-lifecycle-callback-types">Pen lifecycle callback types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pen-reference.html#named-pen-references">Named pen references</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pen-reference.html#graph-resource-teardown">Graph resource teardown</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pen-reference.html#element-palettes">Element palettes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pen-reference.html#named-pen-implementation">Named pen implementation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pen-reference.html#palette-implementation">Palette implementation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pen-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#bars">Bars</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bars.html">Bar elements</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#records-and-ownership">Records and ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#creation-and-configuration">Creation and configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#grouping-keys-and-passes">Grouping keys and passes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#placement-formulas">Placement formulas</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#data-limits-and-error-translations">Data limits and error translations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#screen-geometry-ownership-and-output">Screen geometry, ownership and output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#palette-grouping-and-active-geometry">Palette grouping and active geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#screen-and-export-dispatch">Screen and export dispatch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#value-labels-and-callbacks">Value labels and callbacks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#cleanup-and-font-changes">Cleanup and font changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#array-and-coordinate-contracts">Array and coordinate contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bars.html#resource-and-output-contracts">Resource and output contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bar-reference.html">Bar element C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bar-reference.html#bar-grouping-state">Bar grouping state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bar-reference.html#configuration-and-pens">Configuration and pens</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bar-reference.html#grouping-and-placement">Grouping and placement</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bar-reference.html#geometry-and-lifetime">Geometry and lifetime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bar-reference.html#screen-drawing-and-document-output">Screen drawing and document output</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#area-fills-and-error-bands">Area fills and error bands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fills.html">Area fills and error bands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fills.html#resources-and-configuration">Resources and configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fills.html#ordinary-area-geometry">Ordinary area geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fills.html#error-band-geometry">Error-band geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fills.html#drawing-export-and-cleanup">Drawing, export and cleanup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fills.html#pattern-and-tile-transaction-details">Pattern and tile transaction details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="fills.html#adjacent-scalar-and-symbol-parsing">Adjacent scalar and symbol parsing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="fill-reference.html">Line fill C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="fill-reference.html#configuration-and-resource-transactions">Configuration and resource transactions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#decimation">Decimation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="decimation.html">Line decimation and source identity</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#eligibility-and-density">Eligibility and density</a></li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#mapping-paths-and-fallback">Mapping paths and fallback</a></li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#persistent-cache-maintenance">Persistent cache maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#picking-symbols-and-exports">Picking, symbols and exports</a></li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#cache-state-and-borrowed-storage">Cache state and borrowed storage</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="decimation.html#growth-and-prefix-proof">Growth and prefix proof</a></li>
+<li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="decimation-reference.html">Line decimation C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="decimation-reference.html#source-summaries-and-bucket-searches">Source summaries and bucket searches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="decimation-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#polar-graphs">Polar graphs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="polar.html">Polar data and grid geometry</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#source-representation-and-conversion">Source representation and conversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#complex-vector-ownership">Complex-vector ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#polar-grid-construction">Polar grid construction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#smith-grid-construction">Smith grid construction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#integration-boundaries">Integration boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#parallel-parameter-ownership-and-validation">Parallel parameter ownership and validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#current-counts-versus-cached-sample-storage">Current counts versus cached sample storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#complex-mode-selection-and-cleanup">Complex mode selection and cleanup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#segment-cache-construction-and-failure-policy">Segment cache construction and failure policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#label-placement-in-full-and-cropped-views">Label placement in full and cropped views</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#formatter-callbacks-and-cancellation">Formatter callbacks and cancellation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#geometry-parameter-domains-and-output-storage">Geometry parameter domains and output storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar.html#formatter-storage-and-cancellation">Formatter storage and cancellation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="polar-reference.html">Polar data and geometry C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polar-reference.html#element-data-adapters-rbcgrline-c">Element data adapters (rbcGrLine.c)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar-reference.html#grid-geometry-rbcgrpolar-c">Grid geometry (rbcGrPolar.c)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar-reference.html#line-and-polar-data-transactions-rbcgrline-c">Line and polar data transactions (rbcGrLine.c)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar-reference.html#label-placement-and-presentation-rbcgrpolar-c">Label placement and presentation (rbcGrPolar.c)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="polar-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#tracks">Tracks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tracks.html">Track ownership and layout</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#records-and-dependencies">Records and dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#configuration-and-axis-ownership">Configuration and axis ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#sizing-and-visible-bounds">Sizing and visible bounds</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#local-components-and-dispatch">Local components and dispatch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#deletion-and-teardown">Deletion and teardown</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#axis-chain-synchronization-and-option-queries">Axis-chain synchronization and option queries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#sash-geometry-and-scroll-fractions">Sash geometry and scroll fractions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#notification-lifetime-boundary">Notification lifetime boundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tracks.html#dispatch-and-notification-contracts">Dispatch and notification contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="track-reference.html">Track ownership C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="track-reference.html#widget-integration">Widget integration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="track-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#markers">Markers</a><ul>
+<li class="current toctree-l3"><a class="current reference internal" href="#">Marker lifecycle and drawing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#coordinates-and-mapping">Coordinates and mapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#layers-order-and-visibility">Layers, order and visibility</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#window-markers">Window markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#xor-paths">XOR paths</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#export-and-cleanup">Export and cleanup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#common-configuration-and-ownership">Common configuration and ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#coordinate-and-color-parsing">Coordinate and color parsing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#creation-replacement-and-rename">Creation, replacement and rename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bindings-point-picking-and-region-searches">Bindings, point picking and region searches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#display-order-changes">Display-order changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#teardown-and-invalidation-details">Teardown and invalidation details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#geometric-markers-line-polygon-and-arc">Geometric markers: line, polygon and arc</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#line-shafts-and-arrowheads">Line shafts and arrowheads</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#polygon-fill-versus-outline">Polygon fill versus outline</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#arc-mapping-and-output">Arc mapping and output</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#picking-differences">Picking differences</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#configuration-and-xor-lifetime">Configuration and XOR lifetime</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#bitmap-image-text-and-window-resources">Bitmap, image, text and window resources</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#bitmap-masks-and-aliasing">Bitmap masks and aliasing</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#photo-and-non-photo-image-paths">Photo and non-photo image paths</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#text-layout-and-coordinate-spaces">Text layout and coordinate spaces</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#child-window-transitions-and-notifications">Child-window transitions and notifications</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#pass-dispatch-and-batching">Pass dispatch and batching</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#windows-native-batches">Windows native batches</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cairo-context-reuse-and-native-targets">Cairo context reuse and native targets</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#track-and-export-paths">Track and export paths</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#windows-scratch-ownership">Windows scratch ownership</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#geometry-and-batch-argument-contracts">Geometry and batch argument contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="marker-reference.html">Marker C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#mapping-and-output">Mapping and output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#resource-and-record-cleanup">Resource and record cleanup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#internal-class-interface">Internal class interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#shared-implementation-reference">Shared implementation reference</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="marker-reference.html#option-preparation-and-commit">Option preparation and commit</a></li>
+<li class="toctree-l5"><a class="reference internal" href="marker-reference.html#record-lifetime">Record lifetime</a></li>
+<li class="toctree-l5"><a class="reference internal" href="marker-reference.html#mapping-helpers-and-picking">Mapping helpers and picking</a></li>
+<li class="toctree-l5"><a class="reference internal" href="marker-reference.html#registry-and-commands">Registry and commands</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#line-geometry-and-lifetime">Line geometry and lifetime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#polygon-and-arc-geometry-and-ownership">Polygon and arc geometry and ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#geometric-renderer-dispatch">Geometric renderer dispatch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#bitmap-marker-resources-and-presentation">Bitmap marker resources and presentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#image-marker-resources-and-presentation">Image marker resources and presentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#text-marker-layout-and-presentation">Text marker layout and presentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#window-marker-geometry-management-and-callbacks">Window marker geometry management and callbacks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#pass-batching-and-renderer-dispatch">Pass batching and renderer dispatch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#legends">Legends</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="legends.html">Legend ownership and layout</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#entries-and-geometry">Entries and geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#drawing-and-picking">Drawing and picking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#external-window-and-redraw">External window and redraw</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#resource-teardown">Resource teardown</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#record-and-construction-boundaries">Record and construction boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#configuration-transaction">Configuration transaction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#detailed-layout-rules">Detailed layout rules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#picking-tags-and-activation">Picking, tags and activation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#screen-composition-and-export">Screen composition and export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#external-windows-and-command-routing">External windows and command routing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legends.html#parameter-and-ownership-boundaries">Parameter and ownership boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="legend-reference.html">Legend C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="legend-reference.html#creation-and-configuration">Creation and configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legend-reference.html#measurement-and-placement">Measurement and placement</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legend-reference.html#picking-and-binding-identity">Picking and binding identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legend-reference.html#screen-and-document-output">Screen and document output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legend-reference.html#windows-scheduling-and-cleanup">Windows, scheduling and cleanup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="legend-reference.html#command-handlers">Command handlers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#grids">Grids</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="grids.html">Grid mapping and inheritance</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="grids.html#configuration-and-axis-selection">Configuration and axis selection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grids.html#inherited-and-local-state">Inherited and local state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grids.html#segment-mapping">Segment mapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grids.html#screen-and-document-output">Screen and document output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grids.html#cleanup-and-regression-checks">Cleanup and regression checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grids.html#tick-transactions-and-duplicate-options">Tick transactions and duplicate options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grids.html#command-transactions-and-visibility">Command transactions and visibility</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grids.html#parameter-boundaries-for-configuration-and-drawing">Parameter boundaries for configuration and drawing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="grid-reference.html">Grid C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="grid-reference.html#grid-configuration-and-mapped-caches">Grid configuration and mapped caches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grid-reference.html#mapping-and-output">Mapping and output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grid-reference.html#ownership-and-cleanup">Ownership and cleanup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grid-reference.html#implementation-helpers">Implementation helpers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="grid-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#crosshairs">Crosshairs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="crosshairs.html">Crosshair state and presentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="crosshairs.html#requested-and-actual-visibility">Requested and actual visibility</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshairs.html#motion-and-geometry-changes">Motion and geometry changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshairs.html#double-buffered-presentation">Double-buffered presentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshairs.html#direct-drawing-and-teardown">Direct drawing and teardown</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshairs.html#parsing-and-configuration-boundaries">Parsing and configuration boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshairs.html#command-dispatch-and-idempotence">Command dispatch and idempotence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshairs.html#parameter-boundaries-and-lifecycle">Parameter boundaries and lifecycle</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="crosshair-reference.html">Crosshair C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="crosshair-reference.html#lifecycle-and-background-changes">Lifecycle and background changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshair-reference.html#direct-overlay-control">Direct overlay control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshair-reference.html#buffered-presentation">Buffered presentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshair-reference.html#implementation-helpers">Implementation helpers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshair-reference.html#windows-position-only-transition">Windows position-only transition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crosshair-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#scrolling">Scrolling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scrolling.html">Scrolling and viewport policy</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scrolling.html#two-parsing-interfaces">Two parsing interfaces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="scrolling.html#integer-viewport-modes">Integer viewport modes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="scrolling.html#axis-data-scrolling">Axis data scrolling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="scrolling.html#track-stack-versus-track-local-data">Track stack versus track-local data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="scrolling.html#scrollbar-callbacks-and-lifetime">Scrollbar callbacks and lifetime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="scrolling.html#integer-conversion-boundary">Integer conversion boundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="scrolling.html#argument-slices-and-coordinate-units">Argument slices and coordinate units</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scroll-reference.html">Scrolling C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scroll-reference.html#implementation-helpers">Implementation helpers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#rendering-and-document-export">Rendering and document export</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rendering.html">Rendering architecture and contracts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#module-boundaries">Module boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#contexts-and-capabilities">Contexts and capabilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#clipping-and-coordinate-rules">Clipping and coordinate rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#native-details-and-fallback-policy">Native details and fallback policy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#common-dispatch-and-constructor-state">Common dispatch and constructor state</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rendering.html#screen-fallback-order">Screen fallback order</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rendering.html#validation-at-dispatch-boundaries">Validation at dispatch boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#document-ownership">Document ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#validation">Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#argument-lifetimes-and-dispatch-requirements">Argument lifetimes and dispatch requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#screen-text-and-raster-batches">Screen text and raster batches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#export-scopes-and-completion">Export scopes and completion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rendering.html#internal-adapter-contracts">Internal adapter contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference.html">Renderer C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference.html#component-facing-interface">Component-facing interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference.html#auxiliary-types">Auxiliary types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference.html#backend-dispatch">Backend dispatch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference.html#common-screen-adapters">Common screen adapters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="exports.html">Export orchestration and document ownership</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="exports.html#document-state">Document state</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exports.html#svg-pdf-command-transaction">SVG/PDF command transaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exports.html#format-policies-and-extension-constraints">Format policies and extension constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exports.html#graph-traversal-and-geometry">Graph traversal and geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exports.html#postscript-policy-and-delivery">PostScript policy and delivery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exports.html#parameter-slices-and-failure-boundaries">Parameter slices and failure boundaries</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="export-reference.html">Export orchestration C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#document-context">Document context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#graph-command-and-traversal">Graph command and traversal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#svg-and-pdf-command-helpers-and-format-adapters">SVG and PDF command helpers and format adapters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="document-rendering.html">Document renderer primitives</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="document-rendering.html#context-lifetime-and-state">Context lifetime and state</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-rendering.html#geometry-and-painter-order">Geometry and painter order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-rendering.html#fills-patterns-and-resource-ownership">Fills, patterns and resource ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-rendering.html#images-and-masks">Images and masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-rendering.html#text-borders-and-symbols">Text, borders and symbols</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-rendering.html#errors-and-callback-boundaries">Errors and callback boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-rendering.html#backend-parameter-and-scope-contracts">Backend parameter and scope contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-rendering.html#shared-backend-setup">Shared backend setup</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="document-render-reference.html">Document renderer C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="document-render-reference.html#shared-export-support">Shared export support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-render-reference.html#pdf-drawing-callbacks">PDF drawing callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-render-reference.html#postscript-drawing-callbacks">PostScript drawing callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="document-render-reference.html#context-storage">Context storage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#native-renderers">Native renderers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="native-rendering.html">Native renderer internals</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#component-facing-screen-operations">Component-facing screen operations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#platform-responsibilities">Platform responsibilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#backend-contract-navigation">Backend contract navigation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#batch-lifetime-and-coordinate-conversion">Batch lifetime and coordinate conversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#polygon-and-symbol-batches">Polygon and symbol batches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#rectangular-clip-frames">Rectangular clip frames</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#windows-dc-clips">Windows DC clips</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#runs-and-fallback-boundaries">Runs and fallback boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#shared-primitive-contracts">Shared primitive contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#arc-strokes-and-arrowheads">Arc strokes and arrowheads</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#x11-request-and-fallback-contracts">X11 request and fallback contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#windows-batch-eligibility-and-ownership">Windows batch eligibility and ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#failure-and-cleanup-boundaries">Failure and cleanup boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#windows-compatibility-resource-boundary">Windows compatibility resource boundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#monochrome-readback-and-fast-paths">Monochrome readback and fast paths</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#windows-compatibility-primitives">Windows compatibility primitives</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="native-rendering.html#rectangles-and-arcs">Rectangles and arcs</a></li>
+<li class="toctree-l5"><a class="reference internal" href="native-rendering.html#xor-composition-and-direct-fallback">XOR composition and direct fallback</a></li>
+<li class="toctree-l5"><a class="reference internal" href="native-rendering.html#points-and-text">Points and text</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#windows-bitmap-capture-and-transforms">Windows bitmap capture and transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#internal-template-and-buffer-contracts">Internal template and buffer contracts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="native-rendering.html#bitmap-packing-and-output-ownership">Bitmap packing and output ownership</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="native-rendering.html#retained-native-geometry-contexts">Retained native geometry contexts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="native-reference.html">Shared and X11 native backend C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="native-reference.html#trace-batches">Trace batches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-reference.html#clip-stacks">Clip stacks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-reference.html#shared-drawing-implementation">Shared drawing implementation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-reference.html#x11-platform-implementation">X11 platform implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="native-windows-reference.html">Windows native backend C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="native-windows-reference.html#tk-windows-resource-boundary">Tk Windows resource boundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-windows-reference.html#compatibility-drawing-primitives">Compatibility drawing primitives</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-windows-reference.html#bitmap-capture-and-transforms">Bitmap capture and transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-windows-reference.html#native-window-handle-lookup">Native window handle lookup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-windows-reference.html#dc-and-handle-ownership">DC and handle ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-windows-reference.html#tiled-shapes">Tiled shapes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-windows-reference.html#windows-header-records">Windows header records</a></li>
+<li class="toctree-l4"><a class="reference internal" href="native-windows-reference.html#platform-specific-record-extensions">Platform-specific record extensions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#cairo-renderer">Cairo renderer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cairo-rendering.html">Cairo surfaces and drawing contexts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#component-facing-attempts">Component-facing attempts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#construction-and-ownership">Construction and ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#path-and-resource-contracts">Path and resource contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#paths-and-clip-scopes">Paths and clip scopes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#patterns-and-pixel-conversion">Patterns and pixel conversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#windows-marker-pass-target">Windows marker-pass target</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#fallback-and-validation-boundaries">Fallback and validation boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#path-consumption-and-batching">Path consumption and batching</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-rendering.html#coordinate-and-pattern-state">Coordinate and pattern state</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cairo-reference.html">Cairo backend C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cairo-reference.html#context-storage">Context storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cairo-reference.html#windows-context-and-marker-pass-target">Windows context and marker-pass target</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#svg-exporter">SVG exporter</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svg-output.html">SVG definitions and image encoding</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#document-and-context-lifetime">Document and context lifetime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#definitions-and-scopes">Definitions and scopes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#primitive-geometry-and-paint">Primitive geometry and paint</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#symbol-definitions-and-placement">Symbol definitions and placement</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#strings-and-error-propagation">Strings and error propagation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#raster-encoding">Raster encoding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#text-and-integration-boundaries">Text and integration boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#text-placement-and-font-finalization">Text placement and font finalization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svg-output.html#font-finalization-failure-boundary">Font-finalization failure boundary</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svg-reference.html">SVG backend C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svg-reference.html#context-storage">Context storage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#pdf-exporter">PDF exporter</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pdf-builder.html">PDF resource builder and serialization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pdf-builder.html#one-export-one-builder">One export, one builder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pdf-builder.html#object-numbers-and-resource-categories">Object numbers and resource categories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pdf-builder.html#reserved-resources-and-streams">Reserved resources and streams</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pdf-builder.html#serialization-and-errors">Serialization and errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pdf-builder.html#cleanup-boundaries">Cleanup boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pdf-builder.html#stored-geometry-queries">Stored geometry queries</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pdf-builder-reference.html">PDF builder C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pdf-builder-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#postscript-exporter">PostScript exporter</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="postscript-output.html">PostScript output and drawing state</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#token-ownership">Token ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#prolog-and-page-setup">Prolog and page setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#graphics-state-boundaries">Graphics-state boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#legacy-primitive-contracts">Legacy primitive contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#relief-rectangles">Relief rectangles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#text-and-fill-limitations">Text and fill limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#raster-ownership-and-encoding">Raster ownership and encoding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#bitmap-acquisition-and-payloads">Bitmap acquisition and payloads</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#legacy-font-selection">Legacy font selection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#text-transforms-and-fragment-widths">Text transforms and fragment widths</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#graph-options-and-export-lifetime">Graph options and export lifetime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#page-layout-and-preview-paths">Page layout and preview paths</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#delivery-and-ownership">Delivery and ownership</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#parameter-and-return-value-boundaries">Parameter and return-value boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#command-arguments-and-transaction-boundaries">Command arguments and transaction boundaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-output.html#variable-trace-cancellation">Variable-trace cancellation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="postscript-reference.html">PostScript token C reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#persistent-graph-postscript-configuration">Persistent graph PostScript configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#token-allocation-and-borrowed-buffers">Token allocation and borrowed buffers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#appending-syntax-and-loading-prologs">Appending syntax and loading prologs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#legacy-drawing-primitives">Legacy drawing primitives</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#raster-payloads-and-capture">Raster payloads and capture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#font-mapping-and-text-placement">Font mapping and text placement</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#graph-options-and-document-assembly">Graph options and document assembly</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#windows-binary-preview-packaging">Windows binary preview packaging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#images-fonts-and-windows">Images, fonts and windows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="images-tiles.html">Image storage and tile clients</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#pixel-storage-and-tk-images">Pixel storage and Tk images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#allocation-and-photo-block-conversion">Allocation and photo-block conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#snapshot-pipeline">Snapshot pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#shared-tile-servers-individual-clients">Shared tile servers, individual clients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#idle-refresh-and-notification">Idle refresh and notification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#origin-and-renderer-boundaries">Origin and renderer boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#cleanup-and-regression-coverage">Cleanup and regression coverage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#registry-and-refresh-implementation">Registry and refresh implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images-tiles.html#native-shape-drawing">Native shape drawing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="image-tile-reference.html">Image and tile C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="image-tile-reference.html#tile-queries-and-origins">Tile queries and origins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-tile-reference.html#tile-lifecycle-implementation">Tile lifecycle implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-tile-reference.html#native-tiled-shapes">Native tiled shapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-tile-reference.html#storage-and-coordinate-implementation">Storage and coordinate implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-tile-reference.html#drawable-snapshot-to-photo">Drawable snapshot to photo</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="image-resampling.html">Image resizing and resampling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#three-coordinate-contracts">Three coordinate contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#filters-and-sampling-weights">Filters and sampling weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#kernel-table-and-support">Kernel table and support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#contribution-layout-and-rounding">Contribution layout and rounding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#alpha-and-color-space">Alpha and color space</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#dimensions-and-failure-policy">Dimensions and failure policy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#photo-wrappers-and-command-policy">Photo wrappers and command policy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#nearest-neighbour-implementation">Nearest-neighbour implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-resampling.html#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="resampling-reference.html">Image resampling C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="resampling-reference.html#filter-kernels-and-contribution-records">Filter kernels and contribution records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="resampling-reference.html#contribution-workspace-records">Contribution workspace records</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="image-transforms.html">Color-image rotation and bitmap transforms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#color-image-rotation">Color-image rotation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#quadrant-selection-and-intermediate-geometry">Quadrant selection and intermediate geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#shear-traversal-and-boundary-pixels">Shear traversal and boundary pixels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#one-bit-bitmap-ownership">One-bit bitmap ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#scaling-and-virtual-regions">Scaling and virtual regions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#failure-and-platform-differences">Failure and platform differences</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#x11-capture-dimensions-and-visual-channels">X11 capture dimensions and visual channels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transforms.html#x11-capture-and-opacity-mask-inputs">X11 capture and opacity-mask inputs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="image-transform-reference.html">Image transform C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="image-transform-reference.html#color-rotation-implementation">Color rotation implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transform-reference.html#x11-image-and-bitmap-helpers">X11 image and bitmap helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-transform-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="image-colors.html">Image color processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="image-colors.html#mutation-and-alpha">Mutation and alpha</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-colors.html#greyscale-and-gamma">Greyscale and gamma</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-colors.html#square-kernel-filtering">Square-kernel filtering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-colors.html#palette-reduction">Palette reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-colors.html#palette-lookup-coordinates">Palette lookup coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-colors.html#quantizer-stage-contracts">Quantizer stage contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-colors.html#maintenance-checks">Maintenance checks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="image-color-reference.html">Image color processing C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#palette-reduction-implementation">Palette-reduction implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="image-compatibility.html">Temporary images and private Tk adapters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility.html#private-layout-access">Private-layout access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility.html#tk-compatibility-boundary">Tk compatibility boundary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility.html#two-resources-in-a-temporary-photo">Two resources in a temporary photo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility.html#deletion-and-failure-ownership">Deletion and failure ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility.html#callbacks-and-interpreter-state">Callbacks and interpreter state</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility.html#private-cleanup-tests">Private cleanup tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility.html#image-region-and-notification-arguments">Image region and notification arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="image-compatibility-reference.html">Image compatibility C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="image-compatibility-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="text-fonts.html">Text layout and document fonts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#layouts-borrow-the-text">Layouts borrow the text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#styles-are-not-universal-owners">Styles are not universal owners</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#native-layout-presentation">Native layout presentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#bitmap-gc-lifetime">Bitmap GC lifetime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#document-local-font-resolution">Document-local font resolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#native-sources-and-font-programs">Native sources and font programs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#backend-integration-and-cleanup">Backend integration and cleanup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#reader-trust-boundaries">Reader trust boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#unicode-and-legacy-symbol-lookup">Unicode and legacy Symbol lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#name-keyed-cff-metadata">Name-keyed CFF metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#svg-cmap-reconstruction">SVG cmap reconstruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#pdf-character-codes-and-finalization">PDF character codes and finalization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#parameter-units-and-identifier-domains">Parameter units and identifier domains</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-fonts.html#choosing-a-text-helper">Choosing a text helper</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="text-font-reference.html">Text and font C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="text-font-reference.html#layout-measurement">Layout measurement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-font-reference.html#style-initialization-and-gc-ownership">Style initialization and GC ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-font-reference.html#document-font-cache">Document font cache</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-font-reference.html#shared-text-drawing-implementation">Shared text drawing implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-font-reference.html#native-font-acquisition-and-parsing">Native font acquisition and parsing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-font-reference.html#pdf-font-resource-encoding">PDF font resource encoding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="text-font-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="window-services.html">Shared drawing and window services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="window-services.html#graphics-context-ownership">Graphics-context ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-services.html#request-sizing-and-relief">Request sizing and relief</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-services.html#native-identifiers">Native identifiers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-services.html#window-instance-associations">Window instance associations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-services.html#identifier-and-table-lifetime-details">Identifier and table lifetime details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-services.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-services.html#resource-and-stroke-argument-boundaries">Resource and stroke argument boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-services.html#dash-storage-boundary">Dash storage boundary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="window-service-reference.html">Shared drawing and window C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="window-service-reference.html#window-lookup-and-table-cleanup-internals">Window lookup and table cleanup internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-service-reference.html#native-stroke-setup">Native stroke setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="window-service-reference.html#dash-descriptor-scanning">Dash descriptor scanning</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="winop-internals.html">Window and photo command implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="winop-internals.html#dispatch-and-platform-boundaries">Dispatch and platform boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="winop-internals.html#native-command-contracts">Native command contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="winop-internals.html#photo-operation-ownership">Photo-operation ownership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="winop-internals.html#failure-and-callback-boundaries">Failure and callback boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="winop-internals.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="winop-internals.html#command-registration">Command registration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="winop-reference.html">Window/photo command C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="winop-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="eps-canvas.html">EPS canvas item implementation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="eps-canvas.html#parsing-and-retained-content">Parsing and retained content</a></li>
+<li class="toctree-l3"><a class="reference internal" href="eps-canvas.html#preview-ownership-and-configuration">Preview ownership and configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="eps-canvas.html#coordinates-and-export">Coordinates and export</a></li>
+<li class="toctree-l3"><a class="reference internal" href="eps-canvas.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="eps-canvas.html#preview-byte-decoding-details">Preview-byte decoding details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="eps-canvas.html#small-callback-and-geometry-contracts">Small callback and geometry contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="eps-canvas.html#canvas-callback-argument-contracts">Canvas callback argument contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="eps-reference.html">EPS canvas C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="eps-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#shared-infrastructure">Shared infrastructure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Component configuration and resources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#resource-identity">Resource identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#shared-value-parsers">Shared value parsers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#transactions">Transactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#cleanup-boundaries">Cleanup boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#root-and-nested-child-lookup">Root and nested child lookup</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration-reference.html">Component configuration C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#resource-initialization">Resource initialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#rollback">Rollback</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#option-lookup-and-metadata">Option lookup and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#relative-child-lookup">Relative child lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bindings.html">Binding dispatch and picking</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bindings.html#responsibilities">Responsibilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bindings.html#objects-contexts-and-binding-keys">Objects, contexts and binding keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bindings.html#graph-hit-priority">Graph hit priority</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bindings.html#legend-picking-and-occlusion">Legend picking and occlusion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bindings.html#pointer-transitions-and-button-state">Pointer transitions and button state</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bindings.html#dispatch-and-configuration">Dispatch and configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bindings.html#lifetime-and-deletion">Lifetime and deletion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bindings.html#validation-when-changing-behavior">Validation when changing behavior</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="binding-reference.html">Binding and picking C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="binding-reference.html#binding-table-state">Binding table state</a></li>
+<li class="toctree-l3"><a class="reference internal" href="binding-reference.html#shared-interface">Shared interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="binding-reference.html#internal-dispatch-callbacks">Internal dispatch callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="binding-reference.html#graph-specific-callbacks">Graph-specific callbacks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html">Geometry, clipping and simplification</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="geometry.html#coordinates-and-borrowed-storage">Coordinates and borrowed storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="geometry.html#hit-testing">Hit testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="geometry.html#line-and-polygon-clipping-differ">Line and polygon clipping differ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="geometry.html#simplification-and-original-indices">Simplification and original indices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="geometry.html#private-validation-and-subdivision">Private validation and subdivision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="geometry.html#output-capacity-and-completion-contracts">Output capacity and completion contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="geometry-reference.html">Geometry C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="geometry-reference.html#implementation-helpers">Implementation helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="geometry-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="containers.html">Chains and keyed lists</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="containers.html#choosing-and-owning-a-container">Choosing and owning a container</a></li>
+<li class="toctree-l3"><a class="reference internal" href="containers.html#keys-and-node-creation">Keys and node creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="containers.html#linking-and-moving">Linking and moving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="containers.html#borrowed-pointers-and-traversal">Borrowed pointers and traversal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="containers.html#sorting-and-positional-lookup">Sorting and positional lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="containers.html#insertion-and-lookup-contracts">Insertion and lookup contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="containers.html#private-key-lookup-contracts">Private key lookup contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="containers.html#parameter-contracts-and-construction-states">Parameter contracts and construction states</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="container-reference.html">Container C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="container-reference.html#implementation-helpers">Implementation helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="container-reference.html#creation-insertion-and-lookup">Creation, insertion and lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="container-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utility-ownership.html">Allocation, strings and interned names</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utility-ownership.html#allocation-and-failure-policy">Allocation and failure policy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utility-ownership.html#uid-table">UID table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utility-ownership.html#formatting-and-result-assembly">Formatting and result assembly</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utility-ownership.html#other-utility-boundaries">Other utility boundaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utility-ownership.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utility-ownership.html#dictionary-ordering-and-fatal-diagnostics">Dictionary ordering and fatal diagnostics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utility-ownership.html#byte-string-case-conversion">Byte-string case conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utility-ownership.html#fallback-byte-string-comparisons">Fallback byte-string comparisons</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utility-reference.html">Utility ownership C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utility-reference.html#ordering-stdio-and-fatal-diagnostics">Ordering, stdio and fatal diagnostics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="command-dispatch.html">Typed command dispatch</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#table-layout-and-lifetime">Table layout and lifetime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#argument-counts-and-diagnostics">Argument counts and diagnostics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#selection-versus-execution">Selection versus execution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#lookup-inputs-and-output">Lookup inputs and output</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="value-conversion.html">Shared value conversion and numeric policy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="value-conversion.html#screen-units-and-staged-values">Screen units and staged values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="value-conversion.html#dashes-and-callbacks">Dashes and callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="value-conversion.html#strings-and-matching-policies">Strings and matching policies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="value-conversion.html#numeric-compatibility-macros">Numeric compatibility macros</a></li>
+<li class="toctree-l3"><a class="reference internal" href="value-conversion.html#maintenance-checks">Maintenance checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="value-conversion.html#legacy-color-pair-adapter">Legacy color-pair adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="value-conversion.html#legacy-adapter-replacement-and-printing">Legacy adapter replacement and printing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="value-conversion.html#output-parameters-are-not-interchangeable">Output parameters are not interchangeable</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="value-reference.html">Value conversion C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="value-reference.html#private-parsing-and-legacy-tk-adapters">Private parsing and legacy Tk adapters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="math-reference.html">Numeric compatibility C reference</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RBC Developer Manual</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Marker lifecycle and drawing</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
   <section id="marker-lifecycle-and-drawing">
-<h1>Marker lifecycle and drawing<a class="headerlink" href="#marker-lifecycle-and-drawing" title="Link to this heading">¶</a></h1>
+<h1>Marker lifecycle and drawing<a class="headerlink" href="#marker-lifecycle-and-drawing" title="Link to this heading"></a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code> owns the marker registry, display list, shared commands and
 concrete marker classes. <code class="docutils literal notranslate"><span class="pre">MarkerStruct</span></code> contains common coordinates, axes,
 track association, visibility, tags and option state. Each concrete record
@@ -50,7 +1221,7 @@ adds its own resources and cached geometry. <code class="docutils literal notran
 configuration, mapping, drawing, export, point/region tests and cleanup.
 See <a class="reference internal" href="marker-reference.html"><span class="doc">Marker C reference</span></a> for the shared graph-facing contracts.</p>
 <section id="coordinates-and-mapping">
-<h2>Coordinates and mapping<a class="headerlink" href="#coordinates-and-mapping" title="Link to this heading">¶</a></h2>
+<h2>Coordinates and mapping<a class="headerlink" href="#coordinates-and-mapping" title="Link to this heading"></a></h2>
 <p>Marker world coordinates are owned by the marker. Class mapping builds display
 geometry using its selected axes, anchor, pixel offsets and other type-specific
 options. <a class="reference internal" href="marker-reference.html#c.Rbc_MapMarkers" title="Rbc_MapMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapMarkers()</span></code></a> visits the display list and maps items selected by
@@ -75,7 +1246,7 @@ coordinates outside that drawing scope, so axis ownership must remain enough
 to select the proper full track extent. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a>.</p>
 </section>
 <section id="layers-order-and-visibility">
-<h2>Layers, order and visibility<a class="headerlink" href="#layers-order-and-visibility" title="Link to this heading">¶</a></h2>
+<h2>Layers, order and visibility<a class="headerlink" href="#layers-order-and-visibility" title="Link to this heading"></a></h2>
 <p>The display list defines painter order. <code class="docutils literal notranslate"><span class="pre">drawUnder</span></code> selects the below-element
 or above-element pass. Drawing excludes hidden and wholly clipped markers,
 markers without coordinates, and markers associated with an existing hidden
@@ -94,7 +1265,7 @@ Graph-wide markers retain their graph-wide path. Window markers are handled
 separately rather than drawn into the clipping surface.</p>
 </section>
 <section id="window-markers">
-<h2>Window markers<a class="headerlink" href="#window-markers" title="Link to this heading">¶</a></h2>
+<h2>Window markers<a class="headerlink" href="#window-markers" title="Link to this heading"></a></h2>
 <p>A window marker manages a real Tk child. Mapping computes its size from the
 child’s requested dimensions and any positive explicit width/height, applies
 the anchor and pixel offsets, and tests its rectangle for overlap with the
@@ -116,7 +1287,7 @@ must preserve event-handler and geometry-manager cleanup as well as pointer
 state.</p>
 </section>
 <section id="xor-paths">
-<h2>XOR paths<a class="headerlink" href="#xor-paths" title="Link to this heading">¶</a></h2>
+<h2>XOR paths<a class="headerlink" href="#xor-paths" title="Link to this heading"></a></h2>
 <p>Line and polygon markers retain native XOR behavior. Their configuration paths
 track whether old immediate geometry is present so it can be erased before
 replacement. Eligible graph-wide markers can use immediate drawing; track-owned
@@ -130,7 +1301,7 @@ is harmless across changes of target or clipping. Document export is a separate
 class callback, not a capture of the screen’s XOR state.</p>
 </section>
 <section id="export-and-cleanup">
-<h2>Export and cleanup<a class="headerlink" href="#export-and-cleanup" title="Link to this heading">¶</a></h2>
+<h2>Export and cleanup<a class="headerlink" href="#export-and-cleanup" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="marker-reference.html#c.Rbc_MarkersExport" title="Rbc_MarkersExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MarkersExport()</span></code></a> walks the same display list and selects the requested
 layer. It checks for an export callback, coordinates and visibility. Non-window
 track markers get an export clip around their class exporter and are skipped
@@ -153,7 +1324,7 @@ and resized document export. Screen snapshots alone do not establish child
 window ownership or correct binding and region-test behavior.</p>
 </section>
 <section id="common-configuration-and-ownership">
-<h2>Common configuration and ownership<a class="headerlink" href="#common-configuration-and-ownership" title="Link to this heading">¶</a></h2>
+<h2>Common configuration and ownership<a class="headerlink" href="#common-configuration-and-ownership" title="Link to this heading"></a></h2>
 <p>Concrete marker records embed <code class="docutils literal notranslate"><span class="pre">Marker</span></code> as their first member, checked by
 static assertions. Class methods receive that common header and recover the
 concrete record. <code class="docutils literal notranslate"><span class="pre">MarkerClass</span></code> combines Tk option specifications with configure,
@@ -162,7 +1333,7 @@ constructor chooses a class; it does not initialize Tk options or publish a
 registry entry. Arc construction reuses polygon storage and several polygon
 services, rather than introducing a second common marker lifecycle.</p>
 <table class="docutils align-default" id="id1">
-<caption><span class="caption-text">Common resources and owners</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Common resources and owners</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Resource</p></th>
 <th class="head"><p>Ownership and release</p></th>
@@ -219,11 +1390,11 @@ new allocations/references and clears transferred pointers. It does not register
 map or schedule the marker; concrete configuration completes those tasks.</p>
 </section>
 <section id="coordinate-and-color-parsing">
-<h2>Coordinate and color parsing<a class="headerlink" href="#coordinate-and-color-parsing" title="Link to this heading">¶</a></h2>
+<h2>Coordinate and color parsing<a class="headerlink" href="#coordinate-and-color-parsing" title="Link to this heading"></a></h2>
 <p>Empty coordinates are accepted for every marker class and suppress normal
 mapping/drawing until populated. Nonempty coordinate lists obey these limits:</p>
 <table class="docutils align-default" id="id2">
-<caption><span class="caption-text">Coordinate-list arity</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Coordinate-list arity</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Class</p></th>
 <th class="head"><p>Number of X/Y pairs</p></th>
@@ -264,7 +1435,7 @@ and transfers ownership only on success. It does not free an older destination
 pair. Sentinel-aware release remains essential.</p>
 </section>
 <section id="creation-replacement-and-rename">
-<h2>Creation, replacement and rename<a class="headerlink" href="#creation-replacement-and-rename" title="Link to this heading">¶</a></h2>
+<h2>Creation, replacement and rename<a class="headerlink" href="#creation-replacement-and-rename" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.CreateOp" title="rbcGrMarkerCommands.CreateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.CreateOp()</span></code></a> resolves the marker type and scans complete option/value pairs for
 the last abbreviated or full <code class="docutils literal notranslate"><span class="pre">-name</span></code> occurrence. Without one it generates a
 <code class="docutils literal notranslate"><span class="pre">markerN</span></code> name. The malformed trailing-option case is left to Tk configuration
@@ -289,7 +1460,7 @@ Those views should agree in a valid registry/list state, but they are different
 structures and must be maintained together.</p>
 </section>
 <section id="bindings-point-picking-and-region-searches">
-<h2>Bindings, point picking and region searches<a class="headerlink" href="#bindings-point-picking-and-region-searches" title="Link to this heading">¶</a></h2>
+<h2>Bindings, point picking and region searches<a class="headerlink" href="#bindings-point-picking-and-region-searches" title="Link to this heading"></a></h2>
 <p>Marker tags are interned in their own graph table. Binding enumeration appends
 name, class and configured tags in order. Tag strings can outlive a marker and
 can be registered before it exists. Deleting an object clears its object-pointer
@@ -303,7 +1474,7 @@ backwards and returns the first class point test that succeeds, not a global
 minimum-distance result.</p>
 <p>The shared selection filters differ:</p>
 <table class="docutils align-default" id="id3">
-<caption><span class="caption-text">Shared query filters</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Shared query filters</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Operation</p></th>
 <th class="head"><p>Order and eligibility</p></th>
@@ -334,7 +1505,7 @@ state or use their own mapping helpers. Callers must not assume a command query
 implicitly performs the graph’s complete layout pass.</p>
 </section>
 <section id="display-order-changes">
-<h2>Display-order changes<a class="headerlink" href="#display-order-changes" title="Link to this heading">¶</a></h2>
+<h2>Display-order changes<a class="headerlink" href="#display-order-changes" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerCommands.RelinkOp" title="rbcGrMarkerCommands.RelinkOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerCommands.RelinkOp()</span></code></a> resolves the target and optional reference before unlinking the
 existing display-list link. Invalid names leave both the registry and display
 order unchanged. Moving a marker relative to itself succeeds without changing
@@ -344,7 +1515,7 @@ reference marker’s setting), and schedules redraw. Omitting the reference
 retains the existing front/back placement conventions.</p>
 </section>
 <section id="teardown-and-invalidation-details">
-<h2>Teardown and invalidation details<a class="headerlink" href="#teardown-and-invalidation-details" title="Link to this heading">¶</a></h2>
+<h2>Teardown and invalidation details<a class="headerlink" href="#teardown-and-invalidation-details" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLifetime.DestroyMarker" title="rbcGrMarkerLifetime.DestroyMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLifetime.DestroyMarker()</span></code></a> invalidates the backing store for under-layer markers and
 removes object bindings. Initialized records use the guarded Tk-resource release
 path; records that failed before initialization receive explicit common cleanup.
@@ -361,7 +1532,7 @@ rotated bounding outline and sets <code class="docutils literal notranslate"><sp
 remap when the marker is shown again.</p>
 </section>
 <section id="geometric-markers-line-polygon-and-arc">
-<h2>Geometric markers: line, polygon and arc<a class="headerlink" href="#geometric-markers-line-polygon-and-arc" title="Link to this heading">¶</a></h2>
+<h2>Geometric markers: line, polygon and arc<a class="headerlink" href="#geometric-markers-line-polygon-and-arc" title="Link to this heading"></a></h2>
 <p>These three classes share renderer services but deliberately retain different
 geometry and picking contracts. <code class="docutils literal notranslate"><span class="pre">LineMarker</span></code> owns its segment array and
 private GC, with fixed-size arrowhead arrays inside the record.
@@ -369,7 +1540,7 @@ private GC, with fixed-size arrowhead arrays inside the record.
 the class callback table, while configuration and resource release continue to
 use <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.ConfigurePolygonMarker" title="rbcGrMarkerPolygon.ConfigurePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.ConfigurePolygonMarker()</span></code></a> and <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.FreePolygonMarker" title="rbcGrMarkerPolygon.FreePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.FreePolygonMarker()</span></code></a>.</p>
 <table class="docutils align-default" id="id4">
-<caption><span class="caption-text">Geometry ownership and consumers</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Geometry ownership and consumers</span><a class="headerlink" href="#id4" title="Link to this table"></a></caption>
 <colgroup>
 <col style="width: 20.0%" />
 <col style="width: 40.0%" />
@@ -419,7 +1590,7 @@ arc mapping can retain exact curve geometry without its flattened caches. Do not
 assume that a non-clipped arc necessarily has points available for picking.
 These are void mapping callbacks, not transactional configuration operations.</p>
 <section id="line-shafts-and-arrowheads">
-<h3>Line shafts and arrowheads<a class="headerlink" href="#line-shafts-and-arrowheads" title="Link to this heading">¶</a></h3>
+<h3>Line shafts and arrowheads<a class="headerlink" href="#line-shafts-and-arrowheads" title="Link to this heading"></a></h3>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLine.MapLineMarker" title="rbcGrMarkerLine.MapLineMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerLine.MapLineMarker()</span></code></a> first obtains plot extents, maps the original endpoint and its
 immediate neighbor, and applies pixel offsets. It creates a requested head only
 if the tip is inside those extents. Coincident endpoint/neighbor pairs suppress
@@ -445,7 +1616,7 @@ outline is empty. Export sends mapped doubles through renderer contexts and
 does not replay the screen XOR operation or pixel-alignment adjustments.</p>
 </section>
 <section id="polygon-fill-versus-outline">
-<h3>Polygon fill versus outline<a class="headerlink" href="#polygon-fill-versus-outline" title="Link to this heading">¶</a></h3>
+<h3>Polygon fill versus outline<a class="headerlink" href="#polygon-fill-versus-outline" title="Link to this heading"></a></h3>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.MapPolygonMarker" title="rbcGrMarkerPolygon.MapPolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.MapPolygonMarker()</span></code></a> maps all world vertices and offsets once. It clips fill
 only when a fill foreground exists. Outline generation requires a foreground
 and positive width and clips every original edge, including last-to-first.
@@ -459,7 +1630,7 @@ Polygon export uses the same clipped caches through document renderer contexts.
 The class does not promise a single continuous stroked polygon after clipping.</p>
 </section>
 <section id="arc-mapping-and-output">
-<h3>Arc mapping and output<a class="headerlink" href="#arc-mapping-and-output" title="Link to this heading">¶</a></h3>
+<h3>Arc mapping and output<a class="headerlink" href="#arc-mapping-and-output" title="Link to this heading"></a></h3>
 <p>An arc takes exactly two world corners. After mapping those corners, the mapper
 constructs an axis-aligned display ellipse from their center and absolute
 half-differences. Thus logarithmic, descending and inverted axes affect the
@@ -480,9 +1651,9 @@ fallback additionally receives flattened, clipped fill/outline geometry.
 renderer instead of restarting strokes at each flattened vertex.</p>
 </section>
 <section id="picking-differences">
-<h3>Picking differences<a class="headerlink" href="#picking-differences" title="Link to this heading">¶</a></h3>
+<h3>Picking differences<a class="headerlink" href="#picking-differences" title="Link to this heading"></a></h3>
 <table class="docutils align-default" id="id5">
-<caption><span class="caption-text">Point and region semantics</span><a class="headerlink" href="#id5" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Point and region semantics</span><a class="headerlink" href="#id5" title="Link to this table"></a></caption>
 <colgroup>
 <col style="width: 15.0%" />
 <col style="width: 40.0%" />
@@ -517,7 +1688,7 @@ segment cache. These differences are current behavior, not a unified notion of
 visible painted coverage. The caller must still arrange valid mapped state.</p>
 </section>
 <section id="configuration-and-xor-lifetime">
-<h3>Configuration and XOR lifetime<a class="headerlink" href="#configuration-and-xor-lifetime" title="Link to this heading">¶</a></h3>
+<h3>Configuration and XOR lifetime<a class="headerlink" href="#configuration-and-xor-lifetime" title="Link to this heading"></a></h3>
 <p>Both configuration callbacks stage common options and converted class values
 before replacing active derived state. The polygon/arc callback also acquires
 new color pairs; the line callback’s colors are Tk-managed. Replacement GCs are
@@ -543,13 +1714,13 @@ only the old mapped caches and GC describe the image currently on screen.</p>
 </section>
 </section>
 <section id="bitmap-image-text-and-window-resources">
-<h2>Bitmap, image, text and window resources<a class="headerlink" href="#bitmap-image-text-and-window-resources" title="Link to this heading">¶</a></h2>
+<h2>Bitmap, image, text and window resources<a class="headerlink" href="#bitmap-image-text-and-window-resources" title="Link to this heading"></a></h2>
 <p>These classes share common marker option transactions but do not share the
 same ownership or placement model. Their class callbacks release derived
 resources; common cleanup subsequently releases Tk option resources and the
 record. The corresponding source contracts are in <a class="reference internal" href="marker-reference.html"><span class="doc">Marker C reference</span></a>.</p>
 <table class="docutils align-default" id="id6">
-<caption><span class="caption-text">Ownership by class</span><a class="headerlink" href="#id6" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Ownership by class</span><a class="headerlink" href="#id6" title="Link to this table"></a></caption>
 <colgroup>
 <col style="width: 15.0%" />
 <col style="width: 45.0%" />
@@ -585,7 +1756,7 @@ detaches and unmaps the previous child</p></td>
 also initializes a text style and default padding. They do not independently
 insert records into the registry or finish option initialization.</p>
 <section id="bitmap-masks-and-aliasing">
-<h3>Bitmap masks and aliasing<a class="headerlink" href="#bitmap-masks-and-aliasing" title="Link to this heading">¶</a></h3>
+<h3>Bitmap masks and aliasing<a class="headerlink" href="#bitmap-masks-and-aliasing" title="Link to this heading"></a></h3>
 <p>A bitmap marker keeps <code class="docutils literal notranslate"><span class="pre">srcBitmap</span></code> and optional <code class="docutils literal notranslate"><span class="pre">srcMask</span></code> separate from
 <code class="docutils literal notranslate"><span class="pre">destBitmap</span></code> and <code class="docutils literal notranslate"><span class="pre">destMask</span></code>. Configuring both source handles requires matching
 dimensions. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBitmap.FreeMappedBitmapResources" title="rbcGrMarkerBitmap.FreeMappedBitmapResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBitmap.FreeMappedBitmapResources()</span></code></a> frees only handles whose ownership
@@ -593,7 +1764,7 @@ flags are set, then clears the handles/flags. A transformed bitmap may also be
 its own mask; in that case only the bitmap handle owns the allocation.</p>
 <p>The effective mask depends on background visibility:</p>
 <table class="docutils align-default" id="id7">
-<caption><span class="caption-text">Effective source mask</span><a class="headerlink" href="#id7" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Effective source mask</span><a class="headerlink" href="#id7" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Explicit mask</p></th>
 <th class="head"><p>Background</p></th>
@@ -636,7 +1807,7 @@ without adding <code class="docutils literal notranslate"><span class="pre">anch
 convention used by text markers.</p>
 </section>
 <section id="photo-and-non-photo-image-paths">
-<h3>Photo and non-photo image paths<a class="headerlink" href="#photo-and-non-photo-image-paths" title="Link to this heading">¶</a></h3>
+<h3>Photo and non-photo image paths<a class="headerlink" href="#photo-and-non-photo-image-paths" title="Link to this heading"></a></h3>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerImage.ConfigureImageMarker" title="rbcGrMarkerImage.ConfigureImageMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerImage.ConfigureImageMarker()</span></code></a> acquires a new Tk image instance and callback before
 releasing the old instance. If the named image is a photo, it also owns an RBC
 color-image copy. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerImage.ImageChangedProc" title="rbcGrMarkerImage.ImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerImage.ImageChangedProc()</span></code></a> replaces that copy on every notification,
@@ -662,7 +1833,7 @@ releases its image instance and derived resources, but does not delete the
 application’s named source image.</p>
 </section>
 <section id="text-layout-and-coordinate-spaces">
-<h3>Text layout and coordinate spaces<a class="headerlink" href="#text-layout-and-coordinate-spaces" title="Link to this heading">¶</a></h3>
+<h3>Text layout and coordinate spaces<a class="headerlink" href="#text-layout-and-coordinate-spaces" title="Link to this heading"></a></h3>
 <p>Text configuration rebuilds layout for every successful configuration, since
 font, text, justification, padding, shadow and rotation can affect dimensions.
 The proposed layout uses staged padding/shadow and the Tk-installed style while
@@ -682,7 +1853,7 @@ not actual glyph coverage. Class cleanup releases layout, GCs and shadow;
 common Tk option cleanup releases font, string and configured colors.</p>
 </section>
 <section id="child-window-transitions-and-notifications">
-<h3>Child-window transitions and notifications<a class="headerlink" href="#child-window-transitions-and-notifications" title="Link to this heading">¶</a></h3>
+<h3>Child-window transitions and notifications<a class="headerlink" href="#child-window-transitions-and-notifications" title="Link to this heading"></a></h3>
 <p>Window configuration parses common options and dimensions and resolves the
 proposed child before detaching the existing one. The child must have the graph
 as its direct parent. Internal zero width/height means requested size, while an
@@ -695,7 +1866,7 @@ own destroy notification from leaving a stale window reference, but should not
 be treated as a general lifetime guarantee across arbitrary Tk callbacks.
 Callers must retain the marker record while Tk services execute.</p>
 <table class="docutils align-default" id="id8">
-<caption><span class="caption-text">Child callbacks</span><a class="headerlink" href="#id8" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Child callbacks</span><a class="headerlink" href="#id8" title="Link to this table"></a></caption>
 <colgroup>
 <col style="width: 25.0%" />
 <col style="width: 75.0%" />
@@ -734,7 +1905,7 @@ does not map hidden children to manufacture an export image.</p>
 </section>
 </section>
 <section id="pass-dispatch-and-batching">
-<h2>Pass dispatch and batching<a class="headerlink" href="#pass-dispatch-and-batching" title="Link to this heading">¶</a></h2>
+<h2>Pass dispatch and batching<a class="headerlink" href="#pass-dispatch-and-batching" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="marker-reference.html#c.Rbc_DrawMarkers" title="Rbc_DrawMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawMarkers()</span></code></a> first synchronizes real window children regardless of the
 requested under/over pass. Trackgraphs then use <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.DrawTrackMarkers" title="rbcGrMarkerBatches.DrawTrackMarkers"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.DrawTrackMarkers()</span></code></a> and return;
 ordinary graphs continue through stroke reuse and, on Windows, native batches.
@@ -747,7 +1918,7 @@ hidden. Skipped markers contribute no pixels and need not break an otherwise
 compatible run. A visible incompatible marker must end the current run before
 it draws. No optimization may reorder visible overlapping content.</p>
 <section id="windows-native-batches">
-<h3>Windows native batches<a class="headerlink" href="#windows-native-batches" title="Link to this heading">¶</a></h3>
+<h3>Windows native batches<a class="headerlink" href="#windows-native-batches" title="Link to this heading"></a></h3>
 <p>Before drawing, the Windows path computes upper bounds for five scratch arrays.
 This preliminary scan deliberately counts eligible markers even if hidden,
 clipped or in another layer. Segment counts are summed; fill/text marker arrays
@@ -756,7 +1927,7 @@ batch, and failed <code class="docutils literal notranslate"><span class="pre">T
 main pass then falls back to ordinary class drawing for that batch type.
 There is no per-marker allocation in the middle of assembling a native run.</p>
 <table class="docutils align-default" id="id9">
-<caption><span class="caption-text">Native run eligibility and style matching</span><a class="headerlink" href="#id9" title="Link to this table">¶</a></caption>
+<caption><span class="caption-text">Native run eligibility and style matching</span><a class="headerlink" href="#id9" title="Link to this table"></a></caption>
 <colgroup>
 <col style="width: 18.0%" />
 <col style="width: 52.0%" />
@@ -813,7 +1984,7 @@ representative bitmap/GC. These distinctions preserve original primitive and
 text semantics rather than forcing every class through one aggregate path.</p>
 </section>
 <section id="cairo-context-reuse-and-native-targets">
-<h3>Cairo context reuse and native targets<a class="headerlink" href="#cairo-context-reuse-and-native-targets" title="Link to this heading">¶</a></h3>
+<h3>Cairo context reuse and native targets<a class="headerlink" href="#cairo-context-reuse-and-native-targets" title="Link to this heading"></a></h3>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.GetMarkerStroke" title="rbcGrMarkerBatches.GetMarkerStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.GetMarkerStroke()</span></code></a> accepts solid, non-XOR line shafts without arrows and polygon
 outlines without drawable fills. It returns a borrowed <code class="docutils literal notranslate"><span class="pre">MarkerStroke</span></code> view;
 a FALSE result must not be used, even if some fields were written. Arcs retain
@@ -832,7 +2003,7 @@ The renderer owns target acquisition/completion; marker code owns run order and
 eligibility. Text and bitmap native services remain renderer responsibilities.</p>
 </section>
 <section id="track-and-export-paths">
-<h3>Track and export paths<a class="headerlink" href="#track-and-export-paths" title="Link to this heading">¶</a></h3>
+<h3>Track and export paths<a class="headerlink" href="#track-and-export-paths" title="Link to this heading"></a></h3>
 <p>Trackgraphs do not enter the ordinary native-batch allocation pass. They walk
 visible markers in order, drawing graph-wide markers directly and track-owned
 markers through one reusable clip context. Each local rectangle is bounded by
@@ -847,7 +2018,7 @@ drawing; class geometry and exporter clipping remain relevant. Window markers
 retain their mapped-child capture behavior.</p>
 </section>
 <section id="windows-scratch-ownership">
-<h3>Windows scratch ownership<a class="headerlink" href="#windows-scratch-ownership" title="Link to this heading">¶</a></h3>
+<h3>Windows scratch ownership<a class="headerlink" href="#windows-scratch-ownership" title="Link to this heading"></a></h3>
 <p>The ordinary Windows pass owns all five scratch arrays: line segments, polygon
 segments, polygon-fill marker pointers, text-marker pointers and bitmap
 positions. Flush helpers reset batch bookkeeping but do not release storage.
@@ -857,7 +2028,7 @@ or allocation failures require no release. Freeing the text-marker pointer
 array does not free the markers, layouts or fonts it borrowed.</p>
 </section>
 <section id="geometry-and-batch-argument-contracts">
-<h3>Geometry and batch argument contracts<a class="headerlink" href="#geometry-and-batch-argument-contracts" title="Link to this heading">¶</a></h3>
+<h3>Geometry and batch argument contracts<a class="headerlink" href="#geometry-and-batch-argument-contracts" title="Link to this heading"></a></h3>
 <p>The detailed parameter sections in <a class="reference internal" href="marker-reference.html"><span class="doc">Marker C reference</span></a> distinguish borrowed
 inputs from replaced mapping caches and reset batch slots. Coordinates passed
 to picking and drawing helpers are display coordinates. World coordinates are
@@ -886,99 +2057,34 @@ precede style comparisons, which intentionally omit already-fixed properties.</p
 </section>
 
 
-            <div class="clearer"></div>
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Marker lifecycle and drawing</a><ul>
-<li><a class="reference internal" href="#coordinates-and-mapping">Coordinates and mapping</a></li>
-<li><a class="reference internal" href="#layers-order-and-visibility">Layers, order and visibility</a></li>
-<li><a class="reference internal" href="#window-markers">Window markers</a></li>
-<li><a class="reference internal" href="#xor-paths">XOR paths</a></li>
-<li><a class="reference internal" href="#export-and-cleanup">Export and cleanup</a></li>
-<li><a class="reference internal" href="#common-configuration-and-ownership">Common configuration and ownership</a></li>
-<li><a class="reference internal" href="#coordinate-and-color-parsing">Coordinate and color parsing</a></li>
-<li><a class="reference internal" href="#creation-replacement-and-rename">Creation, replacement and rename</a></li>
-<li><a class="reference internal" href="#bindings-point-picking-and-region-searches">Bindings, point picking and region searches</a></li>
-<li><a class="reference internal" href="#display-order-changes">Display-order changes</a></li>
-<li><a class="reference internal" href="#teardown-and-invalidation-details">Teardown and invalidation details</a></li>
-<li><a class="reference internal" href="#geometric-markers-line-polygon-and-arc">Geometric markers: line, polygon and arc</a><ul>
-<li><a class="reference internal" href="#line-shafts-and-arrowheads">Line shafts and arrowheads</a></li>
-<li><a class="reference internal" href="#polygon-fill-versus-outline">Polygon fill versus outline</a></li>
-<li><a class="reference internal" href="#arc-mapping-and-output">Arc mapping and output</a></li>
-<li><a class="reference internal" href="#picking-differences">Picking differences</a></li>
-<li><a class="reference internal" href="#configuration-and-xor-lifetime">Configuration and XOR lifetime</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#bitmap-image-text-and-window-resources">Bitmap, image, text and window resources</a><ul>
-<li><a class="reference internal" href="#bitmap-masks-and-aliasing">Bitmap masks and aliasing</a></li>
-<li><a class="reference internal" href="#photo-and-non-photo-image-paths">Photo and non-photo image paths</a></li>
-<li><a class="reference internal" href="#text-layout-and-coordinate-spaces">Text layout and coordinate spaces</a></li>
-<li><a class="reference internal" href="#child-window-transitions-and-notifications">Child-window transitions and notifications</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#pass-dispatch-and-batching">Pass dispatch and batching</a><ul>
-<li><a class="reference internal" href="#windows-native-batches">Windows native batches</a></li>
-<li><a class="reference internal" href="#cairo-context-reuse-and-native-targets">Cairo context reuse and native targets</a></li>
-<li><a class="reference internal" href="#track-and-export-paths">Track and export paths</a></li>
-<li><a class="reference internal" href="#windows-scratch-ownership">Windows scratch ownership</a></li>
-<li><a class="reference internal" href="#geometry-and-batch-argument-contracts">Geometry and batch argument contracts</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="track-reference.html" class="btn btn-neutral float-left" title="Track ownership C reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="marker-reference.html" class="btn btn-neutral float-right" title="Marker C reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
   </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="track-reference.html"
-                          title="previous chapter">Track ownership C reference</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="marker-reference.html"
-                          title="next chapter">Marker C reference</a></p>
-  </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="marker-reference.html" title="Marker C reference"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="track-reference.html" title="Track ownership C reference"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">RBC 0.8.5 Developer Manual</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="manual-graphs.html" >Graphs and components</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Marker lifecycle and drawing</a></li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright .
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
-    </div>
-  </body>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
 </html>

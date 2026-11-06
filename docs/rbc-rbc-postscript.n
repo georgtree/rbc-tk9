@@ -256,13 +256,12 @@ epsi is supported on all platforms and embeds a grayscale EPSI preview in the Po
 Additional preview formats are platform dependent:
 .PP
 .nf
-┌────────┬───────────────────────────────────────────┐
-│ Format │ Availability                              │
-├────────┼───────────────────────────────────────────┤
-│ epsi   │ All platforms                             │
-│ wmf    │ Windows                                   │
-│ tiff   │ Windows builds compiled with TIFF support │
-└────────┴───────────────────────────────────────────┘
+┌────────┬───────────────┐
+│ Format │ Availability  │
+├────────┼───────────────┤
+│ epsi   │ All platforms │
+│ wmf    │ Windows       │
+└────────┴───────────────┘
 
 .fi
 .PP
@@ -271,8 +270,10 @@ Non-empty prefixes of the available format names are also accepted\&.
 epsi embeds a grayscale EPSI preview directly in the PostScript data and therefore works both when the
 PostScript is returned and when it is written to a file\&.
 .PP
-On Windows, wmf and, when available, tiff previews are produced only when POSTSCRIPT output writes to a
-file\&. They generate the corresponding binary EPS preview representation rather than an inline EPSI preview\&.
+On Windows, wmf previews are produced only when POSTSCRIPT output writes to a file\&. They generate a
+binary EPS document containing a Windows metafile preview rather than an inline EPSI preview\&.
+.PP
+TIFF previews are not implemented\&. tiff and its prefixes are rejected, even in builds with TIFF support\&.
 .PP
 Preview generation is disabled by default\&.
 .SH "POSTSCRIPT OPTIONS"
@@ -314,7 +315,8 @@ Preview generation is disabled by default\&.
 │                       │               │                │ generated output\&. The default is no\&.                        │
 │ -previewformat format │ previewFormat │ PreviewFormat  │ Selects the preview format\&. Accepted values are non-empty   │
 │                       │               │                │ prefixes of the formats supported on the current platform:  │
-│                       │               │                │ epsi, wmf, and tiff\&. The default is epsi\&.                   │
+│                       │               │                │ epsi on all platforms and wmf on Windows\&. The default is    │
+│                       │               │                │ epsi\&.                                                       │
 │ -width distance       │ width         │ Width          │ Specifies the requested width of the PostScript plot\&. 0     │
 │                       │               │                │ uses the current graph width\&. The default is 0\&.             │
 └───────────────────────┴───────────────┴────────────────┴─────────────────────────────────────────────────────────────┘

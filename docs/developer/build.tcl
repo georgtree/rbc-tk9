@@ -238,7 +238,28 @@ proc ::rbcDocBuild::main {arguments} {
             lappend command -W --keep-going
         }
         lappend command $source $html
+        # Stage maintained styles before Sphinx computes their asset hashes.
+        # Existing output must not retain an older copy of our custom CSS.
+        set themeDir [file join $source .. theme]
+        set themeStyles {rbc.css rbc-layout.css rbc-developer.css}
+        foreach name $themeStyles {
+            set path [file join $themeDir $name]
+            if {![file isfile $path] || ![file readable $path]} {
+                error "missing documentation stylesheet: $path"
+            }
+        }
+        file mkdir [file join $html _static]
+        foreach name $themeStyles {
+            file copy -force [file join $themeDir $name] [file join $html _static $name]
+        }
         exec -- {*}$command >@stdout 2>@stderr
+        foreach name $themeStyles {
+            set stylesheet [file join $html _static $name]
+            if {![file isfile $stylesheet] ||
+                [readFile $stylesheet] ne [readFile [file join $themeDir $name]]} {
+                error "documentation stylesheet was not copied correctly: $stylesheet"
+            }
+        }
     } finally {
         cd $directory
         foreach name {RBC_DOXYGEN_XML RBC_DOXYGEN_WIN_XML RBC_DOC_VERSION RBC_DOC_HTML} {

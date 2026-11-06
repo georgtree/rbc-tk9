@@ -425,12 +425,23 @@ Scalar functions reduce a vector to a single numeric value\&.
 │ q1       │ First quartile                           │
 │ q3       │ Third quartile                           │
 │ sdev     │ Sample standard deviation                │
-│ skew     │ Skewness                                 │
+│ skew     │ Legacy absolute third-moment statistic   │
+│ skewness │ Signed population-moment skewness        │
 │ sum      │ Sum of the components                    │
 │ var      │ Sample variance                          │
 └──────────┴──────────────────────────────────────────┘
 
 .fi
+.PP
+skewness(x) computes m3 / (m2 * sqrt(m2)), where mk = sum((x - mean(x))^k) / n
+over the finite real samples\&. It uses population central moments without a sample-bias correction\&.
+Symmetric samples have zero skewness; reflecting values about zero reverses its sign\&. Empty input
+and zero variance (including a single sample) produce a domain error\&. Inputs are scaled internally
+to avoid overflow from cubing large raw values\&.
+.PP
+skew(x) retains its historical behavior for compatibility: it uses absolute cubed deviations
+divided by n * s^3, with sample standard deviation s\&. It is not signed skewness\&. For example,
+{-1 0 1} gives 0 with skewness and approximately 0\&.666667 with skew\&.
 .PP
 For example:
 .PP
@@ -541,7 +552,7 @@ The following reductions support complex vectors:
 
 .fi
 .PP
-kurtosis, max, median, min, q1, q3, and skew remain real-only\&. The vector functions norm and
+kurtosis, max, median, min, q1, q3, skew, and skewness remain real-only\&. The vector functions norm and
 sort are also real-only\&.
 .PP
 No implicit ordering of complex numbers is introduced for these operations\&.

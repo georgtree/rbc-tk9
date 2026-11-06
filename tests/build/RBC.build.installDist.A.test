@@ -280,6 +280,54 @@ test RBC.build.installDist.A.11.1 {every installed file is logged, including lat
     file delete -force ${::build.installDist::work}
 } -result {{} 1 1 0}
 
+test RBC.build.installDist.A.12.1 {late theme assets are logged, archived and uninstalled without deleting neighbors} -setup {
+    set build [::build.installDist::Fixture]
+    set stage ${::build.installDist::work}/stage
+    set themeFiles {_static/css/theme.css _static/js/theme.js _static/fonts/font.woff2 assets/theme.svg}
+    foreach name $themeFiles {
+        ::build.installDist::Write [file join ${::build.installDist::work} source docs $name] "theme: $name"
+    }
+} -body {
+    set output [exec make -s -C $build install-doc DESTDIR=$stage 2>@1]
+    exec make -s -C $build dist 2>@1
+    set extracted [file join ${::build.installDist::work} extracted]
+    file mkdir $extracted
+    exec tar -xzf [file join $build dist rbc0.5.0.tar.gz] -C $extracted
+    set doc $stage/opt/rbc/share/rbc0.5.0/doc
+    set valid 1
+    foreach name $themeFiles {
+        set installed [file join $doc $name]
+        set archived [file join $extracted share/rbc0.5.0/doc $name]
+        if {![file exists $installed] || ![file exists $archived] ||
+            [::build.installDist::Read $installed] ne [::build.installDist::Read $archived] ||
+            [string first $installed $output] < 0} {set valid 0}
+    }
+    set neighbor [file join $doc _static/fonts/other.woff2]
+    ::build.installDist::Write $neighbor KEEP
+    exec make -s -C $build uninstall-doc DESTDIR=$stage 2>@1
+    set removed 1
+    foreach name $themeFiles {
+        if {[file exists [file join $doc $name]]} {set removed 0}
+    }
+    list $valid $removed [::build.installDist::Read $neighbor]
+} -cleanup {
+    file delete -force ${::build.installDist::work}
+} -result {1 1 KEEP}
+
+test RBC.build.installDist.A.13.1 {make doc forwards the selected Python executable as one environment value} -setup {
+    set build [::build.installDist::Fixture]
+    ::build.installDist::Write [file join ${::build.installDist::work} source docs/doc_gen.tcl] {
+        set f [open python.txt w]
+        puts -nonewline $f $::env(RBC_DOC_PYTHON)
+        close $f
+    }
+} -body {
+    exec make -s -C $build doc "TCLSH=[list [info nameofexecutable]]" {DOC_PYTHON=C:/Python Tools/python.exe} 2>@1
+    ::build.installDist::Read [file join $build python.txt]
+} -cleanup {
+    file delete -force ${::build.installDist::work}
+} -result {C:/Python Tools/python.exe}
+
 cleanupTests
 
 }
