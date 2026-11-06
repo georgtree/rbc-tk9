@@ -1218,8 +1218,8 @@
 <p>See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for shared context ownership and the PDF/PostScript primitive contracts, including
 graphics-state and capture boundaries.</p>
 <p><code class="docutils literal notranslate"><span class="pre">rbcGrSvg.c</span></code> frames the document; <code class="docutils literal notranslate"><span class="pre">rbcRenderSvg.c</span></code> emits primitives through the renderer interface. Both borrow a
-shared <code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code>. SVG requires no Cairo backend or PDF object builder. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for command-level
-layout, restoration and delivery, and <a class="reference internal" href="svg-reference.html"><span class="doc">SVG backend C reference</span></a> for helper contracts.</p>
+shared <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code></a>. SVG requires no Cairo backend or PDF object builder. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for
+command-level layout, restoration and delivery, and <a class="reference internal" href="svg-reference.html"><span class="doc">SVG backend C reference</span></a> for helper contracts.</p>
 <section id="document-and-context-lifetime">
 <h2>Document and context lifetime<a class="headerlink" href="#document-and-context-lifetime" title="Link to this heading"></a></h2>
 <p>The SVG document callback appends an XML declaration and root element using the mapped graph width/height for both

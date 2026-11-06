@@ -9,10 +9,10 @@ visible track rectangles.
 Two parsing interfaces
 ----------------------
 
-:c:func:`Rbc_ParseScrollRequest` parses a request into ``Rbc_ScrollRequest`` without modifying graph state. It accepts
-finite double values for moveto, units and pages, including fractional unit counts. It validates the complete argument
-shape before reading optional values and assigns its output only on success. It does not clamp fractions to [0,1] or
-apply viewport bounds. A query with no request arguments is handled by the owning command, not this parser.
+:c:func:`Rbc_ParseScrollRequest` parses a request into :c:struct:`Rbc_ScrollRequest` without modifying graph state. It
+accepts finite double values for moveto, units and pages, including fractional unit counts. It validates the complete
+argument shape before reading optional values and assigns its output only on success. It does not clamp fractions to
+[0,1] or apply viewport bounds. A query with no request arguments is handled by the owning command, not this parser.
 
 Axis commands enable legacy mode: nonempty abbreviations and a single numeric unit count are accepted. Track commands
 use exact ``moveto``, ``scroll``, ``units`` and ``pages`` words. The caller supplies a valid starting argument index and

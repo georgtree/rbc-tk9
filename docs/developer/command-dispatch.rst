@@ -3,7 +3,8 @@ Typed command dispatch
 
 :c:func:`Rbc_GetOpIndexFromObj` in ``rbcUtil.c`` selects an operation and validates its argument count. It does not
 invoke the callback, own a command object or manage component lifetime. Each component supplies a persistent typed table
-whose first member is Rbc_OpSpecHeader, followed by its correctly typed callback and any component-specific fields.
+whose first member is :c:struct:`Rbc_OpSpecHeader`, followed by its correctly typed callback and any component-specific
+fields.
 
 Table layout and lifetime
 -------------------------

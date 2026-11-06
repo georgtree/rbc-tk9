@@ -27,9 +27,9 @@ available. Its data and target cannot escape the call. :c:func:`Rbc_RenderScreen
 unmasked, copy-compatible batches: fallback may replay the full batch and leaves GC clipping cleared. These restrictions
 matter when sharing GCs between components.
 
-:c:func:`Rbc_RenderBeginScreenClip` instead returns an owned context. Query func:`Rbc_RenderClipDrawable` after each
-:c:push, draw only if it is not None, and pop with :c:func:`Rbc_RenderClipEnd` to commit to the parent. End the context
-:c:with :c:func:`Rbc_RenderEnd`; do not reuse a popped temporary drawable.
+:c:func:`Rbc_RenderBeginScreenClip` instead returns an owned context. Query :c:func:`Rbc_RenderClipDrawable` after each
+push, draw only if it is not None, and pop with :c:func:`Rbc_RenderClipEnd` to commit to the parent. End the context
+with :c:func:`Rbc_RenderEnd`; do not reuse a popped temporary drawable.
 
 Platform responsibilities
 -------------------------
@@ -82,10 +82,10 @@ separate because the same function name can have different resource and failure 
      - :c:func:`rbcNativeWindows.Rbc_NativeOpaqueBitmapRun` attempts a copy batch;
        replay policy remains with :c:func:`rbcNativeShared.Rbc_NativeBitmapRun`.
 
-Counts are records, not bytes: traces count points; strip/arc operations count Segment2D pairs; bar operations count
-rectangles. Polygon-symbol stride includes the repeated closing point, whereas the distinct-vertex count excludes it.
-These interfaces consume already mapped coordinates; parameter documentation does not imply that every backend clamps or
-clips out-of-range geometry.
+Counts are records, not bytes: traces count points; strip/arc operations count :c:struct:`Segment2D` pairs; bar
+operations count rectangles. Polygon-symbol stride includes the repeated closing point, whereas the distinct-vertex
+count excludes it. These interfaces consume already mapped coordinates; parameter documentation does not imply that
+every backend clamps or clips out-of-range geometry.
 
 Batch lifetime and coordinate conversion
 ----------------------------------------
@@ -97,9 +97,9 @@ sample.
 
 The borrowed GC carries the configured raster operation and drawing style. X11 converts trace coordinates to ``short``
 and emits ``XDrawLines``. Windows converts to ``int`` and emits ``Polyline`` while retaining one acquired DC and
-selected pen/brush across the trace batch. :c:func:`rbcNativeX11.Rbc_NativeEndTrace` restores the previously selected
-objects, deletes the objects created by the batch, releases DC state and frees the allocation. It does not free the GC
-or graph.
+selected pen/brush across the trace batch. :c:func:`rbcNativeWindows.Rbc_NativeEndTrace` restores the previously
+selected objects, deletes the objects created by the batch, releases DC state and frees the allocation. It does not free
+the GC or graph.
 
 Independent strips have their own path. X11 delegates to native segments; Windows batches two-point polylines with
 capacities of 8192 segments for narrow lines and 680 for wide lines. These are implementation choices balancing device
@@ -214,7 +214,7 @@ borrowed resource styles. It does not perform layout, repair invalid geometry, o
      - Sets pattern origin locally, then resets it to zero.
      - Do not expect a previous nonzero origin to be restored.
    * - Tiled polygon
-     - Sets tile origin through Rbc_SetTileOrigin before filling.
+     - Sets tile origin through :c:func:`Rbc_SetTileOrigin` before filling.
      - Treat tile-origin configuration as mutable client state.
    * - Interval-selected symbols
      - Advances the mutable style counter while examining centers.
@@ -309,7 +309,8 @@ Windows batch eligibility and ownership
 ---------------------------------------
 
 Windows batches retain a drawable DC and selected objects across many primitives. Trace state owns a pen, brush and
-trailing POINT workspace. EndTrace restores previous selections before deleting the batch objects and releasing DC
+trailing POINT workspace. :c:func:`Rbc_NativeEndTrace <rbcNativeWindows.Rbc_NativeEndTrace>` restores previous
+selections before deleting the batch objects and releasing DC
 state. Polyline coordinates convert to int; strips convert to LONG. The polygon marker batch intentionally converts
 through short first to preserve its earlier native rasterization. These paths do not share a universal
 coordinate-conversion rule.
@@ -401,14 +402,16 @@ pixmap wrapper have different ownership rules even though each bridges native Wi
      - DeleteObject when no longer used.
 
 The acquisition record preserves Tk's drawable state; it does not remove the backend's responsibility to restore
-explicitly selected pens, brushes and saved GDI attributes. Rbc_GCToPen creates an owned pen but also sets TRANSPARENT
+explicitly selected pens, brushes and saved GDI attributes. :c:func:`Rbc_GCToPen <rbcWindowsResources.Rbc_GCToPen>`
+creates an owned pen but also sets TRANSPARENT
 background mode on its borrowed DC. It maps caps/joins and bounded GC dash bytes; a single dash value is duplicated for
 the Windows repeating user style. Pen creation is asserted, rather than returned as a Tcl error.
 
 Monochrome readback and fast paths
 ----------------------------------
 
-Rbc_GetBitmapData requests positive-height one-bit BI_RGB data. Rows are bottom-up and padded to DWORD boundaries. The
+:c:func:`Rbc_GetBitmapData <rbcWindowsResources.Rbc_GetBitmapData>` requests positive-height one-bit BI_RGB data. Rows
+are bottom-up and padded to DWORD boundaries. The
 returned pitch describes that padding; the buffer contains bits only, without the DIB header or color table. The caller
 frees it with ckfree. Temporary global-memory headers and DC acquisitions remain internal. A zero or undersized
 biSizeImage is replaced by the calculated minimum storage requirement. The current success check accepts any nonzero
@@ -490,7 +493,7 @@ Windows bitmap capture and transforms
 -------------------------------------
 
 The Windows image backend sits below the common image API. Its temporary monochrome buffers use DWORD-aligned rows and
-MSB-first bit addressing. GetBit and SetBit translate logical Y through ``height-y-1``. The byte stride is
+MSB-first bit addressing. ``GetBit`` and ``SetBit`` translate logical Y through ``height-y-1``. The byte stride is
 ``((width+31)&~31)/8``; the helper rejects widths that would overflow this alignment calculation. Individual callers
 still own height/product validation.
 
@@ -528,14 +531,15 @@ identical source storage. Both return owned Tk pixmaps when a mask is created.
 The whole-bitmap rotation rounds its enclosing dimensions upward and checks both size_t allocation limits and the DWORD
 biSizeImage boundary. The regional operation allocates only the requested region, avoiding a full virtual bitmap. Both
 release a destination pixmap on checked readback/upload failure. Their SetDIBits success test is nonzero return, not an
-exact scanline-count check. ScaleBitmap is less defensive: it returns the allocated pixmap after StretchBlt without
+exact scanline-count check. :c:func:`Rbc_ScaleBitmap <rbcWindowsImages.Rbc_ScaleBitmap>` is less defensive: it returns
+the allocated pixmap after StretchBlt without
 separately validating DC acquisition or the copy result. These contracts must not be generalized into a promise that
 every returned native bitmap has been fully verified.
 
-Rbc_LastError captures the Windows error code and formats it into one static buffer. The text is borrowed until the next
-call and is not thread-local. It strips trailing line endings and supplies a numeric fallback, but uses the ANSI
-FormatMessage variant. Callers retaining it or presenting it to a UTF-8 Tcl interface must account for lifetime and
-encoding separately.
+:c:func:`Rbc_LastError <rbcWindowsImages.Rbc_LastError>` captures the Windows error code and formats it into one static
+buffer. The text is borrowed until the next call and is not thread-local. It strips trailing line endings and supplies a
+numeric fallback, but uses the ANSI FormatMessage variant. Callers retaining it or presenting it to a UTF-8 Tcl
+interface must account for lifetime and encoding separately.
 
 Internal template and buffer contracts
 --------------------------------------
@@ -561,10 +565,10 @@ Bitmap packing and output ownership
 
 :c:func:`rbcWindowsImages.GetMonoBitmapStride` returns DWORD-aligned row bytes;
 :c:func:`rbcX11Image.GetPackedBitmapRowBytes` returns tightly packed row bytes. Neither alone validates the complete
-:c:image allocation. The X11 pixel-count helper :c:func:`rbcX11Image.GetUnixImagePixelCount` checks dimension
-:c:multiplication, while :c:func:`rbcX11Image.GetBitmapDimension` converts a finite rounded extent. These helpers have
-:c:different failure contracts: panic, zero result and ordinary status-returning callers must not be treated
-:c:interchangeably.
+image allocation. The X11 pixel-count helper :c:func:`rbcX11Image.GetUnixImagePixelCount` checks dimension
+multiplication, while :c:func:`rbcX11Image.GetBitmapDimension` converts a finite rounded extent. These helpers have
+different failure contracts: panic, zero result and ordinary status-returning callers must not be treated
+interchangeably.
 
 :c:func:`rbcWindowsImages.Rbc_RotateBitmap` assigns output dimensions only after its initial argument validation;
 subsequent checked failure leaves them zero. :c:func:`rbcWindowsImages.Rbc_ScaleRotateBitmapRegion` expects a region
@@ -581,9 +585,9 @@ after gamma conversion.
 Retained native geometry contexts
 ---------------------------------
 
-:c:func:`Rbc_RenderBeginNativeSymbols` retains the symbol-style pointer; func:`Rbc_RenderBeginBars` instead copies its
-:c:style record, while borrowing the resources referenced by that record. Both borrow the graph and drawable until
-:c::c:func:`Rbc_RenderEnd`.
+:c:func:`Rbc_RenderBeginNativeSymbols` retains the symbol-style pointer; :c:func:`Rbc_RenderBeginBars` instead copies
+its style record, while borrowing the resources referenced by that record. Both borrow the graph and drawable until
+:c:func:`Rbc_RenderEnd`.
 
 :c:func:`Rbc_RenderBeginNativeFill` passes the tile and stipple selector to the native fill path. With no tile, a
 non-None selector enables GC filling; None alone does not mean solid fill. :c:func:`Rbc_RenderBeginNativeSegments`

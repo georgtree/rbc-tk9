@@ -10,9 +10,10 @@ commands. Those callback boundaries need separate lifetime review.
 Records and ownership
 ---------------------
 
-``Bar`` embeds ``Element`` first and ``BarPen`` embeds ``Pen`` first. The conversion and offset macros preserve that
-common-header layout; a static assertion checks the element header offset. Constructors return common-header pointers,
-not independently allocated header objects. ``BarRectangle`` aliases the renderer's rectangle type.
+:c:struct:`Bar <rbcGrBarGeometry.Bar>` embeds :c:type:`Element` first and :c:struct:`BarPen <rbcGrBarGeometry.BarPen>`
+embeds :c:type:`Pen` first. The conversion and offset macros preserve that common-header layout; a static assertion
+checks the element header offset. Constructors return common-header pointers, not independently allocated header
+objects. ``BarRectangle`` aliases the renderer's :c:struct:`Rbc_RenderRectangle` type.
 
 .. list-table:: Storage and release responsibilities
    :header-rows: 1
@@ -37,19 +38,19 @@ not independently allocated header objects. ``BarRectangle`` aliases the rendere
      - :c:func:`rbcGrBarConfiguration.ConfigurePen` stages and commits these resources
      - :c:func:`rbcGrBarConfiguration.DestroyPen`
    * - Normal and active rectangles, source-index maps, mapped errors
-     - Bar/Element own the arrays; styles borrow slices
+     - :c:struct:`Bar <rbcGrBarGeometry.Bar>` and :c:type:`Element` own the arrays; styles borrow slices
      - :c:func:`rbcGrBarGeometry.ResetBar`
    * - Source vector slots
-     - Element slots own subscriptions or private data, not application vectors
-     - Rbc_FreeElemVector during concrete destruction
+     - :c:type:`Element` slots own subscriptions or private data, not application vectors
+     - :c:func:`Rbc_FreeElemVector` during concrete destruction
    * - Duplicate-X records
-     - Graph owns freqArr; hash values borrow its records
+     - :c:type:`Graph` owns freqArr; hash values borrow its records
      - Frequency-table rebuild or graph teardown
 
-``BarPenStyle`` stores a concrete ``BarPen *`` alongside its weight range and borrowed geometry slices. Never free those
-slices separately. :c:func:`rbcGrBarGeometry.ClearPalette` invalidates only counts: after
-:c:func:`rbcGrBarGeometry.ResetBar` the slice addresses may still contain old values and must not be dereferenced until
-remapping installs valid views.
+:c:struct:`BarPenStyle <rbcGrBarGeometry.BarPenStyle>` stores a concrete ``BarPen *`` alongside its weight range and
+borrowed geometry slices. Never free those slices separately. :c:func:`rbcGrBarGeometry.ClearPalette` invalidates only
+counts: after :c:func:`rbcGrBarGeometry.ResetBar` the slice addresses may still contain old values and must not be
+dereferenced until remapping installs valid views.
 
 Creation and configuration
 --------------------------

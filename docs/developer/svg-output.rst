@@ -5,8 +5,8 @@ See :doc:`document-rendering` for shared context ownership and the PDF/PostScrip
 graphics-state and capture boundaries.
 
 ``rbcGrSvg.c`` frames the document; ``rbcRenderSvg.c`` emits primitives through the renderer interface. Both borrow a
-shared ``Rbc_ExportContext``. SVG requires no Cairo backend or PDF object builder. See :doc:`exports` for command-level
-layout, restoration and delivery, and :doc:`svg-reference` for helper contracts.
+shared :c:struct:`Rbc_ExportContext`. SVG requires no Cairo backend or PDF object builder. See :doc:`exports` for
+command-level layout, restoration and delivery, and :doc:`svg-reference` for helper contracts.
 
 Document and context lifetime
 -----------------------------

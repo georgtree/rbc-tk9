@@ -21,16 +21,16 @@ Pixel storage and Tk images
      - A descriptor whose pixel pointer normally borrows Tk photo storage.
        Copying the descriptor does not copy pixels or retain the image.
    * - ``Rbc_ColorImage``
-     - An owned record plus a separate contiguous ``Pix32`` array, released with
+     - An owned record plus a separate contiguous :c:union:`Pix32` array, released with
        :c:func:`Rbc_FreeColorImage`. It has no Tk name or notification mechanism.
    * - Tile pixmap
      - A server-owned native cache. Clients borrow it only until update/release.
 
-``Pix32`` provides explicit red, green, blue and alpha byte fields. Use these fields and the image access macros; do not
-infer a portable packed integer channel order from the union's ``value`` member. New color images are zeroed, including
-alpha, so newly allocated pixels are transparent until populated. Dimensions are nonnegative and allocation arithmetic
-is checked; invalid or unrepresentable sizes panic rather than return a Tcl error. Even an empty image has an owning
-record. The free helper requires a valid non-NULL image.
+:c:union:`Pix32` provides explicit red, green, blue and alpha byte fields. Use these fields and the image access macros;
+do not infer a portable packed integer channel order from the union's ``value`` member. New color images are zeroed,
+including alpha, so newly allocated pixels are transparent until populated. Dimensions are nonnegative and allocation
+arithmetic is checked; invalid or unrepresentable sizes panic rather than return a Tcl error. Even an empty image has an
+owning record. The free helper requires a valid non-NULL image.
 
 Photo conversion copies rows using Tk's pitch, pixel size and channel offsets. :c:func:`Rbc_PhotoToColorImage` returns
 an independent snapshot. :c:func:`Rbc_PhotoRegionToColorImage` clamps the requested origin and limits spans to the
@@ -61,19 +61,21 @@ For pixel sizes other than three or four, both whole-photo and region conversion
 alpha 255. This preserves the existing whole-photo fallback policy: even a two-byte grayscale/alpha layout produces
 opaque pixels; its alpha channel is not used as grayscale.
 
-:c:func:`Rbc_ColorImageToPhoto` constructs a block over the borrowed RBC pixels, with channel offsets derived from Pix32
-members. It checks that width times pixel size fits Tk's int pitch before resizing and writing. No source ownership is
-transferred. Both Tk return statuses are ignored by the existing void API; a caller cannot infer transactional success
-or unchanged destination state from its return. Reliable error propagation would require a separate runtime change
-across callers.
+:c:func:`Rbc_ColorImageToPhoto` constructs a block over the borrowed RBC pixels, with channel offsets derived from
+:c:union:`Pix32` members. It checks that width times pixel size fits Tk's int pitch before resizing and writing. No
+source ownership is transferred. Both Tk return statuses are ignored by the existing void API; a caller cannot infer
+transactional success or unchanged destination state from its return. Reliable error propagation would require a
+separate runtime change across callers.
 
 Snapshot pipeline
 -----------------
 
 :c:func:`Rbc_SnapPhoto` first validates dimensions and gamma and resolves an existing photo name. It then delegates
-native acquisition and gamma handling to Rbc_DrawableToColorImage. A missing photo or failed capture returns TCL_ERROR
-with an interpreter diagnostic. If requested destination dimensions differ, the captured image is box-filtered in both
-directions and replaced by the resampled allocation. The final photo write is followed by image cleanup.
+native acquisition and gamma handling to :c:func:`Rbc_DrawableToColorImage <rbcX11Image.Rbc_DrawableToColorImage>` on
+X11 or its :c:func:`Windows counterpart <rbcWindowsImages.Rbc_DrawableToColorImage>`. A missing photo or failed capture
+returns TCL_ERROR with an interpreter diagnostic. If requested destination dimensions differ, the captured image is
+box-filtered in both directions and replaced by the resampled allocation. The final photo write is followed by image
+cleanup.
 
 Zero destination dimensions are accepted literally; they do not mean use the capture dimensions. The helper does not
 create a missing photo or own its handle. A TCL_OK result indicates that capture and processing reached the legacy
@@ -148,7 +150,8 @@ filtering. Bitmap transforms are covered in :doc:`image-transforms` and color pr
 Registry and refresh implementation
 -----------------------------------
 
-Despite the TILE_THREAD_KEY macro name, the registry belongs to interpreter associated data. TileInterpData owns the
+Despite the TILE_THREAD_KEY macro name, the registry belongs to interpreter associated data.
+:c:struct:`TileInterpData <rbcTileLifecycle.TileInterpData>` owns the
 table; it is not process-global or thread-local sharing. A server is registered only after image acquisition and initial
 redraw succeed. The first client is appended after that registration. Failure to acquire the Tk image removes the newly
 reserved hash entry.
@@ -214,10 +217,11 @@ Windows masked copies use the same source coordinates for the mask and color pas
 columns. The private tile harness checks resulting pixels against the tile origin for both positive and negative
 origins, including untouched pixels outside the requested rectangle.
 
-X11 RectangleMask translates the client origin into rectangle-local coordinates and fills an owned one-bit pixmap with
-FillOpaqueStippled. :c:func:`rbcTileMasks.PolygonMask` translates copied points into bounding-box coordinates, clears
-its bitmap, then uses FillStippled for the polygon interior. Both release temporary GCs and return pixmaps which the
-drawing caller must free. Transparency is represented by binary masks here, not continuous-alpha compositing.
+X11 :c:func:`RectangleMask <rbcTileMasks.RectangleMask>` translates the client origin into rectangle-local coordinates
+and fills an owned one-bit pixmap with FillOpaqueStippled. :c:func:`rbcTileMasks.PolygonMask` translates copied points
+into bounding-box coordinates, clears its bitmap, then uses FillStippled for the polygon interior. Both release
+temporary GCs and return pixmaps which the drawing caller must free. Transparency is represented by binary masks here,
+not continuous-alpha compositing.
 
 Masked X11 drawing temporarily installs that mask and its destination origin on the shared tile GC, then explicitly
 resets the clip to None and origin to zero. It does not save a caller's previous server-GC clip. Likewise, origin

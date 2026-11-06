@@ -13,9 +13,9 @@ invalidation as described in :doc:`graph-lifecycle`.
 Document state
 --------------
 
-``Rbc_ExportContext`` in ``rbcExport.h`` is caller-owned, normally stack storage. Initialization zeroes the record and
-selects its embedded ``storage`` DString as ``buffer``. The interpreter and window are borrowed. The context is private
-and does not extend the installed C API.
+:c:struct:`Rbc_ExportContext` in ``rbcExport.h`` is caller-owned, normally stack storage. Initialization zeroes the
+record and selects its embedded ``storage`` DString as ``buffer``. The interpreter and window are borrowed. The context
+is private and does not extend the installed C API.
 
 .. list-table::
    :header-rows: 1
@@ -45,7 +45,8 @@ before releasing document resources.
 SVG/PDF command transaction
 ---------------------------
 
-``Rbc_GraphExportFormat`` in ``rbcGraph.h`` supplies the component name/class, integer option offsets, backend, channel
+:c:struct:`Rbc_GraphExportFormat <rbcGraphExportCommands.Rbc_GraphExportFormat>` in ``rbcGraph.h`` supplies the
+component name/class, integer option offsets, backend, channel
 policy and two lifecycle callbacks. Its option specifications contain concrete pixel and boolean fields only.
 Initialization uses a temporary Tk option table and retains no Tk resources from that table. Runtime parsing stages all
 option values before committing; an invalid option leaves the previous configuration intact. Repeated valid options use
@@ -102,11 +103,11 @@ The built-in policies deliberately share a small configuration model:
      - ISO-8859-1 encoding, binary translation
    * - Backend cleanup callback
      - None; shared font/storage cleanup suffices
-     - Rbc_PdfFree before shared cleanup
+     - :c:func:`Rbc_PdfFree` before shared cleanup
 
-The policy's field offsets address native ``int`` members in Graph. They are trusted private metadata, not checked
-offsets supplied by a script. The shared parser supports concrete pixel and boolean specifications only; adding a
-string, synonym or resource-owning option requires extending that parser and its ownership model. An unsupported
+The policy's field offsets address native ``int`` members in :c:type:`Graph`. They are trusted private metadata, not
+checked offsets supplied by a script. The shared parser supports concrete pixel and boolean specifications only; adding
+a string, synonym or resource-owning option requires extending that parser and its ownership model. An unsupported
 specification type reaches Tcl_Panic. Integer query objects report normalized values rather than the original input
 spelling. Initialization may write fields before failing; it belongs to graph construction, unlike the rollback
 guarantee of runtime configuration.

@@ -1221,9 +1221,9 @@ command entry points and result ownership, <a class="reference internal" href="e
 <a class="reference internal" href="expression-engine-reference.html"><span class="doc">Expression engine internal C reference</span></a> for the source contracts.</p>
 <section id="parser-state-and-precedence">
 <h2>Parser state and precedence<a class="headerlink" href="#parser-state-and-precedence" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Value</span></code> holds an already allocated temporary vector. <code class="docutils literal notranslate"><span class="pre">ParseInfo</span></code> borrows the complete writable expression string and
-stores <code class="docutils literal notranslate"><span class="pre">nextPtr</span></code> plus the last scanned token. A token describes characters immediately before <code class="docutils literal notranslate"><span class="pre">nextPtr</span></code>; returning
-from a recursive value parse does not rewind the terminating operator.</p>
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.Value" title="Value"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Value</span></code></a> holds an already allocated temporary vector. <a class="reference internal" href="vector-storage-private-reference.html#c.ParseInfo" title="ParseInfo"><code class="xref c c-struct docutils literal notranslate"><span class="pre">ParseInfo</span></code></a> borrows the complete writable
+expression string and stores <code class="docutils literal notranslate"><span class="pre">nextPtr</span></code> plus the last scanned token. A token describes characters immediately before
+<code class="docutils literal notranslate"><span class="pre">nextPtr</span></code>; returning from a recursive value parse does not rewind the terminating operator.</p>
 <p><a class="reference internal" href="expression-engine-reference.html#c.NextValue" title="NextValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextValue()</span></code></a> allocates a second operand temporary for each invocation. It first handles an ordinary value,
 parenthesized expression or unary operator, then recursively obtains right operands while their operators have greater
 precedence than the caller’s limit. It stops at the end, comma, closing parenthesis or an operator at or below that
@@ -1374,10 +1374,10 @@ rule concerns evaluator temporaries; it does not permit changing the type of an 
 </section>
 <section id="parser-argument-and-completion-contracts">
 <h2>Parser argument and completion contracts<a class="headerlink" href="#parser-argument-and-completion-contracts" title="Link to this heading"></a></h2>
-<p>The parser receives a live writable expression buffer and caller-owned <code class="docutils literal notranslate"><span class="pre">Value</span></code>/<code class="docutils literal notranslate"><span class="pre">ParseInfo</span></code> records. Their pointers
-are borrowed for the call; returning a value does not transfer ownership of those records. The caller must release the
-vector temporary on both success and failure. In particular, Tcl substitutions can have lasting side effects even when
-parsing fails.</p>
+<p>The parser receives a live writable expression buffer and caller-owned <a class="reference internal" href="vector-storage-private-reference.html#c.Value" title="Value"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Value</span></code></a> and <a class="reference internal" href="vector-storage-private-reference.html#c.ParseInfo" title="ParseInfo"><code class="xref c c-struct docutils literal notranslate"><span class="pre">ParseInfo</span></code></a>
+records. Their pointers are borrowed for the call; returning a value does not transfer ownership of those records. The
+caller must release the vector temporary on both success and failure. In particular, Tcl substitutions can have lasting
+side effects even when parsing fails.</p>
 <table class="docutils align-default" id="id3">
 <caption><span class="caption-text">Cursor and result conventions</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
 <colgroup>
@@ -1414,9 +1414,9 @@ parsing fails.</p>
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="expression-engine-reference.html#c.ParseBracketScript" title="ParseBracketScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseBracketScript()</span></code></a> propagates the script’s completion code unchanged. func:<cite>MapVector</cite>, by contrast, converts
-:c:unsupported callback completion codes into map errors. A helper’s non-OK return therefore must be interpreted
-:c:according to that helper’s contract. A written cursor or populated temporary is not proof of successful completion.</p>
+<p><a class="reference internal" href="expression-engine-reference.html#c.ParseBracketScript" title="ParseBracketScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseBracketScript()</span></code></a> propagates the script’s completion code unchanged. <a class="reference internal" href="expression-engine-reference.html#c.MapVector" title="MapVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapVector()</span></code></a>, by contrast,
+converts unsupported callback completion codes into map errors. A helper’s non-OK return therefore must be interpreted
+according to that helper’s contract. A written cursor or populated temporary is not proof of successful completion.</p>
 <p><a class="reference internal" href="expression-engine-reference.html#c.ParseSubstitutionResult" title="ParseSubstitutionResult"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseSubstitutionResult()</span></code></a> takes a temporary Tcl reference before clearing the interpreter result, then calls
 <a class="reference internal" href="expression-engine-reference.html#c.ParseString" title="ParseString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseString()</span></code></a>. This protects the substitution text from result replacement; it does not retain arbitrary vectors
 named by that text. <a class="reference internal" href="expression-engine-reference.html#c.ParseMapPrefix" title="ParseMapPrefix"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseMapPrefix()</span></code></a> transfers one retained reference to its caller, while <a class="reference internal" href="expression-engine-reference.html#c.MapVector" title="MapVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapVector()</span></code></a>
@@ -1439,10 +1439,10 @@ intended completion status and apply the appropriate finite-result check; these 
 </section>
 <section id="registry-value-ownership">
 <h2>Registry value ownership<a class="headerlink" href="#registry-value-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="expression-reference.html#c.Rbc_VectorInstallMathFunctions" title="Rbc_VectorInstallMathFunctions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstallMathFunctions()</span></code></a> stores pointers to static <code class="docutils literal notranslate"><span class="pre">MathFunction</span></code> descriptors; each descriptor selects
-both the adapter and its concrete <code class="docutils literal notranslate"><span class="pre">clientData</span></code> representation. <a class="reference internal" href="expression-reference.html#c.Rbc_VectorInstallSpecialIndices" title="Rbc_VectorInstallSpecialIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstallSpecialIndices()</span></code></a> populates a
-separate table with borrowed numeric callback pointers. <a class="reference internal" href="expression-engine-reference.html#c.InstallIndexProc" title="InstallIndexProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">InstallIndexProc()</span></code></a> inserts or replaces one such
-callback, or removes its name for a null procedure pointer. Tcl owns copied string keys, but neither table owns the
+<p><a class="reference internal" href="expression-reference.html#c.Rbc_VectorInstallMathFunctions" title="Rbc_VectorInstallMathFunctions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstallMathFunctions()</span></code></a> stores pointers to static <a class="reference internal" href="expression-engine-reference.html#c.MathFunction" title="MathFunction"><code class="xref c c-struct docutils literal notranslate"><span class="pre">MathFunction</span></code></a> descriptors; each descriptor
+selects both the adapter and its concrete <code class="docutils literal notranslate"><span class="pre">clientData</span></code> representation. <a class="reference internal" href="expression-reference.html#c.Rbc_VectorInstallSpecialIndices" title="Rbc_VectorInstallSpecialIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstallSpecialIndices()</span></code></a>
+populates a separate table with borrowed numeric callback pointers. <a class="reference internal" href="expression-engine-reference.html#c.InstallIndexProc" title="InstallIndexProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">InstallIndexProc()</span></code></a> inserts or replaces one
+such callback, or removes its name for a null procedure pointer. Tcl owns copied string keys, but neither table owns the
 pointed-to code or static descriptors. See <a class="reference internal" href="expression-reference.html"><span class="doc">Vector expression C reference</span></a> for the initialization contracts.</p>
 </section>
 </section>

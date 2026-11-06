@@ -1253,10 +1253,10 @@ the returned record until it frees it or explicitly transfers its storage.</p>
 </section>
 <section id="parsing-and-input-snapshots">
 <h2>Parsing and input snapshots<a class="headerlink" href="#parsing-and-input-snapshots" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ParseInfo</span></code> tracks the input buffer, scan position and current token. <a class="reference internal" href="expression-engine-reference.html#c.NextValue" title="NextValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextValue()</span></code></a> performs precedence-based
-evaluation; <a class="reference internal" href="expression-engine-reference.html#c.NextToken" title="NextToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextToken()</span></code></a> handles numeric literals, vector references, operators and Tcl substitutions.
-<a class="reference internal" href="expression-engine-reference.html#c.EvaluateExpression" title="EvaluateExpression"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvaluateExpression()</span></code></a> checks that the entire expression was consumed and rejects non-finite components in the
-final result.</p>
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.ParseInfo" title="ParseInfo"><code class="xref c c-struct docutils literal notranslate"><span class="pre">ParseInfo</span></code></a> tracks the input buffer, scan position and current token. <a class="reference internal" href="expression-engine-reference.html#c.NextValue" title="NextValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextValue()</span></code></a> performs
+precedence-based evaluation; <a class="reference internal" href="expression-engine-reference.html#c.NextToken" title="NextToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextToken()</span></code></a> handles numeric literals, vector references, operators and Tcl
+substitutions. <a class="reference internal" href="expression-engine-reference.html#c.EvaluateExpression" title="EvaluateExpression"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvaluateExpression()</span></code></a> checks that the entire expression was consumed and rejects non-finite
+components in the final result.</p>
 <p>Vector references are copied into expression storage when encountered. A selected vector range is copied through the
 same duplication helper. Later arithmetic can modify that temporary without writing back to the source. This is not a
 snapshot of every input taken at expression entry: Tcl code executed between references can change what a later

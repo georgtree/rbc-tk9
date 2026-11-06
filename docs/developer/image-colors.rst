@@ -100,11 +100,11 @@ RGB values even though bin addresses use five bits. :c:func:`rbcImageQuantizatio
 initial allocation; :c:func:`rbcImageQuantization.M3d` transforms it in place into prefix sums once. Reapplying
 :c:func:`rbcImageQuantization.M3d` would accumulate already cumulative data and corrupt queries.
 
-Each Cube describes a lower-exclusive, upper-inclusive interval on each axis. The initial cube is (0, 32] on all three
-axes. Its geometric volume counts histogram cells, not pixels. :c:func:`rbcImageQuantization.Volume` uses eight-corner
-inclusion-exclusion to query any one cumulative array. :c:func:`rbcImageQuantization.Bottom` and
-:c:func:`rbcImageQuantization.Top` split that expression into a cut-independent term and a term containing the proposed
-upper boundary.
+Each :c:struct:`Cube <rbcImageQuantization.Cube>` describes a lower-exclusive, upper-inclusive interval on each axis.
+The initial cube is (0, 32] on all three axes. Its geometric volume counts histogram cells, not pixels.
+:c:func:`rbcImageQuantization.Volume` uses eight-corner inclusion-exclusion to query any one cumulative array.
+:c:func:`rbcImageQuantization.Bottom` and :c:func:`rbcImageQuantization.Top` split that expression into a
+cut-independent term and a term containing the proposed upper boundary.
 
 :c:func:`rbcImageQuantization.Variance` is the squared-color sum minus the sum of squared channel totals divided by
 population. It represents total squared error, or variance times population. :c:func:`rbcImageQuantization.Maximize`
@@ -123,7 +123,7 @@ of all distinct 8-bit RGB values. The requested color count is a cap, not an exa
 division. The legacy multiply-by-257 and right-shift-by-eight sequence preserves those byte means; it does not introduce
 fractional rounding. :c:func:`rbcImageQuantization.Mark` fills every cell in the box with the packed representative
 pixel. Mapping uses the partition cell directly rather than choosing the nearest palette color. This table is private
-native Pix32 storage, not a portable serialized palette.
+native :c:union:`Pix32` storage, not a portable serialized palette.
 
 All histogram and palette construction finishes before destination pixels are written. Statistics and cubes are freed
 before :c:func:`rbcImageQuantization.MapColors`, and the lookup table is freed

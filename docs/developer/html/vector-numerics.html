@@ -1242,9 +1242,9 @@ separately; complex interval ordering is deliberately unsupported.</p>
 <p><a class="reference internal" href="vector-numeric-reference.html#c.InRange" title="InRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">InRange()</span></code></a> supplies the historical tolerance. For an interval narrower than <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code>, it tests absolute
 distance from the upper bound strictly below that epsilon. Otherwise it normalizes by interval width, accepts positions
 down to <code class="docutils literal notranslate"><span class="pre">-DBL_EPSILON</span></code>, and permits a small excess above one. It does not swap bounds or implement an independent
-finite-value policy. Search checks positive offset addition for overflow before returning indices. Receiver lifetime is
-rechecked after bound conversion. A clearly reversed real interval explicitly returns an empty result, regardless of
-conversion side effects on the interpreter result.</p>
+finite-value policy. <a class="reference internal" href="spline-reference.html#c.Search" title="Search"><code class="xref c c-func docutils literal notranslate"><span class="pre">Search()</span></code></a> checks positive offset addition for overflow before returning indices. Receiver
+lifetime is rechecked after bound conversion. A clearly reversed real interval explicitly returns an empty result,
+regardless of conversion side effects on the interpreter result.</p>
 </section>
 <section id="normalization-and-random-values">
 <h2>Normalization and random values<a class="headerlink" href="#normalization-and-random-values" title="Link to this heading"></a></h2>
@@ -1253,10 +1253,10 @@ Tcl list. With a name it stages the full result before resolving a real destinat
 storage. There is no explicit constant-vector or nonfinite-input policy in the handler: callers should not infer a
 special all-zero result for a zero range. Complex receivers are rejected by the instance dispatcher’s
 supported-operation check.</p>
-<p><a class="reference internal" href="vector-numeric-reference.html#c.RandomOp" title="RandomOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">RandomOp()</span></code></a> preserves length and numeric type, replacing each component with func:<cite>Rbc_RandomDouble</cite>. Real
-:c:vectors use one sample per value and complex vectors two. The shared generator produces samples in [0,1) using the C
-:c:library random state; it is not a cryptographic source or a generator owned by each vector. The handler flushes and
-:c:reports a full update after filling storage.</p>
+<p><a class="reference internal" href="vector-numeric-reference.html#c.RandomOp" title="RandomOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">RandomOp()</span></code></a> preserves length and numeric type, replacing each component with <a class="reference internal" href="utility-reference.html#c.Rbc_RandomDouble" title="Rbc_RandomDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a>. Real
+vectors use one sample per value and complex vectors two. The shared generator produces samples in [0,1) using the C
+library random state; it is not a cryptographic source or a generator owned by each vector. The handler flushes and
+reports a full update after filling storage.</p>
 </section>
 <section id="sequence-length-and-endpoint-policy">
 <h2>Sequence length and endpoint policy<a class="headerlink" href="#sequence-length-and-endpoint-policy" title="Link to this heading"></a></h2>
@@ -1283,15 +1283,15 @@ destroyed identities and preserve the command result.</p>
 complex flag describes the input syntax, even if the imaginary component is zero; the flag is not evidence that
 conversion succeeded. Conversion can execute Tcl and partially write its output, so callers must inspect the status
 before using the value.</p>
-<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexAdd" title="Rbc_ComplexAdd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexAdd()</span></code></a>, <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexSub" title="Rbc_ComplexSub"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexSub()</span></code></a> and func:<cite>Rbc_ComplexMul</cite> perform ordinary double arithmetic on
-:c:copied values. <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexDiv" title="Rbc_ComplexDiv"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexDiv()</span></code></a> uses a ratio-based denominator to reduce avoidable intermediate overflow and
-:c:underflow. It requires the caller to reject zero and does not report nonfinite results. <a class="reference internal" href="vector-numeric-reference.html#c.ComplexArithmetic" title="ComplexArithmetic"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexArithmetic()</span></code></a>
-:c:adds the zero-divisor error check for the instance arithmetic path. These are distinct contracts, not interchangeable
-:c:error-reporting interfaces.</p>
-<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexFromReal" title="Rbc_ComplexFromReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexFromReal()</span></code></a> supplies a zero imaginary component, while func:<cite>Rbc_VectorValueAsComplex</cite> copies one
-:c:caller-validated storage index and promotes real storage if necessary. Neither helper changes a vector’s type or
-:c:transfers ownership. <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexIsZero" title="Rbc_ComplexIsZero"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexIsZero()</span></code></a> tests exact zero in both components; it is not a magnitude tolerance
-:c:test. The declarations are collected in <a class="reference internal" href="vector-access-reference.html"><span class="doc">Vector access C reference</span></a>.</p>
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexAdd" title="Rbc_ComplexAdd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexAdd()</span></code></a>, <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexSub" title="Rbc_ComplexSub"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexSub()</span></code></a> and <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexMul" title="Rbc_ComplexMul"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexMul()</span></code></a> perform ordinary double arithmetic on
+copied values. <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexDiv" title="Rbc_ComplexDiv"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexDiv()</span></code></a> uses a ratio-based denominator to reduce avoidable intermediate overflow and
+underflow. It requires the caller to reject zero and does not report nonfinite results. <a class="reference internal" href="vector-numeric-reference.html#c.ComplexArithmetic" title="ComplexArithmetic"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexArithmetic()</span></code></a>
+adds the zero-divisor error check for the instance arithmetic path. These are distinct contracts, not interchangeable
+error-reporting interfaces.</p>
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexFromReal" title="Rbc_ComplexFromReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexFromReal()</span></code></a> supplies a zero imaginary component, while <a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorValueAsComplex" title="Rbc_VectorValueAsComplex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorValueAsComplex()</span></code></a> copies one
+caller-validated storage index and promotes real storage if necessary. Neither helper changes a vector’s type or
+transfers ownership. <a class="reference internal" href="vector-access-reference.html#c.Rbc_ComplexIsZero" title="Rbc_ComplexIsZero"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ComplexIsZero()</span></code></a> tests exact zero in both components; it is not a magnitude tolerance
+test. The declarations are collected in <a class="reference internal" href="vector-access-reference.html"><span class="doc">Vector access C reference</span></a>.</p>
 </section>
 </section>
 

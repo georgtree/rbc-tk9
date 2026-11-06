@@ -86,10 +86,10 @@ layout.
 Record and construction boundaries
 ----------------------------------
 
-``LegendStruct`` owns configuration and cached geometry, not a separate list of entry objects. Its graph and optional
-track pointers are borrowed. Element records, labels and symbol methods stay with the graph. The distinction matters
-when an element appears in both a global and local legend: there are two layout contexts, but only one element and one
-``LABEL_ACTIVE`` flag.
+:c:struct:`LegendStruct <rbcGrLegendLifetime.LegendStruct>` owns configuration and cached geometry, not a separate list
+of entry objects. Its graph and optional track pointers are borrowed. :c:type:`Element` records, labels and symbol
+methods stay with the graph. The distinction matters when an element appears in both a global and local legend: there
+are two layout contexts, but only one element and one ``LABEL_ACTIVE`` flag.
 
 .. list-table:: Ownership by legend kind
    :header-rows: 1
@@ -312,10 +312,11 @@ A non-NULL picking context is therefore not proof that an entry was selected. Th
 whether an item was found; the context identifies the scope for subsequent tag collection. Neither result acquires an
 element or legend reference.
 
-:c:func:`rbcGrLegendOutput.Rbc_DrawTrackLegends` and func:`rbcGrLegendOutput.Rbc_ExportTrackLegends` compare the
-:c:requested ``raised`` value directly with the stored flag. Pass zero or one, rather than an arbitrary nonzero
-:c:value. Their drawable or export context remains borrowed. The direct :c:func:`rbcGrLegendOutput.Rbc_LegendExport`
-:c:call does not supply the track clip itself; that is the layer wrapper's responsibility.
+:c:func:`rbcGrLegendOutput.Rbc_DrawTrackLegends` and
+:c:func:`Rbc_ExportTrackLegends <rbcGrLegendOutput.Rbc_ExportTrackLegends>` compare the
+requested ``raised`` value directly with the stored flag. Pass zero or one, rather than an arbitrary nonzero
+value. Their drawable or export context remains borrowed. The direct :c:func:`rbcGrLegendOutput.Rbc_LegendExport`
+call does not supply the track clip itself; that is the layer wrapper's responsibility.
 
 The full nested argument vector passed to :c:func:`rbcGrLegendCommands.Rbc_TrackLegendOp` has its operation at index
 four. The adapter creates a normalized vector with the operation at index two, which is what the shared handlers

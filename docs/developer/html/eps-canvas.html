@@ -1255,11 +1255,11 @@ Recording TIFF/WMF header fields must not be confused with complete support for 
 </tr>
 <tr class="row-odd"><td><p>colorImage</p></td>
 <td><p>Owned snapshot or decoded EPSI pixels</p></td>
-<td><p>Rbc_FreeColorImage</p></td>
+<td><p><a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><p>tmpImage</p></td>
 <td><p>Private named photo and retained display instance</p></td>
-<td><p>Rbc_DestroyTemporaryImage</p></td>
+<td><p><a class="reference internal" href="image-compatibility-reference.html#c.Rbc_DestroyTemporaryImage" title="Rbc_DestroyTemporaryImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTemporaryImage()</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>dString / title</p></td>
 <td><p>Retained PostScript body / parsed title</p></td>
@@ -1275,14 +1275,14 @@ Recording TIFF/WMF header fields must not be confused with complete support for 
 </tr>
 </tbody>
 </table>
-<p>ConfigureEps detects image, file and quick options with prefix matching after Tk_ConfigureWidget succeeds. It drops old
-resources and replaces them in steps; a later error is not a rollback to the previous complete preview. A supplied image
-must be a photo. Its pixels are copied rather than continuously used as a live source. Width/height zero derive
-dimensions from the preview or EPS bounding box. Changing quick mode invalidates cached scaled dimensions.</p>
-<p>DisplayEps rescales the saved pixels when dimensions change: nearest-style resize for quick mode, box resampling
-otherwise. It publishes the result into tmpImage and frees the intermediate pixels. With no visible preview it draws a
-placeholder, optionally followed by a fitting title and relief border. All screen work uses Tk/native services, without
-a graph renderer context.</p>
+<p><a class="reference internal" href="eps-reference.html#c.ConfigureEps" title="ConfigureEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureEps()</span></code></a> detects image, file and quick options with prefix matching after Tk_ConfigureWidget succeeds. It
+drops old resources and replaces them in steps; a later error is not a rollback to the previous complete preview. A
+supplied image must be a photo. Its pixels are copied rather than continuously used as a live source. Width/height zero
+derive dimensions from the preview or EPS bounding box. Changing quick mode invalidates cached scaled dimensions.</p>
+<p><a class="reference internal" href="eps-reference.html#c.DisplayEps" title="DisplayEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">DisplayEps()</span></code></a> rescales the saved pixels when dimensions change: nearest-style resize for quick mode, box
+resampling otherwise. It publishes the result into tmpImage and frees the intermediate pixels. With no visible preview
+it draws a placeholder, optionally followed by a fitting title and relief border. All screen work uses Tk/native
+services, without a graph renderer context.</p>
 <p><a class="reference internal" href="eps-reference.html#c.ImageChangedProc" title="ImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ImageChangedProc()</span></code></a> does not refresh the saved color snapshot on ordinary source photo writes. Its deletion
 branch clears the source name and schedules canvas redraw, but retains the deleted instance until image reconfiguration
 or item teardown. Tk’s deletion loop still accesses the instance after the callback returns, so Tk_FreeImage must not
@@ -1298,8 +1298,8 @@ it does not scale width or height. Resizing the preview requires those options t
 <p><a class="reference internal" href="eps-reference.html#c.EpsToPostScript" title="EpsToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">EpsToPostScript()</span></code></a> is a canvas callback with a no-op prepass. With an EPS file, it loads <code class="docutils literal notranslate"><span class="pre">rbcCanvEps.pro</span></code>,
 establishes translation, scale and clipping, and embeds the retained body between BeginEPSF/EndEPSF guards. With no file
 it serializes the cached temporary photo if present; it does not force a new preview render. There is no corresponding
-canvas SVG/PDF callback here. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for shared PsToken services and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for the
-separate graph export pipeline.</p>
+canvas SVG/PDF callback here. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for the shared <a class="reference internal" href="postscript-reference.html#c.PsTokenStruct" title="PsTokenStruct"><code class="xref c c-struct docutils literal notranslate"><span class="pre">PostScript</span> <span class="pre">token</span></code></a>
+services and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for the separate graph export pipeline.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>

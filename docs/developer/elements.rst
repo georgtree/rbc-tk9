@@ -170,7 +170,7 @@ applying the axis rule to all named resources.
 Original arguments and repeated options
 ---------------------------------------
 
-The identity helpers use the element's concrete option table through Rbc_GetCanonicalOptionName after Tk
+The identity helpers use the element's concrete option table through :c:func:`Rbc_GetCanonicalOptionName` after Tk
 validation. They recognize canonical options, synonyms and accepted abbreviations. In particular, exact ``-x`` and
 ``-y`` retain priority over longer names such as ``-xerror``. These helpers do not parse values or authorize a commit.
 
@@ -188,9 +188,9 @@ Retained coordinate representations
 -----------------------------------
 
 Internal numeric arrays and the objects reported by configuration queries are different representations with separate
-ownership. After a successful data commit, Rbc_SyncElemDataOptionObjects replays initial defaults and explicit arguments
-in the same order used for staging. It does not reevaluate numeric expressions or reconstruct input strings from
-floating-point results.
+ownership. After a successful data commit, :c:func:`Rbc_SyncElemDataOptionObjects` replays initial defaults and explicit
+arguments in the same order used for staging. It does not reevaluate numeric expressions or reconstruct input strings
+from floating-point results.
 
 For example, with expression objects preserved in the input:
 
@@ -203,10 +203,10 @@ derived from the earlier pairs. Reversing the order lets the final ``-data`` est
 paired representation again. The individual X/Y lists contain the original coordinate objects, preserving expression
 spellings such as ``2+3``.
 
-ReplaceElemOptionObject retains a new object before releasing the old one and handles identical pointers as a
+:c:func:`ReplaceElemOptionObject` retains a new object before releasing the old one and handles identical pointers as a
 no-op. During first configuration, synchronization also pins initial option objects while replacing fields that may own
-their last reference. SetElemDataPairOptionObjects assumes prior validation: a malformed or odd-length list at this
-phase is an internal fatal error, not a second user-input validation opportunity. Run synchronization while the
+their last reference. :c:func:`SetElemDataPairOptionObjects` assumes prior validation: a malformed or odd-length list at
+this phase is an internal fatal error, not a second user-input validation opportunity. Run synchronization while the
 first-configuration flag still describes the configuration being committed.
 
 Callback boundaries
@@ -218,27 +218,30 @@ staging protects the live value from a partial commit, but does not by itself pr
 arguments across such callbacks. Audit those lifetimes at the caller and parser boundary separately; these contracts do
 not establish general reentrancy for configuration.
 
-CommitElemVector installs a vector-change callback only after moving the slot to its stable destination. A callback must
-never retain a pointer to a temporary transaction field. Moving the client ID transfers observation ownership, not
-ownership of the named source vector or its storage.
+:c:func:`CommitElemVector` installs a vector-change callback only after moving the slot to its stable destination. A
+callback must never retain a pointer to a temporary transaction field. Moving the client ID transfers observation
+ownership, not ownership of the named source vector or its storage.
 
 Parsing, allocation and extrema
 -------------------------------
 
-GetElemArrayByteCount rejects negative counts, zero element size and products that exceed SIZE_MAX, assigning its result
+:c:func:`GetElemArrayByteCount <rbcGrElemData.GetElemArrayByteCount>` rejects negative counts, zero element size and
+products that exceed SIZE_MAX, assigning its result
 only on success. Zero count is valid. This check cannot repair overflow that occurred while a caller computed the count
 before invoking it.
 
-EvalExprListObj initializes its outputs to zero/NULL and uses Tcl_AttemptAlloc for a nonempty result. Each list member
-is evaluated with Tcl_ExprDouble; an error releases the temporary numeric array. The helper borrows the list's
-object-pointer array across evaluation. It does not take an immutable snapshot or add an owner-preservation boundary, so
-this local allocation cleanup must not be confused with protection against callbacks that mutate owners or input
-representations.
+:c:func:`EvalExprListObj <rbcGrElemData.EvalExprListObj>` initializes its outputs to zero/NULL and uses Tcl_AttemptAlloc
+for a nonempty result. Each list member is evaluated with Tcl_ExprDouble; an error releases the temporary numeric array.
+The helper borrows the list's object-pointer array across evaluation. It does not take an immutable snapshot or add an
+owner-preservation boundary, so this local allocation cleanup must not be confused with protection against callbacks
+that mutate owners or input representations.
 
-ParseElemVectorPairsObj evaluates the flat input before checking whether its length is even. An odd-length failure can
+:c:func:`ParseElemVectorPairsObj <rbcGrElemData.ParseElemVectorPairsObj>` evaluates the flat input before checking
+whether its length is even. An odd-length failure can
 therefore follow expression side effects; it is not a side-effect-free prevalidation pass. Successful parsing uses a
 temporary flat array followed by separate X and Y arrays, computes extrema, and releases the temporary array. This
-paired-input parser always treats input as expressions, unlike Rbc_ParseElemVectorObj's initial named-vector lookup.
+paired-input parser always treats input as expressions, unlike :c:func:`Rbc_ParseElemVectorObj`'s initial named-vector
+lookup.
 
 The range helpers have distinct contracts:
 
@@ -249,13 +252,13 @@ The range helpers have distinct contracts:
    * - Helper
      - Behavior
      - Empty/unusable data
-   * - SyncElemVector
+   * - :c:func:`SyncElemVector <rbcGrElemData.SyncElemVector>`
      - Borrows source storage and obtains source-maintained extrema
      - Requires a live source vector
-   * - FindRange
+   * - :c:func:`FindRange <rbcGrElemData.FindRange>`
      - Scans literal data, ignoring nonfinite samples
      - Empty/NULL leaves cached extrema untouched; all-nonfinite nonempty data gives DBL_MAX/-DBL_MAX
-   * - Rbc_FindElemVectorMinimum
+   * - :c:func:`Rbc_FindElemVectorMinimum <rbcGrElemData.Rbc_FindElemVectorMinimum>`
      - Returns the smallest finite value at or above minLimit
      - Returns minLimit if its accumulator remains DBL_MAX
 
@@ -266,48 +269,54 @@ promise that every finite sample has a distinct successful result.
 Notification metadata and synchronous refresh
 ---------------------------------------------
 
-RecordElemVectorChange merges inclusive source intervals by their outer bounds. An unknown/full change dominates later
+:c:func:`RecordElemVectorChange <rbcGrElemData.RecordElemVectorChange>` merges inclusive source intervals by their outer
+bounds. An unknown/full change dominates later
 precise ranges until the owning mapping code consumes or resets that pending state. The helper itself neither validates
-indices nor fetches data. Reading the vector's client-specific changed range belongs inside VectorChangedProc, while
+indices nor fetches data. Reading the vector's client-specific changed range belongs inside
+:c:func:`VectorChangedProc <rbcGrElemData.VectorChangedProc>`, while
 that notification snapshot is valid.
 
 The destruction notification clears clientId, valueArr and nValues and records a full change. It does not zero vecPtr,
 capacity or extrema. Those remaining fields must not be treated as valid source storage after destruction; the cleared
 live-data fields govern subsequent use.
 
-Rbc_SyncElementVectors visits the registry rather than only the visible display list. Pending common X/Y, weight and
-error inputs refresh their borrowed arrays and mark a full change before immediate layout or export. It neither delivers
-nor cancels the queued notification and does not independently queue a redraw. VectorChangedProc has a different
-scheduling policy: it always marks axes and mapping dirty, but only schedules backing-store redraw for plotted elements.
+:c:func:`Rbc_SyncElementVectors <rbcGrElemData.Rbc_SyncElementVectors>` visits the registry rather than only the visible
+display list. Pending common X/Y, weight and error inputs refresh their borrowed arrays and mark a full change before
+immediate layout or export. It neither delivers nor cancels the queued notification and does not independently queue a
+redraw. :c:func:`VectorChangedProc <rbcGrElemData.VectorChangedProc>` has a different scheduling policy: it always marks
+axes and mapping dirty, but only schedules backing-store redraw for plotted elements.
 
 Value-label formatting
 ----------------------
 
-Rbc_ValidateValueFormat accepts literal-only strings, escaped percent signs and at most one floating
-conversion. Formatting passes one double at a time; even SHOW_BOTH formats X and Y separately with the same format and
-joins them with a comma. Dynamic widths/precisions and conversions requiring another argument type are rejected. Format
-length, width and precision are each bounded by the current VALUE_FORMAT_LIMIT of 200. Validation does not guarantee
-that every formatted number fits the destination buffer.
+:c:func:`Rbc_ValidateValueFormat <rbcGrElemData.Rbc_ValidateValueFormat>` accepts literal-only strings, escaped percent
+signs and at most one floating conversion. Formatting passes one double at a time; even SHOW_BOTH formats X and Y
+separately with the same format and joins them with a comma. Dynamic widths/precisions and conversions requiring another
+argument type are rejected. Format length, width and precision are each bounded by the current VALUE_FORMAT_LIMIT of
+200. Validation does not guarantee that every formatted number fits the destination buffer.
 
-FormatValueLabel supplies terminated, bounded fallback text. It avoids appending Y when X has already been
-truncated. Rbc_GetElementValueLabel creates and retains that fallback before executing application code. A nonempty
-command prefix is duplicated, then receives graph path, element name, original index, X and Y in the global Tcl
-evaluation context. The returned label owns one Tcl reference which the drawing caller must release. Successful callback
-text is not limited to the fallback buffer size.
+:c:func:`FormatValueLabel <rbcGrElemData.FormatValueLabel>` supplies terminated, bounded fallback text. It avoids
+appending Y when X has already been truncated.
+:c:func:`Rbc_GetElementValueLabel <rbcGrElemData.Rbc_GetElementValueLabel>` creates and retains that fallback before
+executing application code. A nonempty command prefix is duplicated, then receives graph path, element name, original
+index, X and Y in the global Tcl evaluation context. The returned label owns one Tcl reference which the drawing caller
+must release. Successful callback text is not limited to the fallback buffer size.
 
 Command-prefix validation checks list syntax only; it does not check command existence. Empty prefixes retain fallback
 formatting. Callback errors are reported through the background exception mechanism and use fallback text, while the
 enclosing interpreter state is restored. This result preservation is not lifetime protection for drawing records:
 value-label callbacks must not mutate drawing state or enter a nested event loop.
 
-Offsets are a separate parser: Rbc_GetValueOffset requires two signed Tcl ints, commits both together, and accepts no
-screen-unit suffixes. It stores the parsed values in the double fields of Point2D without evaluating expressions.
+Offsets are a separate parser: :c:func:`Rbc_GetValueOffset <rbcGrElemData.Rbc_GetValueOffset>` requires two signed Tcl
+ints, commits both together, and accepts no screen-unit suffixes. It stores the parsed values in the double fields of
+:c:struct:`Point2D` without evaluating expressions.
 
 Closest-result source values and traces
 ---------------------------------------
 
-ClosestErrorValue rejects a pending named-vector update before touching its borrowed array. It also rejects out-of-range
-indices, NULL arrays and nonfinite samples. AppendClosestErrors reports the original source error values, including
+:c:func:`ClosestErrorValue <rbcGrElemData.ClosestErrorValue>` rejects a pending named-vector update before touching its
+borrowed array. It also rejects out-of-range indices, NULL arrays and nonfinite samples.
+:c:func:`AppendClosestErrors <rbcGrElemData.AppendClosestErrors>` reports the original source error values, including
 explicit low/high bounds, rather than transformed or bar-translated positions. A nonempty symmetric-error vector takes
 precedence; an unusable symmetric sample does not fall back to explicit bounds. Explicit low and high must both be
 usable before either is reported for that axis.
@@ -322,10 +331,10 @@ element reads. A failing write returns its diagnostic and leaves earlier writes 
 an atomic Tcl-array transaction. The snapshot is released on success and failure. Existing unrelated/stale fields other
 than the six optional error fields retain their previous behavior.
 
-GetIndex receives a captured point count before evaluating non-``end`` input as a Tcl expression. It converts the result
-to Tcl_Size and checks against those captured bounds. :c:func:`rbcGrElemCommands.ActivateOp` supplies lifetime
-protection and checks all staged indices against current lengths before commit. Exact ``end`` avoids expression
-evaluation; empty elements are rejected before either path.
+:c:func:`GetIndex <rbcGrElemData.GetIndex>` receives a captured point count before evaluating non-``end`` input as a Tcl
+expression. It converts the result to Tcl_Size and checks against those captured bounds.
+:c:func:`rbcGrElemCommands.ActivateOp` supplies lifetime protection and checks all staged indices against current
+lengths before commit. Exact ``end`` avoids expression evaluation; empty elements are rejected before either path.
 
 Registry and display-list ownership
 -----------------------------------
@@ -351,8 +360,8 @@ Option initialization and resource lifetime
 -------------------------------------------
 
 :c:func:`rbcGrElemLifecycle.InitElementOptions` obtains the element component resource name and uses class
-``Element``. It is a no-op after successful initialization. If Tk option setup fails, it frees partially initialized
-option values and the option table; the concrete constructor's own allocations still need destruction.
+:c:type:`Element`. It is a no-op after successful initialization. If Tk option setup fails, it frees partially
+initialized option values and the option table; the concrete constructor's own allocations still need destruction.
 
 :c:func:`rbcGrElemLifecycle.ConfigureElementOptions` retains Tk saved options while validating track ownership and
 running concrete configuration. Trackgraph Y axes must belong to the selected track; a nonempty track is rejected on
@@ -561,7 +570,8 @@ expansion is not a drawing clip: renderers still clip to the viewport. Explicit 
 Smoothing, gaps and symbol selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GenerateSplineRuns copies each continuous run and smooths it independently, then joins the arrays while restoring break
+:c:func:`GenerateSplineRuns <rbcGrLineMapping.GenerateSplineRuns>` copies each continuous run and smooths it
+independently, then joins the arrays while restoring break
 flags. Runs shorter than three points stay unchanged. An individual generator can fall back for one run while others
 remain smoothed. Failure to allocate or combine the temporary runs keeps the original complete map and sets effective
 smoothing to linear. The requested option remains unchanged. :c:func:`rbcGrLineMapping.FreeMapRun` releases temporary
@@ -658,10 +668,11 @@ and physical impedance and admittance. Exact open/short singularities are repres
 failed conversions omit their respective fields. Parameter metadata follows the source index while these geometric
 fields follow the hit.
 
-The SetClosestInfo helpers build dictionary entries, including two-double lists for complex pairs. They do not write Tcl
-variables or run array traces. The common closest handler retains this snapshot before publishing it, separating
-geometry access from application trace callbacks. Collection errors return their Tcl status; previously inserted
-dictionary fields are not rolled back.
+The closest-info helpers, including :c:func:`SetClosestInfoObj <rbcGrLinePicking.SetClosestInfoObj>` and
+:c:func:`SetClosestInfoPair <rbcGrLinePicking.SetClosestInfoPair>`, build dictionary entries, including two-double lists
+for complex pairs. They do not write Tcl variables or run array traces. The common closest handler retains this snapshot
+before publishing it, separating geometry access from application trace callbacks. Collection errors return their Tcl
+status; previously inserted dictionary fields are not rolled back.
 
 Screen stroke adapters
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -715,13 +726,14 @@ Fills and labels
 ~~~~~~~~~~~~~~~~
 
 :c:func:`rbcGrLineOutput.DrawRenderedFill` attempts Cairo output and reports whether it handled the fill. Tiles take
-precedence over patterns, including when a tile cannot be rendered; it does not expose the pattern
-underneath. DrawLineFill owns subsequent native fallback and suppresses an empty tile. Pattern opacity is separate from
+precedence over patterns, including when a tile cannot be rendered; it does not expose the pattern underneath.
+:c:func:`DrawLineFill` owns subsequent native fallback and suppresses an empty tile. Pattern opacity is separate from
 tile image transparency. Export fill policy is delegated to its backend. See :doc:`fills` for the resource and geometry
 contracts.
 
 :c:func:`rbcGrLineOutput.DrawValues` and :c:func:`rbcGrLineOutput.ValuesExport` filter centers against the unpadded
-viewport, select source indices and obtain retained label objects through Rbc_GetElementValueLabel. Each object is
+viewport, select source indices and obtain retained label objects through
+:c:func:`Rbc_GetElementValueLabel <rbcGrElemData.Rbc_GetElementValueLabel>`. Each object is
 released after drawing or skipping an empty label. Screen labels check offset coordinates against integer limits and
 convert to integers; export labels retain double coordinates.
 
@@ -746,21 +758,25 @@ updates commit the prepared state together.
 Ordinary and parametric resampling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GenerateSpline handles natural/quadratic curves expressed as functions of mapped data X. It swaps coordinate roles for
+:c:func:`GenerateSpline <rbcGrLineConfiguration.GenerateSpline>` handles natural/quadratic curves expressed as functions
+of mapped data X. It swaps coordinate roles for
 inverted graphs and reflects decreasing abscissas into increasing order rather than reversing source arrays. Every knot
 is retained; additional samples follow visible screen pixels along that axis. The inserted samples retain their
 interval's starting source index.
 
-GenerateParametricSpline uses source-interval/local-parameter pairs for natural, quadratic or Catmull-Rom evaluation. It
+:c:func:`GenerateParametricSpline <rbcGrLineConfiguration.GenerateParametricSpline>` uses
+source-interval/local-parameter pairs for natural, quadratic or Catmull-Rom evaluation. It
 retains all knots and samples roughly every two pixels over visible portions of the original straight segments. This is
 a sampling heuristic, not adaptive subdivision of the final curve. It does not require monotonically increasing data X.
 
-Both functions consume continuous runs. GenerateSplineRuns handles discontinuous maps externally, preserving gap
+Both functions consume continuous runs. :c:func:`GenerateSplineRuns <rbcGrLineMapping.GenerateSplineRuns>` handles
+discontinuous maps externally, preserving gap
 boundaries. Replacement point/index arrays are committed only after successful evaluation. Allocation and evaluator
 failures retain original geometry and set effective smoothing to linear; the requested option is unchanged.
 
 Some ordinary-spline early exits differ: too few points, equal/nonmonotonic abscissas, invisibility or an empty screen
-span return without clearing the effective mode. GenerateSplineRuns observes that mode to track successful runs, so the
+span return without clearing the effective mode. :c:func:`GenerateSplineRuns <rbcGrLineMapping.GenerateSplineRuns>`
+observes that mode to track successful runs, so the
 mode is not proof that coordinates were actually resampled. Code that needs such proof must not infer it solely from the
 smoothing flag.
 
@@ -774,11 +790,11 @@ reference. :c:func:`rbcGrLineData.FreeLinePenColor` releases actual Tk colors wh
 sentinel. Callers still clear their own fields after release. The local :c:func:`rbcGrLineConfiguration.Round` helper
 requires bounded finite input and does not provide checked conversion.
 
-:c:func:`rbcGrLineConfiguration.PixelAbscissa` and func:`rbcGrLineConfiguration.PixelOrdinate` select physical
-:c:coordinate roles according to inversion; neither removes axis descending direction.
-:c:func:`rbcGrLineConfiguration.MapLineDataAbscissa` invokes the appropriate axis
-:c:mapper. :c:func:`rbcGrLineConfiguration.ClearLineVectorChanges` consumes recorded X/Y change ranges after cache
-:c:handling, without delivering or canceling vector notifications.
+:c:func:`rbcGrLineConfiguration.PixelAbscissa` and :c:func:`PixelOrdinate <rbcGrLineConfiguration.PixelOrdinate>` select
+physical coordinate roles according to inversion; neither removes axis descending direction.
+:c:func:`rbcGrLineConfiguration.MapLineDataAbscissa` invokes the appropriate axis mapper.
+:c:func:`rbcGrLineConfiguration.ClearLineVectorChanges` consumes recorded X/Y change ranges after cache handling,
+without delivering or canceling vector notifications.
 
 :c:func:`rbcGrLineConfiguration.ComplexDivide` uses a denominator-component ratio and rejects nonfinite results, but
 does not guarantee overflow-free arithmetic for all finite extreme inputs. Its failure outputs must not be used. The

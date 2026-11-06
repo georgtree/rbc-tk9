@@ -34,9 +34,9 @@ separately; complex interval ordering is deliberately unsupported.
 :c:func:`InRange` supplies the historical tolerance. For an interval narrower than ``DBL_EPSILON``, it tests absolute
 distance from the upper bound strictly below that epsilon. Otherwise it normalizes by interval width, accepts positions
 down to ``-DBL_EPSILON``, and permits a small excess above one. It does not swap bounds or implement an independent
-finite-value policy. Search checks positive offset addition for overflow before returning indices. Receiver lifetime is
-rechecked after bound conversion. A clearly reversed real interval explicitly returns an empty result, regardless of
-conversion side effects on the interpreter result.
+finite-value policy. :c:func:`Search` checks positive offset addition for overflow before returning indices. Receiver
+lifetime is rechecked after bound conversion. A clearly reversed real interval explicitly returns an empty result,
+regardless of conversion side effects on the interpreter result.
 
 Normalization and random values
 -------------------------------
@@ -47,10 +47,10 @@ storage. There is no explicit constant-vector or nonfinite-input policy in the h
 special all-zero result for a zero range. Complex receivers are rejected by the instance dispatcher's
 supported-operation check.
 
-:c:func:`RandomOp` preserves length and numeric type, replacing each component with func:`Rbc_RandomDouble`. Real
-:c:vectors use one sample per value and complex vectors two. The shared generator produces samples in [0,1) using the C
-:c:library random state; it is not a cryptographic source or a generator owned by each vector. The handler flushes and
-:c:reports a full update after filling storage.
+:c:func:`RandomOp` preserves length and numeric type, replacing each component with :c:func:`Rbc_RandomDouble`. Real
+vectors use one sample per value and complex vectors two. The shared generator produces samples in [0,1) using the C
+library random state; it is not a cryptographic source or a generator owned by each vector. The handler flushes and
+reports a full update after filling storage.
 
 Sequence length and endpoint policy
 -----------------------------------
@@ -83,13 +83,13 @@ complex flag describes the input syntax, even if the imaginary component is zero
 conversion succeeded. Conversion can execute Tcl and partially write its output, so callers must inspect the status
 before using the value.
 
-:c:func:`Rbc_ComplexAdd`, :c:func:`Rbc_ComplexSub` and func:`Rbc_ComplexMul` perform ordinary double arithmetic on
-:c:copied values. :c:func:`Rbc_ComplexDiv` uses a ratio-based denominator to reduce avoidable intermediate overflow and
-:c:underflow. It requires the caller to reject zero and does not report nonfinite results. :c:func:`ComplexArithmetic`
-:c:adds the zero-divisor error check for the instance arithmetic path. These are distinct contracts, not interchangeable
-:c:error-reporting interfaces.
+:c:func:`Rbc_ComplexAdd`, :c:func:`Rbc_ComplexSub` and :c:func:`Rbc_ComplexMul` perform ordinary double arithmetic on
+copied values. :c:func:`Rbc_ComplexDiv` uses a ratio-based denominator to reduce avoidable intermediate overflow and
+underflow. It requires the caller to reject zero and does not report nonfinite results. :c:func:`ComplexArithmetic`
+adds the zero-divisor error check for the instance arithmetic path. These are distinct contracts, not interchangeable
+error-reporting interfaces.
 
-:c:func:`Rbc_ComplexFromReal` supplies a zero imaginary component, while func:`Rbc_VectorValueAsComplex` copies one
-:c:caller-validated storage index and promotes real storage if necessary. Neither helper changes a vector's type or
-:c:transfers ownership. :c:func:`Rbc_ComplexIsZero` tests exact zero in both components; it is not a magnitude tolerance
-:c:test. The declarations are collected in :doc:`vector-access-reference`.
+:c:func:`Rbc_ComplexFromReal` supplies a zero imaginary component, while :c:func:`Rbc_VectorValueAsComplex` copies one
+caller-validated storage index and promotes real storage if necessary. Neither helper changes a vector's type or
+transfers ownership. :c:func:`Rbc_ComplexIsZero` tests exact zero in both components; it is not a magnitude tolerance
+test. The declarations are collected in :doc:`vector-access-reference`.

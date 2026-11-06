@@ -140,9 +140,9 @@ Common dispatch and constructor state
 -------------------------------------
 
 ``rbcRender.c`` supplies capability-specific screen adapters and the common operation wrappers. Its native context
-embeds ``Rbc_RenderContext`` first so backend callbacks can recover the enclosing record. Trace, clip and polygon batch
-records are owned; windows, drawables, GCs, tiles, styles and mapped arc arrays are borrowed. A bar style is copied by
-value, but its Tk resources are still borrowed.
+embeds :c:struct:`Rbc_RenderContext` first so backend callbacks can recover the enclosing record. Trace, clip and
+polygon batch records are owned; windows, drawables, GCs, tiles, styles and mapped arc arrays are borrowed. A bar style
+is copied by value, but its Tk resources are still borrowed.
 
 Select operations from the constructor's contract, not merely from non-NULL entries in its operation table. Several
 constructors share a table while initializing different state. For example, a native trace context owns trace scratch
@@ -229,16 +229,16 @@ Argument lifetimes and dispatch requirements
 
 The component-facing declarations in :doc:`reference` describe parameter directions using :doc:`calling-conventions`. An
 input array is borrowed for the call unless a constructor explicitly retains it until End. Its count is a number of
-records: :c:func:`Rbc_RenderSegments` counts ``Segment2D`` values, not individual endpoints, while
+records: :c:func:`Rbc_RenderSegments` counts :c:struct:`Segment2D` values, not individual endpoints, while
 :c:func:`Rbc_RenderPolyline` counts points. No dispatcher can verify the allocated capacity behind a pointer/count
 pair.
 
-:c:func:`Rbc_RenderFillPolygon` suppresses counts below three; func:`Rbc_RenderFillRectangles` and
-:c::c:func:`Rbc_RenderSymbolPoints` suppress nonpositive counts. This does not establish a universal validation policy
-:c:for every operation. Most wrappers immediately dispatch through the operation table, so callers must supply a live,
-:c:capable context and valid geometry even when another operation tolerates a null pointer or empty batch. In
-:c:particular, :c:func:`Rbc_RenderArc` and :c:func:`Rbc_RenderFillArc` accepting a NULL context does not make NULL safe
-:c:for :c:func:`Rbc_RenderEnd`.
+:c:func:`Rbc_RenderFillPolygon` suppresses counts below three; :c:func:`Rbc_RenderFillRectangles` and
+:c:func:`Rbc_RenderSymbolPoints` suppress nonpositive counts. This does not establish a universal validation policy
+for every operation. Most wrappers immediately dispatch through the operation table, so callers must supply a live,
+capable context and valid geometry even when another operation tolerates a null pointer or empty batch. In
+particular, :c:func:`Rbc_RenderArc` and :c:func:`Rbc_RenderFillArc` accepting a NULL context does not make NULL safe
+for :c:func:`Rbc_RenderEnd`.
 
 :c:func:`Rbc_RenderBeginStroke` uses supplied color, width and dash data for Cairo, while its native fallback uses the
 borrowed GC. The caller must prepare that GC consistently; passing a new color argument does not recolor the native
@@ -246,10 +246,10 @@ GC. :c:func:`Rbc_RenderGCForeground` resolves an existing GC foreground when Cai
 it. :c:func:`Rbc_RenderLineStyle` and :c:func:`Rbc_RenderDashBackground` require supporting Cairo/export contexts and do
 not provide generic mutation of a native stroke GC.
 
-:c:func:`Rbc_RenderBeginExportFill`, :c:func:`Rbc_RenderBeginExportSymbol` and func:`Rbc_RenderBeginExportBarSymbol`
-:c:copy style records, but the resource pointers inside those records remain borrowed. Keep fonts, colors, bitmaps and
-:c:tiles alive for their documented use. :c:func:`Rbc_RenderSetFillTile` retains a tile for export filling; it does not
-:c:acquire ownership.
+:c:func:`Rbc_RenderBeginExportFill`, :c:func:`Rbc_RenderBeginExportSymbol` and :c:func:`Rbc_RenderBeginExportBarSymbol`
+copy style records, but the resource pointers inside those records remain borrowed. Keep fonts, colors, bitmaps and
+tiles alive for their documented use. :c:func:`Rbc_RenderSetFillTile` retains a tile for export filling; it does not
+acquire ownership.
 
 Screen text and raster batches
 ------------------------------
@@ -259,11 +259,11 @@ consumes a cached layout, whereas :c:func:`Rbc_RenderTextSize` draws text and wr
 caller-owned storage. :c:func:`Rbc_RenderText` also serves export-output contexts; its shared name does not make cached
 screen-layout operations available on export contexts. Text styles and their resources remain owned by the component.
 
-:c:func:`Rbc_RenderBeginScreenRaster` supplies image presentation. func:`Rbc_RenderMappedBitmap` receives mapped
-:c:geometry and a bitmap style, and :c:func:`Rbc_RenderPixmap` uses the caller's copy GC. Neither performs
-:c:component-level scaling or rotation. :c:func:`Rbc_RenderTkImage` is supported by screen raster and export output,
-:c:while :c:func:`Rbc_RenderPhotoImage` and func:`Rbc_RenderWindow` are export-output operations. Export capture policy
-:c:and backend omissions still apply; a shared interface does not promise equal support for every image source.
+:c:func:`Rbc_RenderBeginScreenRaster` supplies image presentation. :c:func:`Rbc_RenderMappedBitmap` receives mapped
+geometry and a bitmap style, and :c:func:`Rbc_RenderPixmap` uses the caller's copy GC. Neither performs
+component-level scaling or rotation. :c:func:`Rbc_RenderTkImage` is supported by screen raster and export output,
+while :c:func:`Rbc_RenderPhotoImage` and :c:func:`Rbc_RenderWindow` are export-output operations. Export capture policy
+and backend omissions still apply; a shared interface does not promise equal support for every image source.
 
 A marker-pass target has a separate lifetime from a renderer context. :c:func:`Rbc_RenderBeginMarkerPass` may replace
 the caller's drawable and install a temporary graph target. On failure it leaves the original drawable
@@ -279,11 +279,11 @@ file. :c:func:`Rbc_RenderPlotBegin` and :c:func:`Rbc_RenderPlotEnd` delimit back
 before releasing the context. They are distinct from the common rectangular clip stack. :c:func:`Rbc_RenderEnd` unwinds
 clips, but does not substitute for PlotEnd or document finalization.
 
-:c:func:`Rbc_RenderBackgroundPolygon`, :c:func:`Rbc_RenderBackgroundRectangles`, func:`Rbc_RenderBorder` and
-:c::c:func:`Rbc_RenderClearRectangle` consume resolved presentation data. :c:func:`Rbc_RenderBitmapMask` preserves the
-:c:component's background/foreground pass selector: PostScript uses it for color setup, while SVG/PDF paint the mask
-:c:with the supplied color. These operations return void, not a Tcl completion code; command-level export error handling
-:c:remains responsible for deciding whether the document succeeded.
+:c:func:`Rbc_RenderBackgroundPolygon`, :c:func:`Rbc_RenderBackgroundRectangles`, :c:func:`Rbc_RenderBorder` and
+:c:func:`Rbc_RenderClearRectangle` consume resolved presentation data. :c:func:`Rbc_RenderBitmapMask` preserves the
+component's background/foreground pass selector: PostScript uses it for color setup, while SVG/PDF paint the mask
+with the supplied color. These operations return void, not a Tcl completion code; command-level export error handling
+remains responsible for deciding whether the document succeeded.
 
 The Cairo-specific :c:func:`Rbc_RenderPoints` and :c:func:`Rbc_RenderSymbols` likewise require the correct context
 family. Symbol templates describe local geometry, centers describe mapped positions, and stroke widths remain display
@@ -297,16 +297,17 @@ require. :c:func:`rbcRenderDispatch.BeginNativeGeometry` installs a shared table
 fields. Specialized constructors still have to populate symbol, bar, polygon or arc state before the corresponding
 callback can be used. A non-NULL callback pointer alone is not a capability check.
 
-:c:func:`rbcRenderDispatch.NativePolyline` requires a retained native trace; func:`rbcRenderDispatch.NativeSegments`
-:c:consumes independent endpoint pairs. func:`rbcRenderDispatch.NativeSymbolPoints` borrows mutable interval state.
-:c:func:`rbcRenderDispatch.NativeArc` and func:`rbcRenderDispatch.NativeFillArc` use precomputed arrays, while
-:c:func:`rbcRenderDispatch.NormalizeRenderArc` validates the analytic geometry before dispatch. Those two
-:c:representations must remain consistent.
+:c:func:`rbcRenderDispatch.NativePolyline` requires a retained native trace;
+:c:func:`NativeSegments <rbcRenderDispatch.NativeSegments>` consumes independent endpoint pairs.
+:c:func:`NativeSymbolPoints <rbcRenderDispatch.NativeSymbolPoints>` borrows mutable interval state.
+:c:func:`rbcRenderDispatch.NativeArc` and :c:func:`NativeFillArc <rbcRenderDispatch.NativeFillArc>` use precomputed
+arrays, while :c:func:`rbcRenderDispatch.NormalizeRenderArc` validates the analytic geometry before dispatch. Those two
+representations must remain consistent.
 
-:c:func:`rbcRenderDispatch.ScreenMappedBitmap` and func:`rbcRenderDispatch.ScreenTkImage` select Cairo attempts before
-:c:native fallback. :c:func:`rbcRenderDispatch.ScreenBarRectangles` can suppress an already handled fill in a local
-:c:style copy while retaining native relief drawing. These callbacks do not transfer ownership of component images or
-:c:style resources.
+:c:func:`rbcRenderDispatch.ScreenMappedBitmap` and :c:func:`ScreenTkImage <rbcRenderDispatch.ScreenTkImage>` select
+Cairo attempts before native fallback. :c:func:`rbcRenderDispatch.ScreenBarRectangles` can suppress an already handled
+fill in a local style copy while retaining native relief drawing. These callbacks do not transfer ownership of component
+images or style resources.
 
 Native clip pushes and pops use :c:func:`rbcRenderDispatch.NativeClipBegin` and
 :c:func:`rbcRenderDispatch.NativeClipEnd`; final release uses :c:func:`rbcRenderDispatch.ScreenClipEnd`. The last

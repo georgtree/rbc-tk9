@@ -1221,10 +1221,10 @@ scrollbar notification live in <code class="docutils literal notranslate"><span 
 visible track rectangles.</p>
 <section id="two-parsing-interfaces">
 <h2>Two parsing interfaces<a class="headerlink" href="#two-parsing-interfaces" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="scroll-reference.html#c.Rbc_ParseScrollRequest" title="Rbc_ParseScrollRequest"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ParseScrollRequest()</span></code></a> parses a request into <code class="docutils literal notranslate"><span class="pre">Rbc_ScrollRequest</span></code> without modifying graph state. It accepts
-finite double values for moveto, units and pages, including fractional unit counts. It validates the complete argument
-shape before reading optional values and assigns its output only on success. It does not clamp fractions to [0,1] or
-apply viewport bounds. A query with no request arguments is handled by the owning command, not this parser.</p>
+<p><a class="reference internal" href="scroll-reference.html#c.Rbc_ParseScrollRequest" title="Rbc_ParseScrollRequest"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ParseScrollRequest()</span></code></a> parses a request into <a class="reference internal" href="configuration-reference.html#c.Rbc_ScrollRequest" title="Rbc_ScrollRequest"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_ScrollRequest</span></code></a> without modifying graph state. It
+accepts finite double values for moveto, units and pages, including fractional unit counts. It validates the complete
+argument shape before reading optional values and assigns its output only on success. It does not clamp fractions to
+[0,1] or apply viewport bounds. A query with no request arguments is handled by the owning command, not this parser.</p>
 <p>Axis commands enable legacy mode: nonempty abbreviations and a single numeric unit count are accepted. Track commands
 use exact <code class="docutils literal notranslate"><span class="pre">moveto</span></code>, <code class="docutils literal notranslate"><span class="pre">scroll</span></code>, <code class="docutils literal notranslate"><span class="pre">units</span></code> and <code class="docutils literal notranslate"><span class="pre">pages</span></code> words. The caller supplies a valid starting argument index and
 array; the helper does not validate arbitrary C pointer/index misuse.</p>

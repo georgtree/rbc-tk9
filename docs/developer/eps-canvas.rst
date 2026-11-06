@@ -39,10 +39,10 @@ Preview ownership and configuration
      - Tk_FreeImage
    * - colorImage
      - Owned snapshot or decoded EPSI pixels
-     - Rbc_FreeColorImage
+     - :c:func:`Rbc_FreeColorImage`
    * - tmpImage
      - Private named photo and retained display instance
-     - Rbc_DestroyTemporaryImage
+     - :c:func:`Rbc_DestroyTemporaryImage`
    * - dString / title
      - Retained PostScript body / parsed title
      - Tcl_DStringFree / ckfree
@@ -53,15 +53,15 @@ Preview ownership and configuration
      - Tk GC reference / native pixmap
      - Tk_FreeGC / Tk_FreePixmap
 
-ConfigureEps detects image, file and quick options with prefix matching after Tk_ConfigureWidget succeeds. It drops old
-resources and replaces them in steps; a later error is not a rollback to the previous complete preview. A supplied image
-must be a photo. Its pixels are copied rather than continuously used as a live source. Width/height zero derive
-dimensions from the preview or EPS bounding box. Changing quick mode invalidates cached scaled dimensions.
+:c:func:`ConfigureEps` detects image, file and quick options with prefix matching after Tk_ConfigureWidget succeeds. It
+drops old resources and replaces them in steps; a later error is not a rollback to the previous complete preview. A
+supplied image must be a photo. Its pixels are copied rather than continuously used as a live source. Width/height zero
+derive dimensions from the preview or EPS bounding box. Changing quick mode invalidates cached scaled dimensions.
 
-DisplayEps rescales the saved pixels when dimensions change: nearest-style resize for quick mode, box resampling
-otherwise. It publishes the result into tmpImage and frees the intermediate pixels. With no visible preview it draws a
-placeholder, optionally followed by a fitting title and relief border. All screen work uses Tk/native services, without
-a graph renderer context.
+:c:func:`DisplayEps` rescales the saved pixels when dimensions change: nearest-style resize for quick mode, box
+resampling otherwise. It publishes the result into tmpImage and frees the intermediate pixels. With no visible preview
+it draws a placeholder, optionally followed by a fitting title and relief border. All screen work uses Tk/native
+services, without a graph renderer context.
 
 :c:func:`ImageChangedProc` does not refresh the saved color snapshot on ordinary source photo writes. Its deletion
 branch clears the source name and schedules canvas redraw, but retains the deleted instance until image reconfiguration
@@ -80,8 +80,8 @@ it does not scale width or height. Resizing the preview requires those options t
 :c:func:`EpsToPostScript` is a canvas callback with a no-op prepass. With an EPS file, it loads ``rbcCanvEps.pro``,
 establishes translation, scale and clipping, and embeds the retained body between BeginEPSF/EndEPSF guards. With no file
 it serializes the cached temporary photo if present; it does not force a new preview render. There is no corresponding
-canvas SVG/PDF callback here. See :doc:`postscript-output` for shared PsToken services and :doc:`exports` for the
-separate graph export pipeline.
+canvas SVG/PDF callback here. See :doc:`postscript-output` for the shared :c:struct:`PostScript token <PsTokenStruct>`
+services and :doc:`exports` for the separate graph export pipeline.
 
 Maintenance checks
 ------------------

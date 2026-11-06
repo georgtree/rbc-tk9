@@ -9,9 +9,9 @@ contexts and :doc:`exports` for document finalization and cleanup.
 Layouts borrow the text
 -----------------------
 
-:c:func:`Rbc_GetTextLayout` returns one allocation containing a ``TextLayout`` and its fragment array. Free it with
-``ckfree``. Each fragment points into the original string, which must remain alive and unchanged while the layout is
-used. Fragment counts are UTF byte counts; glyph processing must decode characters rather than index bytes as
+:c:func:`Rbc_GetTextLayout` returns one allocation containing a :c:struct:`TextLayout` and its fragment array. Free it
+with ``ckfree``. Each fragment points into the original string, which must remain alive and unchanged while the layout
+is used. Fragment counts are UTF byte counts; glyph processing must decode characters rather than index bytes as
 characters.
 
 Newlines terminate fragments, including empty lines. A trailing newline does not create an additional final empty
@@ -28,8 +28,8 @@ are interchangeable.
 Styles are not universal owners
 -------------------------------
 
-``TextStyle`` groups font, colors, border, GC and geometry settings. Merely copying or passing it does not acquire Tk
-references. Components usually own font/color options; temporary styles borrow them.
+:c:struct:`TextStyle` groups font, colors, border, GC and geometry settings. Merely copying or passing it does not
+acquire Tk references. Components usually own font/color options; temporary styles borrow them.
 
 :c:func:`Rbc_InitTextStyle` sets selected defaults, but does not initialize ``gc``, ``border``, ``width`` or
 ``height``. Callers must initialize any such fields they use. :c:func:`rbcTextDrawing.Rbc_SetDrawTextStyle` installs the
@@ -100,7 +100,7 @@ treated as a per-interpreter or thread-isolated resource owner.
 Document-local font resolution
 ------------------------------
 
-An export context lazily owns an ``ExportFontCache`` through ``fontData``. The cache has two levels:
+An export context lazily owns an :c:struct:`ExportFontCache` through ``fontData``. The cache has two levels:
 
 * A character lookup keyed by the borrowed ``Tk_Font`` identity and Unicode scalar, retaining the resolved font,
   character ID and pixel size.
@@ -117,10 +117,10 @@ This Tcl evaluation is a callback boundary, not a pure font-table read. The help
 graph. Callers must retain the surrounding export lifetime and callback-validity discipline; saving interpreter state
 alone does not make arbitrary reentry safe.
 
-A successful lookup returns a borrowed ``Rbc_ExportFont`` and a one-based character ID. That ID is independent of the
-native glyph index, allowing two Unicode characters sharing an outline to retain distinct extraction mappings. The
-returned advance is computed from horizontal font metrics at the resolved pixel size. Outputs must not be consumed after
-failure.
+A successful lookup returns a borrowed :c:struct:`Rbc_ExportFont` and a one-based character ID. That ID is independent
+of the native glyph index, allowing two Unicode characters sharing an outline to retain distinct extraction mappings.
+The returned advance is computed from horizontal font metrics at the resolved pixel size. Outputs must not be consumed
+after failure.
 
 Native sources and font programs
 --------------------------------
@@ -311,10 +311,10 @@ CFF, four for TrueType. In nonembedded mode it sets the advance to zero and the 
 character is supported. Outputs are therefore usable only on ``TCL_OK``; error return does not promise untouched output
 pointers. The shared native resolver writes its result pointers only after successful resolution.
 
-:c:func:`FontActual` returns a retained Tcl object, which its caller releases. func:`FontAttribute` instead returns a
-:c:borrowed value inside that object. Keeping the attribute pointer does not retain the dictionary. Likewise,
-:c:func:`Rbc_FontGetTable` and :c:func:`CffItem` return borrowed byte slices; func:`Rbc_FontGlyphName` may return static
-:c:standard-name bytes or a slice of font-owned custom-name storage. None should be freed by the caller.
+:c:func:`FontActual` returns a retained Tcl object, which its caller releases. :c:func:`FontAttribute` instead returns a
+borrowed value inside that object. Keeping the attribute pointer does not retain the dictionary. Likewise,
+:c:func:`Rbc_FontGetTable` and :c:func:`CffItem` return borrowed byte slices; :c:func:`Rbc_FontGlyphName` may return
+static standard-name bytes or a slice of font-owned custom-name storage. None should be freed by the caller.
 
 :c:func:`FontSourceOpen` leaves partial acquisition resources with its caller on failure. Pair it with
 :c:func:`FontSourceFree` on either outcome. The rebuilt program has a separate owner: :c:func:`FontProgram` can attach

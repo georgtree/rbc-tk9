@@ -1272,10 +1272,10 @@ stage local values, but their output and resource rules differ.</p>
 Tk to accept input rejected by its own parser. The helpers do not evaluate Tcl expressions or map graph axes. A
 component’s own signed-pixel option specification remains a separate concern, including TK_OPTION_NEG_OK compatibility
 across Tk versions.</p>
-<p>Padding uses one distance for both sides or two in their supplied order. It stages the complete Rbc_Pad, so failure on
-the second value keeps the old result. <a class="reference internal" href="value-reference.html#c.Rbc_GetXY" title="Rbc_GetXY"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetXY()</span></code></a> copies the X substring instead of modifying the caller’s
-string. Its NULL/empty input returns -SHRT_MAX for both coordinates. Otherwise it parses both Tk distances and only then
-commits; these are not graph data coordinates.</p>
+<p>Padding uses one distance for both sides or two in their supplied order. It stages the complete <a class="reference internal" href="geometry-reference.html#c.Rbc_Pad" title="Rbc_Pad"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_Pad</span></code></a>, so
+failure on the second value keeps the old result. <a class="reference internal" href="value-reference.html#c.Rbc_GetXY" title="Rbc_GetXY"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetXY()</span></code></a> copies the X substring instead of modifying the
+caller’s string. Its NULL/empty input returns -SHRT_MAX for both coordinates. Otherwise it parses both Tk distances and
+only then commits; these are not graph data coordinates.</p>
 <p>A shadow parser acquires a Tk color, defaults the offset to one, and releases the staged color if an explicit offset
 fails. Empty input yields no color and zero offset. Success does not free a previously owned shadow already stored in
 the destination. The owning transaction must replace/release that resource.</p>
@@ -1365,15 +1365,15 @@ color reference.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>DistanceToString</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="value-reference.html#c.DistanceToString" title="DistanceToString"><code class="xref c c-func docutils literal notranslate"><span class="pre">DistanceToString()</span></code></a></p></td>
 <td><p>Allocated decimal integer</p></td>
 <td><p>Sets Tcl_Free</p></td>
 </tr>
-<tr class="row-odd"><td><p>ShadowToString</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="value-reference.html#c.ShadowToString" title="ShadowToString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ShadowToString()</span></code></a></p></td>
 <td><p>Static empty string when disabled; otherwise allocated color/offset list</p></td>
 <td><p>Leaves policy untouched for empty; sets Tcl_Free for allocated list</p></td>
 </tr>
-<tr class="row-even"><td><p>ColorPairToString</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="value-reference.html#c.ColorPairToString" title="ColorPairToString"><code class="xref c c-func docutils literal notranslate"><span class="pre">ColorPairToString()</span></code></a></p></td>
 <td><p>Allocated two-element list, even when both colors are empty</p></td>
 <td><p>Sets Tcl_Free</p></td>
 </tr>

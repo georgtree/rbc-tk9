@@ -46,10 +46,10 @@ Tk to accept input rejected by its own parser. The helpers do not evaluate Tcl e
 component's own signed-pixel option specification remains a separate concern, including TK_OPTION_NEG_OK compatibility
 across Tk versions.
 
-Padding uses one distance for both sides or two in their supplied order. It stages the complete Rbc_Pad, so failure on
-the second value keeps the old result. :c:func:`Rbc_GetXY` copies the X substring instead of modifying the caller's
-string. Its NULL/empty input returns -SHRT_MAX for both coordinates. Otherwise it parses both Tk distances and only then
-commits; these are not graph data coordinates.
+Padding uses one distance for both sides or two in their supplied order. It stages the complete :c:struct:`Rbc_Pad`, so
+failure on the second value keeps the old result. :c:func:`Rbc_GetXY` copies the X substring instead of modifying the
+caller's string. Its NULL/empty input returns -SHRT_MAX for both coordinates. Otherwise it parses both Tk distances and
+only then commits; these are not graph data coordinates.
 
 A shadow parser acquires a Tk color, defaults the offset to one, and releases the staged color if an explicit offset
 fails. Empty input yields no color and zero offset. Success does not free a previously owned shadow already stored in
@@ -149,13 +149,13 @@ Printer ownership is equally specific:
    * - Printer
      - Returned representation
      - Release policy
-   * - DistanceToString
+   * - :c:func:`DistanceToString`
      - Allocated decimal integer
      - Sets Tcl_Free
-   * - ShadowToString
+   * - :c:func:`ShadowToString`
      - Static empty string when disabled; otherwise allocated color/offset list
      - Leaves policy untouched for empty; sets Tcl_Free for allocated list
-   * - ColorPairToString
+   * - :c:func:`ColorPairToString`
      - Allocated two-element list, even when both colors are empty
      - Sets Tcl_Free
 

@@ -48,12 +48,12 @@ values; callers needing an unchanged destination must evaluate into scratch stor
 Parametric paths
 ----------------
 
-:c:func:`Rbc_NaturalParametricSplineEval` and func:`Rbc_QuadraticParametricSplineEval` use Euclidean chord distances in
-:c:the supplied coordinate system. For graph smoothing these are already screen coordinates, so the metric is isotropic
-:c:in pixels. Consecutive degenerate segments and non-finite or non-increasing accumulated lengths are rejected. The
-:c:quadratic path constructs independent coordinate splines on the same parameter; the natural path uses cubic
-:c:coefficients. Exact source-knot queries are copied from the source. Both Eval routines stage complete coordinates and
-:c:copy back only on success, preserving input parameters on failure.
+:c:func:`Rbc_NaturalParametricSplineEval` and :c:func:`Rbc_QuadraticParametricSplineEval` use Euclidean chord distances
+in the supplied coordinate system. For graph smoothing these are already screen coordinates, so the metric is isotropic
+in pixels. Consecutive degenerate segments and non-finite or non-increasing accumulated lengths are rejected. The
+quadratic path constructs independent coordinate splines on the same parameter; the natural path uses cubic
+coefficients. Exact source-knot queries are copied from the source. Both Eval routines stage complete coordinates and
+copy back only on success, preserving input parameters on failure.
 
 :c:func:`Rbc_NaturalParametricSpline` is the separate uniform sampler. Its public wrapper uses absolute extent spans as
 metric scales and clamps tiny or non-finite spans to FLT_EPSILON. Closed curves append the first point privately when
@@ -74,9 +74,9 @@ Tcl vector ownership
 --------------------
 
 The Cartesian command reads real X, Y and query-X vectors. The parametric command reads one complex vector and writes a
-complex result. Both copy all inputs into private Point2D arrays and generate the complete result before looking up,
-creating or resizing the output. Output aliasing an input is safe for numerical computation because source storage is no
-longer needed then.
+complex result. Both copy all inputs into private :c:struct:`Point2D` arrays and generate the complete result before
+looking up, creating or resizing the output. Output aliasing an input is safe for numerical computation because source
+storage is no longer needed then.
 
 An existing output must have the required type and be writable. A missing output is created without an array mapping
 initially. :c:func:`SplineStoreResult` allocates and fills the final numeric buffer before changing the destination,
@@ -134,10 +134,10 @@ the endpoints. It does **not** impose the zero endpoint second derivatives used 
 existing natural-parametric operation name is retained, but should not be taken as a promise that these two kernels
 generate identical curves. Changing this construction would change existing smoothing and interpolation results.
 
-:c:func:`SolveCubic1` overwrites a symmetric cyclic tridiagonal matrix with factors. func:`SolveCubic2` solves the X
-:c:and Y right-hand sides together using those factors; it does not validate its results. :c:func:`CubicSlopes` checks
-:c:the solved derivatives and owns both coefficient and matrix allocations. Only the first N-1 ``t`` entries of an
-:c:N-point coefficient array are interval lengths.
+:c:func:`SolveCubic1` overwrites a symmetric cyclic tridiagonal matrix with factors. :c:func:`SolveCubic2` solves the X
+and Y right-hand sides together using those factors; it does not validate its results. :c:func:`CubicSlopes` checks
+the solved derivatives and owns both coefficient and matrix allocations. Only the first N-1 ``t`` entries of an
+N-point coefficient array are interval lengths.
 
 Failure contracts must also stay distinct:
 
@@ -166,11 +166,11 @@ make each private array kernel safe for in-place use.
 Choosing and calling an entry point
 -----------------------------------
 
-Do not interchange a query array and an output-only sample buffer merely because both use ``Point2D``. The Cartesian
-kernels read X and write Y. The parametric Eval routines read an interval/fraction pair and replace both fields.
-:c:func:`NaturalParametricSplineCore` and :c:func:`QuadraticParametricSplineCore` instead generate their own query
-positions from a requested count. At the lower level, :c:func:`CubicEvalPoint` takes a local **chord distance**, not the
-normalized fraction accepted by the Eval wrappers.
+Do not interchange a query array and an output-only sample buffer merely because both use :c:struct:`Point2D`. The
+Cartesian kernels read X and write Y. The parametric Eval routines read an interval/fraction pair and replace both
+fields. :c:func:`NaturalParametricSplineCore` and :c:func:`QuadraticParametricSplineCore` instead generate their own
+query positions from a requested count. At the lower level, :c:func:`CubicEvalPoint` takes a local **chord distance**,
+not the normalized fraction accepted by the Eval wrappers.
 
 The validation helpers match these distinctions: :c:func:`SplinePointsAreFinite` checks both coordinates,
 :c:func:`SplinePointsHaveIncreasingX` also checks strict source ordering, and :c:func:`SplineEvaluationPointsAreFinite`

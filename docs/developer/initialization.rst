@@ -37,14 +37,15 @@ scripts should require ``rbc`` rather than treating successful binary loading as
 Interpreter state and registration
 ----------------------------------
 
-``RbcInitData`` is associated with the interpreter under ``rbc::init``. Its five flags record completed vector, graph,
-winop, spline and EPS initialization. :c:func:`FreeInitData <rbcInitialization.FreeInitData>` frees this bookkeeping
-record at interpreter teardown; it does not own every object created by those subsystems.
+:c:struct:`RbcInitData <rbcInitialization.RbcInitData>` is associated with the interpreter under ``rbc::init``. Its five
+flags record completed vector, graph, winop, spline and EPS initialization.
+:c:func:`FreeInitData <rbcInitialization.FreeInitData>` frees this bookkeeping record at interpreter teardown; it does
+not own every object created by those subsystems.
 
 :c:func:`Rbc_Init` creates ``::rbc`` if needed, initializes the vector subsystem once, creates ``::rbc::_initTk`` and
 exports ``vector``. Vector initialization creates both ``::rbc::vector`` and ``::rbc::vector::simplify``. Its registry,
-numerical function tables and vector cleanup belong to a separate interpreter-associated ``VectorInterpData`` record;
-see :doc:`vectors`.
+numerical function tables and vector cleanup belong to a separate interpreter-associated :c:struct:`VectorInterpData`
+record; see :doc:`vectors`.
 
 ``_initTk`` first initializes Tk stubs, then registers the graph constructors, winop and spline commands, followed by
 the EPS canvas item. It exports ``barchart``, ``graph``, ``polar``, ``spline``, ``stripchart``, ``trackgraph`` and
@@ -90,7 +91,8 @@ being documented; see :doc:`headers` and :doc:`architecture`.
 Loader callbacks versus package initialization
 ----------------------------------------------
 
-On Windows, DllMain accepts every loader notification and DllEntryPoint simply forwards to it. Neither performs
+On Windows, :c:func:`DllMain <rbcWindowsInitialization.DllMain>` accepts every loader notification and
+:c:func:`DllEntryPoint <rbcWindowsInitialization.DllEntryPoint>` simply forwards to it. Neither performs
 registration, allocation or subsystem cleanup. Loading the DLL and initializing its Tcl package are distinct steps;
 none of the per-interpreter readiness flags is set by the native loader callbacks.
 

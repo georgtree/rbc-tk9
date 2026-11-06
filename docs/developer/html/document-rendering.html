@@ -1215,16 +1215,16 @@
              
   <section id="document-renderer-primitives">
 <h1>Document renderer primitives<a class="headerlink" href="#document-renderer-primitives" title="Link to this heading"></a></h1>
-<p>The SVG, PDF and PostScript renderers consume mapped display geometry through <code class="docutils literal notranslate"><span class="pre">Rbc_RenderOps</span></code>. They do not perform
-axis mapping, decimation, page delivery or graph lifetime management. <code class="docutils literal notranslate"><span class="pre">rbcRenderExport.c</span></code> selects the backend and
-prepares its style context; <code class="docutils literal notranslate"><span class="pre">rbcRenderExportInt.h</span></code> describes the shared state. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>, <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>
-and <a class="reference internal" href="document-render-reference.html"><span class="doc">Document renderer C reference</span></a>.</p>
+<p>The SVG, PDF and PostScript renderers consume mapped display geometry through <a class="reference internal" href="reference.html#c.Rbc_RenderOps" title="Rbc_RenderOps"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_RenderOps</span></code></a>. They do not
+perform axis mapping, decimation, page delivery or graph lifetime management. <code class="docutils literal notranslate"><span class="pre">rbcRenderExport.c</span></code> selects the backend
+and prepares its style context; <code class="docutils literal notranslate"><span class="pre">rbcRenderExportInt.h</span></code> describes the shared state. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>,
+<a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> and <a class="reference internal" href="document-render-reference.html"><span class="doc">Document renderer C reference</span></a>.</p>
 <section id="context-lifetime-and-state">
 <h2>Context lifetime and state<a class="headerlink" href="#context-lifetime-and-state" title="Link to this heading"></a></h2>
-<p>Each constructor allocates a short-lived renderer context borrowing the <code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code>. A PDF context requires an
-initialized PDF builder; a PostScript context requires the legacy token in <code class="docutils literal notranslate"><span class="pre">backendData</span></code>. SVG writes to the current
-export buffer. None of these constructors begins or completes a document. The export and graph must outlive all contexts
-that reference them.</p>
+<p>Each constructor allocates a short-lived renderer context borrowing the <a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code></a>. A PDF context
+requires an initialized PDF builder; a PostScript context requires the legacy token in <code class="docutils literal notranslate"><span class="pre">backendData</span></code>. SVG writes to
+the current export buffer. None of these constructors begins or completes a document. The export and graph must outlive
+all contexts that reference them.</p>
 <p>Stroke construction copies SVG/PDF colors and dash values, clamps width to at least one, and caches cap/join
 settings. Fill and symbol constructors make shallow style copies: referenced colors, bitmaps and tiles remain borrowed.
 Fill/symbol contexts also borrow the graph for display and window information. Changing a resource or destroying its
@@ -1400,21 +1400,21 @@ document’s error status.</p>
 </section>
 <section id="shared-backend-setup">
 <h2>Shared backend setup<a class="headerlink" href="#shared-backend-setup" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreatePdf" title="Rbc_RenderCreatePdf"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreatePdf()</span></code></a> and func:<cite>Rbc_RenderCreatePostscript</cite> allocate operation
-:c:contexts without creating a document. The initialized export token remains borrowed. A PDF builder or PostScript
-:c:token must be ready before the first drawing operation. These constructors are internal building blocks; component
-:c:code normally uses the style-aware constructors in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>.</p>
-<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportLineStyle" title="Rbc_RenderExportLineStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportLineStyle()</span></code></a> caches cap/join settings and func:<cite>Rbc_RenderExportDashBackground</cite> copies an
-:c:optional color for SVG/PDF. The corresponding PostScript setup is immediate: func:<cite>Rbc_RenderPostscriptStroke</cite>,
-:c:<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptSymbol" title="Rbc_RenderPostscriptSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptSymbol()</span></code></a> and func:<cite>Rbc_RenderPostscriptBarSymbol</cite> emit attributes or procedure
-:c:definitions. The style pointers do not transfer ownership of colors or bitmaps.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreatePdf" title="Rbc_RenderCreatePdf"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreatePdf()</span></code></a> and <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreatePostscript" title="Rbc_RenderCreatePostscript"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreatePostscript()</span></code></a> allocate operation
+contexts without creating a document. The initialized export token remains borrowed. A PDF builder or PostScript
+token must be ready before the first drawing operation. These constructors are internal building blocks; component
+code normally uses the style-aware constructors in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportLineStyle" title="Rbc_RenderExportLineStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportLineStyle()</span></code></a> caches cap/join settings and <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportDashBackground" title="Rbc_RenderExportDashBackground"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportDashBackground()</span></code></a> copies an
+optional color for SVG/PDF. The corresponding PostScript setup is immediate: <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptStroke" title="Rbc_RenderPostscriptStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptStroke()</span></code></a>,
+<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptSymbol" title="Rbc_RenderPostscriptSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptSymbol()</span></code></a> and <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptBarSymbol" title="Rbc_RenderPostscriptBarSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptBarSymbol()</span></code></a> emit attributes or procedure
+definitions. The style pointers do not transfer ownership of colors or bitmaps.</p>
 <p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportRasterImage" title="Rbc_RenderExportRasterImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportRasterImage()</span></code></a> returns a caller-owned color image; NULL can mean ordinary omission or capture
 failure, so also inspect the document error state. <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportSymbolRound" title="Rbc_RenderExportSymbolRound"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportSymbolRound()</span></code></a> preserves legacy rounding
 halfway away from zero and requires a finite value whose adjusted result fits an int. Neither helper is a general
 input-validation boundary.</p>
-<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportEnd" title="Rbc_RenderExportEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportEnd()</span></code></a> only frees the context allocation. Call func:<cite>Rbc_RenderEnd</cite> to unwind tracked clips
-:c:first, and finish the separate plot scope before doing so. Backend resources and document buffers remain the export
-:c:owner’s responsibility.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportEnd" title="Rbc_RenderExportEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportEnd()</span></code></a> only frees the context allocation. Call <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> to unwind tracked clips
+first, and finish the separate plot scope before doing so. Backend resources and document buffers remain the export
+owner’s responsibility.</p>
 </section>
 </section>
 

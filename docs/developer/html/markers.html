@@ -1215,10 +1215,10 @@
              
   <section id="marker-lifecycle-and-drawing">
 <h1>Marker lifecycle and drawing<a class="headerlink" href="#marker-lifecycle-and-drawing" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code> owns the marker registry, display list, shared commands and concrete marker classes. <code class="docutils literal notranslate"><span class="pre">MarkerStruct</span></code>
-contains common coordinates, axes, track association, visibility, tags and option state. Each concrete record adds its
-own resources and cached geometry. <code class="docutils literal notranslate"><span class="pre">MarkerClass</span></code> supplies configuration, mapping, drawing, export, point/region tests
-and cleanup. See <a class="reference internal" href="marker-reference.html"><span class="doc">Marker C reference</span></a> for the shared graph-facing contracts.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code> owns the marker registry, display list, shared commands and concrete marker classes.
+<a class="reference internal" href="marker-reference.html#c.MarkerStruct" title="MarkerStruct"><code class="xref c c-struct docutils literal notranslate"><span class="pre">MarkerStruct</span></code></a> contains common coordinates, axes, track association, visibility, tags and option state. Each
+concrete record adds its own resources and cached geometry. <a class="reference internal" href="marker-reference.html#c.MarkerClass" title="MarkerClass"><code class="xref c c-struct docutils literal notranslate"><span class="pre">MarkerClass</span></code></a> supplies configuration, mapping,
+drawing, export, point/region tests and cleanup. See <a class="reference internal" href="marker-reference.html"><span class="doc">Marker C reference</span></a> for the shared graph-facing contracts.</p>
 <section id="coordinates-and-mapping">
 <h2>Coordinates and mapping<a class="headerlink" href="#coordinates-and-mapping" title="Link to this heading"></a></h2>
 <p>Marker world coordinates are owned by the marker. Class mapping builds display geometry using its selected axes, anchor,
@@ -1302,8 +1302,8 @@ window ownership or correct binding and region-test behavior.</p>
 <section id="common-configuration-and-ownership">
 <h2>Common configuration and ownership<a class="headerlink" href="#common-configuration-and-ownership" title="Link to this heading"></a></h2>
 <p>Concrete marker records embed <code class="docutils literal notranslate"><span class="pre">Marker</span></code> as their first member, checked by static assertions. Class methods receive that
-common header and recover the concrete record. <code class="docutils literal notranslate"><span class="pre">MarkerClass</span></code> combines Tk option specifications with configure, map,
-draw, export, point-test, region-test and cleanup callbacks. The common constructor chooses a class; it does not
+common header and recover the concrete record. <a class="reference internal" href="marker-reference.html#c.MarkerClass" title="MarkerClass"><code class="xref c c-struct docutils literal notranslate"><span class="pre">MarkerClass</span></code></a> combines Tk option specifications with configure,
+map, draw, export, point-test, region-test and cleanup callbacks. The common constructor chooses a class; it does not
 initialize Tk options or publish a registry entry. Arc construction reuses polygon storage and several polygon services,
 rather than introducing a second common marker lifecycle.</p>
 <table class="docutils align-default" id="id1">
@@ -1353,9 +1353,9 @@ the name and calls the class configure method with <code class="docutils literal
 marker. The registry rename is committed only after class configuration succeeds. On failure Tk fields are restored and
 the diagnostic retained. This wrapper cannot undo derived resources that a class commits prematurely; each class must
 stage its own fallible work.</p>
-<p>Common class preparation uses <code class="docutils literal notranslate"><span class="pre">ParsedMarkerOptions</span></code>. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.ParseMarkerOptions" title="rbcGrMarkerConfiguration.ParseMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.ParseMarkerOptions()</span></code></a> zeros it,
-parses tags, coordinates and state, acquires both axes and validates the optional track. The selected Y axis must belong
-to exactly that track, including the graph-wide NULL case. Failure releases candidate allocations and axis
+<p>Common class preparation uses <a class="reference internal" href="marker-reference.html#c.ParsedMarkerOptions" title="ParsedMarkerOptions"><code class="xref c c-struct docutils literal notranslate"><span class="pre">ParsedMarkerOptions</span></code></a>. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.ParseMarkerOptions" title="rbcGrMarkerConfiguration.ParseMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.ParseMarkerOptions()</span></code></a>
+zeros it, parses tags, coordinates and state, acquires both axes and validates the optional track. The selected Y axis
+must belong to exactly that track, including the graph-wide NULL case. Failure releases candidate allocations and axis
 references. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerConfiguration.CommitMarkerOptions" title="rbcGrMarkerConfiguration.CommitMarkerOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerConfiguration.CommitMarkerOptions()</span></code></a> frees old common resources, transfers new
 allocations/references and clears transferred pointers. It does not register, map or schedule the marker; concrete
 configuration completes those tasks.</p>
@@ -1483,11 +1483,12 @@ must be ready to remap when the marker is shown again.</p>
 </section>
 <section id="geometric-markers-line-polygon-and-arc">
 <h2>Geometric markers: line, polygon and arc<a class="headerlink" href="#geometric-markers-line-polygon-and-arc" title="Link to this heading"></a></h2>
-<p>These three classes share renderer services but deliberately retain different geometry and picking
-contracts. <code class="docutils literal notranslate"><span class="pre">LineMarker</span></code> owns its segment array and private GC, with fixed-size arrowhead arrays inside the record.
-<code class="docutils literal notranslate"><span class="pre">PolygonMarker</span></code> is also the storage type for arcs: <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.CreateArcMarker" title="rbcGrMarkerPolygon.CreateArcMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.CreateArcMarker()</span></code></a> changes the class
-callback table, while configuration and resource release continue to use
-<a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.ConfigurePolygonMarker" title="rbcGrMarkerPolygon.ConfigurePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.ConfigurePolygonMarker()</span></code></a> and <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.FreePolygonMarker" title="rbcGrMarkerPolygon.FreePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.FreePolygonMarker()</span></code></a>.</p>
+<p>These three classes share renderer services but deliberately retain different geometry and picking contracts.
+<a class="reference internal" href="marker-reference.html#c.rbcGrMarkerLine.LineMarker" title="rbcGrMarkerLine.LineMarker"><code class="xref c c-struct docutils literal notranslate"><span class="pre">LineMarker</span></code></a> owns its segment array and private GC, with fixed-size arrowhead
+arrays inside the record. <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.PolygonMarker" title="rbcGrMarkerPolygon.PolygonMarker"><code class="xref c c-struct docutils literal notranslate"><span class="pre">PolygonMarker</span></code></a> is also the storage type for
+arcs: <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.CreateArcMarker" title="rbcGrMarkerPolygon.CreateArcMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.CreateArcMarker()</span></code></a> changes the class callback table, while configuration and resource
+release continue to use <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.ConfigurePolygonMarker" title="rbcGrMarkerPolygon.ConfigurePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.ConfigurePolygonMarker()</span></code></a> and
+<a class="reference internal" href="marker-reference.html#c.rbcGrMarkerPolygon.FreePolygonMarker" title="rbcGrMarkerPolygon.FreePolygonMarker"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerPolygon.FreePolygonMarker()</span></code></a>.</p>
 <table class="docutils align-default" id="id4">
 <caption><span class="caption-text">Geometry ownership and consumers</span><a class="headerlink" href="#id4" title="Link to this table"></a></caption>
 <colgroup>
@@ -1875,9 +1876,9 @@ original primitive and text semantics rather than forcing every class through on
 <section id="cairo-context-reuse-and-native-targets">
 <h3>Cairo context reuse and native targets<a class="headerlink" href="#cairo-context-reuse-and-native-targets" title="Link to this heading"></a></h3>
 <p><a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.GetMarkerStroke" title="rbcGrMarkerBatches.GetMarkerStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrMarkerBatches.GetMarkerStroke()</span></code></a> accepts solid, non-XOR line shafts without arrows and polygon outlines
-without drawable fills. It returns a borrowed <code class="docutils literal notranslate"><span class="pre">MarkerStroke</span></code> view; a FALSE result must not be used, even if some
-fields were written. Arcs retain their class-specific continuous-curve path. Style equality compares width, cap, join
-and RGB values, not pointer identity.</p>
+without drawable fills. It returns a borrowed <a class="reference internal" href="marker-reference.html#c.rbcGrMarkerBatches.MarkerStroke" title="rbcGrMarkerBatches.MarkerStroke"><code class="xref c c-struct docutils literal notranslate"><span class="pre">MarkerStroke</span></code></a> view; a FALSE
+result must not be used, even if some fields were written. Arcs retain their class-specific continuous-curve path. Style
+equality compares width, cap, join and RGB values, not pointer identity.</p>
 <p>Compatible strokes reuse an open renderer context, but each marker still calls <a class="reference internal" href="reference.html#c.Rbc_RenderSegments" title="Rbc_RenderSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSegments()</span></code></a>
 separately. Merging all paths into one stroke would change antialiased overlap coverage. Incompatible visible content
 closes the context before dispatch; failure to create one falls back to the class draw callback. Context reuse therefore

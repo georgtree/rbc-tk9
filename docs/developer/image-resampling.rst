@@ -112,9 +112,10 @@ a lookup result transfers ownership of the static record.
 Contribution layout and rounding
 --------------------------------
 
-Each Sample stores a source start index, count and variable-length ResampleWeight
+Each :c:struct:`Sample` stores a source start index, count and variable-length :c:union:`ResampleWeight`
 array. :c:func:`rbcImageResampling.ComputeWeights` returns the byte stride, which must be used to advance between
-records; ordinary Sample pointer arithmetic would be incorrect. :c:func:`rbcImageResampling.GetSampleRecordSize`
+records; ordinary :c:struct:`Sample` pointer arithmetic would be incorrect.
+:c:func:`rbcImageResampling.GetSampleRecordSize`
 accounts for the first inline weight and checks extra storage before
 multiplication. :c:func:`rbcImageResampling.GetFilterSize` caps capacity by source length before narrowing to int, and
 :c:func:`rbcImageResampling.GetFilterBounds` clips each inclusive interval before converting its endpoints.
@@ -173,10 +174,10 @@ Nearest-neighbour implementation
 ---------------------------------
 
 :c:func:`Rbc_ResizeColorImage` allocates its requested result before checking whether the effective source region is
-empty. A nonempty resize precomputes separate int maps for output columns and rows, copies full Pix32 values, then frees
-both maps. :c:func:`rbcImageStorage.MapNearestCoordinate` truncates position*span/destinationSpan and adds the clamped
-source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped origin rather than
-potentially overflowing endpoint addition.
+empty. A nonempty resize precomputes separate int maps for output columns and rows, copies full :c:union:`Pix32` values,
+then frees both maps. :c:func:`rbcImageStorage.MapNearestCoordinate` truncates position*span/destinationSpan and adds
+the clamped source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped origin
+rather than potentially overflowing endpoint addition.
 
 :c:func:`Rbc_ResizeColorSubimage` allocates only the requested region. Its maps add the region origin and output
 position in double before virtual scaling, avoiding signed-int coordinate

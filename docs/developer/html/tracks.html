@@ -1232,8 +1232,8 @@ teardown. The <code class="docutils literal notranslate"><span class="pre">all</
 <section id="configuration-and-axis-ownership">
 <h2>Configuration and axis ownership<a class="headerlink" href="#configuration-and-axis-ownership" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="track-reference.html#c.InitTrackOptions" title="InitTrackOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">InitTrackOptions()</span></code></a> reads creation defaults using the named <code class="docutils literal notranslate"><span class="pre">Track</span></code> option-database component, with the
-resource-name conversion used by older components. Temporary <code class="docutils literal notranslate"><span class="pre">TrackDefaults</span></code> fields retain Tcl objects rather than
-immediately converting axis names or dimensions. Explicit options replace database defaults before validation; the
+resource-name conversion used by older components. Temporary <a class="reference internal" href="track-reference.html#c.TrackDefaults" title="TrackDefaults"><code class="xref c c-struct docutils literal notranslate"><span class="pre">TrackDefaults</span></code></a> fields retain Tcl objects rather
+than immediately converting axis names or dimensions. Explicit options replace database defaults before validation; the
 effective option list goes through <a class="reference internal" href="track-reference.html#c.ConfigureTrack" title="ConfigureTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a>.</p>
 <p><a class="reference internal" href="track-reference.html#c.ConfigureTrack" title="ConfigureTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a> stages scalar values and a replacement axis array. It rejects duplicate axes, incompatible
 classes or margins, axes owned by another track, and axes used by graph-wide markers. Removing an axis is rejected when
@@ -1294,11 +1294,11 @@ must also repick a stationary pointer after layout, without requiring a new moti
 chain links and clears their on-screen flags, then rebuilds the Y-axis chain from track order and each track’s
 configured axis order. Axis objects and retained references survive this relinking. The helper requests a world reset
 and deferred redraw; it does not perform layout itself.</p>
-<p><a class="reference internal" href="track-reference.html#c.TrackOptionIndex" title="TrackOptionIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOptionIndex()</span></code></a> resolves names against shared specifications. func:<cite>TrackOptionInfo</cite> builds the five-field
-:c:description using current values from <a class="reference internal" href="track-reference.html#c.TrackOption" title="TrackOption"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOption()</span></code></a>, which reads live track fields. Consequently
-:c:sash-adjusted heights and weights appear in later queries rather than stale creation-time Tcl objects. Axis queries
-:c:construct names in configured order, and a negative bar mode is reported as inherit. These result objects do not own
-:c:the referenced axes.</p>
+<p><a class="reference internal" href="track-reference.html#c.TrackOptionIndex" title="TrackOptionIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOptionIndex()</span></code></a> resolves names against shared specifications. <a class="reference internal" href="track-reference.html#c.TrackOptionInfo" title="TrackOptionInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOptionInfo()</span></code></a> builds the five-field
+description using current values from <a class="reference internal" href="track-reference.html#c.TrackOption" title="TrackOption"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOption()</span></code></a>, which reads live track fields. Consequently
+sash-adjusted heights and weights appear in later queries rather than stale creation-time Tcl objects. Axis queries
+construct names in configured order, and a negative bar mode is reported as inherit. These result objects do not own
+the referenced axes.</p>
 <p><a class="reference internal" href="track-reference.html#c.FreeTrack" title="FreeTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeTrack()</span></code></a> is a resource destructor, not a list operation. Its caller must first validate dependencies and
 detach the record. It removes bindings and local grid/legend resources, clears axis-to-track ownership, releases axis
 references, and frees the axis array, name and record. Reordering instead relinks existing records and does not use this
@@ -1335,10 +1335,10 @@ widget survived binding callbacks, then invokes scrollbar notification.</p>
 </section>
 <section id="dispatch-and-notification-contracts">
 <h2>Dispatch and notification contracts<a class="headerlink" href="#dispatch-and-notification-contracts" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="track-reference.html#c.Rbc_ConfigureTrackGraph" title="Rbc_ConfigureTrackGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConfigureTrackGraph()</span></code></a> validates the widget-level track options; func:<cite>Rbc_TrackOp</cite> dispatches the full
-:c:widget command under its enclosing lifetime protection. <a class="reference internal" href="track-reference.html#c.Rbc_CreateTrackComponentArgs" title="Rbc_CreateTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateTrackComponentArgs()</span></code></a> adapts nested grid and
-:c:legend arguments without copying every Tcl object. Its retained command prefix and array must be released with
-:c:<a class="reference internal" href="track-reference.html#c.Rbc_FreeTrackComponentArgs" title="Rbc_FreeTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTrackComponentArgs()</span></code></a> before the borrowed arguments expire.</p>
+<p><a class="reference internal" href="track-reference.html#c.Rbc_ConfigureTrackGraph" title="Rbc_ConfigureTrackGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConfigureTrackGraph()</span></code></a> validates the widget-level track options; <a class="reference internal" href="track-reference.html#c.Rbc_TrackOp" title="Rbc_TrackOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_TrackOp()</span></code></a> dispatches the full
+widget command under its enclosing lifetime protection. <a class="reference internal" href="track-reference.html#c.Rbc_CreateTrackComponentArgs" title="Rbc_CreateTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateTrackComponentArgs()</span></code></a> adapts nested grid and
+legend arguments without copying every Tcl object. Its retained command prefix and array must be released with
+<a class="reference internal" href="track-reference.html#c.Rbc_FreeTrackComponentArgs" title="Rbc_FreeTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTrackComponentArgs()</span></code></a> before the borrowed arguments expire.</p>
 <p><a class="reference internal" href="track-reference.html#c.Rbc_FindTrack" title="Rbc_FindTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindTrack()</span></code></a> returns an unretained identity: ordering does not invalidate it, but deletion
 does. <a class="reference internal" href="scroll-reference.html#c.Rbc_NotifyTrackView" title="Rbc_NotifyTrackView"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView()</span></code></a> may execute bindings and scrollbar callbacks that delete the widget; its internal
 preservation does not guarantee that the graph remains usable after return. <a class="reference internal" href="track-reference.html#c.Rbc_DestroyTracks" title="Rbc_DestroyTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a> is teardown,

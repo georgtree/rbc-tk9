@@ -22,8 +22,8 @@ Configuration and axis ownership
 --------------------------------
 
 :c:func:`InitTrackOptions` reads creation defaults using the named ``Track`` option-database component, with the
-resource-name conversion used by older components. Temporary ``TrackDefaults`` fields retain Tcl objects rather than
-immediately converting axis names or dimensions. Explicit options replace database defaults before validation; the
+resource-name conversion used by older components. Temporary :c:struct:`TrackDefaults` fields retain Tcl objects rather
+than immediately converting axis names or dimensions. Explicit options replace database defaults before validation; the
 effective option list goes through :c:func:`ConfigureTrack`.
 
 :c:func:`ConfigureTrack` stages scalar values and a replacement axis array. It rejects duplicate axes, incompatible
@@ -97,11 +97,11 @@ chain links and clears their on-screen flags, then rebuilds the Y-axis chain fro
 configured axis order. Axis objects and retained references survive this relinking. The helper requests a world reset
 and deferred redraw; it does not perform layout itself.
 
-:c:func:`TrackOptionIndex` resolves names against shared specifications. func:`TrackOptionInfo` builds the five-field
-:c:description using current values from :c:func:`TrackOption`, which reads live track fields. Consequently
-:c:sash-adjusted heights and weights appear in later queries rather than stale creation-time Tcl objects. Axis queries
-:c:construct names in configured order, and a negative bar mode is reported as inherit. These result objects do not own
-:c:the referenced axes.
+:c:func:`TrackOptionIndex` resolves names against shared specifications. :c:func:`TrackOptionInfo` builds the five-field
+description using current values from :c:func:`TrackOption`, which reads live track fields. Consequently
+sash-adjusted heights and weights appear in later queries rather than stale creation-time Tcl objects. Axis queries
+construct names in configured order, and a negative bar mode is reported as inherit. These result objects do not own
+the referenced axes.
 
 :c:func:`FreeTrack` is a resource destructor, not a list operation. Its caller must first validate dependencies and
 detach the record. It removes bindings and local grid/legend resources, clears axis-to-track ownership, releases axis
@@ -145,10 +145,10 @@ widget survived binding callbacks, then invokes scrollbar notification.
 Dispatch and notification contracts
 -----------------------------------
 
-:c:func:`Rbc_ConfigureTrackGraph` validates the widget-level track options; func:`Rbc_TrackOp` dispatches the full
-:c:widget command under its enclosing lifetime protection. :c:func:`Rbc_CreateTrackComponentArgs` adapts nested grid and
-:c:legend arguments without copying every Tcl object. Its retained command prefix and array must be released with
-:c::c:func:`Rbc_FreeTrackComponentArgs` before the borrowed arguments expire.
+:c:func:`Rbc_ConfigureTrackGraph` validates the widget-level track options; :c:func:`Rbc_TrackOp` dispatches the full
+widget command under its enclosing lifetime protection. :c:func:`Rbc_CreateTrackComponentArgs` adapts nested grid and
+legend arguments without copying every Tcl object. Its retained command prefix and array must be released with
+:c:func:`Rbc_FreeTrackComponentArgs` before the borrowed arguments expire.
 
 :c:func:`Rbc_FindTrack` returns an unretained identity: ordering does not invalidate it, but deletion
 does. :c:func:`Rbc_NotifyTrackView` may execute bindings and scrollbar callbacks that delete the widget; its internal

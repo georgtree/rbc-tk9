@@ -81,8 +81,8 @@ These helpers separate candidate preparation from live-field commit and from ret
 Data observation and value presentation
 ---------------------------------------
 
-The documentation-only scope distinguishes private names such as GetIndex from similarly named helpers in other C
-files. It does not change C symbols.
+The documentation-only scope distinguishes private names such as :c:func:`GetIndex <rbcGrElemData.GetIndex>` from
+similarly named helpers in other C files. It does not change C symbols.
 
 .. c:namespace-push:: rbcGrElemData
 

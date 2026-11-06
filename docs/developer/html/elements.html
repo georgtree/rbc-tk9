@@ -1374,7 +1374,7 @@ applying the axis rule to all named resources.</p>
 </section>
 <section id="original-arguments-and-repeated-options">
 <h2>Original arguments and repeated options<a class="headerlink" href="#original-arguments-and-repeated-options" title="Link to this heading"></a></h2>
-<p>The identity helpers use the element’s concrete option table through Rbc_GetCanonicalOptionName after Tk
+<p>The identity helpers use the element’s concrete option table through <a class="reference internal" href="configuration-reference.html#c.Rbc_GetCanonicalOptionName" title="Rbc_GetCanonicalOptionName"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetCanonicalOptionName()</span></code></a> after Tk
 validation. They recognize canonical options, synonyms and accepted abbreviations. In particular, exact <code class="docutils literal notranslate"><span class="pre">-x</span></code> and
 <code class="docutils literal notranslate"><span class="pre">-y</span></code> retain priority over longer names such as <code class="docutils literal notranslate"><span class="pre">-xerror</span></code>. These helpers do not parse values or authorize a commit.</p>
 <p>Preparation first identifies which options were supplied explicitly. On first configuration, it processes retained
@@ -1389,9 +1389,9 @@ before either previous candidate is released. The live element remains separate 
 <section id="retained-coordinate-representations">
 <h2>Retained coordinate representations<a class="headerlink" href="#retained-coordinate-representations" title="Link to this heading"></a></h2>
 <p>Internal numeric arrays and the objects reported by configuration queries are different representations with separate
-ownership. After a successful data commit, Rbc_SyncElemDataOptionObjects replays initial defaults and explicit arguments
-in the same order used for staging. It does not reevaluate numeric expressions or reconstruct input strings from
-floating-point results.</p>
+ownership. After a successful data commit, <a class="reference internal" href="element-reference.html#c.Rbc_SyncElemDataOptionObjects" title="Rbc_SyncElemDataOptionObjects"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SyncElemDataOptionObjects()</span></code></a> replays initial defaults and explicit
+arguments in the same order used for staging. It does not reevaluate numeric expressions or reconstruct input strings
+from floating-point results.</p>
 <p>For example, with expression objects preserved in the input:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="o">+</span><span class="mi">3</span><span class="k">}</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="k">{</span><span class="nv">4</span><span class="o">+</span><span class="mi">5</span><span class="k">}}</span><span class="w"> </span><span class="o">-</span>y<span class="w"> </span><span class="k">{</span><span class="nv">7</span><span class="w"> </span><span class="mi">8</span><span class="k">}</span>
 </pre></div>
@@ -1400,10 +1400,10 @@ floating-point results.</p>
 derived from the earlier pairs. Reversing the order lets the final <code class="docutils literal notranslate"><span class="pre">-data</span></code> establish both coordinates and a coherent
 paired representation again. The individual X/Y lists contain the original coordinate objects, preserving expression
 spellings such as <code class="docutils literal notranslate"><span class="pre">2+3</span></code>.</p>
-<p>ReplaceElemOptionObject retains a new object before releasing the old one and handles identical pointers as a
+<p><a class="reference internal" href="element-reference.html#c.ReplaceElemOptionObject" title="ReplaceElemOptionObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReplaceElemOptionObject()</span></code></a> retains a new object before releasing the old one and handles identical pointers as a
 no-op. During first configuration, synchronization also pins initial option objects while replacing fields that may own
-their last reference. SetElemDataPairOptionObjects assumes prior validation: a malformed or odd-length list at this
-phase is an internal fatal error, not a second user-input validation opportunity. Run synchronization while the
+their last reference. <a class="reference internal" href="element-reference.html#c.SetElemDataPairOptionObjects" title="SetElemDataPairOptionObjects"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetElemDataPairOptionObjects()</span></code></a> assumes prior validation: a malformed or odd-length list at
+this phase is an internal fatal error, not a second user-input validation opportunity. Run synchronization while the
 first-configuration flag still describes the configuration being committed.</p>
 </section>
 <section id="callback-boundaries">
@@ -1413,24 +1413,27 @@ different: list entries are expressions, and their evaluation can invoke Tcl com
 staging protects the live value from a partial commit, but does not by itself preserve the graph, element or borrowed
 arguments across such callbacks. Audit those lifetimes at the caller and parser boundary separately; these contracts do
 not establish general reentrancy for configuration.</p>
-<p>CommitElemVector installs a vector-change callback only after moving the slot to its stable destination. A callback must
-never retain a pointer to a temporary transaction field. Moving the client ID transfers observation ownership, not
-ownership of the named source vector or its storage.</p>
+<p><a class="reference internal" href="element-reference.html#c.CommitElemVector" title="CommitElemVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">CommitElemVector()</span></code></a> installs a vector-change callback only after moving the slot to its stable destination. A
+callback must never retain a pointer to a temporary transaction field. Moving the client ID transfers observation
+ownership, not ownership of the named source vector or its storage.</p>
 </section>
 <section id="parsing-allocation-and-extrema">
 <h2>Parsing, allocation and extrema<a class="headerlink" href="#parsing-allocation-and-extrema" title="Link to this heading"></a></h2>
-<p>GetElemArrayByteCount rejects negative counts, zero element size and products that exceed SIZE_MAX, assigning its result
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.GetElemArrayByteCount" title="rbcGrElemData.GetElemArrayByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetElemArrayByteCount</span></code></a> rejects negative counts, zero element size and
+products that exceed SIZE_MAX, assigning its result
 only on success. Zero count is valid. This check cannot repair overflow that occurred while a caller computed the count
 before invoking it.</p>
-<p>EvalExprListObj initializes its outputs to zero/NULL and uses Tcl_AttemptAlloc for a nonempty result. Each list member
-is evaluated with Tcl_ExprDouble; an error releases the temporary numeric array. The helper borrows the list’s
-object-pointer array across evaluation. It does not take an immutable snapshot or add an owner-preservation boundary, so
-this local allocation cleanup must not be confused with protection against callbacks that mutate owners or input
-representations.</p>
-<p>ParseElemVectorPairsObj evaluates the flat input before checking whether its length is even. An odd-length failure can
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.EvalExprListObj" title="rbcGrElemData.EvalExprListObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvalExprListObj</span></code></a> initializes its outputs to zero/NULL and uses Tcl_AttemptAlloc
+for a nonempty result. Each list member is evaluated with Tcl_ExprDouble; an error releases the temporary numeric array.
+The helper borrows the list’s object-pointer array across evaluation. It does not take an immutable snapshot or add an
+owner-preservation boundary, so this local allocation cleanup must not be confused with protection against callbacks
+that mutate owners or input representations.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.ParseElemVectorPairsObj" title="rbcGrElemData.ParseElemVectorPairsObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseElemVectorPairsObj</span></code></a> evaluates the flat input before checking
+whether its length is even. An odd-length failure can
 therefore follow expression side effects; it is not a side-effect-free prevalidation pass. Successful parsing uses a
 temporary flat array followed by separate X and Y arrays, computes extrema, and releases the temporary array. This
-paired-input parser always treats input as expressions, unlike Rbc_ParseElemVectorObj’s initial named-vector lookup.</p>
+paired-input parser always treats input as expressions, unlike <a class="reference internal" href="element-reference.html#c.Rbc_ParseElemVectorObj" title="Rbc_ParseElemVectorObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ParseElemVectorObj()</span></code></a>’s initial named-vector
+lookup.</p>
 <p>The range helpers have distinct contracts:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1445,15 +1448,15 @@ paired-input parser always treats input as expressions, unlike Rbc_ParseElemVect
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>SyncElemVector</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.SyncElemVector" title="rbcGrElemData.SyncElemVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">SyncElemVector</span></code></a></p></td>
 <td><p>Borrows source storage and obtains source-maintained extrema</p></td>
 <td><p>Requires a live source vector</p></td>
 </tr>
-<tr class="row-odd"><td><p>FindRange</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.FindRange" title="rbcGrElemData.FindRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindRange</span></code></a></p></td>
 <td><p>Scans literal data, ignoring nonfinite samples</p></td>
 <td><p>Empty/NULL leaves cached extrema untouched; all-nonfinite nonempty data gives DBL_MAX/-DBL_MAX</p></td>
 </tr>
-<tr class="row-even"><td><p>Rbc_FindElemVectorMinimum</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_FindElemVectorMinimum" title="rbcGrElemData.Rbc_FindElemVectorMinimum"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindElemVectorMinimum</span></code></a></p></td>
 <td><p>Returns the smallest finite value at or above minLimit</p></td>
 <td><p>Returns minLimit if its accumulator remains DBL_MAX</p></td>
 </tr>
@@ -1465,41 +1468,47 @@ promise that every finite sample has a distinct successful result.</p>
 </section>
 <section id="notification-metadata-and-synchronous-refresh">
 <h2>Notification metadata and synchronous refresh<a class="headerlink" href="#notification-metadata-and-synchronous-refresh" title="Link to this heading"></a></h2>
-<p>RecordElemVectorChange merges inclusive source intervals by their outer bounds. An unknown/full change dominates later
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.RecordElemVectorChange" title="rbcGrElemData.RecordElemVectorChange"><code class="xref c c-func docutils literal notranslate"><span class="pre">RecordElemVectorChange</span></code></a> merges inclusive source intervals by their outer
+bounds. An unknown/full change dominates later
 precise ranges until the owning mapping code consumes or resets that pending state. The helper itself neither validates
-indices nor fetches data. Reading the vector’s client-specific changed range belongs inside VectorChangedProc, while
+indices nor fetches data. Reading the vector’s client-specific changed range belongs inside
+<a class="reference internal" href="element-reference.html#c.rbcGrElemData.VectorChangedProc" title="rbcGrElemData.VectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorChangedProc</span></code></a>, while
 that notification snapshot is valid.</p>
 <p>The destruction notification clears clientId, valueArr and nValues and records a full change. It does not zero vecPtr,
 capacity or extrema. Those remaining fields must not be treated as valid source storage after destruction; the cleared
 live-data fields govern subsequent use.</p>
-<p>Rbc_SyncElementVectors visits the registry rather than only the visible display list. Pending common X/Y, weight and
-error inputs refresh their borrowed arrays and mark a full change before immediate layout or export. It neither delivers
-nor cancels the queued notification and does not independently queue a redraw. VectorChangedProc has a different
-scheduling policy: it always marks axes and mapping dirty, but only schedules backing-store redraw for plotted elements.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_SyncElementVectors" title="rbcGrElemData.Rbc_SyncElementVectors"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SyncElementVectors</span></code></a> visits the registry rather than only the visible
+display list. Pending common X/Y, weight and error inputs refresh their borrowed arrays and mark a full change before
+immediate layout or export. It neither delivers nor cancels the queued notification and does not independently queue a
+redraw. <a class="reference internal" href="element-reference.html#c.rbcGrElemData.VectorChangedProc" title="rbcGrElemData.VectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorChangedProc</span></code></a> has a different scheduling policy: it always marks
+axes and mapping dirty, but only schedules backing-store redraw for plotted elements.</p>
 </section>
 <section id="value-label-formatting">
 <h2>Value-label formatting<a class="headerlink" href="#value-label-formatting" title="Link to this heading"></a></h2>
-<p>Rbc_ValidateValueFormat accepts literal-only strings, escaped percent signs and at most one floating
-conversion. Formatting passes one double at a time; even SHOW_BOTH formats X and Y separately with the same format and
-joins them with a comma. Dynamic widths/precisions and conversions requiring another argument type are rejected. Format
-length, width and precision are each bounded by the current VALUE_FORMAT_LIMIT of 200. Validation does not guarantee
-that every formatted number fits the destination buffer.</p>
-<p>FormatValueLabel supplies terminated, bounded fallback text. It avoids appending Y when X has already been
-truncated. Rbc_GetElementValueLabel creates and retains that fallback before executing application code. A nonempty
-command prefix is duplicated, then receives graph path, element name, original index, X and Y in the global Tcl
-evaluation context. The returned label owns one Tcl reference which the drawing caller must release. Successful callback
-text is not limited to the fallback buffer size.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_ValidateValueFormat" title="rbcGrElemData.Rbc_ValidateValueFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ValidateValueFormat</span></code></a> accepts literal-only strings, escaped percent
+signs and at most one floating conversion. Formatting passes one double at a time; even SHOW_BOTH formats X and Y
+separately with the same format and joins them with a comma. Dynamic widths/precisions and conversions requiring another
+argument type are rejected. Format length, width and precision are each bounded by the current VALUE_FORMAT_LIMIT of
+200. Validation does not guarantee that every formatted number fits the destination buffer.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.FormatValueLabel" title="rbcGrElemData.FormatValueLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatValueLabel</span></code></a> supplies terminated, bounded fallback text. It avoids
+appending Y when X has already been truncated.
+<a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_GetElementValueLabel" title="rbcGrElemData.Rbc_GetElementValueLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetElementValueLabel</span></code></a> creates and retains that fallback before
+executing application code. A nonempty command prefix is duplicated, then receives graph path, element name, original
+index, X and Y in the global Tcl evaluation context. The returned label owns one Tcl reference which the drawing caller
+must release. Successful callback text is not limited to the fallback buffer size.</p>
 <p>Command-prefix validation checks list syntax only; it does not check command existence. Empty prefixes retain fallback
 formatting. Callback errors are reported through the background exception mechanism and use fallback text, while the
 enclosing interpreter state is restored. This result preservation is not lifetime protection for drawing records:
 value-label callbacks must not mutate drawing state or enter a nested event loop.</p>
-<p>Offsets are a separate parser: Rbc_GetValueOffset requires two signed Tcl ints, commits both together, and accepts no
-screen-unit suffixes. It stores the parsed values in the double fields of Point2D without evaluating expressions.</p>
+<p>Offsets are a separate parser: <a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_GetValueOffset" title="rbcGrElemData.Rbc_GetValueOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetValueOffset</span></code></a> requires two signed Tcl
+ints, commits both together, and accepts no screen-unit suffixes. It stores the parsed values in the double fields of
+<a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Point2D</span></code></a> without evaluating expressions.</p>
 </section>
 <section id="closest-result-source-values-and-traces">
 <h2>Closest-result source values and traces<a class="headerlink" href="#closest-result-source-values-and-traces" title="Link to this heading"></a></h2>
-<p>ClosestErrorValue rejects a pending named-vector update before touching its borrowed array. It also rejects out-of-range
-indices, NULL arrays and nonfinite samples. AppendClosestErrors reports the original source error values, including
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.ClosestErrorValue" title="rbcGrElemData.ClosestErrorValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClosestErrorValue</span></code></a> rejects a pending named-vector update before touching its
+borrowed array. It also rejects out-of-range indices, NULL arrays and nonfinite samples.
+<a class="reference internal" href="element-reference.html#c.rbcGrElemData.AppendClosestErrors" title="rbcGrElemData.AppendClosestErrors"><code class="xref c c-func docutils literal notranslate"><span class="pre">AppendClosestErrors</span></code></a> reports the original source error values, including
 explicit low/high bounds, rather than transformed or bar-translated positions. A nonempty symmetric-error vector takes
 precedence; an unusable symmetric sample does not fall back to explicit bounds. Explicit low and high must both be
 usable before either is reported for that axis.</p>
@@ -1511,10 +1520,10 @@ traces may change vectors, delete the selected element or destroy the graph: pub
 element reads. A failing write returns its diagnostic and leaves earlier writes in place; this is a stable snapshot, not
 an atomic Tcl-array transaction. The snapshot is released on success and failure. Existing unrelated/stale fields other
 than the six optional error fields retain their previous behavior.</p>
-<p>GetIndex receives a captured point count before evaluating non-<code class="docutils literal notranslate"><span class="pre">end</span></code> input as a Tcl expression. It converts the result
-to Tcl_Size and checks against those captured bounds. <a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ActivateOp" title="rbcGrElemCommands.ActivateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ActivateOp()</span></code></a> supplies lifetime
-protection and checks all staged indices against current lengths before commit. Exact <code class="docutils literal notranslate"><span class="pre">end</span></code> avoids expression
-evaluation; empty elements are rejected before either path.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrElemData.GetIndex" title="rbcGrElemData.GetIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetIndex</span></code></a> receives a captured point count before evaluating non-<code class="docutils literal notranslate"><span class="pre">end</span></code> input as a Tcl
+expression. It converts the result to Tcl_Size and checks against those captured bounds.
+<a class="reference internal" href="element-reference.html#c.rbcGrElemCommands.ActivateOp" title="rbcGrElemCommands.ActivateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemCommands.ActivateOp()</span></code></a> supplies lifetime protection and checks all staged indices against current
+lengths before commit. Exact <code class="docutils literal notranslate"><span class="pre">end</span></code> avoids expression evaluation; empty elements are rejected before either path.</p>
 </section>
 <section id="registry-and-display-list-ownership">
 <h2>Registry and display-list ownership<a class="headerlink" href="#registry-and-display-list-ownership" title="Link to this heading"></a></h2>
@@ -1536,8 +1545,8 @@ once when a non-hidden element was displayed.</p>
 <section id="option-initialization-and-resource-lifetime">
 <h2>Option initialization and resource lifetime<a class="headerlink" href="#option-initialization-and-resource-lifetime" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.InitElementOptions" title="rbcGrElemLifecycle.InitElementOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.InitElementOptions()</span></code></a> obtains the element component resource name and uses class
-<code class="docutils literal notranslate"><span class="pre">Element</span></code>. It is a no-op after successful initialization. If Tk option setup fails, it frees partially initialized
-option values and the option table; the concrete constructor’s own allocations still need destruction.</p>
+<a class="reference internal" href="element-reference.html#c.Element" title="Element"><code class="xref c c-type docutils literal notranslate"><span class="pre">Element</span></code></a>. It is a no-op after successful initialization. If Tk option setup fails, it frees partially
+initialized option values and the option table; the concrete constructor’s own allocations still need destruction.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrElemLifecycle.ConfigureElementOptions" title="rbcGrElemLifecycle.ConfigureElementOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrElemLifecycle.ConfigureElementOptions()</span></code></a> retains Tk saved options while validating track ownership and
 running concrete configuration. Trackgraph Y axes must belong to the selected track; a nonempty track is rejected on
 ordinary graphs. The original argument vector and option mask are borrowed transaction context, cleared before restoring
@@ -1724,7 +1733,8 @@ from every palette pen and the active pen, retaining centers outside the plot wh
 expansion is not a drawing clip: renderers still clip to the viewport. Explicit active symbols are mapped separately.</p>
 <section id="smoothing-gaps-and-symbol-selection">
 <h3>Smoothing, gaps and symbol selection<a class="headerlink" href="#smoothing-gaps-and-symbol-selection" title="Link to this heading"></a></h3>
-<p>GenerateSplineRuns copies each continuous run and smooths it independently, then joins the arrays while restoring break
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineMapping.GenerateSplineRuns" title="rbcGrLineMapping.GenerateSplineRuns"><code class="xref c c-func docutils literal notranslate"><span class="pre">GenerateSplineRuns</span></code></a> copies each continuous run and smooths it
+independently, then joins the arrays while restoring break
 flags. Runs shorter than three points stay unchanged. An individual generator can fall back for one run while others
 remain smoothed. Failure to allocate or combine the temporary runs keeps the original complete map and sets effective
 smoothing to linear. The requested option remains unchanged. <a class="reference internal" href="element-reference.html#c.rbcGrLineMapping.FreeMapRun" title="rbcGrLineMapping.FreeMapRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineMapping.FreeMapRun()</span></code></a> releases temporary
@@ -1806,10 +1816,11 @@ plus the source representation name. Smith results also include gamma, reference
 and physical impedance and admittance. Exact open/short singularities are represented with positive infinity; other
 failed conversions omit their respective fields. Parameter metadata follows the source index while these geometric
 fields follow the hit.</p>
-<p>The SetClosestInfo helpers build dictionary entries, including two-double lists for complex pairs. They do not write Tcl
-variables or run array traces. The common closest handler retains this snapshot before publishing it, separating
-geometry access from application trace callbacks. Collection errors return their Tcl status; previously inserted
-dictionary fields are not rolled back.</p>
+<p>The closest-info helpers, including <a class="reference internal" href="element-reference.html#c.rbcGrLinePicking.SetClosestInfoObj" title="rbcGrLinePicking.SetClosestInfoObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetClosestInfoObj</span></code></a> and
+<a class="reference internal" href="element-reference.html#c.rbcGrLinePicking.SetClosestInfoPair" title="rbcGrLinePicking.SetClosestInfoPair"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetClosestInfoPair</span></code></a>, build dictionary entries, including two-double lists
+for complex pairs. They do not write Tcl variables or run array traces. The common closest handler retains this snapshot
+before publishing it, separating geometry access from application trace callbacks. Collection errors return their Tcl
+status; previously inserted dictionary fields are not rolled back.</p>
 </section>
 <section id="screen-stroke-adapters">
 <h3>Screen stroke adapters<a class="headerlink" href="#screen-stroke-adapters" title="Link to this heading"></a></h3>
@@ -1854,12 +1865,13 @@ segments; their constructions should not be assumed identical.</p>
 <section id="fills-and-labels">
 <h3>Fills and labels<a class="headerlink" href="#fills-and-labels" title="Link to this heading"></a></h3>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrLineOutput.DrawRenderedFill" title="rbcGrLineOutput.DrawRenderedFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOutput.DrawRenderedFill()</span></code></a> attempts Cairo output and reports whether it handled the fill. Tiles take
-precedence over patterns, including when a tile cannot be rendered; it does not expose the pattern
-underneath. DrawLineFill owns subsequent native fallback and suppresses an empty tile. Pattern opacity is separate from
+precedence over patterns, including when a tile cannot be rendered; it does not expose the pattern underneath.
+<a class="reference internal" href="fill-reference.html#c.DrawLineFill" title="DrawLineFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">DrawLineFill()</span></code></a> owns subsequent native fallback and suppresses an empty tile. Pattern opacity is separate from
 tile image transparency. Export fill policy is delegated to its backend. See <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a> for the resource and geometry
 contracts.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrLineOutput.DrawValues" title="rbcGrLineOutput.DrawValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOutput.DrawValues()</span></code></a> and <a class="reference internal" href="element-reference.html#c.rbcGrLineOutput.ValuesExport" title="rbcGrLineOutput.ValuesExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineOutput.ValuesExport()</span></code></a> filter centers against the unpadded
-viewport, select source indices and obtain retained label objects through Rbc_GetElementValueLabel. Each object is
+viewport, select source indices and obtain retained label objects through
+<a class="reference internal" href="element-reference.html#c.rbcGrElemData.Rbc_GetElementValueLabel" title="rbcGrElemData.Rbc_GetElementValueLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetElementValueLabel</span></code></a>. Each object is
 released after drawing or skipping an empty label. Screen labels check offset coordinates against integer limits and
 convert to integers; export labels retain double coordinates.</p>
 <p>These loops borrow arrays, pens and element records across label-command calls. The existing restriction on mutating
@@ -1880,18 +1892,22 @@ The enclosing caller restores the reported Tk options, while transaction cleanup
 updates commit the prepared state together.</p>
 <section id="ordinary-and-parametric-resampling">
 <h3>Ordinary and parametric resampling<a class="headerlink" href="#ordinary-and-parametric-resampling" title="Link to this heading"></a></h3>
-<p>GenerateSpline handles natural/quadratic curves expressed as functions of mapped data X. It swaps coordinate roles for
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GenerateSpline" title="rbcGrLineConfiguration.GenerateSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">GenerateSpline</span></code></a> handles natural/quadratic curves expressed as functions
+of mapped data X. It swaps coordinate roles for
 inverted graphs and reflects decreasing abscissas into increasing order rather than reversing source arrays. Every knot
 is retained; additional samples follow visible screen pixels along that axis. The inserted samples retain their
 interval’s starting source index.</p>
-<p>GenerateParametricSpline uses source-interval/local-parameter pairs for natural, quadratic or Catmull-Rom evaluation. It
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GenerateParametricSpline" title="rbcGrLineConfiguration.GenerateParametricSpline"><code class="xref c c-func docutils literal notranslate"><span class="pre">GenerateParametricSpline</span></code></a> uses
+source-interval/local-parameter pairs for natural, quadratic or Catmull-Rom evaluation. It
 retains all knots and samples roughly every two pixels over visible portions of the original straight segments. This is
 a sampling heuristic, not adaptive subdivision of the final curve. It does not require monotonically increasing data X.</p>
-<p>Both functions consume continuous runs. GenerateSplineRuns handles discontinuous maps externally, preserving gap
+<p>Both functions consume continuous runs. <a class="reference internal" href="element-reference.html#c.rbcGrLineMapping.GenerateSplineRuns" title="rbcGrLineMapping.GenerateSplineRuns"><code class="xref c c-func docutils literal notranslate"><span class="pre">GenerateSplineRuns</span></code></a> handles
+discontinuous maps externally, preserving gap
 boundaries. Replacement point/index arrays are committed only after successful evaluation. Allocation and evaluator
 failures retain original geometry and set effective smoothing to linear; the requested option is unchanged.</p>
 <p>Some ordinary-spline early exits differ: too few points, equal/nonmonotonic abscissas, invisibility or an empty screen
-span return without clearing the effective mode. GenerateSplineRuns observes that mode to track successful runs, so the
+span return without clearing the effective mode. <a class="reference internal" href="element-reference.html#c.rbcGrLineMapping.GenerateSplineRuns" title="rbcGrLineMapping.GenerateSplineRuns"><code class="xref c c-func docutils literal notranslate"><span class="pre">GenerateSplineRuns</span></code></a>
+observes that mode to track successful runs, so the
 mode is not proof that coordinates were actually resampled. Code that needs such proof must not infer it solely from the
 smoothing flag.</p>
 </section>
@@ -1903,11 +1919,11 @@ sentinel. Empty values produce NULL only when permitted; actual Tk colors carry 
 reference. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.FreeLinePenColor" title="rbcGrLineData.FreeLinePenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.FreeLinePenColor()</span></code></a> releases actual Tk colors while ignoring NULL and the
 sentinel. Callers still clear their own fields after release. The local <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.Round" title="rbcGrLineConfiguration.Round"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.Round()</span></code></a> helper
 requires bounded finite input and does not provide checked conversion.</p>
-<p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.PixelAbscissa" title="rbcGrLineConfiguration.PixelAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.PixelAbscissa()</span></code></a> and func:<cite>rbcGrLineConfiguration.PixelOrdinate</cite> select physical
-:c:coordinate roles according to inversion; neither removes axis descending direction.
-<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.MapLineDataAbscissa" title="rbcGrLineConfiguration.MapLineDataAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.MapLineDataAbscissa()</span></code></a> invokes the appropriate axis
-:c:mapper. <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ClearLineVectorChanges" title="rbcGrLineConfiguration.ClearLineVectorChanges"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ClearLineVectorChanges()</span></code></a> consumes recorded X/Y change ranges after cache
-:c:handling, without delivering or canceling vector notifications.</p>
+<p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.PixelAbscissa" title="rbcGrLineConfiguration.PixelAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.PixelAbscissa()</span></code></a> and <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.PixelOrdinate" title="rbcGrLineConfiguration.PixelOrdinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">PixelOrdinate</span></code></a> select
+physical coordinate roles according to inversion; neither removes axis descending direction.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.MapLineDataAbscissa" title="rbcGrLineConfiguration.MapLineDataAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.MapLineDataAbscissa()</span></code></a> invokes the appropriate axis mapper.
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ClearLineVectorChanges" title="rbcGrLineConfiguration.ClearLineVectorChanges"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ClearLineVectorChanges()</span></code></a> consumes recorded X/Y change ranges after cache handling,
+without delivering or canceling vector notifications.</p>
 <p><a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ComplexDivide" title="rbcGrLineConfiguration.ComplexDivide"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ComplexDivide()</span></code></a> uses a denominator-component ratio and rejects nonfinite results, but
 does not guarantee overflow-free arithmetic for all finite extreme inputs. Its failure outputs must not be used. The
 normalized Smith conversion helpers <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.GammaToNormalizedImpedance" title="rbcGrLineConfiguration.GammaToNormalizedImpedance"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.GammaToNormalizedImpedance()</span></code></a> and

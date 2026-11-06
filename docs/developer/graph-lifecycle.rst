@@ -317,10 +317,11 @@ must cancel scheduling separately before releasing it.
 data. The result is borrowed, with no added preservation or class check. This supports graph descendants but is not a
 generic checked conversion of arbitrary RBC instance data into a graph.
 
-The parent window class and anonymous option proxy are established before any Graph storage or registries are
+The parent window class and anonymous option proxy are established before any :c:type:`Graph` storage or registries are
 allocated. If proxy creation fails, the parent window is destroyed directly while the original interpreter error is
-preserved. No deferred Graph destructor is needed on that path. After Graph allocation, instance data, command and
-event-handler setup establish the normal ownership path before fallible component initialization begins.
+preserved. No deferred :c:type:`Graph` destructor is needed on that path. After :c:type:`Graph` allocation, instance
+data, command and event-handler setup establish the normal ownership path before fallible component initialization
+begins.
 
 Windows metafile layout and ownership
 -------------------------------------

@@ -13,11 +13,11 @@ fallback; it does not promise that pixels were painted. For eligible Cairo calls
 legend rectangles can be handled no-ops. Late drawing errors are reported during context completion, not by requesting
 replay. Without Cairo, these attempts decline and their constructors return NULL.
 
-:c:func:`Rbc_RenderArea` and :c:func:`Rbc_RenderAreaOpacity` fill polygons; func:`Rbc_RenderTileArea` fills from a
-:c:repeating photo block; func:`Rbc_RenderPhoto` paints that block once. The block and its readable storage remain
-:c:caller-owned. :c:func:`Rbc_RenderRectangles` applies opacity to the composed batch, including stipples; polygon
-:c:opacity applies only to solid fills. :c:func:`Rbc_RenderLegendBar` uses the full drawable clip and restarts its
-:c:stipple at the swatch origin.
+:c:func:`Rbc_RenderArea` and :c:func:`Rbc_RenderAreaOpacity` fill polygons; :c:func:`Rbc_RenderTileArea` fills from a
+repeating photo block; :c:func:`Rbc_RenderPhoto` paints that block once. The block and its readable storage remain
+caller-owned. :c:func:`Rbc_RenderRectangles` applies opacity to the composed batch, including stipples; polygon
+opacity applies only to solid fills. :c:func:`Rbc_RenderLegendBar` uses the full drawable clip and restarts its
+stipple at the swatch origin.
 
 :c:func:`Rbc_RenderBitmap` handles one mapped bitmap and an optional background polygon. For repeated symbols,
 :c:func:`Rbc_RenderBeginBitmapSymbols` converts the source once, :c:func:`Rbc_RenderBitmapSymbols` paints centers in
@@ -31,9 +31,9 @@ must prepare those inputs first.
 Construction and ownership
 --------------------------
 
-``CairoRenderContext`` embeds :c:func:`Rbc_RenderContext` first and owns a Cairo surface reference, ``cairo_t`` and
-optional bitmap/stipple pattern. It copies stroke colors, dash values and offset. Its fill style is a shallow copy, so
-referenced component colors remain borrowed until drawing completes.
+:c:struct:`CairoRenderContext` embeds :c:struct:`Rbc_RenderContext` first and owns a Cairo surface reference,
+``cairo_t`` and optional bitmap/stipple pattern. It copies stroke colors, dash values and offset. Its fill style is a
+shallow copy, so referenced component colors remain borrowed until drawing completes.
 
 :c:func:`BeginRenderTarget` rejects non-Cairo selection, absent drawable/color, nonfinite or nonpositive line width, and
 nonpositive target dimensions. Setup failure frees partial resources and returns NULL. On X11 it wraps the drawable
@@ -86,10 +86,10 @@ operations.
      - Pair graphics-state scopes through common dispatch. Pushing a clip consumes the pending path; popping cannot
        recover it.
 
-:c:func:`CreateRenderStipple`, :c:func:`CreateRenderBitmap` and func:`CreateRenderPhoto` return owned patterns
-:c:containing copied pixels. Their input images and colors remain borrowed. :c:func:`RenderAreaPixel` converts a
-:c:missing color to transparency; this is distinct from constructors that reject a missing required stroke
-:c:color. Completion through func:`CairoEnd` flushes and reports errors; failure cleanup through
+:c:func:`CreateRenderStipple`, :c:func:`CreateRenderBitmap` and :c:func:`CreateRenderPhoto` return owned patterns
+containing copied pixels. Their input images and colors remain borrowed. :c:func:`RenderAreaPixel` converts a
+missing color to transparency; this is distinct from constructors that reject a missing required stroke
+color. Completion through :c:func:`CairoEnd` flushes and reports errors; failure cleanup through
 :c:func:`FreeRenderContext` only releases resources.
 
 Paths and clip scopes

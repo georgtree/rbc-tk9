@@ -1235,9 +1235,9 @@ other widgets. Use them for mutable dash state or other settings that cannot be 
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Rbc_GetPrivateGC / Rbc_GetPrivateGCFromDrawable</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGC" title="Rbc_GetPrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGC()</span></code></a> / <a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGCFromDrawable" title="Rbc_GetPrivateGCFromDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGCFromDrawable()</span></code></a></p></td>
 <td><p>Exclusive caller-owned GC</p></td>
-<td><p>Rbc_FreePrivateGC</p></td>
+<td><p><a class="reference internal" href="window-service-reference.html#c.Rbc_FreePrivateGC" title="Rbc_FreePrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreePrivateGC()</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Tk_GetGC</p></td>
 <td><p>Reference to Tk’s shared cache</p></td>
@@ -1249,21 +1249,21 @@ other widgets. Use them for mutable dash state or other settings that cannot be 
 </tr>
 </tbody>
 </table>
-<p>An unrealized Tk window is not forced into existence merely to obtain a GC. Rbc_GetPrivateGC uses the screen root when
-depths agree, or a temporary 1x1 pixmap at the window depth otherwise. The pixmap is released before returning and the
-GC remains caller-owned. The drawable form requires the caller to supply a compatible drawable. Neither destructor
-accepts arbitrary ownership or makes repeated release safe.</p>
-<p>Rbc_SetDashes reads a bounded, zero-terminated byte sequence and changes the GC dash offset/pattern. It does not choose
-the line style. Do not use this as permission to mutate a borrowed shared GC.</p>
+<p>An unrealized Tk window is not forced into existence merely to obtain a GC. <a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGC" title="Rbc_GetPrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGC()</span></code></a> uses the screen
+root when depths agree, or a temporary 1x1 pixmap at the window depth otherwise. The pixmap is released before returning
+and the GC remains caller-owned. The drawable form requires the caller to supply a compatible drawable. Neither
+destructor accepts arbitrary ownership or makes repeated release safe.</p>
+<p><a class="reference internal" href="window-service-reference.html#c.Rbc_SetDashes" title="Rbc_SetDashes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a> reads a bounded, zero-terminated byte sequence and changes the GC dash offset/pattern. It does
+not choose the line style. Do not use this as permission to mutate a borrowed shared GC.</p>
 </section>
 <section id="request-sizing-and-relief">
 <h2>Request sizing and relief<a class="headerlink" href="#request-sizing-and-relief" title="Link to this heading"></a></h2>
-<p>Rbc_MaxRequestSize reports an element count, not bytes. It reserves four 32-bit protocol words, converts the remaining
-limit to bytes and divides by the caller’s element size. It prefers the extended X request limit when available, falls
-back to the ordinary limit, returns zero for unusable inputs and saturates the result at INT_MAX. A caller still needs
-to account for its actual request format and split batches. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
-<p>Rbc_Draw3DRectangle preserves RBC’s historical raised/sunken outer-edge appearance, then delegates the inset to
-Tk_Draw3DRectangle. Its X11 and Windows edge GCs differ. It borrows all drawing resources and establishes no clipping
+<p><a class="reference internal" href="window-service-reference.html#c.Rbc_MaxRequestSize" title="Rbc_MaxRequestSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MaxRequestSize()</span></code></a> reports an element count, not bytes. It reserves four 32-bit protocol words, converts the
+remaining limit to bytes and divides by the caller’s element size. It prefers the extended X request limit when
+available, falls back to the ordinary limit, returns zero for unusable inputs and saturates the result at INT_MAX. A
+caller still needs to account for its actual request format and split batches. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
+<p><a class="reference internal" href="window-service-reference.html#c.Rbc_Draw3DRectangle" title="Rbc_Draw3DRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Draw3DRectangle()</span></code></a> preserves RBC’s historical raised/sunken outer-edge appearance, then delegates the inset
+to Tk_Draw3DRectangle. Its X11 and Windows edge GCs differ. It borrows all drawing resources and establishes no clipping
 region. Graph paths should enter through their renderer service where one exists; standalone canvas callers do not
 acquire a graph context merely to use this utility. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the module boundary.</p>
 </section>

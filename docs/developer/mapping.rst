@@ -24,10 +24,11 @@ callers. Successful layout can leave mapping pending when the plot is too small.
 just because a previous layout existed. See :doc:`graph-lifecycle` for the callback lifetime rules and the existing
 :c:func:`Rbc_LayoutGraph` contract.
 
-:c:func:`Rbc_ResetAxes` initializes data limits, asks visible contributing elements for extents and accumulates those
-extents into their selected X and Y axes. Bar frequency and stack state are prepared before collecting
-extents. Requested limits, scrolling limits and linear or logarithmic scaling then determine the axis ranges. The
-operation requests subsequent geometry, layout and mapping work; it does not itself produce a complete rendered graph.
+:c:func:`Rbc_ResetAxes <rbcGrAxisRanges.Rbc_ResetAxes>` initializes data limits, asks visible contributing elements for
+extents and accumulates those extents into their selected X and Y axes. Bar frequency and stack state are prepared
+before collecting extents. Requested limits, scrolling limits and linear or logarithmic scaling then determine the axis
+ranges. The operation requests subsequent geometry, layout and mapping work; it does not itself produce a complete
+rendered graph.
 
 ``Axis.valueRange`` holds accumulated data bounds. ``Axis.axisRange`` is the range used by the mapping helpers,
 including the effects of axis scaling and limit policy. On a logarithmic axis its mapping coordinates are base-10
@@ -36,9 +37,9 @@ exponents. Do not substitute requested limits or raw data bounds for the prepare
 Coordinate conventions
 ----------------------
 
-:c:func:`Rbc_HMap` maps one data value in the horizontal screen direction; func:`Rbc_VMap` maps one in the vertical
-:c:direction. They reject nonfinite inputs and nonpositive logarithmic inputs with ``NAN``. After logarithmic conversion
-:c:when required, they normalize through the prepared axis range. Descending axes reverse the normalized fraction.
+:c:func:`Rbc_HMap` maps one data value in the horizontal screen direction; :c:func:`Rbc_VMap` maps one in the vertical
+direction. They reject nonfinite inputs and nonpositive logarithmic inputs with ``NAN``. After logarithmic conversion
+when required, they normalize through the prepared axis range. Descending axes reverse the normalized fraction.
 
 For an ordinary finite linear range, the mapping is equivalent to:
 

@@ -41,14 +41,14 @@ restrictions. Not every numerical operation is documented here.
 Records, names and storage
 --------------------------
 
-``VectorInterpData`` contains the vector registry and math/index-function tables for an interpreter. ``VectorObject`` is
-the internal alias of the opaque ``Rbc_Vector`` record. It holds type, length, capacity, storage ownership, command
-identity, optional variable mapping, observer chain and cached extrema.
+:c:struct:`VectorInterpData` contains the vector registry and math/index-function tables for an interpreter.
+``VectorObject`` is the internal alias of the opaque :c:type:`Rbc_Vector` record. It holds type, length, capacity,
+storage ownership, command identity, optional variable mapping, observer chain and cached extrema.
 
 A new internal record starts real and empty: its data pointer is NULL and its length and capacity are zero. Growth
-allocates storage; there is no inline array. Real storage contains doubles; complex storage contains ``Rbc_Complex``
-records with separate real and imaginary doubles. Length and capacity count values, not bytes or individual complex
-components.
+allocates storage; there is no inline array. Real storage contains doubles; complex storage contains
+:c:struct:`Rbc_Complex` records with separate real and imaginary doubles. Length and capacity count values, not bytes or
+individual complex components.
 
 :c:func:`Rbc_VectorData` and :c:func:`Rbc_VectorComplexData` return borrowed storage, or NULL for the wrong type. NULL
 can also represent an empty vector, so query type and length rather than using the pointer alone as a type

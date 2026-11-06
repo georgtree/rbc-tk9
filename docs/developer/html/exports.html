@@ -1224,9 +1224,9 @@ its window. The enclosing widget command retains lifetime protection, and layout
 invalidation as described in <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>.</p>
 <section id="document-state">
 <h2>Document state<a class="headerlink" href="#document-state" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcExport.h</span></code> is caller-owned, normally stack storage. Initialization zeroes the record and
-selects its embedded <code class="docutils literal notranslate"><span class="pre">storage</span></code> DString as <code class="docutils literal notranslate"><span class="pre">buffer</span></code>. The interpreter and window are borrowed. The context is private
-and does not extend the installed C API.</p>
+<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code></a> in <code class="docutils literal notranslate"><span class="pre">rbcExport.h</span></code> is caller-owned, normally stack storage. Initialization zeroes the
+record and selects its embedded <code class="docutils literal notranslate"><span class="pre">storage</span></code> DString as <code class="docutils literal notranslate"><span class="pre">buffer</span></code>. The interpreter and window are borrowed. The context
+is private and does not extend the installed C API.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 26.0%" />
@@ -1265,7 +1265,8 @@ before releasing document resources.</p>
 </section>
 <section id="svg-pdf-command-transaction">
 <h2>SVG/PDF command transaction<a class="headerlink" href="#svg-pdf-command-transaction" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GraphExportFormat</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code> supplies the component name/class, integer option offsets, backend, channel
+<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.Rbc_GraphExportFormat" title="rbcGraphExportCommands.Rbc_GraphExportFormat"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_GraphExportFormat</span></code></a> in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code> supplies the
+component name/class, integer option offsets, backend, channel
 policy and two lifecycle callbacks. Its option specifications contain concrete pixel and boolean fields only.
 Initialization uses a temporary Tk option table and retains no Tk resources from that table. Runtime parsing stages all
 option values before committing; an invalid option leaves the previous configuration intact. Repeated valid options use
@@ -1331,13 +1332,13 @@ writer, traverses the graph, then serializes the complete PDF object. Neither ex
 </tr>
 <tr class="row-even"><td><p>Backend cleanup callback</p></td>
 <td><p>None; shared font/storage cleanup suffices</p></td>
-<td><p>Rbc_PdfFree before shared cleanup</p></td>
+<td><p><a class="reference internal" href="pdf-builder-reference.html#c.Rbc_PdfFree" title="Rbc_PdfFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PdfFree()</span></code></a> before shared cleanup</p></td>
 </tr>
 </tbody>
 </table>
-<p>The policy’s field offsets address native <code class="docutils literal notranslate"><span class="pre">int</span></code> members in Graph. They are trusted private metadata, not checked
-offsets supplied by a script. The shared parser supports concrete pixel and boolean specifications only; adding a
-string, synonym or resource-owning option requires extending that parser and its ownership model. An unsupported
+<p>The policy’s field offsets address native <code class="docutils literal notranslate"><span class="pre">int</span></code> members in <a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a>. They are trusted private metadata, not
+checked offsets supplied by a script. The shared parser supports concrete pixel and boolean specifications only; adding
+a string, synonym or resource-owning option requires extending that parser and its ownership model. An unsupported
 specification type reaches Tcl_Panic. Integer query objects report normalized values rather than the original input
 spelling. Initialization may write fields before failing; it belongs to graph construction, unlike the rollback
 guarantee of runtime configuration.</p>

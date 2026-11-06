@@ -1235,9 +1235,9 @@ stipple origin to zero after drawing, rather than restoring a saved nonzero orig
 available. Its data and target cannot escape the call. <a class="reference internal" href="reference.html#c.Rbc_RenderScreenBitmapRun" title="Rbc_RenderScreenBitmapRun"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderScreenBitmapRun()</span></code></a> accepts only opaque,
 unmasked, copy-compatible batches: fallback may replay the full batch and leaves GC clipping cleared. These restrictions
 matter when sharing GCs between components.</p>
-<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginScreenClip" title="Rbc_RenderBeginScreenClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenClip()</span></code></a> instead returns an owned context. Query func:<cite>Rbc_RenderClipDrawable</cite> after each
-:c:push, draw only if it is not None, and pop with <a class="reference internal" href="reference.html#c.Rbc_RenderClipEnd" title="Rbc_RenderClipEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClipEnd()</span></code></a> to commit to the parent. End the context
-:c:with <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>; do not reuse a popped temporary drawable.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginScreenClip" title="Rbc_RenderBeginScreenClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginScreenClip()</span></code></a> instead returns an owned context. Query <a class="reference internal" href="reference.html#c.Rbc_RenderClipDrawable" title="Rbc_RenderClipDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClipDrawable()</span></code></a> after each
+push, draw only if it is not None, and pop with <a class="reference internal" href="reference.html#c.Rbc_RenderClipEnd" title="Rbc_RenderClipEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderClipEnd()</span></code></a> to commit to the parent. End the context
+with <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>; do not reuse a popped temporary drawable.</p>
 </section>
 <section id="platform-responsibilities">
 <h2>Platform responsibilities<a class="headerlink" href="#platform-responsibilities" title="Link to this heading"></a></h2>
@@ -1299,10 +1299,10 @@ replay policy remains with <a class="reference internal" href="native-reference.
 </tr>
 </tbody>
 </table>
-<p>Counts are records, not bytes: traces count points; strip/arc operations count Segment2D pairs; bar operations count
-rectangles. Polygon-symbol stride includes the repeated closing point, whereas the distinct-vertex count excludes it.
-These interfaces consume already mapped coordinates; parameter documentation does not imply that every backend clamps or
-clips out-of-range geometry.</p>
+<p>Counts are records, not bytes: traces count points; strip/arc operations count <a class="reference internal" href="geometry-reference.html#c.Segment2D" title="Segment2D"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Segment2D</span></code></a> pairs; bar
+operations count rectangles. Polygon-symbol stride includes the repeated closing point, whereas the distinct-vertex
+count excludes it. These interfaces consume already mapped coordinates; parameter documentation does not imply that
+every backend clamps or clips out-of-range geometry.</p>
 </section>
 <section id="batch-lifetime-and-coordinate-conversion">
 <h2>Batch lifetime and coordinate conversion<a class="headerlink" href="#batch-lifetime-and-coordinate-conversion" title="Link to this heading"></a></h2>
@@ -1312,9 +1312,9 @@ size. Continuation chunks repeat the preceding endpoint to preserve connectivity
 sample.</p>
 <p>The borrowed GC carries the configured raster operation and drawing style. X11 converts trace coordinates to <code class="docutils literal notranslate"><span class="pre">short</span></code>
 and emits <code class="docutils literal notranslate"><span class="pre">XDrawLines</span></code>. Windows converts to <code class="docutils literal notranslate"><span class="pre">int</span></code> and emits <code class="docutils literal notranslate"><span class="pre">Polyline</span></code> while retaining one acquired DC and
-selected pen/brush across the trace batch. <a class="reference internal" href="native-reference.html#c.rbcNativeX11.Rbc_NativeEndTrace" title="rbcNativeX11.Rbc_NativeEndTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeX11.Rbc_NativeEndTrace()</span></code></a> restores the previously selected
-objects, deletes the objects created by the batch, releases DC state and frees the allocation. It does not free the GC
-or graph.</p>
+selected pen/brush across the trace batch. <a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeEndTrace" title="rbcNativeWindows.Rbc_NativeEndTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeEndTrace()</span></code></a> restores the previously
+selected objects, deletes the objects created by the batch, releases DC state and frees the allocation. It does not free
+the GC or graph.</p>
 <p>Independent strips have their own path. X11 delegates to native segments; Windows batches two-point polylines with
 capacities of 8192 segments for narrow lines and 680 for wide lines. These are implementation choices balancing device
 limits and GDI costs. They should not be replaced by per-point dispatch.</p>
@@ -1423,7 +1423,7 @@ borrowed resource styles. It does not perform layout, repair invalid geometry, o
 <td><p>Do not expect a previous nonzero origin to be restored.</p></td>
 </tr>
 <tr class="row-even"><td><p>Tiled polygon</p></td>
-<td><p>Sets tile origin through Rbc_SetTileOrigin before filling.</p></td>
+<td><p>Sets tile origin through <a class="reference internal" href="image-tile-reference.html#c.Rbc_SetTileOrigin" title="Rbc_SetTileOrigin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetTileOrigin()</span></code></a> before filling.</p></td>
 <td><p>Treat tile-origin configuration as mutable client state.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Interval-selected symbols</p></td>
@@ -1523,7 +1523,8 @@ bounded by the shared caller, so the X11 endpoint simply issues XFillRectangles.
 <section id="windows-batch-eligibility-and-ownership">
 <h2>Windows batch eligibility and ownership<a class="headerlink" href="#windows-batch-eligibility-and-ownership" title="Link to this heading"></a></h2>
 <p>Windows batches retain a drawable DC and selected objects across many primitives. Trace state owns a pen, brush and
-trailing POINT workspace. EndTrace restores previous selections before deleting the batch objects and releasing DC
+trailing POINT workspace. <a class="reference internal" href="native-windows-reference.html#c.rbcNativeWindows.Rbc_NativeEndTrace" title="rbcNativeWindows.Rbc_NativeEndTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NativeEndTrace</span></code></a> restores previous
+selections before deleting the batch objects and releasing DC
 state. Polyline coordinates convert to int; strips convert to LONG. The polygon marker batch intentionally converts
 through short first to preserve its earlier native rasterization. These paths do not share a universal
 coordinate-conversion rule.</p>
@@ -1634,13 +1635,15 @@ pixmap wrapper have different ownership rules even though each bridges native Wi
 </tbody>
 </table>
 <p>The acquisition record preserves Tk’s drawable state; it does not remove the backend’s responsibility to restore
-explicitly selected pens, brushes and saved GDI attributes. Rbc_GCToPen creates an owned pen but also sets TRANSPARENT
+explicitly selected pens, brushes and saved GDI attributes. <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsResources.Rbc_GCToPen" title="rbcWindowsResources.Rbc_GCToPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GCToPen</span></code></a>
+creates an owned pen but also sets TRANSPARENT
 background mode on its borrowed DC. It maps caps/joins and bounded GC dash bytes; a single dash value is duplicated for
 the Windows repeating user style. Pen creation is asserted, rather than returned as a Tcl error.</p>
 </section>
 <section id="monochrome-readback-and-fast-paths">
 <h2>Monochrome readback and fast paths<a class="headerlink" href="#monochrome-readback-and-fast-paths" title="Link to this heading"></a></h2>
-<p>Rbc_GetBitmapData requests positive-height one-bit BI_RGB data. Rows are bottom-up and padded to DWORD boundaries. The
+<p><a class="reference internal" href="native-windows-reference.html#c.rbcWindowsResources.Rbc_GetBitmapData" title="rbcWindowsResources.Rbc_GetBitmapData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetBitmapData</span></code></a> requests positive-height one-bit BI_RGB data. Rows
+are bottom-up and padded to DWORD boundaries. The
 returned pitch describes that padding; the buffer contains bits only, without the DIB header or color table. The caller
 frees it with ckfree. Temporary global-memory headers and DC acquisitions remain internal. A zero or undersized
 biSizeImage is replaced by the calculated minimum storage requirement. The current success check accepts any nonzero
@@ -1709,7 +1712,7 @@ compatibility wrapper neither creates a separate font nor retains text.</p>
 <section id="windows-bitmap-capture-and-transforms">
 <h2>Windows bitmap capture and transforms<a class="headerlink" href="#windows-bitmap-capture-and-transforms" title="Link to this heading"></a></h2>
 <p>The Windows image backend sits below the common image API. Its temporary monochrome buffers use DWORD-aligned rows and
-MSB-first bit addressing. GetBit and SetBit translate logical Y through <code class="docutils literal notranslate"><span class="pre">height-y-1</span></code>. The byte stride is
+MSB-first bit addressing. <code class="docutils literal notranslate"><span class="pre">GetBit</span></code> and <code class="docutils literal notranslate"><span class="pre">SetBit</span></code> translate logical Y through <code class="docutils literal notranslate"><span class="pre">height-y-1</span></code>. The byte stride is
 <code class="docutils literal notranslate"><span class="pre">((width+31)&amp;~31)/8</span></code>; the helper rejects widths that would overflow this alignment calculation. Individual callers
 still own height/product validation.</p>
 <p>Drawable capture uses a 32-bit DIB and SRCCOPY. Conversion reverses bottom-up rows, reads BGR channels using the DIB row
@@ -1755,13 +1758,14 @@ no per-pixel bounds check.</p></td>
 <p>The whole-bitmap rotation rounds its enclosing dimensions upward and checks both size_t allocation limits and the DWORD
 biSizeImage boundary. The regional operation allocates only the requested region, avoiding a full virtual bitmap. Both
 release a destination pixmap on checked readback/upload failure. Their SetDIBits success test is nonzero return, not an
-exact scanline-count check. ScaleBitmap is less defensive: it returns the allocated pixmap after StretchBlt without
+exact scanline-count check. <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_ScaleBitmap" title="rbcWindowsImages.Rbc_ScaleBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap</span></code></a> is less defensive: it returns
+the allocated pixmap after StretchBlt without
 separately validating DC acquisition or the copy result. These contracts must not be generalized into a promise that
 every returned native bitmap has been fully verified.</p>
-<p>Rbc_LastError captures the Windows error code and formats it into one static buffer. The text is borrowed until the next
-call and is not thread-local. It strips trailing line endings and supplies a numeric fallback, but uses the ANSI
-FormatMessage variant. Callers retaining it or presenting it to a UTF-8 Tcl interface must account for lifetime and
-encoding separately.</p>
+<p><a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_LastError" title="rbcWindowsImages.Rbc_LastError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LastError</span></code></a> captures the Windows error code and formats it into one static
+buffer. The text is borrowed until the next call and is not thread-local. It strips trailing line endings and supplies a
+numeric fallback, but uses the ANSI FormatMessage variant. Callers retaining it or presenting it to a UTF-8 Tcl
+interface must account for lifetime and encoding separately.</p>
 </section>
 <section id="internal-template-and-buffer-contracts">
 <h2>Internal template and buffer contracts<a class="headerlink" href="#internal-template-and-buffer-contracts" title="Link to this heading"></a></h2>
@@ -1782,10 +1786,10 @@ historical outer-border adjustment before delegating the remaining fill to Tk.</
 <h3>Bitmap packing and output ownership<a class="headerlink" href="#bitmap-packing-and-output-ownership" title="Link to this heading"></a></h3>
 <p><a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.GetMonoBitmapStride" title="rbcWindowsImages.GetMonoBitmapStride"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.GetMonoBitmapStride()</span></code></a> returns DWORD-aligned row bytes;
 <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetPackedBitmapRowBytes" title="rbcX11Image.GetPackedBitmapRowBytes"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetPackedBitmapRowBytes()</span></code></a> returns tightly packed row bytes. Neither alone validates the complete
-:c:image allocation. The X11 pixel-count helper <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetUnixImagePixelCount" title="rbcX11Image.GetUnixImagePixelCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetUnixImagePixelCount()</span></code></a> checks dimension
-:c:multiplication, while <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetBitmapDimension" title="rbcX11Image.GetBitmapDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetBitmapDimension()</span></code></a> converts a finite rounded extent. These helpers have
-:c:different failure contracts: panic, zero result and ordinary status-returning callers must not be treated
-:c:interchangeably.</p>
+image allocation. The X11 pixel-count helper <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetUnixImagePixelCount" title="rbcX11Image.GetUnixImagePixelCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetUnixImagePixelCount()</span></code></a> checks dimension
+multiplication, while <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetBitmapDimension" title="rbcX11Image.GetBitmapDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetBitmapDimension()</span></code></a> converts a finite rounded extent. These helpers have
+different failure contracts: panic, zero result and ordinary status-returning callers must not be treated
+interchangeably.</p>
 <p><a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_RotateBitmap" title="rbcWindowsImages.Rbc_RotateBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.Rbc_RotateBitmap()</span></code></a> assigns output dimensions only after its initial argument validation;
 subsequent checked failure leaves them zero. <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsImages.Rbc_ScaleRotateBitmapRegion" title="rbcWindowsImages.Rbc_ScaleRotateBitmapRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsImages.Rbc_ScaleRotateBitmapRegion()</span></code></a> expects a region
 within the virtual image, especially for exact quadrant mappings. A successful returned pixmap is owned by the
@@ -1800,9 +1804,9 @@ after gamma conversion.</p>
 </section>
 <section id="retained-native-geometry-contexts">
 <h2>Retained native geometry contexts<a class="headerlink" href="#retained-native-geometry-contexts" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativeSymbols" title="Rbc_RenderBeginNativeSymbols"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeSymbols()</span></code></a> retains the symbol-style pointer; func:<cite>Rbc_RenderBeginBars</cite> instead copies its
-:c:style record, while borrowing the resources referenced by that record. Both borrow the graph and drawable until
-:c:<a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativeSymbols" title="Rbc_RenderBeginNativeSymbols"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeSymbols()</span></code></a> retains the symbol-style pointer; <a class="reference internal" href="reference.html#c.Rbc_RenderBeginBars" title="Rbc_RenderBeginBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginBars()</span></code></a> instead copies
+its style record, while borrowing the resources referenced by that record. Both borrow the graph and drawable until
+<a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a>.</p>
 <p><a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativeFill" title="Rbc_RenderBeginNativeFill"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeFill()</span></code></a> passes the tile and stipple selector to the native fill path. With no tile, a
 non-None selector enables GC filling; None alone does not mean solid fill. <a class="reference internal" href="reference.html#c.Rbc_RenderBeginNativeSegments" title="Rbc_RenderBeginNativeSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginNativeSegments()</span></code></a>
 retains the supplied GC, including XOR and its existing clip.</p>

@@ -1512,10 +1512,10 @@ confirmation of a finite result.</p>
 <a class="reference internal" href="polar-reference.html#c.Rbc_MapSmithGrid" title="Rbc_MapSmithGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid()</span></code></a> require those caches to be empty before entry; the shared grid lifecycle releases old
 arrays. Tick selection and Smith domain settings come from the graph’s global grid, even when a grid pointer is passed
 separately for axes and cache storage.</p>
-<p><a class="reference internal" href="polar-reference.html#c.GetPolarAngularLabelPosition" title="GetPolarAngularLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarAngularLabelPosition()</span></code></a>, func:<cite>GetPolarRadialLabelPosition</cite> and func:<cite>GetSmithReactiveLabelPosition</cite>
-:c:expose success-only outputs. A failed call need not preserve the caller’s old point or anchor. Check the return value
-:c:before using either. Automatic circular anchors use normalized degree angles; cropped-view anchors derive their
-:c:direction from mapped segments instead.</p>
+<p><a class="reference internal" href="polar-reference.html#c.GetPolarAngularLabelPosition" title="GetPolarAngularLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarAngularLabelPosition()</span></code></a>, <a class="reference internal" href="polar-reference.html#c.GetPolarRadialLabelPosition" title="GetPolarRadialLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarRadialLabelPosition()</span></code></a> and
+<a class="reference internal" href="polar-reference.html#c.GetSmithReactiveLabelPosition" title="GetSmithReactiveLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetSmithReactiveLabelPosition()</span></code></a> expose success-only outputs. A failed call need not preserve the caller’s old
+point or anchor. Check the return value before using either. Automatic circular anchors use normalized degree angles;
+cropped-view anchors derive their direction from mapped segments instead.</p>
 </section>
 <section id="formatter-storage-and-cancellation">
 <h2>Formatter storage and cancellation<a class="headerlink" href="#formatter-storage-and-cancellation" title="Link to this heading"></a></h2>

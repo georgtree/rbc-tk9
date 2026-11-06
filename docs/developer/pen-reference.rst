@@ -52,7 +52,8 @@ Named pen implementation
 -------------------------
 
 The implementation group uses a documentation-only ``rbcGrPen`` scope to separate file-local handler names (such as
-DeleteOp) from identical names in other modules. This does not rename C symbols or introduce a runtime namespace.
+:c:func:`DeleteOp <rbcGrPen.DeleteOp>`) from identical names in other modules. This does not rename C symbols or
+introduce a runtime namespace.
 
 .. c:namespace-push:: rbcGrPen
 

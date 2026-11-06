@@ -1284,10 +1284,10 @@ layout.</p>
 </section>
 <section id="record-and-construction-boundaries">
 <h2>Record and construction boundaries<a class="headerlink" href="#record-and-construction-boundaries" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">LegendStruct</span></code> owns configuration and cached geometry, not a separate list of entry objects. Its graph and optional
-track pointers are borrowed. Element records, labels and symbol methods stay with the graph. The distinction matters
-when an element appears in both a global and local legend: there are two layout contexts, but only one element and one
-<code class="docutils literal notranslate"><span class="pre">LABEL_ACTIVE</span></code> flag.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.LegendStruct" title="rbcGrLegendLifetime.LegendStruct"><code class="xref c c-struct docutils literal notranslate"><span class="pre">LegendStruct</span></code></a> owns configuration and cached geometry, not a separate list
+of entry objects. Its graph and optional track pointers are borrowed. <a class="reference internal" href="element-reference.html#c.Element" title="Element"><code class="xref c c-type docutils literal notranslate"><span class="pre">Element</span></code></a> records, labels and symbol
+methods stay with the graph. The distinction matters when an element appears in both a global and local legend: there
+are two layout contexts, but only one element and one <code class="docutils literal notranslate"><span class="pre">LABEL_ACTIVE</span></code> flag.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Ownership by legend kind</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <thead>
@@ -1512,10 +1512,11 @@ cached origin.</p>
 <p>A non-NULL picking context is therefore not proof that an entry was selected. The returned element pointer determines
 whether an item was found; the context identifies the scope for subsequent tag collection. Neither result acquires an
 element or legend reference.</p>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_DrawTrackLegends" title="rbcGrLegendOutput.Rbc_DrawTrackLegends"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_DrawTrackLegends()</span></code></a> and func:<cite>rbcGrLegendOutput.Rbc_ExportTrackLegends</cite> compare the
-:c:requested <code class="docutils literal notranslate"><span class="pre">raised</span></code> value directly with the stored flag. Pass zero or one, rather than an arbitrary nonzero
-:c:value. Their drawable or export context remains borrowed. The direct <a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_LegendExport" title="rbcGrLegendOutput.Rbc_LegendExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_LegendExport()</span></code></a>
-:c:call does not supply the track clip itself; that is the layer wrapper’s responsibility.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_DrawTrackLegends" title="rbcGrLegendOutput.Rbc_DrawTrackLegends"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_DrawTrackLegends()</span></code></a> and
+<a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_ExportTrackLegends" title="rbcGrLegendOutput.Rbc_ExportTrackLegends"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportTrackLegends</span></code></a> compare the
+requested <code class="docutils literal notranslate"><span class="pre">raised</span></code> value directly with the stored flag. Pass zero or one, rather than an arbitrary nonzero
+value. Their drawable or export context remains borrowed. The direct <a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_LegendExport" title="rbcGrLegendOutput.Rbc_LegendExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_LegendExport()</span></code></a>
+call does not supply the track clip itself; that is the layer wrapper’s responsibility.</p>
 <p>The full nested argument vector passed to <a class="reference internal" href="legend-reference.html#c.rbcGrLegendCommands.Rbc_TrackLegendOp" title="rbcGrLegendCommands.Rbc_TrackLegendOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendCommands.Rbc_TrackLegendOp()</span></code></a> has its operation at index
 four. The adapter creates a normalized vector with the operation at index two, which is what the shared handlers
 expect. It also refreshes graph layout before calling them. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendCommands.Rbc_LegendOp" title="rbcGrLegendCommands.Rbc_LegendOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendCommands.Rbc_LegendOp()</span></code></a> receives an

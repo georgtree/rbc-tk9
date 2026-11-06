@@ -74,11 +74,11 @@ revising with tests, rather than assuming every nonfinite intermediate propagate
 Real order statistics and normalization
 ---------------------------------------
 
-:c:func:`Median`, :c:func:`Q1` and :c:func:`Q3` allocate a sorted index without reordering source data. Median selects
-the middle value for odd length and averages the middle pair for even length. Empty input or index-allocation failure
-returns ``-DBL_MAX``. This is a finite sentinel, so the evaluator's final finite check does not itself turn it into an
-error. These helpers have numeric return signatures, not Tcl status returns; their allocation-failure behavior needs
-separate attention if revised.
+:c:func:`Median`, :c:func:`Q1` and :c:func:`Q3` allocate a sorted index without reordering source data. :c:func:`Median`
+selects the middle value for odd length and averages the middle pair for even length. Empty input or index-allocation
+failure returns ``-DBL_MAX``. This is a finite sentinel, so the evaluator's final finite check does not itself turn it
+into an error. These helpers have numeric return signatures, not Tcl status returns; their allocation-failure behavior
+needs separate attention if revised.
 
 Quartiles use legacy integer index formulas. For length below four, ``q1`` is the minimum and ``q3`` the
 maximum. Otherwise, with zero-based sorted positions, set ``mid = (length-1)/2`` using integer division. The lower index

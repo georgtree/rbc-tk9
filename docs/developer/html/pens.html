@@ -1217,8 +1217,9 @@
 <h1>Pens and style palettes<a class="headerlink" href="#pens-and-style-palettes" title="Link to this heading"></a></h1>
 <p>Named pens are graph-owned reusable drawing resources. <code class="docutils literal notranslate"><span class="pre">rbcGrPen.c</span></code> manages their registry, commands, reference counts
 and option lifecycle. Concrete line and bar implementations provide their drawing attributes and derived resources.
-Strip and polar elements use the line-pen implementation. Shared <code class="docutils literal notranslate"><span class="pre">Pen</span></code> state and declarations live in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code>;
-palette services are in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcGrElem.h</span></code>. See <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a> for selected contracts.</p>
+Strip and polar elements use the line-pen implementation. Shared <a class="reference internal" href="pen-reference.html#c.Pen" title="Pen"><code class="xref c c-type docutils literal notranslate"><span class="pre">Pen</span></code></a> state and declarations live in
+<code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code>; palette services are in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcGrElem.h</span></code>. See <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a> for selected
+contracts.</p>
 <section id="named-and-embedded-pens">
 <h2>Named and embedded pens<a class="headerlink" href="#named-and-embedded-pens" title="Link to this heading"></a></h2>
 <p>A named pen belongs to the graph’s pen table. Successful <a class="reference internal" href="pen-reference.html#c.Rbc_GetPen" title="Rbc_GetPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPen()</span></code></a> lookup checks its type and increments its

@@ -1217,7 +1217,8 @@
 <h1>Typed command dispatch<a class="headerlink" href="#typed-command-dispatch" title="Link to this heading"></a></h1>
 <p><a class="reference internal" href="dispatch-reference.html#c.Rbc_GetOpIndexFromObj" title="Rbc_GetOpIndexFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetOpIndexFromObj()</span></code></a> in <code class="docutils literal notranslate"><span class="pre">rbcUtil.c</span></code> selects an operation and validates its argument count. It does not
 invoke the callback, own a command object or manage component lifetime. Each component supplies a persistent typed table
-whose first member is Rbc_OpSpecHeader, followed by its correctly typed callback and any component-specific fields.</p>
+whose first member is <a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_OpSpecHeader</span></code></a>, followed by its correctly typed callback and any component-specific
+fields.</p>
 <section id="table-layout-and-lifetime">
 <h2>Table layout and lifetime<a class="headerlink" href="#table-layout-and-lifetime" title="Link to this heading"></a></h2>
 <p>The first header field is the operation name; a NULL name terminates the array. The caller passes sizeof of the

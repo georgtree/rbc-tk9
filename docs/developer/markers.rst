@@ -1,10 +1,10 @@
 Marker lifecycle and drawing
 ============================
 
-``rbcGrMarker.c`` owns the marker registry, display list, shared commands and concrete marker classes. ``MarkerStruct``
-contains common coordinates, axes, track association, visibility, tags and option state. Each concrete record adds its
-own resources and cached geometry. ``MarkerClass`` supplies configuration, mapping, drawing, export, point/region tests
-and cleanup. See :doc:`marker-reference` for the shared graph-facing contracts.
+``rbcGrMarker.c`` owns the marker registry, display list, shared commands and concrete marker classes.
+:c:struct:`MarkerStruct` contains common coordinates, axes, track association, visibility, tags and option state. Each
+concrete record adds its own resources and cached geometry. :c:struct:`MarkerClass` supplies configuration, mapping,
+drawing, export, point/region tests and cleanup. See :doc:`marker-reference` for the shared graph-facing contracts.
 
 Coordinates and mapping
 -----------------------
@@ -106,8 +106,8 @@ Common configuration and ownership
 ----------------------------------
 
 Concrete marker records embed ``Marker`` as their first member, checked by static assertions. Class methods receive that
-common header and recover the concrete record. ``MarkerClass`` combines Tk option specifications with configure, map,
-draw, export, point-test, region-test and cleanup callbacks. The common constructor chooses a class; it does not
+common header and recover the concrete record. :c:struct:`MarkerClass` combines Tk option specifications with configure,
+map, draw, export, point-test, region-test and cleanup callbacks. The common constructor chooses a class; it does not
 initialize Tk options or publish a registry entry. Arc construction reuses polygon storage and several polygon services,
 rather than introducing a second common marker lifecycle.
 
@@ -147,9 +147,9 @@ marker. The registry rename is committed only after class configuration succeeds
 the diagnostic retained. This wrapper cannot undo derived resources that a class commits prematurely; each class must
 stage its own fallible work.
 
-Common class preparation uses ``ParsedMarkerOptions``. :c:func:`rbcGrMarkerConfiguration.ParseMarkerOptions` zeros it,
-parses tags, coordinates and state, acquires both axes and validates the optional track. The selected Y axis must belong
-to exactly that track, including the graph-wide NULL case. Failure releases candidate allocations and axis
+Common class preparation uses :c:struct:`ParsedMarkerOptions`. :c:func:`rbcGrMarkerConfiguration.ParseMarkerOptions`
+zeros it, parses tags, coordinates and state, acquires both axes and validates the optional track. The selected Y axis
+must belong to exactly that track, including the graph-wide NULL case. Failure releases candidate allocations and axis
 references. :c:func:`rbcGrMarkerConfiguration.CommitMarkerOptions` frees old common resources, transfers new
 allocations/references and clears transferred pointers. It does not register, map or schedule the marker; concrete
 configuration completes those tasks.
@@ -279,11 +279,12 @@ must be ready to remap when the marker is shown again.
 Geometric markers: line, polygon and arc
 ----------------------------------------
 
-These three classes share renderer services but deliberately retain different geometry and picking
-contracts. ``LineMarker`` owns its segment array and private GC, with fixed-size arrowhead arrays inside the record.
-``PolygonMarker`` is also the storage type for arcs: :c:func:`rbcGrMarkerPolygon.CreateArcMarker` changes the class
-callback table, while configuration and resource release continue to use
-:c:func:`rbcGrMarkerPolygon.ConfigurePolygonMarker` and :c:func:`rbcGrMarkerPolygon.FreePolygonMarker`.
+These three classes share renderer services but deliberately retain different geometry and picking contracts.
+:c:struct:`LineMarker <rbcGrMarkerLine.LineMarker>` owns its segment array and private GC, with fixed-size arrowhead
+arrays inside the record. :c:struct:`PolygonMarker <rbcGrMarkerPolygon.PolygonMarker>` is also the storage type for
+arcs: :c:func:`rbcGrMarkerPolygon.CreateArcMarker` changes the class callback table, while configuration and resource
+release continue to use :c:func:`rbcGrMarkerPolygon.ConfigurePolygonMarker` and
+:c:func:`rbcGrMarkerPolygon.FreePolygonMarker`.
 
 .. list-table:: Geometry ownership and consumers
    :header-rows: 1
@@ -643,9 +644,9 @@ Cairo context reuse and native targets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :c:func:`rbcGrMarkerBatches.GetMarkerStroke` accepts solid, non-XOR line shafts without arrows and polygon outlines
-without drawable fills. It returns a borrowed ``MarkerStroke`` view; a FALSE result must not be used, even if some
-fields were written. Arcs retain their class-specific continuous-curve path. Style equality compares width, cap, join
-and RGB values, not pointer identity.
+without drawable fills. It returns a borrowed :c:struct:`MarkerStroke <rbcGrMarkerBatches.MarkerStroke>` view; a FALSE
+result must not be used, even if some fields were written. Arcs retain their class-specific continuous-curve path. Style
+equality compares width, cap, join and RGB values, not pointer identity.
 
 Compatible strokes reuse an open renderer context, but each marker still calls :c:func:`Rbc_RenderSegments`
 separately. Merging all paths into one stroke would change antialiased overlap coverage. Incompatible visible content

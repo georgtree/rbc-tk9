@@ -9,9 +9,9 @@ command entry points and result ownership, :doc:`expression-numerics` for reduct
 Parser state and precedence
 ---------------------------
 
-``Value`` holds an already allocated temporary vector. ``ParseInfo`` borrows the complete writable expression string and
-stores ``nextPtr`` plus the last scanned token. A token describes characters immediately before ``nextPtr``; returning
-from a recursive value parse does not rewind the terminating operator.
+:c:struct:`Value` holds an already allocated temporary vector. :c:struct:`ParseInfo` borrows the complete writable
+expression string and stores ``nextPtr`` plus the last scanned token. A token describes characters immediately before
+``nextPtr``; returning from a recursive value parse does not rewind the terminating operator.
 
 :c:func:`NextValue` allocates a second operand temporary for each invocation. It first handles an ordinary value,
 parenthesized expression or unary operator, then recursively obtains right operands while their operators have greater
@@ -153,10 +153,10 @@ rule concerns evaluator temporaries; it does not permit changing the type of an 
 Parser argument and completion contracts
 -----------------------------------------
 
-The parser receives a live writable expression buffer and caller-owned ``Value``/``ParseInfo`` records. Their pointers
-are borrowed for the call; returning a value does not transfer ownership of those records. The caller must release the
-vector temporary on both success and failure. In particular, Tcl substitutions can have lasting side effects even when
-parsing fails.
+The parser receives a live writable expression buffer and caller-owned :c:struct:`Value` and :c:struct:`ParseInfo`
+records. Their pointers are borrowed for the call; returning a value does not transfer ownership of those records. The
+caller must release the vector temporary on both success and failure. In particular, Tcl substitutions can have lasting
+side effects even when parsing fails.
 
 .. list-table:: Cursor and result conventions
    :header-rows: 1
@@ -181,9 +181,9 @@ parsing fails.
      - At the next operand in shared parser state.
      - The terminating token is already scanned; the cursor is not rewound.
 
-:c:func:`ParseBracketScript` propagates the script's completion code unchanged. func:`MapVector`, by contrast, converts
-:c:unsupported callback completion codes into map errors. A helper's non-OK return therefore must be interpreted
-:c:according to that helper's contract. A written cursor or populated temporary is not proof of successful completion.
+:c:func:`ParseBracketScript` propagates the script's completion code unchanged. :c:func:`MapVector`, by contrast,
+converts unsupported callback completion codes into map errors. A helper's non-OK return therefore must be interpreted
+according to that helper's contract. A written cursor or populated temporary is not proof of successful completion.
 
 :c:func:`ParseSubstitutionResult` takes a temporary Tcl reference before clearing the interpreter result, then calls
 :c:func:`ParseString`. This protects the substitution text from result replacement; it does not retain arbitrary vectors
@@ -211,8 +211,8 @@ intended completion status and apply the appropriate finite-result check; these 
 Registry value ownership
 ------------------------
 
-:c:func:`Rbc_VectorInstallMathFunctions` stores pointers to static ``MathFunction`` descriptors; each descriptor selects
-both the adapter and its concrete ``clientData`` representation. :c:func:`Rbc_VectorInstallSpecialIndices` populates a
-separate table with borrowed numeric callback pointers. :c:func:`InstallIndexProc` inserts or replaces one such
-callback, or removes its name for a null procedure pointer. Tcl owns copied string keys, but neither table owns the
+:c:func:`Rbc_VectorInstallMathFunctions` stores pointers to static :c:struct:`MathFunction` descriptors; each descriptor
+selects both the adapter and its concrete ``clientData`` representation. :c:func:`Rbc_VectorInstallSpecialIndices`
+populates a separate table with borrowed numeric callback pointers. :c:func:`InstallIndexProc` inserts or replaces one
+such callback, or removes its name for a null procedure pointer. Tcl owns copied string keys, but neither table owns the
 pointed-to code or static descriptors. See :doc:`expression-reference` for the initialization contracts.

@@ -40,8 +40,8 @@ complete receiver selected.
 
 :c:func:`TypeOp <rbcVectorCommands.TypeOp>` reports ``real`` or ``complex`` and never changes storage type.
 :c:func:`ReadOnlyOp <rbcVectorCommands.ReadOnlyOp>` returns the current boolean, optionally changing it after boolean
-:c:conversion succeeds. It is reversible and emits no value-change notification. The flag protects data writes, not
-:c:command renaming, mapping or lifecycle.
+conversion succeeds. It is reversible and emits no value-change notification. The flag protects data writes, not
+command renaming, mapping or lifecycle.
 
 :c:func:`ClearOp <rbcVectorCommands.ClearOp>` implements ``clear``, meaning **clear the mapped-array cache**, not empty
 the vector. It is allowed for protected vectors and explicitly flushes even when automatic flushing is disabled. The

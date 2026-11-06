@@ -1265,13 +1265,13 @@ restrictions. Not every numerical operation is documented here.</p>
 </section>
 <section id="records-names-and-storage">
 <h2>Records, names and storage<a class="headerlink" href="#records-names-and-storage" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">VectorInterpData</span></code> contains the vector registry and math/index-function tables for an interpreter. <code class="docutils literal notranslate"><span class="pre">VectorObject</span></code> is
-the internal alias of the opaque <code class="docutils literal notranslate"><span class="pre">Rbc_Vector</span></code> record. It holds type, length, capacity, storage ownership, command
-identity, optional variable mapping, observer chain and cached extrema.</p>
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorInterpData" title="VectorInterpData"><code class="xref c c-struct docutils literal notranslate"><span class="pre">VectorInterpData</span></code></a> contains the vector registry and math/index-function tables for an interpreter.
+<code class="docutils literal notranslate"><span class="pre">VectorObject</span></code> is the internal alias of the opaque <a class="reference internal" href="vector-reference.html#c.Rbc_Vector" title="Rbc_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">Rbc_Vector</span></code></a> record. It holds type, length, capacity,
+storage ownership, command identity, optional variable mapping, observer chain and cached extrema.</p>
 <p>A new internal record starts real and empty: its data pointer is NULL and its length and capacity are zero. Growth
-allocates storage; there is no inline array. Real storage contains doubles; complex storage contains <code class="docutils literal notranslate"><span class="pre">Rbc_Complex</span></code>
-records with separate real and imaginary doubles. Length and capacity count values, not bytes or individual complex
-components.</p>
+allocates storage; there is no inline array. Real storage contains doubles; complex storage contains
+<a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_Complex</span></code></a> records with separate real and imaginary doubles. Length and capacity count values, not bytes or
+individual complex components.</p>
 <p><a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorData" title="Rbc_VectorData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorData()</span></code></a> and <a class="reference internal" href="vector-storage-reference.html#c.Rbc_VectorComplexData" title="Rbc_VectorComplexData"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorComplexData()</span></code></a> return borrowed storage, or NULL for the wrong type. NULL
 can also represent an empty vector, so query type and length rather than using the pointer alone as a type
 test. Reacquire pointers after resize/reset and before using data following callbacks or Tcl evaluation. The vector

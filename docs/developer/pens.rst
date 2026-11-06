@@ -3,8 +3,9 @@ Pens and style palettes
 
 Named pens are graph-owned reusable drawing resources. ``rbcGrPen.c`` manages their registry, commands, reference counts
 and option lifecycle. Concrete line and bar implementations provide their drawing attributes and derived resources.
-Strip and polar elements use the line-pen implementation. Shared ``Pen`` state and declarations live in ``rbcGraph.h``;
-palette services are in ``rbcGrElem.c`` and ``rbcGrElem.h``. See :doc:`pen-reference` for selected contracts.
+Strip and polar elements use the line-pen implementation. Shared :c:type:`Pen` state and declarations live in
+``rbcGraph.h``; palette services are in ``rbcGrElem.c`` and ``rbcGrElem.h``. See :doc:`pen-reference` for selected
+contracts.
 
 Named and embedded pens
 -----------------------

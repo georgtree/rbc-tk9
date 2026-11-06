@@ -9,9 +9,9 @@ clips.
 Coordinates and borrowed storage
 --------------------------------
 
-``Point2D`` and ``Segment2D`` carry double coordinates. ``Extents2D`` uses left/right/top/bottom bounds; valid
-rectangles have finite coordinates with left <= right and top <= bottom. Zero-width or zero-height rectangles are not
-rejected. In screen coordinates, top normally has the smaller Y value.
+:c:struct:`Point2D` and :c:struct:`Segment2D` carry double coordinates. :c:struct:`Extents2D` uses left/right/top/bottom
+bounds; valid rectangles have finite coordinates with left <= right and top <= bottom. Zero-width or zero-height
+rectangles are not rejected. In screen coordinates, top normally has the smaller Y value.
 
 The helpers do not apply axis transforms, logarithms, track offsets or native pixel rounding. Distances and tolerances
 use the same units as their input. Arrays are borrowed. Counts must describe allocated storage: a non-NULL pointer and

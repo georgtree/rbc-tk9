@@ -1534,10 +1534,11 @@ must cancel scheduling separately before releasing it.</p>
 <p><a class="reference internal" href="graph-reference.html#c.rbcGraphLifecycle.Rbc_GetGraphFromWindowData" title="rbcGraphLifecycle.Rbc_GetGraphFromWindowData"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphLifecycle.Rbc_GetGraphFromWindowData()</span></code></a> searches the supplied window and its ancestors for RBC instance
 data. The result is borrowed, with no added preservation or class check. This supports graph descendants but is not a
 generic checked conversion of arbitrary RBC instance data into a graph.</p>
-<p>The parent window class and anonymous option proxy are established before any Graph storage or registries are
+<p>The parent window class and anonymous option proxy are established before any <a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a> storage or registries are
 allocated. If proxy creation fails, the parent window is destroyed directly while the original interpreter error is
-preserved. No deferred Graph destructor is needed on that path. After Graph allocation, instance data, command and
-event-handler setup establish the normal ownership path before fallible component initialization begins.</p>
+preserved. No deferred <a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a> destructor is needed on that path. After <a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a> allocation, instance
+data, command and event-handler setup establish the normal ownership path before fallible component initialization
+begins.</p>
 </section>
 <section id="windows-metafile-layout-and-ownership">
 <h2>Windows metafile layout and ownership<a class="headerlink" href="#windows-metafile-layout-and-ownership" title="Link to this heading"></a></h2>

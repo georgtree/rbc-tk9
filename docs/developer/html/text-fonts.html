@@ -1221,9 +1221,9 @@ SVG/PDF. Neither layer transfers ownership of a component’s Tk font to a rende
 contexts and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for document finalization and cleanup.</p>
 <section id="layouts-borrow-the-text">
 <h2>Layouts borrow the text<a class="headerlink" href="#layouts-borrow-the-text" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextLayout" title="Rbc_GetTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextLayout()</span></code></a> returns one allocation containing a <code class="docutils literal notranslate"><span class="pre">TextLayout</span></code> and its fragment array. Free it with
-<code class="docutils literal notranslate"><span class="pre">ckfree</span></code>. Each fragment points into the original string, which must remain alive and unchanged while the layout is
-used. Fragment counts are UTF byte counts; glyph processing must decode characters rather than index bytes as
+<p><a class="reference internal" href="text-font-reference.html#c.Rbc_GetTextLayout" title="Rbc_GetTextLayout"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetTextLayout()</span></code></a> returns one allocation containing a <a class="reference internal" href="text-font-reference.html#c.TextLayout" title="TextLayout"><code class="xref c c-struct docutils literal notranslate"><span class="pre">TextLayout</span></code></a> and its fragment array. Free it
+with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>. Each fragment points into the original string, which must remain alive and unchanged while the layout
+is used. Fragment counts are UTF byte counts; glyph processing must decode characters rather than index bytes as
 characters.</p>
 <p>Newlines terminate fragments, including empty lines. A trailing newline does not create an additional final empty
 fragment. NULL is treated as an empty string. Tk metrics and <code class="docutils literal notranslate"><span class="pre">Tk_TextWidth</span></code> supply line dimensions; padding, shadow
@@ -1237,8 +1237,8 @@ are interchangeable.</p>
 </section>
 <section id="styles-are-not-universal-owners">
 <h2>Styles are not universal owners<a class="headerlink" href="#styles-are-not-universal-owners" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">TextStyle</span></code> groups font, colors, border, GC and geometry settings. Merely copying or passing it does not acquire Tk
-references. Components usually own font/color options; temporary styles borrow them.</p>
+<p><a class="reference internal" href="text-font-reference.html#c.TextStyle" title="TextStyle"><code class="xref c c-struct docutils literal notranslate"><span class="pre">TextStyle</span></code></a> groups font, colors, border, GC and geometry settings. Merely copying or passing it does not
+acquire Tk references. Components usually own font/color options; temporary styles borrow them.</p>
 <p><a class="reference internal" href="text-font-reference.html#c.Rbc_InitTextStyle" title="Rbc_InitTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitTextStyle()</span></code></a> sets selected defaults, but does not initialize <code class="docutils literal notranslate"><span class="pre">gc</span></code>, <code class="docutils literal notranslate"><span class="pre">border</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code> or
 <code class="docutils literal notranslate"><span class="pre">height</span></code>. Callers must initialize any such fields they use. <a class="reference internal" href="text-font-reference.html#c.rbcTextDrawing.Rbc_SetDrawTextStyle" title="rbcTextDrawing.Rbc_SetDrawTextStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcTextDrawing.Rbc_SetDrawTextStyle()</span></code></a> installs the
 supplied GC without acquiring it; this does not grant permission to release a caller-owned GC.</p>
@@ -1308,7 +1308,7 @@ treated as a per-interpreter or thread-isolated resource owner.</p>
 </section>
 <section id="document-local-font-resolution">
 <h2>Document-local font resolution<a class="headerlink" href="#document-local-font-resolution" title="Link to this heading"></a></h2>
-<p>An export context lazily owns an <code class="docutils literal notranslate"><span class="pre">ExportFontCache</span></code> through <code class="docutils literal notranslate"><span class="pre">fontData</span></code>. The cache has two levels:</p>
+<p>An export context lazily owns an <a class="reference internal" href="text-font-reference.html#c.ExportFontCache" title="ExportFontCache"><code class="xref c c-struct docutils literal notranslate"><span class="pre">ExportFontCache</span></code></a> through <code class="docutils literal notranslate"><span class="pre">fontData</span></code>. The cache has two levels:</p>
 <ul class="simple">
 <li><p>A character lookup keyed by the borrowed <code class="docutils literal notranslate"><span class="pre">Tk_Font</span></code> identity and Unicode scalar, retaining the resolved font,
 character ID and pixel size.</p></li>
@@ -1323,10 +1323,10 @@ attributes. Positive point sizes are converted to screen pixels; negative Tk siz
 <p>This Tcl evaluation is a callback boundary, not a pure font-table read. The helper itself does not preserve a
 graph. Callers must retain the surrounding export lifetime and callback-validity discipline; saving interpreter state
 alone does not make arbitrary reentry safe.</p>
-<p>A successful lookup returns a borrowed <code class="docutils literal notranslate"><span class="pre">Rbc_ExportFont</span></code> and a one-based character ID. That ID is independent of the
-native glyph index, allowing two Unicode characters sharing an outline to retain distinct extraction mappings. The
-returned advance is computed from horizontal font metrics at the resolved pixel size. Outputs must not be consumed after
-failure.</p>
+<p>A successful lookup returns a borrowed <a class="reference internal" href="text-font-reference.html#c.Rbc_ExportFont" title="Rbc_ExportFont"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_ExportFont</span></code></a> and a one-based character ID. That ID is independent
+of the native glyph index, allowing two Unicode characters sharing an outline to retain distinct extraction mappings.
+The returned advance is computed from horizontal font metrics at the resolved pixel size. Outputs must not be consumed
+after failure.</p>
 </section>
 <section id="native-sources-and-font-programs">
 <h2>Native sources and font programs<a class="headerlink" href="#native-sources-and-font-programs" title="Link to this heading"></a></h2>
@@ -1519,10 +1519,10 @@ in the lookup path.</p></td>
 CFF, four for TrueType. In nonembedded mode it sets the advance to zero and the width to two before checking whether the
 character is supported. Outputs are therefore usable only on <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>; error return does not promise untouched output
 pointers. The shared native resolver writes its result pointers only after successful resolution.</p>
-<p><a class="reference internal" href="text-font-reference.html#c.FontActual" title="FontActual"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontActual()</span></code></a> returns a retained Tcl object, which its caller releases. func:<cite>FontAttribute</cite> instead returns a
-:c:borrowed value inside that object. Keeping the attribute pointer does not retain the dictionary. Likewise,
-<a class="reference internal" href="text-font-reference.html#c.Rbc_FontGetTable" title="Rbc_FontGetTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontGetTable()</span></code></a> and <a class="reference internal" href="text-font-reference.html#c.CffItem" title="CffItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">CffItem()</span></code></a> return borrowed byte slices; func:<cite>Rbc_FontGlyphName</cite> may return static
-:c:standard-name bytes or a slice of font-owned custom-name storage. None should be freed by the caller.</p>
+<p><a class="reference internal" href="text-font-reference.html#c.FontActual" title="FontActual"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontActual()</span></code></a> returns a retained Tcl object, which its caller releases. <a class="reference internal" href="text-font-reference.html#c.FontAttribute" title="FontAttribute"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontAttribute()</span></code></a> instead returns a
+borrowed value inside that object. Keeping the attribute pointer does not retain the dictionary. Likewise,
+<a class="reference internal" href="text-font-reference.html#c.Rbc_FontGetTable" title="Rbc_FontGetTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontGetTable()</span></code></a> and <a class="reference internal" href="text-font-reference.html#c.CffItem" title="CffItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">CffItem()</span></code></a> return borrowed byte slices; <a class="reference internal" href="text-font-reference.html#c.Rbc_FontGlyphName" title="Rbc_FontGlyphName"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FontGlyphName()</span></code></a> may return
+static standard-name bytes or a slice of font-owned custom-name storage. None should be freed by the caller.</p>
 <p><a class="reference internal" href="text-font-reference.html#c.FontSourceOpen" title="FontSourceOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontSourceOpen()</span></code></a> leaves partial acquisition resources with its caller on failure. Pair it with
 <a class="reference internal" href="text-font-reference.html#c.FontSourceFree" title="FontSourceFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontSourceFree()</span></code></a> on either outcome. The rebuilt program has a separate owner: <a class="reference internal" href="text-font-reference.html#c.FontProgram" title="FontProgram"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontProgram()</span></code></a> can attach
 its destination allocation before a later validation error, and <a class="reference internal" href="text-font-reference.html#c.FontFree" title="FontFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">FontFree()</span></code></a> releases that font record. The source

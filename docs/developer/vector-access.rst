@@ -18,11 +18,11 @@ subsequent operations on the same object. A caller needing stable selection acro
 must save the indices, and must separately ensure the vector remains alive. Parse errors restore the previous selection;
 a returned pointer is borrowed.
 
-:c:func:`Rbc_VectorGetIndex` translates single indices; func:`Rbc_VectorGetIndexRange` commits a shared inclusive
-:c:selection. Ordinary numeric indices subtract the vector's external offset. ``end`` forms are relative to length,
-:c:while ``++end`` selects the append position. Registered special indices return a sentinel and callback rather than a
-:c:storage index. Bounds checking does not make these special cases safe to dereference. Range consumers must also
-:c:handle empty vectors explicitly.
+:c:func:`Rbc_VectorGetIndex` translates single indices; :c:func:`Rbc_VectorGetIndexRange` commits a shared inclusive
+selection. Ordinary numeric indices subtract the vector's external offset. ``end`` forms are relative to length,
+while ``++end`` selects the append position. Registered special indices return a sentinel and callback rather than a
+storage index. Bounds checking does not make these special cases safe to dereference. Range consumers must also
+handle empty vectors explicitly.
 
 Index expressions and numerical conversion can execute Tcl. Index-expression evaluation retains the vector and
 interpreter and detects their deletion before using the result; vector-reference parsing retains the object through
@@ -74,9 +74,9 @@ vector destruction before storing their result. No public C signature or stub-ta
 Value objects
 -------------
 
-:c:func:`Rbc_GetDouble` first tries direct Tcl conversion, then expression evaluation. func:`Rbc_GetComplex` accepts a
-:c:two-item list or a scalar with imaginary part zero. The pair conversion can write its real component before
-:c:imaginary conversion fails. Neither helper establishes an atomic vector update or retains a vector.
+:c:func:`Rbc_GetDouble` first tries direct Tcl conversion, then expression evaluation. :c:func:`Rbc_GetComplex` accepts
+a two-item list or a scalar with imaginary part zero. The pair conversion can write its real component before imaginary
+conversion fails. Neither helper establishes an atomic vector update or retains a vector.
 
 :c:func:`Rbc_NewComplexObj` and :c:func:`Rbc_NewVectorValueObj` return new reference-count-zero Tcl objects containing
 copied values: doubles for real storage and two-double lists for complex storage. They do not validate storage
@@ -148,7 +148,7 @@ namespace.
 
 :c:func:`BuildQualifiedName` and :c:func:`GetQualifiedName` initialize a caller DString and return its borrowed
 buffer. The caller frees the DString after use; it must not free the returned character pointer separately. A NULL name
-passed to BuildQualifiedName is exceptional: the DString is not initialized at all.
+passed to :c:func:`BuildQualifiedName` is exceptional: the DString is not initialized at all.
 
 :c:func:`Rbc_VectorSortIndex` creates an owned permutation of storage indices, not a reordered vector or a Tcl
 list. Every key vector must contain the first vector's selected indices. The helper rejects complex keys but does not

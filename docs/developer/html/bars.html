@@ -1222,9 +1222,10 @@ arrays without running Tcl scripts; configuration may evaluate data expressions,
 commands. Those callback boundaries need separate lifetime review.</p>
 <section id="records-and-ownership">
 <h2>Records and ownership<a class="headerlink" href="#records-and-ownership" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Bar</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Element</span></code> first and <code class="docutils literal notranslate"><span class="pre">BarPen</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Pen</span></code> first. The conversion and offset macros preserve that
-common-header layout; a static assertion checks the element header offset. Constructors return common-header pointers,
-not independently allocated header objects. <code class="docutils literal notranslate"><span class="pre">BarRectangle</span></code> aliases the renderer’s rectangle type.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.Bar" title="rbcGrBarGeometry.Bar"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Bar</span></code></a> embeds <a class="reference internal" href="element-reference.html#c.Element" title="Element"><code class="xref c c-type docutils literal notranslate"><span class="pre">Element</span></code></a> first and <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.BarPen" title="rbcGrBarGeometry.BarPen"><code class="xref c c-struct docutils literal notranslate"><span class="pre">BarPen</span></code></a>
+embeds <a class="reference internal" href="pen-reference.html#c.Pen" title="Pen"><code class="xref c c-type docutils literal notranslate"><span class="pre">Pen</span></code></a> first. The conversion and offset macros preserve that common-header layout; a static assertion
+checks the element header offset. Constructors return common-header pointers, not independently allocated header
+objects. <code class="docutils literal notranslate"><span class="pre">BarRectangle</span></code> aliases the renderer’s <a class="reference internal" href="reference.html#c.Rbc_RenderRectangle" title="Rbc_RenderRectangle"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Rbc_RenderRectangle</span></code></a> type.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Storage and release responsibilities</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
@@ -1260,23 +1261,23 @@ not independently allocated header objects. <code class="docutils literal notran
 <td><p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.DestroyPen" title="rbcGrBarConfiguration.DestroyPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.DestroyPen()</span></code></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Normal and active rectangles, source-index maps, mapped errors</p></td>
-<td><p>Bar/Element own the arrays; styles borrow slices</p></td>
+<td><p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.Bar" title="rbcGrBarGeometry.Bar"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Bar</span></code></a> and <a class="reference internal" href="element-reference.html#c.Element" title="Element"><code class="xref c c-type docutils literal notranslate"><span class="pre">Element</span></code></a> own the arrays; styles borrow slices</p></td>
 <td><p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ResetBar" title="rbcGrBarGeometry.ResetBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ResetBar()</span></code></a></p></td>
 </tr>
 <tr class="row-even"><td><p>Source vector slots</p></td>
-<td><p>Element slots own subscriptions or private data, not application vectors</p></td>
-<td><p>Rbc_FreeElemVector during concrete destruction</p></td>
+<td><p><a class="reference internal" href="element-reference.html#c.Element" title="Element"><code class="xref c c-type docutils literal notranslate"><span class="pre">Element</span></code></a> slots own subscriptions or private data, not application vectors</p></td>
+<td><p><a class="reference internal" href="element-reference.html#c.Rbc_FreeElemVector" title="Rbc_FreeElemVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeElemVector()</span></code></a> during concrete destruction</p></td>
 </tr>
 <tr class="row-odd"><td><p>Duplicate-X records</p></td>
-<td><p>Graph owns freqArr; hash values borrow its records</p></td>
+<td><p><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a> owns freqArr; hash values borrow its records</p></td>
 <td><p>Frequency-table rebuild or graph teardown</p></td>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">BarPenStyle</span></code> stores a concrete <code class="docutils literal notranslate"><span class="pre">BarPen</span> <span class="pre">*</span></code> alongside its weight range and borrowed geometry slices. Never free those
-slices separately. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ClearPalette" title="rbcGrBarGeometry.ClearPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ClearPalette()</span></code></a> invalidates only counts: after
-<a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ResetBar" title="rbcGrBarGeometry.ResetBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ResetBar()</span></code></a> the slice addresses may still contain old values and must not be dereferenced until
-remapping installs valid views.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.BarPenStyle" title="rbcGrBarGeometry.BarPenStyle"><code class="xref c c-struct docutils literal notranslate"><span class="pre">BarPenStyle</span></code></a> stores a concrete <code class="docutils literal notranslate"><span class="pre">BarPen</span> <span class="pre">*</span></code> alongside its weight range and
+borrowed geometry slices. Never free those slices separately. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ClearPalette" title="rbcGrBarGeometry.ClearPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ClearPalette()</span></code></a> invalidates only
+counts: after <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ResetBar" title="rbcGrBarGeometry.ResetBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ResetBar()</span></code></a> the slice addresses may still contain old values and must not be
+dereferenced until remapping installs valid views.</p>
 </section>
 <section id="creation-and-configuration">
 <h2>Creation and configuration<a class="headerlink" href="#creation-and-configuration" title="Link to this heading"></a></h2>

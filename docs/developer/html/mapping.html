@@ -1235,19 +1235,20 @@ local legends.</p></li>
 callers. Successful layout can leave mapping pending when the plot is too small. Do not draw or pick stale axis geometry
 just because a previous layout existed. See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the callback lifetime rules and the existing
 <a class="reference internal" href="graph-reference.html#c.Rbc_LayoutGraph" title="Rbc_LayoutGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LayoutGraph()</span></code></a> contract.</p>
-<p><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetAxes()</span></code> initializes data limits, asks visible contributing elements for extents and accumulates those
-extents into their selected X and Y axes. Bar frequency and stack state are prepared before collecting
-extents. Requested limits, scrolling limits and linear or logarithmic scaling then determine the axis ranges. The
-operation requests subsequent geometry, layout and mapping work; it does not itself produce a complete rendered graph.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.Rbc_ResetAxes" title="rbcGrAxisRanges.Rbc_ResetAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResetAxes</span></code></a> initializes data limits, asks visible contributing elements for
+extents and accumulates those extents into their selected X and Y axes. Bar frequency and stack state are prepared
+before collecting extents. Requested limits, scrolling limits and linear or logarithmic scaling then determine the axis
+ranges. The operation requests subsequent geometry, layout and mapping work; it does not itself produce a complete
+rendered graph.</p>
 <p><code class="docutils literal notranslate"><span class="pre">Axis.valueRange</span></code> holds accumulated data bounds. <code class="docutils literal notranslate"><span class="pre">Axis.axisRange</span></code> is the range used by the mapping helpers,
 including the effects of axis scaling and limit policy. On a logarithmic axis its mapping coordinates are base-10
 exponents. Do not substitute requested limits or raw data bounds for the prepared mapping range.</p>
 </section>
 <section id="coordinate-conventions">
 <h2>Coordinate conventions<a class="headerlink" href="#coordinate-conventions" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="mapping-reference.html#c.Rbc_HMap" title="Rbc_HMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_HMap()</span></code></a> maps one data value in the horizontal screen direction; func:<cite>Rbc_VMap</cite> maps one in the vertical
-:c:direction. They reject nonfinite inputs and nonpositive logarithmic inputs with <code class="docutils literal notranslate"><span class="pre">NAN</span></code>. After logarithmic conversion
-:c:when required, they normalize through the prepared axis range. Descending axes reverse the normalized fraction.</p>
+<p><a class="reference internal" href="mapping-reference.html#c.Rbc_HMap" title="Rbc_HMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_HMap()</span></code></a> maps one data value in the horizontal screen direction; <a class="reference internal" href="mapping-reference.html#c.Rbc_VMap" title="Rbc_VMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VMap()</span></code></a> maps one in the vertical
+direction. They reject nonfinite inputs and nonpositive logarithmic inputs with <code class="docutils literal notranslate"><span class="pre">NAN</span></code>. After logarithmic conversion
+when required, they normalize through the prepared axis range. Descending axes reverse the normalized fraction.</p>
 <p>For an ordinary finite linear range, the mapping is equivalent to:</p>
 <div class="math notranslate nohighlight">
 \[u = (v - a_{min}) / (a_{max} - a_{min})\]</div>

@@ -305,10 +305,10 @@ The allocating mappers publish owned arrays into the supplied grid cache. :c:fun
 arrays. Tick selection and Smith domain settings come from the graph's global grid, even when a grid pointer is passed
 separately for axes and cache storage.
 
-:c:func:`GetPolarAngularLabelPosition`, func:`GetPolarRadialLabelPosition` and func:`GetSmithReactiveLabelPosition`
-:c:expose success-only outputs. A failed call need not preserve the caller's old point or anchor. Check the return value
-:c:before using either. Automatic circular anchors use normalized degree angles; cropped-view anchors derive their
-:c:direction from mapped segments instead.
+:c:func:`GetPolarAngularLabelPosition`, :c:func:`GetPolarRadialLabelPosition` and
+:c:func:`GetSmithReactiveLabelPosition` expose success-only outputs. A failed call need not preserve the caller's old
+point or anchor. Check the return value before using either. Automatic circular anchors use normalized degree angles;
+cropped-view anchors derive their direction from mapped segments instead.
 
 Formatter storage and cancellation
 -----------------------------------

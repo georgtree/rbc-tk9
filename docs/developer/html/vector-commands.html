@@ -1247,8 +1247,8 @@ before the read-only check. Dispatch errors leave the previous selection unchang
 complete receiver selected.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.TypeOp" title="rbcVectorCommands.TypeOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">TypeOp</span></code></a> reports <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code> and never changes storage type.
 <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ReadOnlyOp" title="rbcVectorCommands.ReadOnlyOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadOnlyOp</span></code></a> returns the current boolean, optionally changing it after boolean
-:c:conversion succeeds. It is reversible and emits no value-change notification. The flag protects data writes, not
-:c:command renaming, mapping or lifecycle.</p>
+conversion succeeds. It is reversible and emits no value-change notification. The flag protects data writes, not
+command renaming, mapping or lifecycle.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ClearOp" title="rbcVectorCommands.ClearOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClearOp</span></code></a> implements <code class="docutils literal notranslate"><span class="pre">clear</span></code>, meaning <strong>clear the mapped-array cache</strong>, not empty
 the vector. It is allowed for protected vectors and explicitly flushes even when automatic flushing is disabled. The
 cache normally retains only its <code class="docutils literal notranslate"><span class="pre">end</span></code> entry after recreation; subsequent reads materialize values again. User

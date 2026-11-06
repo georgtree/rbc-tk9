@@ -106,7 +106,7 @@ an opacity-aware pattern. The tile path uses image transparency and does not rec
 argument. Failed or unsupported Cairo rendering falls back to a native fill context. Native pattern filling retains its
 non-blended behavior. Do not infer identical transparency support merely from the common polygon interface.
 
-Export builds ``Rbc_RenderFillStyle`` and uses export fill contexts with the mapped geometry. It preserves
+Export builds :c:struct:`Rbc_RenderFillStyle` and uses export fill contexts with the mapped geometry. It preserves
 area-before-band ordering and supplies tiles through :c:func:`Rbc_RenderSetFillTile`. PostScript retains its
 opaque/tile-background policy; format capabilities remain the renderer's responsibility. See :doc:`rendering` and
 :doc:`exports`.
@@ -123,11 +123,11 @@ transaction code handles ordinary area and error-band resources, selected by its
 machinery, not option availability or geometry rules.
 
 Pattern parsing has three results: empty/NULL means None, exact solid means PATTERN_SOLID, and other strings acquire a
-Tk bitmap. :c:func:`rbcGrLineOptions.GetPatternFromString` writes its output only after successful
-lookup. :c:func:`rbcGrLineOptions.FreeLinePattern` releases only actual bitmap references. Tile parsing similarly treats
-empty/NULL as a staged clear; nonempty input acquires a client through
-Rbc_GetTile. :c:func:`rbcGrLineOptions.StageLineAreaPattern` and :c:func:`rbcGrLineOptions.StageLineAreaTile` acquire
-the new resource before releasing an earlier candidate, preserving that candidate if the replacement fails.
+Tk bitmap. :c:func:`rbcGrLineOptions.GetPatternFromString` writes its output only after successful lookup.
+:c:func:`rbcGrLineOptions.FreeLinePattern` releases only actual bitmap references. Tile parsing similarly treats
+empty/NULL as a staged clear; nonempty input acquires a client through :c:func:`Rbc_GetTile`.
+:c:func:`rbcGrLineOptions.StageLineAreaPattern` and :c:func:`rbcGrLineOptions.StageLineAreaTile` acquire the new
+resource before releasing an earlier candidate, preserving that candidate if the replacement fails.
 
 :c:func:`rbcGrLineOptions.PrepareLineAreaTransaction` initializes fresh candidate storage. Initial defaults are
 considered only for fields not explicitly supplied; explicit repetitions are processed in caller order. A bad early
@@ -175,9 +175,9 @@ leave their outputs unchanged on failure; their object adapters borrow required,
 failure diagnostic lists all accepted names, including the cubic alias and catrom. Matching remains exact; the
 diagnostic does not change parsing.
 
-:c:func:`rbcGrLineOptions.GetSymbolFromObj` initializes a fresh ParsedSymbol rather than releasing an old one. Empty
-input disables symbols. Geometric names use legacy prefix rules: none, diamond, plus, triangle and arrow accept
-one-character prefixes; circle, cross, square, splus and scross require at least two characters. Matching is
+:c:func:`rbcGrLineOptions.GetSymbolFromObj` initializes a fresh :c:struct:`ParsedSymbol` rather than releasing an old
+one. Empty input disables symbols. Geometric names use legacy prefix rules: none, diamond, plus, triangle and arrow
+accept one-character prefixes; circle, cross, square, splus and scross require at least two characters. Matching is
 case-sensitive. Other input is parsed as a one- or two-item bitmap/mask list. The bitmap is released if mask lookup
 fails, and success transfers both acquired references to the result. This parser does not validate bitmap/mask
 dimensions. :c:func:`rbcGrLineOptions.FreeParsedSymbol` clears released handles but leaves the type field unchanged.

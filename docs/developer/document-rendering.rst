@@ -1,18 +1,18 @@
 Document renderer primitives
 ============================
 
-The SVG, PDF and PostScript renderers consume mapped display geometry through ``Rbc_RenderOps``. They do not perform
-axis mapping, decimation, page delivery or graph lifetime management. ``rbcRenderExport.c`` selects the backend and
-prepares its style context; ``rbcRenderExportInt.h`` describes the shared state. See :doc:`rendering`, :doc:`exports`
-and :doc:`document-render-reference`.
+The SVG, PDF and PostScript renderers consume mapped display geometry through :c:struct:`Rbc_RenderOps`. They do not
+perform axis mapping, decimation, page delivery or graph lifetime management. ``rbcRenderExport.c`` selects the backend
+and prepares its style context; ``rbcRenderExportInt.h`` describes the shared state. See :doc:`rendering`,
+:doc:`exports` and :doc:`document-render-reference`.
 
 Context lifetime and state
 --------------------------
 
-Each constructor allocates a short-lived renderer context borrowing the ``Rbc_ExportContext``. A PDF context requires an
-initialized PDF builder; a PostScript context requires the legacy token in ``backendData``. SVG writes to the current
-export buffer. None of these constructors begins or completes a document. The export and graph must outlive all contexts
-that reference them.
+Each constructor allocates a short-lived renderer context borrowing the :c:struct:`Rbc_ExportContext`. A PDF context
+requires an initialized PDF builder; a PostScript context requires the legacy token in ``backendData``. SVG writes to
+the current export buffer. None of these constructors begins or completes a document. The export and graph must outlive
+all contexts that reference them.
 
 Stroke construction copies SVG/PDF colors and dash values, clamps width to at least one, and caches cap/join
 settings. Fill and symbol constructors make shallow style copies: referenced colors, bitmaps and tiles remain borrowed.
@@ -185,21 +185,21 @@ document's error status.
 Shared backend setup
 ---------------------
 
-:c:func:`Rbc_RenderCreateSvg`, :c:func:`Rbc_RenderCreatePdf` and func:`Rbc_RenderCreatePostscript` allocate operation
-:c:contexts without creating a document. The initialized export token remains borrowed. A PDF builder or PostScript
-:c:token must be ready before the first drawing operation. These constructors are internal building blocks; component
-:c:code normally uses the style-aware constructors in :doc:`reference`.
+:c:func:`Rbc_RenderCreateSvg`, :c:func:`Rbc_RenderCreatePdf` and :c:func:`Rbc_RenderCreatePostscript` allocate operation
+contexts without creating a document. The initialized export token remains borrowed. A PDF builder or PostScript
+token must be ready before the first drawing operation. These constructors are internal building blocks; component
+code normally uses the style-aware constructors in :doc:`reference`.
 
-:c:func:`Rbc_RenderExportLineStyle` caches cap/join settings and func:`Rbc_RenderExportDashBackground` copies an
-:c:optional color for SVG/PDF. The corresponding PostScript setup is immediate: func:`Rbc_RenderPostscriptStroke`,
-:c::c:func:`Rbc_RenderPostscriptSymbol` and func:`Rbc_RenderPostscriptBarSymbol` emit attributes or procedure
-:c:definitions. The style pointers do not transfer ownership of colors or bitmaps.
+:c:func:`Rbc_RenderExportLineStyle` caches cap/join settings and :c:func:`Rbc_RenderExportDashBackground` copies an
+optional color for SVG/PDF. The corresponding PostScript setup is immediate: :c:func:`Rbc_RenderPostscriptStroke`,
+:c:func:`Rbc_RenderPostscriptSymbol` and :c:func:`Rbc_RenderPostscriptBarSymbol` emit attributes or procedure
+definitions. The style pointers do not transfer ownership of colors or bitmaps.
 
 :c:func:`Rbc_RenderExportRasterImage` returns a caller-owned color image; NULL can mean ordinary omission or capture
 failure, so also inspect the document error state. :c:func:`Rbc_RenderExportSymbolRound` preserves legacy rounding
 halfway away from zero and requires a finite value whose adjusted result fits an int. Neither helper is a general
 input-validation boundary.
 
-:c:func:`Rbc_RenderExportEnd` only frees the context allocation. Call func:`Rbc_RenderEnd` to unwind tracked clips
-:c:first, and finish the separate plot scope before doing so. Backend resources and document buffers remain the export
-:c:owner's responsibility.
+:c:func:`Rbc_RenderExportEnd` only frees the context allocation. Call :c:func:`Rbc_RenderEnd` to unwind tracked clips
+first, and finish the separate plot scope before doing so. Backend resources and document buffers remain the export
+owner's responsibility.

@@ -1336,9 +1336,10 @@ a lookup result transfers ownership of the static record.</p>
 </section>
 <section id="contribution-layout-and-rounding">
 <h2>Contribution layout and rounding<a class="headerlink" href="#contribution-layout-and-rounding" title="Link to this heading"></a></h2>
-<p>Each Sample stores a source start index, count and variable-length ResampleWeight
+<p>Each <a class="reference internal" href="resampling-reference.html#c.Sample" title="Sample"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Sample</span></code></a> stores a source start index, count and variable-length <a class="reference internal" href="resampling-reference.html#c.ResampleWeight" title="ResampleWeight"><code class="xref c c-union docutils literal notranslate"><span class="pre">ResampleWeight</span></code></a>
 array. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> returns the byte stride, which must be used to advance between
-records; ordinary Sample pointer arithmetic would be incorrect. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetSampleRecordSize" title="rbcImageResampling.GetSampleRecordSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetSampleRecordSize()</span></code></a>
+records; ordinary <a class="reference internal" href="resampling-reference.html#c.Sample" title="Sample"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Sample</span></code></a> pointer arithmetic would be incorrect.
+<a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetSampleRecordSize" title="rbcImageResampling.GetSampleRecordSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetSampleRecordSize()</span></code></a>
 accounts for the first inline weight and checks extra storage before
 multiplication. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetFilterSize" title="rbcImageResampling.GetFilterSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetFilterSize()</span></code></a> caps capacity by source length before narrowing to int, and
 <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetFilterBounds" title="rbcImageResampling.GetFilterBounds"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetFilterBounds()</span></code></a> clips each inclusive interval before converting its endpoints.</p>
@@ -1388,10 +1389,10 @@ dimensions.</p>
 <section id="nearest-neighbour-implementation">
 <h2>Nearest-neighbour implementation<a class="headerlink" href="#nearest-neighbour-implementation" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorImage" title="Rbc_ResizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a> allocates its requested result before checking whether the effective source region is
-empty. A nonempty resize precomputes separate int maps for output columns and rows, copies full Pix32 values, then frees
-both maps. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapNearestCoordinate" title="rbcImageStorage.MapNearestCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapNearestCoordinate()</span></code></a> truncates position*span/destinationSpan and adds the clamped
-source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped origin rather than
-potentially overflowing endpoint addition.</p>
+empty. A nonempty resize precomputes separate int maps for output columns and rows, copies full <a class="reference internal" href="image-transform-reference.html#c.Pix32" title="Pix32"><code class="xref c c-union docutils literal notranslate"><span class="pre">Pix32</span></code></a> values,
+then frees both maps. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapNearestCoordinate" title="rbcImageStorage.MapNearestCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapNearestCoordinate()</span></code></a> truncates position*span/destinationSpan and adds
+the clamped source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped origin
+rather than potentially overflowing endpoint addition.</p>
 <p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a> allocates only the requested region. Its maps add the region origin and output
 position in double before virtual scaling, avoiding signed-int coordinate
 addition. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapVirtualCoordinate" title="rbcImageStorage.MapVirtualCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapVirtualCoordinate()</span></code></a> clamps values beyond the virtual extent to source edges before

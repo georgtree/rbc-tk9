@@ -34,10 +34,10 @@ the returned record until it frees it or explicitly transfers its storage.
 Parsing and input snapshots
 ---------------------------
 
-``ParseInfo`` tracks the input buffer, scan position and current token. :c:func:`NextValue` performs precedence-based
-evaluation; :c:func:`NextToken` handles numeric literals, vector references, operators and Tcl substitutions.
-:c:func:`EvaluateExpression` checks that the entire expression was consumed and rejects non-finite components in the
-final result.
+:c:struct:`ParseInfo` tracks the input buffer, scan position and current token. :c:func:`NextValue` performs
+precedence-based evaluation; :c:func:`NextToken` handles numeric literals, vector references, operators and Tcl
+substitutions. :c:func:`EvaluateExpression` checks that the entire expression was consumed and rejects non-finite
+components in the final result.
 
 Vector references are copied into expression storage when encountered. A selected vector range is copied through the
 same duplication helper. Later arithmetic can modify that temporary without writing back to the source. This is not a

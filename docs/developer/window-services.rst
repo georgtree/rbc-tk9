@@ -18,9 +18,9 @@ other widgets. Use them for mutable dash state or other settings that cannot be 
    * - Acquisition
      - Ownership
      - Release
-   * - Rbc_GetPrivateGC / Rbc_GetPrivateGCFromDrawable
+   * - :c:func:`Rbc_GetPrivateGC` / :c:func:`Rbc_GetPrivateGCFromDrawable`
      - Exclusive caller-owned GC
-     - Rbc_FreePrivateGC
+     - :c:func:`Rbc_FreePrivateGC`
    * - Tk_GetGC
      - Reference to Tk's shared cache
      - Tk_FreeGC
@@ -28,24 +28,24 @@ other widgets. Use them for mutable dash state or other settings that cannot be 
      - Borrowed GC
      - No release by borrower
 
-An unrealized Tk window is not forced into existence merely to obtain a GC. Rbc_GetPrivateGC uses the screen root when
-depths agree, or a temporary 1x1 pixmap at the window depth otherwise. The pixmap is released before returning and the
-GC remains caller-owned. The drawable form requires the caller to supply a compatible drawable. Neither destructor
-accepts arbitrary ownership or makes repeated release safe.
+An unrealized Tk window is not forced into existence merely to obtain a GC. :c:func:`Rbc_GetPrivateGC` uses the screen
+root when depths agree, or a temporary 1x1 pixmap at the window depth otherwise. The pixmap is released before returning
+and the GC remains caller-owned. The drawable form requires the caller to supply a compatible drawable. Neither
+destructor accepts arbitrary ownership or makes repeated release safe.
 
-Rbc_SetDashes reads a bounded, zero-terminated byte sequence and changes the GC dash offset/pattern. It does not choose
-the line style. Do not use this as permission to mutate a borrowed shared GC.
+:c:func:`Rbc_SetDashes` reads a bounded, zero-terminated byte sequence and changes the GC dash offset/pattern. It does
+not choose the line style. Do not use this as permission to mutate a borrowed shared GC.
 
 Request sizing and relief
 -------------------------
 
-Rbc_MaxRequestSize reports an element count, not bytes. It reserves four 32-bit protocol words, converts the remaining
-limit to bytes and divides by the caller's element size. It prefers the extended X request limit when available, falls
-back to the ordinary limit, returns zero for unusable inputs and saturates the result at INT_MAX. A caller still needs
-to account for its actual request format and split batches. See :doc:`native-rendering`.
+:c:func:`Rbc_MaxRequestSize` reports an element count, not bytes. It reserves four 32-bit protocol words, converts the
+remaining limit to bytes and divides by the caller's element size. It prefers the extended X request limit when
+available, falls back to the ordinary limit, returns zero for unusable inputs and saturates the result at INT_MAX. A
+caller still needs to account for its actual request format and split batches. See :doc:`native-rendering`.
 
-Rbc_Draw3DRectangle preserves RBC's historical raised/sunken outer-edge appearance, then delegates the inset to
-Tk_Draw3DRectangle. Its X11 and Windows edge GCs differ. It borrows all drawing resources and establishes no clipping
+:c:func:`Rbc_Draw3DRectangle` preserves RBC's historical raised/sunken outer-edge appearance, then delegates the inset
+to Tk_Draw3DRectangle. Its X11 and Windows edge GCs differ. It borrows all drawing resources and establishes no clipping
 region. Graph paths should enter through their renderer service where one exists; standalone canvas callers do not
 acquire a graph context merely to use this utility. See :doc:`rendering` for the module boundary.
 
