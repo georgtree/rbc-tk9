@@ -10,7 +10,7 @@
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/rbc.css?v=269a995a" />
-      <link rel="stylesheet" type="text/css" href="_static/rbc-user.css?v=6cc73ce8" />
+      <link rel="stylesheet" type="text/css" href="_static/rbc-layout.css?v=25cbdcf0" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -834,7 +834,7 @@ graphical elements support SVG, PostScript and PDF export. All three exporters w
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9">Source code</a></p></li>
 <li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/">Documentation</a></p></li>
-<li><p><a class="reference external" href="docs/developer/README.md">C developer manual sources and build instructions</a></p></li>
+<li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/developer/html/index.html">C developer manual</a></p></li>
 <li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/rbc-tk9-TclTk9Upgrade.html">Changes and modernization</a></p></li>
 <li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9/issues">Issue tracker</a></p></li>
 </ul>
@@ -1383,9 +1383,10 @@ preambles and the README; it does not rewrite procedure bodies or TclOO method d
 <code class="docutils literal notranslate"><span class="pre">DOC_DEV_PYTHON</span></code>. When invoking <code class="docutils literal notranslate"><span class="pre">docs/doc_gen.tcl</span></code> directly, use the <code class="docutils literal notranslate"><span class="pre">RBC_DOC_PYTHON</span></code> environment variable.
 Executable overrides name a single executable, without extra command-line flags. Sphinx errors fail the user-documentation
 build; review warnings and the rendered pages before publishing.</p>
-<p>The shared stylesheet is maintained in <code class="docutils literal notranslate"><span class="pre">docs/theme/rbc.css</span></code>. User-manual table and option-list layout overrides live in
-<code class="docutils literal notranslate"><span class="pre">docs/theme/rbc-user.css</span></code>; they do not change the developer manual’s C reference layout. The user generator verifies that
-both stylesheets reach the HTML output and fails if a source stylesheet is missing or its output copy is stale. Ruff’s generated theme settings are maintained in
+<p>Shared styles are maintained in <code class="docutils literal notranslate"><span class="pre">docs/theme/rbc.css</span></code>, with table and field-list layout in
+<code class="docutils literal notranslate"><span class="pre">docs/theme/rbc-layout.css</span></code>. Both manuals use RTD’s default content width; cells wrap and field lists stack on narrow
+screens. Both builders stage and verify the stylesheets in the HTML output, failing if a source is missing or an output
+copy differs. Ruff’s generated theme settings are maintained in
 <code class="docutils literal notranslate"><span class="pre">docs/doc_gen.tcl</span></code>; developer settings are in <code class="docutils literal notranslate"><span class="pre">docs/developer/conf.py</span></code>. Keep <code class="docutils literal notranslate"><span class="pre">docs/.nojekyll</span></code> and publish the complete
 HTML output trees, including <code class="docutils literal notranslate"><span class="pre">_static</span></code> CSS, JavaScript and fonts. GitHub Pages serves the theme directly; no Read the Docs
 account or hosting integration is required. Existing user and developer page URLs remain the same.</p>

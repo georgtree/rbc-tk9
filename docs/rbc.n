@@ -21,7 +21,7 @@ This repository maintains and extends Rbc for Tcl/Tk 9\&.0\&. The current packag
 \fIDocumentation\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/]
 .TP
 \(bu
-\fIC developer manual sources and build instructions\fP [URL: docs/developer/README\&.md]
+\fIC developer manual\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/developer/html/index\&.html]
 .TP
 \(bu
 \fIChanges and modernization\fP [URL: https://georgtree\&.github\&.io/rbc-tk9/rbc-tk9-TclTk9Upgrade\&.html]
@@ -792,9 +792,10 @@ DOC_DEV_PYTHON\&. When invoking docs/doc_gen\&.tcl directly, use the RBC_DOC_PYT
 Executable overrides name a single executable, without extra command-line flags\&. Sphinx errors fail the user-documentation
 build; review warnings and the rendered pages before publishing\&.
 .PP
-The shared stylesheet is maintained in docs/theme/rbc\&.css\&. User-manual table and option-list layout overrides live in
-docs/theme/rbc-user\&.css; they do not change the developer manual's C reference layout\&. The user generator verifies that
-both stylesheets reach the HTML output and fails if a source stylesheet is missing or its output copy is stale\&. Ruff's generated theme settings are maintained in
+Shared styles are maintained in docs/theme/rbc\&.css, with table and field-list layout in
+docs/theme/rbc-layout\&.css\&. Both manuals use RTD's default content width; cells wrap and field lists stack on narrow
+screens\&. Both builders stage and verify the stylesheets in the HTML output, failing if a source is missing or an output
+copy differs\&. Ruff's generated theme settings are maintained in
 docs/doc_gen\&.tcl; developer settings are in docs/developer/conf\&.py\&. Keep docs/\&.nojekyll and publish the complete
 HTML output trees, including _static CSS, JavaScript and fonts\&. GitHub Pages serves the theme directly; no Read the Docs
 account or hosting integration is required\&. Existing user and developer page URLs remain the same\&.
