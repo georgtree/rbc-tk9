@@ -1,7 +1,6 @@
-/*
- * rbcCanvEps.c --
- *
- *      This file implements Encapsulated PostScript items for canvas widgets.
+/**
+ * @file rbcCanvEps.c
+ * @brief Legacy EPS canvas item parsing, preview ownership and canvas callbacks.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -16,10 +15,6 @@
  *    2. Draw color images instead of photos. This will eliminate the need
  *       to create hidden photo images.
  *    3. Create a spiffy demo that lets you edit your page description.
- */
-/**
- * @file rbcCanvEps.c
- * @brief Legacy EPS canvas item parsing, preview ownership and canvas callbacks.
  */
 
 /** @defgroup eps_canvas EPS canvas item internals
@@ -199,6 +194,10 @@ typedef struct {
 #endif
 } EpsItem;
 
+/** @ingroup component_option_tables
+ * @brief Legacy Tk_ConfigSpec table used by the EPS canvas item; its offsets address the item rather than a graph component.
+ * @hideinitializer
+ */
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_ANCHOR, "-anchor", (char *)NULL, (char *)NULL, DEF_EPS_ANCHOR, offsetof(EpsItem, anchor),
      TK_CONFIG_DONT_SET_DEFAULT},

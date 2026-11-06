@@ -144,6 +144,8 @@
  */
 #define UCHAR(c) ((unsigned char) (c))
 
+/** @ingroup selector_dispatch
+ * @brief Zero-based position of the operation word in the argument vector supplied to lookup. */
 typedef enum {
     RBC_OP_ARG0, /* Op is the first argument. */
     RBC_OP_ARG1, /* Op is the second argument. */
@@ -860,6 +862,8 @@ void Rbc_DeleteWindowInstanceData(Tk_Window tkwin);
  *   modes leave the computed offset unclamped.
  */
 int Rbc_AdjustViewport(int offset, int worldSize, int windowSize, int scrollUnits, int scrollMode);
+/** @ingroup selector_dispatch
+ * @brief Distinguishes fractional positioning from signed movement by units or pages. */
 typedef enum {RBC_SCROLL_MOVETO, RBC_SCROLL_UNITS, RBC_SCROLL_PAGES} Rbc_ScrollKind;
 /** @brief Parsed scrollbar request, independent of axis application. */
 typedef struct {

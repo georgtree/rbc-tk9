@@ -1,7 +1,12 @@
-/* Native renderer implementation details; not installed. See license.terms. */
-/** @file rbcRenderNative.h
- * Private native backend services; component callers use rbcRender.h.
+/**
+ * @file rbcRenderNative.h
+ * @brief Private native backend services; component callers use rbcRender.h.
+ *
+ * Private header; not installed.
+ *
+ * See license.terms.
  */
+
 #ifndef RBC_RENDER_NATIVE_H
 #define RBC_RENDER_NATIVE_H
 #include "rbcRender.h"

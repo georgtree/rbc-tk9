@@ -57,6 +57,8 @@
 
 #define HORIZMARGIN(m) (!((m)->site & 0x1)) /* Even sites are horizontal */
 
+/** @ingroup selector_axis
+ * @brief Legacy identifiers for tick marks, labels and the axis line; no current axis code dispatches on this type. */
 typedef enum AxisComponents { MAJOR_TICK, MINOR_TICK, TICK_LABEL, AXIS_LINE } AxisComponent;
 
 /** @brief Pixel offsets used to place the axis line, ticks and labels. */
@@ -140,6 +142,8 @@ typedef struct {
 #define AXIS_RESET_MASK (AXIS_GEOMETRY_MASK | AXIS_MAP_MASK)
 #define AXIS_SHADOW_MASK (AXIS_LIMITS_SHADOW_MASK | AXIS_TICK_SHADOW_MASK | AXIS_TITLE_SHADOW_MASK)
 
+/** @ingroup selector_axis
+ * @brief Selects which explicit data or scroll limit a pending axis configuration updates. */
 typedef enum {
     AXIS_LIMIT_OPTION_NONE,
     AXIS_LIMIT_OPTION_MIN,
@@ -163,6 +167,8 @@ typedef struct {
     double scrollMax; /**< Scroll-region upper limit staged for commit or abort. */
 } AxisLimitTransaction;
 
+/** @ingroup selector_axis
+ * @brief Distinguishes major and minor tick-list inputs during axis configuration. */
 typedef enum { AXIS_TICK_OPTION_NONE, AXIS_TICK_OPTION_MAJOR, AXIS_TICK_OPTION_MINOR } AxisTickOption;
 
 #define AXIS_TICK_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
@@ -187,6 +193,8 @@ typedef struct {
     int looseMax; /**< Upper-limit loose-mode selector staged for commit or abort. */
 } AxisLooseTransaction;
 
+/** @ingroup selector_axis
+ * @brief Selects the dimension to convert from a Tk screen distance before committing axis options. */
 typedef enum {
     AXIS_PIXEL_OPTION_NONE,
     AXIS_PIXEL_OPTION_BORDER_WIDTH,
@@ -207,6 +215,8 @@ typedef struct {
     int scrollIncrement; /**< Unit-scroll increment in pixels staged for commit or abort. */
 } AxisPixelTransaction;
 
+/** @ingroup selector_axis
+ * @brief Selects which text style receives a staged shadow resource. */
 typedef enum {
     AXIS_SHADOW_OPTION_NONE,
     AXIS_SHADOW_OPTION_LIMITS,
@@ -246,6 +256,10 @@ typedef struct {
     int nFormats; /**< Number of replacement format strings staged for commit or abort. */
 } AxisFormatTransaction;
 
+/** @ingroup component_option_tables
+ * @brief Axis limits, ticks and presentation; retained option objects feed the axis configuration transaction.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec axisOptionSpecs[] = {
     {TK_OPTION_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, -1, offsetof(Axis, windowSize), 0, NULL,
      AXIS_RESET_MASK | AXIS_REDRAW_MASK},
@@ -383,13 +397,13 @@ typedef int RbcGrAxisVirtualOp(Graph *graphPtr, Tcl_Size objc, Tcl_Obj *const ob
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrAxisOp *proc; /**< Typed command handler for this operation. */
 } AxisOpSpec;
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrAxisVirtualOp *proc; /**< Typed command handler for this operation. */
 } AxisVirtualOpSpec;
 

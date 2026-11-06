@@ -1,7 +1,6 @@
-/*
- * rbcVector.c --
- *
- *      Interpreter-local vectors, storage ownership and client notifications.
+/**
+ * @file rbcVector.c
+ * @brief Interpreter-owned vector identities, storage, access and notification.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,10 +8,6 @@
  * See "license.terms" for details.
  */
 
-/**
- * @file rbcVector.c
- * @brief Interpreter-owned vector identities, storage, access and notification.
- */
 /**
  * @defgroup vector_storage_public Vector storage public C API
  * @brief Reviewed stubs-facing lifetime, storage and protection contracts.
@@ -29,7 +24,7 @@ typedef int RbcVectorOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcVectorOp *proc; /**< Typed command handler for this operation. */
 } VectorOpSpec;
 
@@ -57,6 +52,8 @@ static void UnmapVariable(VectorObject *vPtr);
 double rbcNaN;
 
 #ifdef __BORLANDC__
+/** @ingroup vector_storage_private
+ * @brief Construct the NaN sentinel from the two Borland word fields. */
 static double MakeNaN(void) {
     union Real {
         struct DoubleWord {
@@ -71,10 +68,17 @@ static double MakeNaN(void) {
 #endif /* __BORLANDC__ */
 
 #ifdef _MSC_VER
+/** @ingroup vector_storage_private
+ * @brief Construct the NaN sentinel using the Microsoft C math library. */
 static double MakeNaN(void) { return sqrt(-1.0); /* Generate IEEE 754 Quiet Not-A-Number. */ }
 #endif /* _MSC_VER */
 
 #if !defined(__BORLANDC__) && !defined(_MSC_VER)
+/** @ingroup vector_storage_private
+ * @brief Construct the quiet NaN stored during vector initialization.
+ * The default path sets the IEEE binary64 bits; Borland constructs the word pair
+ * directly and Microsoft uses the C math library. No vector storage is allocated.
+ */
 static double MakeNaN(void) {
     /* copied over from generic/tclStrToD.c */
 #define NAN_START 0x7FF8

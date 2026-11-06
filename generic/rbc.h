@@ -1,17 +1,11 @@
-/*
- * rbc.h --
- *
- *      This file constructs the basic functionality of the
- *      rbc commands.
+/**
+ * @file rbc.h
+ * @brief Public package entry point and client-side stubs initialization.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
- */
-
-/** @file rbc.h
- * Public package entry point and client-side stubs initialization.
  */
 
 #ifndef _RBC

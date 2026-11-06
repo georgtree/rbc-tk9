@@ -1,7 +1,10 @@
-/* PDF font resources. Native font loading is shared with SVG in rbcFont.c. */
-/** @file rbcPdfFont.c
- * PDF character codes, font resource reservations and final serialization.
+/**
+ * @file rbcPdfFont.c
+ * @brief PDF character codes, font resource reservations and final serialization.
+ *
+ * Native font loading is shared with SVG in rbcFont.c.
  */
+
 /** @defgroup pdf_font_internals PDF font resources
  * Private document-owned resources. Character collection precedes finalization.
  */

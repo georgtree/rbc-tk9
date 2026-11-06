@@ -1,7 +1,6 @@
-/*
- * rbcList.c --
- *
- *      The module implements generic linked lists.
+/**
+ * @file rbcList.c
+ * @brief Keyed-list search and reclamation.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcList.c
- * Keyed-list search and reclamation.
- */
 /** @defgroup list_internals Keyed-list search and reclamation
  * Private helpers; callers retain storage and lifetime responsibilities.
  */

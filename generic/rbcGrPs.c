@@ -1,15 +1,14 @@
 /**
  * @file rbcGrPs.c
  * @brief Graph PostScript options, page layout, previews and delivery.
- * @defgroup graph_postscript Graph PostScript command internals
- *
- *      This module implements the "postscript" operation for rbc
- *      graph widget.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
+ */
+
+/** @defgroup graph_postscript Graph PostScript command internals
  */
 
 #include "rbcGraph.h"
@@ -47,6 +46,10 @@
 #define PS_INITIALIZE_MASK                                                                                             \
     (PS_DIMENSIONS_CHANGED | PS_PADDING_CHANGED | PS_COLOR_MODE_CHANGED | PS_PREVIEW_FORMAT_CHANGED)
 
+/** @ingroup component_option_tables
+ * @brief PostScript component configuration, including page layout and printer-specific settings.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec postScriptOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-center", "center", "Center", DEF_PS_CENTER, -1, offsetof(PostScript, center), 0, NULL, 0},
     {TK_OPTION_STRING, "-colormap", "colorMap", "ColorMap", DEF_PS_COLOR_MAP, -1, offsetof(PostScript, colorVarName),
@@ -84,7 +87,7 @@ typedef int RbcGrPsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrPsOp *proc; /**< Typed command handler for this operation. */
 } PostScriptOpSpec;
 

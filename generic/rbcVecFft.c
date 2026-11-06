@@ -1,5 +1,6 @@
-/*
- * rbcVecFft.c --
+/**
+ * @file rbcVecFft.c
+ * @brief FFT workspace and commit helpers.
  *
  *      Radix-2 Fourier transforms for real and complex vectors.
  *      This is a zero-based implementation of the Cooley-Tukey algorithm;
@@ -8,9 +9,6 @@
  * See "license.terms" for information on usage and redistribution.
  */
 
-/** @file rbcVecFft.c
- * FFT workspace and commit helpers.
- */
 /** @defgroup fft_internals FFT workspace and commit helpers
  * Private implementation helpers; not installed C API entry points.
  */

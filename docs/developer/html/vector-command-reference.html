@@ -91,6 +91,7 @@
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-and-member-comment-placement">Contract and member comment placement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#file-headers">File headers</a></li>
 </ul>
 </li>
 </ul>
@@ -223,6 +224,25 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#implementation-selectors">Implementation selectors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats"><code class="docutils literal notranslate"><span class="pre">NativeFormats</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_UNKNOWN"><code class="docutils literal notranslate"><span class="pre">FMT_UNKNOWN</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_UCHAR"><code class="docutils literal notranslate"><span class="pre">FMT_UCHAR</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_CHAR"><code class="docutils literal notranslate"><span class="pre">FMT_CHAR</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_USHORT"><code class="docutils literal notranslate"><span class="pre">FMT_USHORT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_SHORT"><code class="docutils literal notranslate"><span class="pre">FMT_SHORT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_UINT"><code class="docutils literal notranslate"><span class="pre">FMT_UINT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_INT"><code class="docutils literal notranslate"><span class="pre">FMT_INT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_ULONG"><code class="docutils literal notranslate"><span class="pre">FMT_ULONG</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_LONG"><code class="docutils literal notranslate"><span class="pre">FMT_LONG</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_ULONGLONG"><code class="docutils literal notranslate"><span class="pre">FMT_ULONGLONG</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_LONGLONG"><code class="docutils literal notranslate"><span class="pre">FMT_LONGLONG</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_FLOAT"><code class="docutils literal notranslate"><span class="pre">FMT_FLOAT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats.FMT_DOUBLE"><code class="docutils literal notranslate"><span class="pre">FMT_DOUBLE</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-operations.html">Vector indexed edits and rearrangement</a><ul>
@@ -273,6 +293,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html">Expression engine internal C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-numerics.html">Expression reductions and scalar kernels</a><ul>
@@ -344,6 +365,7 @@
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#construction-and-redraw-support">Construction and redraw support</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#windows-metafile-packaging">Windows metafile packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -389,6 +411,7 @@
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#labels-geometry-and-presentation">Labels, geometry and presentation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#layout-queries-scrolling-and-notifications">Layout, queries, scrolling and notifications</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -481,6 +504,7 @@
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-configuration-and-smoothing">Line configuration and smoothing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#shared-error-bar-geometry">Shared error-bar geometry</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -679,6 +703,7 @@
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#window-marker-geometry-management-and-callbacks">Window marker geometry management and callbacks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#pass-batching-and-renderer-dispatch">Pass batching and renderer dispatch</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -812,6 +837,7 @@
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#graph-command-and-traversal">Graph command and traversal</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#svg-and-pdf-command-helpers-and-format-adapters">SVG and PDF command helpers and format adapters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="document-rendering.html">Document renderer primitives</a><ul>
@@ -969,6 +995,7 @@
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#graph-options-and-document-assembly">Graph options and document assembly</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#windows-binary-preview-packaging">Windows binary preview packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1044,6 +1071,7 @@
 <li class="toctree-l2"><a class="reference internal" href="image-color-reference.html">Image color processing C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#palette-reduction-implementation">Palette-reduction implementation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="image-compatibility.html">Temporary images and private Tk adapters</a><ul>
@@ -1142,6 +1170,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#cleanup-boundaries">Cleanup boundaries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#root-and-nested-child-lookup">Root and nested child lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#reading-an-option-table">Reading an option table</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="configuration-reference.html">Component configuration C reference</a><ul>
@@ -1150,6 +1179,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#option-lookup-and-metadata">Option lookup and metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#relative-child-lookup">Relative child lookup</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#component-option-tables">Component option tables</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="bindings.html">Binding dispatch and picking</a><ul>
@@ -1222,9 +1252,13 @@
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#selection-versus-execution">Selection versus execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#maintenance-checks">Maintenance checks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#lookup-inputs-and-output">Lookup inputs and output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#operation-families-and-their-record-types">Operation families and their record types</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dispatch-reference.html#implementation-selectors">Implementation selectors</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="value-conversion.html">Shared value conversion and numeric policy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#screen-units-and-staged-values">Screen units and staged values</a></li>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#dashes-and-callbacks">Dashes and callbacks</a></li>
@@ -1958,7 +1992,7 @@ Converts a complete list into temporary storage and rechecks lifetime and writab
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.CopyValues">
-<span class="target" id="group__vector__command__paths_1ga33df9783ee82b389ab18502b8c2f4dcf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteArr</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">NativeFormats</span></span><span class="w"> </span><span class="n"><span class="pre">fmt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">swap</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CopyValues" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__vector__command__paths_1ga33df9783ee82b389ab18502b8c2f4dcf"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteArr</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats" title="NativeFormats"><span class="n"><span class="pre">NativeFormats</span></span></a><span class="w"> </span><span class="n"><span class="pre">fmt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">swap</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CopyValues" title="Link to this definition"></a><br /></dt>
 <dd><p>Convert a binary scalar buffer into real vector storage. </p>
 <p>
 Checks writable state, range and size arithmetic, extends storage as needed, and advances indexPtr. Optional byte swapping modifies the input buffer in place per scalar. Returns a Tcl status; does not flush or notify. </p>
@@ -1982,7 +2016,7 @@ Checks writable state, range and size arithmetic, extends storage as needed, and
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.CopyComplexValues">
-<span class="target" id="group__vector__command__paths_1ga073a7baa979560610b7dbb319d6217f6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyComplexValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteArr</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">NativeFormats</span></span><span class="w"> </span><span class="n"><span class="pre">fmt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">swap</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CopyComplexValues" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__vector__command__paths_1ga073a7baa979560610b7dbb319d6217f6"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CopyComplexValues</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">byteArr</span></span>, <span class="k"><span class="pre">enum</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats" title="NativeFormats"><span class="n"><span class="pre">NativeFormats</span></span></a><span class="w"> </span><span class="n"><span class="pre">fmt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">swap</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">indexPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcVectorCommands.CopyComplexValues" title="Link to this definition"></a><br /></dt>
 <dd><p>Convert interleaved binary components into complex storage. </p>
 <p>
 Requires a complex vector. Checks writable state and size arithmetic; extends storage and advances indexPtr by logical values. Swaps bytes within each scalar component, never exchanging real and imaginary components. Modifies the input buffer when swapping; does not flush or notify. </p>
@@ -2124,7 +2158,7 @@ layouts part of the installed C API.</p>
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFmtValue.format">
-<span class="target" id="struct_native_fmt_value_1a7491b23dac5923008c01edc6526c5ab9"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="n"><span class="pre">NativeFormats</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">format</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFmtValue.format" title="Link to this definition"></a><br /></dt>
+<span class="target" id="struct_native_fmt_value_1a7491b23dac5923008c01edc6526c5ab9"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><a class="reference internal" href="#c.rbcVectorCommands.NativeFormats" title="NativeFormats"><span class="n"><span class="pre">NativeFormats</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">format</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFmtValue.format" title="Link to this definition"></a><br /></dt>
 <dd><p>Binary numeric format selector. </p>
 </dd></dl>
 
@@ -2140,7 +2174,7 @@ layouts part of the installed C API.</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.VectorInstOpSpec.header">
 <span class="target" id="struct_vector_inst_op_spec_1a7efe9577f00b4fe15a0075a8c4195059"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.VectorInstOpSpec.header" title="Link to this definition"></a><br /></dt>
-<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+<dd><p>Operation name, total argument bounds and usage suffix. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -2150,6 +2184,81 @@ layouts part of the installed C API.</p>
 </dd></dl>
 
 </div>
+</dd></dl>
+
+</section>
+<section id="implementation-selectors">
+<h2>Implementation selectors<a class="headerlink" href="#implementation-selectors" title="Link to this heading"></a></h2>
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats">
+<span class="target" id="group__selector__vector__command_1ga38f9ebe8365046fc82414f5c658197b2"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NativeFormats</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats" title="Link to this definition"></a><br /></dt>
+<dd><p>Identifies the numeric format decoded by vector binread. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_UNKNOWN">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2a018e9d4a520a40a4919e43592bbca78c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_UNKNOWN</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_UNKNOWN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_UCHAR">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2ac18c1105fc0dd6bc27fb0399bd1d33f0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_UCHAR</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_UCHAR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_CHAR">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2a25ca81a71ba00138fd42b6fd0449f4a3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_CHAR</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_CHAR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_USHORT">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2a665e92bc16ed593aee1617600df9fd6c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_USHORT</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_USHORT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_SHORT">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2ae08fc3b999f578a407fc6f563ef38e4b"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_SHORT</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_SHORT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_UINT">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2ad6b252d5872659de077712cdb2b5255c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_UINT</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_UINT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_INT">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2a2a275da9138e40c1eac8b8f218ffde73"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_INT</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_INT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_ULONG">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2a89ce20f60fce19df685095735c2d9e19"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_ULONG</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_ULONG" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_LONG">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2a254aa61e900a06ab00f4a0c5a7d7e246"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_LONG</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_LONG" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_ULONGLONG">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2a3e73ac79944cee300dc5132309e14e64"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_ULONGLONG</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_ULONGLONG" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_LONGLONG">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2ae34ce5acdb8d9889d4bef3643bd62350"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_LONGLONG</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_LONGLONG" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_FLOAT">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2adb95657430b493aa76be6daa6a25cdc1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_FLOAT</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_FLOAT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.rbcVectorCommands.NativeFormats.FMT_DOUBLE">
+<span class="target" id="group__selector__vector__command_1gga38f9ebe8365046fc82414f5c658197b2ae893c13ba4462452e2c8b347057fdc3c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FMT_DOUBLE</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.NativeFormats.FMT_DOUBLE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>

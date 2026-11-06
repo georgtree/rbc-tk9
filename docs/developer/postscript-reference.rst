@@ -98,3 +98,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: PsTokenStruct
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_postscript
+   :content-only:
+   :members:

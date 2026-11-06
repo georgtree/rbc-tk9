@@ -1,8 +1,6 @@
-/*
- * rbcWinDraw.c --
- *
- *      This module contains WIN32 routines not included in the Tcl/Tk
- *      libraries.
+/**
+ * @file rbcWinDraw.c
+ * @brief Private Tk Windows compatibility services used below the native renderer.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -10,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcWinDraw.c
- * Private Tk Windows compatibility services used below the native renderer.
- */
 /** @defgroup windows_drawing_resources Windows drawing resource helpers
  * Drawable wrappers, acquisition records, raster fast paths and GC conversion.
  */

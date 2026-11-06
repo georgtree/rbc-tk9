@@ -28,3 +28,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: VectorInstOpSpec
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_vector_command
+   :content-only:
+   :members:

@@ -107,3 +107,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: Ticks
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_axis
+   :content-only:
+   :members:

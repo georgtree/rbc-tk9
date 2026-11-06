@@ -1,13 +1,15 @@
 /**
  * @file rbcText.c
  * @brief Shared multiline layout, anchor geometry and native Tk text drawing.
- * @defgroup text_drawing Text geometry and native drawing
- * @brief Private helpers; layouts borrow strings and styles borrow Tk resources.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
+ */
+
+/** @defgroup text_drawing Text geometry and native drawing
+ * @brief Private helpers; layouts borrow strings and styles borrow Tk resources.
  */
 
 #include "rbcInt.h"

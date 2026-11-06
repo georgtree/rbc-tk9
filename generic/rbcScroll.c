@@ -1,16 +1,12 @@
-/*
- * rbcScroll.c --
- *
- *      Scroll request parsing and viewport arithmetic.
+/**
+ * @file rbcScroll.c
+ * @brief Integer scroll conversion.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  * See "license.terms" for details.
  */
 
-/** @file rbcScroll.c
- * Integer scroll conversion.
- */
 /** @defgroup scroll_internals Integer scroll conversion
  * Private helpers; callers retain storage and lifetime responsibilities.
  */

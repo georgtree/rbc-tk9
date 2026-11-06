@@ -6,6 +6,10 @@
 #include "rbcRender.h"
 
 /* PDF options intentionally exclude printer/page-specific PostScript settings. */
+/** @ingroup component_option_tables
+ * @brief PDF command policy: dimensions, decorations and font embedding, backed by separate PDF fields of Graph.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec pdfOptionSpecs[] = {
     {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1,
      offsetof(Graph, pdfWidth), 0, NULL, 0},

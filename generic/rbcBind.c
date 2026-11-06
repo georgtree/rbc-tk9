@@ -1,18 +1,11 @@
-/*
- * rbcBind.c --
- *
- *      This module implements object binding procedures for the rbc
- *      toolkit.
+/**
+ * @file rbcBind.c
+ * @brief Shared object event dispatch, current-item tracking and Tk bindings.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
- */
-
-/**
- * @file rbcBind.c
- * @brief Shared object event dispatch, current-item tracking and Tk bindings.
  */
 
 /**

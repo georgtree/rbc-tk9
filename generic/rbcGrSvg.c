@@ -6,6 +6,10 @@
 #include "rbcRender.h"
 
 /* SVG options intentionally exclude printer/page-specific PostScript settings. */
+/** @ingroup component_option_tables
+ * @brief SVG command policy: dimensions, decorations and font embedding, backed by fields of Graph.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec svgOptionSpecs[] = {
     {TK_OPTION_PIXELS, "-width", "width", "Width", "0", -1, offsetof(Graph, svgWidth), 0, NULL, 0},
     {TK_OPTION_PIXELS, "-height", "height", "Height", "0", -1, offsetof(Graph, svgHeight), 0, NULL, 0},

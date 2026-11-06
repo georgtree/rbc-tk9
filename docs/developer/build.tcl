@@ -56,21 +56,36 @@ proc ::rbcDocBuild::main {arguments} {
                 puts {usage: build.tcl ?--build-dir PATH? ?--html-dir PATH? ?--doxygen PATH? ?--python PATH? ?--strict?}
                 return
             }
-            --strict {set strict 1}
-            --build-dir - --html-dir - --doxygen - --python {
+            --strict {
+                set strict 1
+            }
+            --build-dir -
+            --html-dir -
+            --doxygen -
+            --python {
                 if {![llength $arguments] || [string match --* [lindex $arguments 0]]} {
                     error "missing value for $option"
                 }
                 set value [lindex $arguments 0]
                 set arguments [lrange $arguments 1 end]
                 switch -- $option {
-                    --build-dir {set output $value}
-                    --html-dir {set html $value}
-                    --doxygen {set doxygen $value}
-                    --python {set python $value}
+                    --build-dir {
+                        set output $value
+                    }
+                    --html-dir {
+                        set html $value
+                    }
+                    --doxygen {
+                        set doxygen $value
+                    }
+                    --python {
+                        set python $value
+                    }
                 }
             }
-            default {error "unknown option: $option"}
+            default {
+                error "unknown option: $option"
+            }
         }
     }
     set root [file dirname [file dirname $source]]
@@ -89,86 +104,88 @@ proc ::rbcDocBuild::main {arguments} {
     set xml [file join $output doxygen xml]
     # Never let declarations removed from the source survive in old XML.
     file delete -force $xml
-    set substitutions [list \
-        @GROUPS@ [doxyQuote [file join $source groups.dox]] \
-        @CALLING_CONVENTIONS@ [doxyQuote [file join $source calling-conventions.dox]] \
-        @ROOT@ [doxyQuote $root] \
-        @OUTPUT@ [doxyQuote [file join $output doxygen]] \
-        @WARNINGS@ [doxyQuote $log] \
-        @PUBLIC_HEADER@ [doxyQuote [file join $root generic rbc.h]] \
-        @NATIVE_X11_SOURCE@ [doxyQuote [file join $root generic rbcRenderNativeX11.c]] \
-        @NATIVE_SOURCE@ [doxyQuote [file join $root generic rbcRenderNative.c]] \
-        @NATIVE_HEADER@ [doxyQuote [file join $root generic rbcRenderNative.h]] \
-        @RENDER_SOURCE@ [doxyQuote [file join $root generic rbcRender.c]] \
-        @RENDER_HEADER@ [doxyQuote [file join $root generic rbcRender.h]] \
-        @DISPATCH_HEADER@ [doxyQuote [file join $root generic rbcRenderInt.h]] \
-        @CHAIN_HEADER@ [doxyQuote [file join $root generic rbcChain.h]] \
-        @LIST_HEADER@ [doxyQuote [file join $root generic rbcList.h]] \
-        @IMAGE_HEADER@ [doxyQuote [file join $root generic rbcImage.h]] \
-        @UNIX_IMAGE_SOURCE@ [doxyQuote [file join $root generic rbcUnixImage.c]] \
-        @IMAGE_SOURCE@ [doxyQuote [file join $root generic rbcImage.c]] \
-        @TILE_HEADER@ [doxyQuote [file join $root generic rbcTile.h]] \
-        @TEXT_HEADER@ [doxyQuote [file join $root generic rbcText.h]] \
-        @TEXT_SOURCE@ [doxyQuote [file join $root generic rbcText.c]] \
-        @WINDOW_SOURCE@ [doxyQuote [file join $root generic rbcWindow.c]] \
-        @DRAW_SOURCE@ [doxyQuote [file join $root generic rbcDraw.c]] \
-        @FONT_SOURCE@ [doxyQuote [file join $root generic rbcFont.c]] \
-        @PDF_BUILDER_SOURCE@ [doxyQuote [file join $root generic rbcPdf.c]] \
-        @PDF_FONT_SOURCE@ [doxyQuote [file join $root generic rbcPdfFont.c]] \
-        @FONT_HEADER@ [doxyQuote [file join $root generic rbcFont.h]] \
-        @PS_HEADER@ [doxyQuote [file join $root generic rbcPs.h]] \
-        @PS_SOURCE@ [doxyQuote [file join $root generic rbcPs.c]] \
-        @GRAPH_PS_SOURCE@ [doxyQuote [file join $root generic rbcGrPs.c]] \
-        @GRAPH_EXPORT_SOURCE@ [doxyQuote [file join $root generic rbcGrExport.c]] \
-        @GRAPH_SVG_SOURCE@ [doxyQuote [file join $root generic rbcGrSvg.c]] \
-        @GRAPH_PDF_SOURCE@ [doxyQuote [file join $root generic rbcGrPdf.c]] \
-        @EXPORT_HEADER@ [doxyQuote [file join $root generic rbcExport.h]] \
-        @GRAPH_HEADER@ [doxyQuote [file join $root generic rbcGraph.h]] \
-        @PDF_RENDER_SOURCE@ [doxyQuote [file join $root generic rbcRenderPdf.c]] \
-        @PS_RENDER_SOURCE@ [doxyQuote [file join $root generic rbcRenderPostscript.c]] \
-        @EXPORT_RENDER_HEADER@ [doxyQuote [file join $root generic rbcRenderExportInt.h]] \
-        @SVG_SOURCE@ [doxyQuote [file join $root generic rbcRenderSvg.c]] \
-        @CAIRO_SOURCE@ [doxyQuote [file join $root generic rbcRenderCairo.c]] \
-        @POLAR_SOURCE@ [doxyQuote [file join $root generic rbcGrPolar.c]] \
-        @BAR_SOURCE@ [doxyQuote [file join $root generic rbcGrBar.c]] \
-        @LINE_SOURCE@ [doxyQuote [file join $root generic rbcGrLine.c]] \
-        @GRID_SOURCE@ [doxyQuote [file join $root generic rbcGrGrid.c]] \
-        @HAIRS_SOURCE@ [doxyQuote [file join $root generic rbcGrHairs.c]] \
-        @GRAPH_SOURCE@ [doxyQuote [file join $root generic rbcGraph.c]] \
-        @TILE_SOURCE@ [doxyQuote [file join $root generic rbcTile.c]] \
-        @FFT_SOURCE@ [doxyQuote [file join $root generic rbcVecFft.c]] \
-        @SPLINE_SOURCE@ [doxyQuote [file join $root generic rbcSpline.c]] \
-        @EXPRESSION_SOURCE@ [doxyQuote [file join $root generic rbcVecMath.c]] \
-        @VECTOR_SOURCE@ [doxyQuote [file join $root generic rbcVector.c]] \
-        @VECTOR_HEADER@ [doxyQuote [file join $root generic rbcVector.h]] \
-        @VECTOR_COMMAND_SOURCE@ [doxyQuote [file join $root generic rbcVecCmd.c]] \
-        @VECTOR_INT_HEADER@ [doxyQuote [file join $root generic rbcVectorInt.h]] \
-        @ELEMENT_HEADER@ [doxyQuote [file join $root generic rbcGrElem.h]] \
-        @LEGEND_HEADER@ [doxyQuote [file join $root generic rbcGrLegd.h]] \
-        @LEGEND_SOURCE@ [doxyQuote [file join $root generic rbcGrLegd.c]] \
-        @AXIS_HEADER@ [doxyQuote [file join $root generic rbcGrAxis.h]] \
-        @TYPES_HEADER@ [doxyQuote [file join $root generic rbcTypes.h]] \
-        @AXIS_SOURCE@ [doxyQuote [file join $root generic rbcGrAxis.c]] \
-        @MARKER_SOURCE@ [doxyQuote [file join $root generic rbcGrMarker.c]] \
-        @TRACK_SOURCE@ [doxyQuote [file join $root generic rbcGrTrack.c]] \
-        @TRACK_HEADER@ [doxyQuote [file join $root generic rbcGrTrack.h]] \
-        @INIT_SOURCE@ [doxyQuote [file join $root generic rbcInt.c]] \
-        @STUB_SOURCE@ [doxyQuote [file join $root generic rbcStubLib.c]] \
-        @CONFIG_HEADER@ [doxyQuote [file join $root generic rbcInt.h]] \
-        @BIND_HEADER@ [doxyQuote [file join $root generic rbcBind.h]] \
-        @BIND_SOURCE@ [doxyQuote [file join $root generic rbcBind.c]] \
-        @WINOP_SOURCE@ [doxyQuote [file join $root generic rbcWinop.c]] \
-        @EPS_SOURCE@ [doxyQuote [file join $root generic rbcCanvEps.c]] \
-        @GEOMETRY_SOURCE@ [doxyQuote [file join $root generic rbcGeometry.c]] \
-        @LIST_SOURCE@ [doxyQuote [file join $root generic rbcList.c]] \
-        @CONFIG_SOURCE@ [doxyQuote [file join $root generic rbcConfig.c]] \
-        @MISC_SOURCE@ [doxyQuote [file join $root generic rbcGrMisc.c]] \
-        @UTIL_SOURCE@ [doxyQuote [file join $root generic rbcUtil.c]] \
-        @PEN_SOURCE@ [doxyQuote [file join $root generic rbcGrPen.c]] \
-        @ELEMENT_SOURCE@ [doxyQuote [file join $root generic rbcGrElem.c]] \
-        @SCROLL_SOURCE@ [doxyQuote [file join $root generic rbcScroll.c]] \
-        @MATH_HEADER@ [doxyQuote [file join $root generic rbcMath.h]] \
-        @VERSION@ $version]
+    set substitutions [list @GROUPS@ [doxyQuote [file join $source groups.dox]]\
+                               @CALLING_CONVENTIONS@ [doxyQuote [file join $source calling-conventions.dox]]\
+                               @ROOT@ [doxyQuote $root]\
+                               @OUTPUT@ [doxyQuote [file join $output doxygen]]\
+                               @WARNINGS@ [doxyQuote $log]]
+    foreach {key filename} {
+        PUBLIC_HEADER           rbc.h
+        NATIVE_X11_SOURCE       rbcRenderNativeX11.c
+        NATIVE_SOURCE           rbcRenderNative.c
+        NATIVE_HEADER           rbcRenderNative.h
+        RENDER_SOURCE           rbcRender.c
+        RENDER_HEADER           rbcRender.h
+        DISPATCH_HEADER         rbcRenderInt.h
+        CHAIN_HEADER            rbcChain.h
+        LIST_HEADER             rbcList.h
+        IMAGE_HEADER            rbcImage.h
+        UNIX_IMAGE_SOURCE       rbcUnixImage.c
+        IMAGE_SOURCE            rbcImage.c
+        TILE_HEADER             rbcTile.h
+        TEXT_HEADER             rbcText.h
+        TEXT_SOURCE             rbcText.c
+        WINDOW_SOURCE           rbcWindow.c
+        DRAW_SOURCE             rbcDraw.c
+        FONT_SOURCE             rbcFont.c
+        PDF_BUILDER_SOURCE      rbcPdf.c
+        PDF_FONT_SOURCE         rbcPdfFont.c
+        FONT_HEADER             rbcFont.h
+        PS_HEADER               rbcPs.h
+        PS_SOURCE               rbcPs.c
+        GRAPH_PS_SOURCE         rbcGrPs.c
+        GRAPH_EXPORT_SOURCE     rbcGrExport.c
+        GRAPH_SVG_SOURCE        rbcGrSvg.c
+        GRAPH_PDF_SOURCE        rbcGrPdf.c
+        EXPORT_HEADER           rbcExport.h
+        GRAPH_HEADER            rbcGraph.h
+        PDF_RENDER_SOURCE       rbcRenderPdf.c
+        PS_RENDER_SOURCE        rbcRenderPostscript.c
+        EXPORT_RENDER_HEADER    rbcRenderExportInt.h
+        SVG_SOURCE              rbcRenderSvg.c
+        CAIRO_SOURCE            rbcRenderCairo.c
+        POLAR_SOURCE            rbcGrPolar.c
+        BAR_SOURCE              rbcGrBar.c
+        LINE_SOURCE             rbcGrLine.c
+        GRID_SOURCE             rbcGrGrid.c
+        HAIRS_SOURCE            rbcGrHairs.c
+        GRAPH_SOURCE            rbcGraph.c
+        TILE_SOURCE             rbcTile.c
+        FFT_SOURCE              rbcVecFft.c
+        SPLINE_SOURCE           rbcSpline.c
+        EXPRESSION_SOURCE       rbcVecMath.c
+        VECTOR_SOURCE           rbcVector.c
+        VECTOR_HEADER           rbcVector.h
+        VECTOR_COMMAND_SOURCE   rbcVecCmd.c
+        VECTOR_INT_HEADER       rbcVectorInt.h
+        ELEMENT_HEADER          rbcGrElem.h
+        LEGEND_HEADER           rbcGrLegd.h
+        LEGEND_SOURCE           rbcGrLegd.c
+        AXIS_HEADER             rbcGrAxis.h
+        TYPES_HEADER            rbcTypes.h
+        AXIS_SOURCE             rbcGrAxis.c
+        MARKER_SOURCE           rbcGrMarker.c
+        TRACK_SOURCE            rbcGrTrack.c
+        TRACK_HEADER            rbcGrTrack.h
+        INIT_SOURCE             rbcInt.c
+        STUB_SOURCE             rbcStubLib.c
+        CONFIG_HEADER           rbcInt.h
+        BIND_HEADER             rbcBind.h
+        BIND_SOURCE             rbcBind.c
+        WINOP_SOURCE            rbcWinop.c
+        EPS_SOURCE              rbcCanvEps.c
+        GEOMETRY_SOURCE         rbcGeometry.c
+        LIST_SOURCE             rbcList.c
+        CONFIG_SOURCE           rbcConfig.c
+        MISC_SOURCE             rbcGrMisc.c
+        UTIL_SOURCE             rbcUtil.c
+        PEN_SOURCE              rbcGrPen.c
+        ELEMENT_SOURCE          rbcGrElem.c
+        SCROLL_SOURCE           rbcScroll.c
+        MATH_HEADER             rbcMath.h} {
+        lappend substitutions @${key}@ [doxyQuote [file join $root generic $filename]]
+    }
+    lappend substitutions @VERSION@ $version
     set config [file join $output Doxyfile]
     writeFile $config [string map $substitutions [readFile [file join $source Doxyfile.in]]]
     writeFile $log {}
@@ -179,7 +196,19 @@ proc ::rbcDocBuild::main {arguments} {
     set winConfig [file join $output Doxyfile-win]
     file delete -force $winXml
     set winSettings [readFile $config]
-    append winSettings "\nINPUT = [doxyQuote [file join $root generic rbcFont.c]] [doxyQuote [file join $root generic rbcCanvEps.c]] [doxyQuote [file join $root generic rbcWin.h]] [doxyQuote [file join $source groups.dox]] [doxyQuote [file join $source calling-conventions.dox]] [doxyQuote [file join $root generic rbcInt.c]] [doxyQuote [file join $root generic rbcRenderNativeWin.c]] [doxyQuote [file join $root generic rbcRenderCairo.c]] [doxyQuote [file join $root generic rbcWinDraw.c]] [doxyQuote [file join $root generic rbcWinImage.c]] [doxyQuote [file join $root generic rbcWinUtil.c]] [doxyQuote [file join $root generic rbcTile.c]] [doxyQuote [file join $root generic rbcGrPs.c]] [doxyQuote [file join $root generic rbcWindow.c]] [doxyQuote [file join $root generic rbcGrHairs.c]] [doxyQuote [file join $root generic rbcGraph.c]]\n"
+    set genericDir [file join $root generic]
+    append winSettings "\nINPUT ="
+    foreach {directory filenames} [list $genericDir {rbcFont.c rbcCanvEps.c rbcWin.h}\
+                                           $source {groups.dox calling-conventions.dox} \
+                                           $genericDir {rbcInt.c rbcRenderNativeWin.c rbcRenderCairo.c rbcWinDraw.c\
+                                                                rbcWinImage.c rbcWinUtil.c rbcTile.c rbcGrPs.c\
+                                                                rbcWindow.c rbcGrHairs.c rbcGraph.c}
+                                  ] {
+        foreach filename $filenames {
+            append winSettings " " [doxyQuote [file join $directory $filename]]
+        }
+    }
+    append winSettings "\n"
     append winSettings "OUTPUT_DIRECTORY = [doxyQuote [file join $output doxygen-win]]\n"
     append winSettings "WARN_LOGFILE = [doxyQuote $winLog]\n"
     # Select Windows branches and expand Xlib spelling without platform headers.

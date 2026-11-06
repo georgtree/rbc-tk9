@@ -41,3 +41,13 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: Rbc_ScrollRequest
    :members:
+
+Component option tables
+-----------------------
+
+These static arrays describe how a particular record is configured. Their initializers remain in the source; the Tcl
+command manual describes option syntax and defaults. See :doc:`configuration` for save, restore and commit.
+
+.. doxygengroup:: component_option_tables
+   :content-only:
+   :members:

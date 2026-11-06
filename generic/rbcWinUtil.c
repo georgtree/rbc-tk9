@@ -1,8 +1,6 @@
-/*
- * rbcWinUtil.c --
- *
- *      This module contains WIN32 routines not included in the Tcl/Tk
- *      libraries.
+/**
+ * @file rbcWinUtil.c
+ * @brief Windows system-error formatting.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -12,9 +10,6 @@
 
 #include "rbcInt.h"
 
-/** @file rbcWinUtil.c
- * Windows system-error formatting.
- */
 /**
  * @brief Format the current Windows error in borrowed static storage.
  * @ingroup windows_bitmap_images

@@ -1,5 +1,6 @@
-/*
- * rbcFont.c --
+/**
+ * @file rbcFont.c
+ * @brief Native font acquisition, bounded metadata parsing and document-local glyph caches.
  *
  *      Native TrueType and OpenType/CFF programs for PDF and SVG export. Tk 9's public "font actual"
  *      character query supplies the selected fallback family and style.
@@ -8,9 +9,7 @@
  *
  * See license.terms for details.
  */
-/** @file rbcFont.c
- * Native font acquisition, bounded metadata parsing and document-local glyph caches.
- */
+
 /** @defgroup export_font_internals Shared export font internals
  * Private readers and builders. Table views borrow their owning font program;
  * bounds-checked metadata parsing is not a complete font-file sanitizer.

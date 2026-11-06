@@ -1,8 +1,6 @@
-/*
- * rbcStubLib.c --
- *
- *  Stub object that will be statically linked into extensions that wish
- *  to access the RBC API.
+/**
+ * @file rbcStubLib.c
+ * @brief Client-linked stubs-table selection through Tcl package loading.
  *
  * Copyright (c) 2018 Ashok P. Nadkarni
  *
@@ -10,11 +8,6 @@
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  * RCS: @(#) $Id$
- */
-
-/**
- * @file rbcStubLib.c
- * @brief Client-linked stubs-table selection through Tcl package loading.
  */
 
 #ifndef USE_TCL_STUBS

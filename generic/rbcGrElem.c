@@ -1,7 +1,6 @@
-/*
- * rbcGrElem.c --
- *
- *      This module implements generic elements for the rbc graph widget.
+/**
+ * @file rbcGrElem.c
+ * @brief Common element data, palettes, lifecycle and dispatch contracts.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcGrElem.c
- * Common element data, palettes, lifecycle and dispatch contracts.
- */
 /** @defgroup palette_internals Element palette internals
  * Private helpers; no new public API.
  */
@@ -74,7 +70,7 @@ typedef int RbcGrElementOp(Graph *graphPtr, Tcl_Interp *interp, Rbc_Uid type, Tc
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrElementOp *proc; /**< Typed command handler for this operation. */
 } ElementOpSpec;
 
@@ -90,6 +86,8 @@ static RbcGrElementOp NamesOp;
 static RbcGrElementOp ShowOp;
 static RbcGrElementOp TypeOp;
 
+/** @ingroup selector_element
+ * @brief Identifies a paired or individual data slot while replaying element configuration arguments in order. */
 typedef enum {
     ELEM_DATA_OPTION_NONE,
     ELEM_DATA_OPTION_PAIRS,
@@ -106,10 +104,14 @@ typedef enum {
 
 #define ELEM_DATA_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/** @ingroup selector_element
+ * @brief Selects the normal or active pen reference being staged. */
 typedef enum { ELEM_PEN_OPTION_NONE, ELEM_PEN_OPTION_ACTIVE, ELEM_PEN_OPTION_NORMAL } ElemPenOption;
 
 #define ELEM_PEN_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
 
+/** @ingroup selector_element
+ * @brief Selects the horizontal or vertical axis reference being staged. */
 typedef enum { ELEM_AXIS_OPTION_NONE, ELEM_AXIS_OPTION_X, ELEM_AXIS_OPTION_Y } ElemAxisOption;
 
 #define ELEM_AXIS_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
@@ -2277,6 +2279,8 @@ static int GetAlongFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, int *alongPtr) {
     return TCL_OK;
 }
 
+/** @ingroup selector_element
+ * @brief Identifies a search option before dispatching the closest-point query to elements. */
 typedef enum { CLOSEST_OPTION_ALONG, CLOSEST_OPTION_HALO, CLOSEST_OPTION_INTERPOLATE } ClosestOption;
 
 static const char *const closestOptionNames[] = {"-along", "-halo", "-interpolate", NULL};

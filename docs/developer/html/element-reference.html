@@ -91,6 +91,7 @@
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-and-member-comment-placement">Contract and member comment placement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#file-headers">File headers</a></li>
 </ul>
 </li>
 </ul>
@@ -168,6 +169,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html">Vector command C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-operations.html">Vector indexed edits and rearrangement</a><ul>
@@ -218,6 +220,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html">Expression engine internal C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-numerics.html">Expression reductions and scalar kernels</a><ul>
@@ -289,6 +292,7 @@
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#construction-and-redraw-support">Construction and redraw support</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#windows-metafile-packaging">Windows metafile packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -334,6 +338,7 @@
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#labels-geometry-and-presentation">Labels, geometry and presentation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#layout-queries-scrolling-and-notifications">Layout, queries, scrolling and notifications</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -806,6 +811,115 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="#implementation-selectors">Implementation selectors</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#c.Smoothing"><code class="docutils literal notranslate"><span class="pre">Smoothing</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.Smoothing.PEN_SMOOTH_NONE"><code class="docutils literal notranslate"><span class="pre">PEN_SMOOTH_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Smoothing.PEN_SMOOTH_STEP"><code class="docutils literal notranslate"><span class="pre">PEN_SMOOTH_STEP</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Smoothing.PEN_SMOOTH_NATURAL"><code class="docutils literal notranslate"><span class="pre">PEN_SMOOTH_NATURAL</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Smoothing.PEN_SMOOTH_QUADRATIC"><code class="docutils literal notranslate"><span class="pre">PEN_SMOOTH_QUADRATIC</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Smoothing.PEN_SMOOTH_CATROM"><code class="docutils literal notranslate"><span class="pre">PEN_SMOOTH_CATROM</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Smoothing.PEN_SMOOTH_LAST"><code class="docutils literal notranslate"><span class="pre">PEN_SMOOTH_LAST</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineDecimation"><code class="docutils literal notranslate"><span class="pre">LineDecimation</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineDecimation.LINE_DECIMATE_NONE"><code class="docutils literal notranslate"><span class="pre">LINE_DECIMATE_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineDecimation.LINE_DECIMATE_AUTO"><code class="docutils literal notranslate"><span class="pre">LINE_DECIMATE_AUTO</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.SymbolType"><code class="docutils literal notranslate"><span class="pre">SymbolType</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_NONE"><code class="docutils literal notranslate"><span class="pre">SYMBOL_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_SQUARE"><code class="docutils literal notranslate"><span class="pre">SYMBOL_SQUARE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_CIRCLE"><code class="docutils literal notranslate"><span class="pre">SYMBOL_CIRCLE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_DIAMOND"><code class="docutils literal notranslate"><span class="pre">SYMBOL_DIAMOND</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_PLUS"><code class="docutils literal notranslate"><span class="pre">SYMBOL_PLUS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_CROSS"><code class="docutils literal notranslate"><span class="pre">SYMBOL_CROSS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_SPLUS"><code class="docutils literal notranslate"><span class="pre">SYMBOL_SPLUS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_SCROSS"><code class="docutils literal notranslate"><span class="pre">SYMBOL_SCROSS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_TRIANGLE"><code class="docutils literal notranslate"><span class="pre">SYMBOL_TRIANGLE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_ARROW"><code class="docutils literal notranslate"><span class="pre">SYMBOL_ARROW</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SymbolType.SYMBOL_BITMAP"><code class="docutils literal notranslate"><span class="pre">SYMBOL_BITMAP</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineDataMode"><code class="docutils literal notranslate"><span class="pre">LineDataMode</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineDataMode.LINE_DATA_XY"><code class="docutils literal notranslate"><span class="pre">LINE_DATA_XY</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineDataMode.LINE_DATA_COMPLEX"><code class="docutils literal notranslate"><span class="pre">LINE_DATA_COMPLEX</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineSymbolPoints"><code class="docutils literal notranslate"><span class="pre">LineSymbolPoints</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineSymbolPoints.LINE_SYMBOL_POINTS_ALL"><code class="docutils literal notranslate"><span class="pre">LINE_SYMBOL_POINTS_ALL</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineSymbolPoints.LINE_SYMBOL_POINTS_REDUCED"><code class="docutils literal notranslate"><span class="pre">LINE_SYMBOL_POINTS_REDUCED</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineAreaClose"><code class="docutils literal notranslate"><span class="pre">LineAreaClose</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineAreaClose.LINE_AREA_BASELINE"><code class="docutils literal notranslate"><span class="pre">LINE_AREA_BASELINE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineAreaClose.LINE_AREA_CHORD"><code class="docutils literal notranslate"><span class="pre">LINE_AREA_CHORD</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineAreaClose.LINE_AREA_ORIGIN"><code class="docutils literal notranslate"><span class="pre">LINE_AREA_ORIGIN</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineDataCoordinates"><code class="docutils literal notranslate"><span class="pre">LineDataCoordinates</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineDataCoordinates.LINE_COORDINATES_CARTESIAN"><code class="docutils literal notranslate"><span class="pre">LINE_COORDINATES_CARTESIAN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineDataCoordinates.LINE_COORDINATES_POLAR"><code class="docutils literal notranslate"><span class="pre">LINE_COORDINATES_POLAR</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineComplexDataFormat"><code class="docutils literal notranslate"><span class="pre">LineComplexDataFormat</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineComplexDataFormat.LINE_CDATA_GAMMA"><code class="docutils literal notranslate"><span class="pre">LINE_CDATA_GAMMA</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineComplexDataFormat.LINE_CDATA_IMPEDANCE"><code class="docutils literal notranslate"><span class="pre">LINE_CDATA_IMPEDANCE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineComplexDataFormat.LINE_CDATA_ADMITTANCE"><code class="docutils literal notranslate"><span class="pre">LINE_CDATA_ADMITTANCE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineBandMode"><code class="docutils literal notranslate"><span class="pre">LineBandMode</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineBandMode.LINE_BAND_NONE"><code class="docutils literal notranslate"><span class="pre">LINE_BAND_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineBandMode.LINE_BAND_Y"><code class="docutils literal notranslate"><span class="pre">LINE_BAND_Y</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineBandMode.LINE_BAND_X"><code class="docutils literal notranslate"><span class="pre">LINE_BAND_X</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineScalarOption"><code class="docutils literal notranslate"><span class="pre">LineScalarOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineScalarOption.LINE_SCALAR_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">LINE_SCALAR_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineScalarOption.LINE_SCALAR_OPTION_MAX_SYMBOLS"><code class="docutils literal notranslate"><span class="pre">LINE_SCALAR_OPTION_MAX_SYMBOLS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineScalarOption.LINE_SCALAR_OPTION_SMOOTH"><code class="docutils literal notranslate"><span class="pre">LINE_SCALAR_OPTION_SMOOTH</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineScalarOption.LINE_SCALAR_OPTION_TRACE"><code class="docutils literal notranslate"><span class="pre">LINE_SCALAR_OPTION_TRACE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.LineAreaOption"><code class="docutils literal notranslate"><span class="pre">LineAreaOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineAreaOption.LINE_AREA_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">LINE_AREA_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineAreaOption.LINE_AREA_OPTION_PATTERN"><code class="docutils literal notranslate"><span class="pre">LINE_AREA_OPTION_PATTERN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.LineAreaOption.LINE_AREA_OPTION_TILE"><code class="docutils literal notranslate"><span class="pre">LINE_AREA_OPTION_TILE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.ElemDataOption"><code class="docutils literal notranslate"><span class="pre">ElemDataOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_PAIRS"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_PAIRS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_WEIGHTS"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_WEIGHTS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_X"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_X</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_Y"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_Y</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_X_ERROR"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_X_ERROR</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_X_HIGH"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_X_HIGH</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_X_LOW"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_X_LOW</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_Y_ERROR"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_Y_ERROR</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_Y_HIGH"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_Y_HIGH</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemDataOption.ELEM_DATA_OPTION_Y_LOW"><code class="docutils literal notranslate"><span class="pre">ELEM_DATA_OPTION_Y_LOW</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.ElemPenOption"><code class="docutils literal notranslate"><span class="pre">ElemPenOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemPenOption.ELEM_PEN_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">ELEM_PEN_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemPenOption.ELEM_PEN_OPTION_ACTIVE"><code class="docutils literal notranslate"><span class="pre">ELEM_PEN_OPTION_ACTIVE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemPenOption.ELEM_PEN_OPTION_NORMAL"><code class="docutils literal notranslate"><span class="pre">ELEM_PEN_OPTION_NORMAL</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.ElemAxisOption"><code class="docutils literal notranslate"><span class="pre">ElemAxisOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemAxisOption.ELEM_AXIS_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">ELEM_AXIS_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemAxisOption.ELEM_AXIS_OPTION_X"><code class="docutils literal notranslate"><span class="pre">ELEM_AXIS_OPTION_X</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ElemAxisOption.ELEM_AXIS_OPTION_Y"><code class="docutils literal notranslate"><span class="pre">ELEM_AXIS_OPTION_Y</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.ClosestOption"><code class="docutils literal notranslate"><span class="pre">ClosestOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClosestOption.CLOSEST_OPTION_ALONG"><code class="docutils literal notranslate"><span class="pre">CLOSEST_OPTION_ALONG</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClosestOption.CLOSEST_OPTION_HALO"><code class="docutils literal notranslate"><span class="pre">CLOSEST_OPTION_HALO</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClosestOption.CLOSEST_OPTION_INTERPOLATE"><code class="docutils literal notranslate"><span class="pre">CLOSEST_OPTION_INTERPOLATE</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1004,6 +1118,7 @@
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#window-marker-geometry-management-and-callbacks">Window marker geometry management and callbacks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#pass-batching-and-renderer-dispatch">Pass batching and renderer dispatch</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1137,6 +1252,7 @@
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#graph-command-and-traversal">Graph command and traversal</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#svg-and-pdf-command-helpers-and-format-adapters">SVG and PDF command helpers and format adapters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="document-rendering.html">Document renderer primitives</a><ul>
@@ -1294,6 +1410,7 @@
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#graph-options-and-document-assembly">Graph options and document assembly</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#windows-binary-preview-packaging">Windows binary preview packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1369,6 +1486,7 @@
 <li class="toctree-l2"><a class="reference internal" href="image-color-reference.html">Image color processing C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#palette-reduction-implementation">Palette-reduction implementation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="image-compatibility.html">Temporary images and private Tk adapters</a><ul>
@@ -1467,6 +1585,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#cleanup-boundaries">Cleanup boundaries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#root-and-nested-child-lookup">Root and nested child lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#reading-an-option-table">Reading an option table</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="configuration-reference.html">Component configuration C reference</a><ul>
@@ -1475,6 +1594,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#option-lookup-and-metadata">Option lookup and metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#relative-child-lookup">Relative child lookup</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#component-option-tables">Component option tables</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="bindings.html">Binding dispatch and picking</a><ul>
@@ -1547,9 +1667,13 @@
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#selection-versus-execution">Selection versus execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#maintenance-checks">Maintenance checks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#lookup-inputs-and-output">Lookup inputs and output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#operation-families-and-their-record-types">Operation families and their record types</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dispatch-reference.html#implementation-selectors">Implementation selectors</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="value-conversion.html">Shared value conversion and numeric policy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#screen-units-and-staged-values">Screen units and staged values</a></li>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#dashes-and-callbacks">Dashes and callbacks</a></li>
@@ -2618,7 +2742,7 @@ callback reentry. The concrete operation’s contract supplies any additional re
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetElemDataOption">
-<span class="target" id="group__element__transaction__internals_1gad546b15a32ed6796e355eb9a56af476e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ElemDataOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemDataOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemDataOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__element__transaction__internals_1gad546b15a32ed6796e355eb9a56af476e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.ElemDataOption" title="ElemDataOption"><span class="n"><span class="pre">ElemDataOption</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemDataOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemDataOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Identify an element’s common data option after Tk validation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2628,14 +2752,14 @@ callback reentry. The concrete operation’s contract supplies any additional re
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The corresponding ElemDataOption, or NONE for unrelated/unresolved names. Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve through the concrete table. Does not parse values, acquire resources or change state. Exact -x and -y names must retain precedence over longer data names. </p>
+<dd class="field-even"><p>The corresponding <a class="reference internal" href="#group__selector__element_1gab29b03071db02367f36c65fb44352547"><span class="std std-ref">ElemDataOption</span></a>, or NONE for unrelated/unresolved names. Uses Rbc_GetCanonicalOptionName so synonyms and accepted abbreviations resolve through the concrete table. Does not parse values, acquire resources or change state. Exact -x and -y names must retain precedence over longer data names. </p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.GetElemAxisOption">
-<span class="target" id="group__element__transaction__internals_1ga395e582734fe701f7526d048a596d485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">ElemAxisOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemAxisOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemAxisOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__element__transaction__internals_1ga395e582734fe701f7526d048a596d485"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.ElemAxisOption" title="ElemAxisOption"><span class="n"><span class="pre">ElemAxisOption</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetElemAxisOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.GetElemAxisOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Identify an element’s axis mapping option after Tk validation. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2781,7 +2905,7 @@ callback reentry. The concrete operation’s contract supplies any additional re
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.StageElemAxis">
-<span class="target" id="group__element__transaction__internals_1gad587897ebc40c38f2973635a1a62a86f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemAxis</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.ElemAxisTransaction" title="ElemAxisTransaction"><span class="n"><span class="pre">ElemAxisTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <a class="reference internal" href="axis-reference.html#c.Axis" title="Axis"><span class="n"><span class="pre">Axis</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtrPtr</span></span>, <span class="n"><span class="pre">ElemAxisOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemAxis" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__element__transaction__internals_1gad587897ebc40c38f2973635a1a62a86f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemAxis</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.ElemAxisTransaction" title="ElemAxisTransaction"><span class="n"><span class="pre">ElemAxisTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <a class="reference internal" href="axis-reference.html#c.Axis" title="Axis"><span class="n"><span class="pre">Axis</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtrPtr</span></span>, <a class="reference internal" href="#c.ElemAxisOption" title="ElemAxisOption"><span class="n"><span class="pre">ElemAxisOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemAxis" title="Link to this definition"></a><br /></dt>
 <dd><p>Acquire a replacement axis before releasing the staged predecessor. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2897,7 +3021,7 @@ callback reentry. The concrete operation’s contract supplies any additional re
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.StageElemDataVector">
-<span class="target" id="group__element__transaction__internals_1gaf146fb70121c0376eff57e0217afab36"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemDataVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.ElemDataTransaction" title="ElemDataTransaction"><span class="n"><span class="pre">ElemDataTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <a class="reference internal" href="#c.ElemVector" title="ElemVector"><span class="n"><span class="pre">ElemVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtr</span></span>, <span class="n"><span class="pre">ElemDataOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemDataVector" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__element__transaction__internals_1gaf146fb70121c0376eff57e0217afab36"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageElemDataVector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <a class="reference internal" href="#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.ElemDataTransaction" title="ElemDataTransaction"><span class="n"><span class="pre">ElemDataTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span>, <a class="reference internal" href="#c.ElemVector" title="ElemVector"><span class="n"><span class="pre">ElemVector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">candidatePtr</span></span>, <a class="reference internal" href="#c.ElemDataOption" title="ElemDataOption"><span class="n"><span class="pre">ElemDataOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.StageElemDataVector" title="Link to this definition"></a><br /></dt>
 <dd><p>Parse a data slot before discarding its previous candidate. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4847,7 +4971,7 @@ below is documentation-only.</p>
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrLineOutput.GetRenderedSymbolShape">
-<span class="target" id="group__line__output__dispatch_1gadeeda395c9ceaf27acf3f6aee1423a22"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetRenderedSymbolShape</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">SymbolType</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderShape" title="Rbc_RenderShape"><span class="n"><span class="pre">Rbc_RenderShape</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shape</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.GetRenderedSymbolShape" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__line__output__dispatch_1gadeeda395c9ceaf27acf3f6aee1423a22"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetRenderedSymbolShape</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.SymbolType" title="SymbolType"><span class="n"><span class="pre">SymbolType</span></span></a><span class="w"> </span><span class="n"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <a class="reference internal" href="reference.html#c.Rbc_RenderShape" title="Rbc_RenderShape"><span class="n"><span class="pre">Rbc_RenderShape</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">shape</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrLineOutput.GetRenderedSymbolShape" title="Link to this definition"></a><br /></dt>
 <dd><p>Build an origin-centered geometric symbol template. </p>
 <p>Zeros the caller-owned shape and fills circle, polygon or independent segment geometry using native proportions and integer rounding. Returns FALSE for unsupported types, including bitmap and none; such output is not a usable template. Borrows no persistent storage and performs no allocation.</p>
 <dl class="field-list simple">
@@ -5597,7 +5721,7 @@ layouts part of the installed C API.</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.ElementOpSpec.header">
 <span class="target" id="struct_element_op_spec_1abd539bdd70275ddc761c690029adc2b4"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.ElementOpSpec.header" title="Link to this definition"></a><br /></dt>
-<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+<dd><p>Operation name, total argument bounds and usage suffix. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -5793,6 +5917,419 @@ layouts part of the installed C API.</p>
 </dd></dl>
 
 </div>
+</dd></dl>
+
+</section>
+<section id="implementation-selectors">
+<h2>Implementation selectors<a class="headerlink" href="#implementation-selectors" title="Link to this heading"></a></h2>
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Smoothing">
+<span class="target" id="group__selector__element_1ga8df8f24dd2c21d2d4d34c9a112374c02"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Smoothing</span></span></span><a class="headerlink" href="#c.Smoothing" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects construction of the mapped trace; the final value terminates the smoothing-name map. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Smoothing.PEN_SMOOTH_NONE">
+<span class="target" id="group__selector__element_1gga8df8f24dd2c21d2d4d34c9a112374c02a080f22e0465603b41b7adb54201c671c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PEN_SMOOTH_NONE</span></span></span><a class="headerlink" href="#c.Smoothing.PEN_SMOOTH_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Smoothing.PEN_SMOOTH_STEP">
+<span class="target" id="group__selector__element_1gga8df8f24dd2c21d2d4d34c9a112374c02a6ca92fa22ab700b1cdc8fd8bb3f0e368"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PEN_SMOOTH_STEP</span></span></span><a class="headerlink" href="#c.Smoothing.PEN_SMOOTH_STEP" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Smoothing.PEN_SMOOTH_NATURAL">
+<span class="target" id="group__selector__element_1gga8df8f24dd2c21d2d4d34c9a112374c02af7e16e1e6d13324e7c541e7483c2f7a6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PEN_SMOOTH_NATURAL</span></span></span><a class="headerlink" href="#c.Smoothing.PEN_SMOOTH_NATURAL" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Smoothing.PEN_SMOOTH_QUADRATIC">
+<span class="target" id="group__selector__element_1gga8df8f24dd2c21d2d4d34c9a112374c02a752210f2ab2c9ea9308c7fc9ba05177c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PEN_SMOOTH_QUADRATIC</span></span></span><a class="headerlink" href="#c.Smoothing.PEN_SMOOTH_QUADRATIC" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Smoothing.PEN_SMOOTH_CATROM">
+<span class="target" id="group__selector__element_1gga8df8f24dd2c21d2d4d34c9a112374c02a0cfab788c9439148bc0a573448f20f16"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PEN_SMOOTH_CATROM</span></span></span><a class="headerlink" href="#c.Smoothing.PEN_SMOOTH_CATROM" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Smoothing.PEN_SMOOTH_LAST">
+<span class="target" id="group__selector__element_1gga8df8f24dd2c21d2d4d34c9a112374c02ac3bbde2dab2829bf0cc007314eb68fd5"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PEN_SMOOTH_LAST</span></span></span><a class="headerlink" href="#c.Smoothing.PEN_SMOOTH_LAST" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineDecimation">
+<span class="target" id="group__selector__element_1ga5622a8bea95130d511dcc24f6f11d0c6"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineDecimation</span></span></span><a class="headerlink" href="#c.LineDecimation" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects full or automatically reduced screen geometry; source indices still refer to original data. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineDecimation.LINE_DECIMATE_NONE">
+<span class="target" id="group__selector__element_1gga5622a8bea95130d511dcc24f6f11d0c6ac5cc44c7f59531b0415fc385b1a792b2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_DECIMATE_NONE</span></span></span><a class="headerlink" href="#c.LineDecimation.LINE_DECIMATE_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineDecimation.LINE_DECIMATE_AUTO">
+<span class="target" id="group__selector__element_1gga5622a8bea95130d511dcc24f6f11d0c6ae77d51ede6508beb7a1cf0433e4ac92f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_DECIMATE_AUTO</span></span></span><a class="headerlink" href="#c.LineDecimation.LINE_DECIMATE_AUTO" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.SymbolType">
+<span class="target" id="group__selector__element_1gadd8909e1085c0c32f8380ff493a243b3"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SymbolType</span></span></span><a class="headerlink" href="#c.SymbolType" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects the concrete point-symbol geometry or bitmap used by a line pen. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_NONE">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3ac12c300f0600ee91ab3c3c76b1cc0123"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_NONE</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_SQUARE">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3a99f28de5afd5242b9ffdd1dbc7b4daf4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_SQUARE</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_SQUARE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_CIRCLE">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3aeedd6d364526e38cfbb1f678cf9b2849"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_CIRCLE</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_CIRCLE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_DIAMOND">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3ac596c2d7a6a41afcfd17d7acb49eda0e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_DIAMOND</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_DIAMOND" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_PLUS">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3a96c65b5c28ba395b0a2b175d75ad67e7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_PLUS</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_PLUS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_CROSS">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3a0c6a27fc25c9a11472f15b4c1e114ac5"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_CROSS</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_CROSS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_SPLUS">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3ae7fec5ec8eb8a4b5d25a2e8ae90091a2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_SPLUS</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_SPLUS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_SCROSS">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3a050b6b169e906850803b621cf778a2c0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_SCROSS</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_SCROSS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_TRIANGLE">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3a990fbfeb06f1415306188eae2fd8eb7b"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_TRIANGLE</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_TRIANGLE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_ARROW">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3a46c2ba71f4573c5ba8bc3f00c39800aa"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_ARROW</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_ARROW" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SymbolType.SYMBOL_BITMAP">
+<span class="target" id="group__selector__element_1ggadd8909e1085c0c32f8380ff493a243b3a334eb6ddbaa42d9ae00e4cfd775c6a2f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SYMBOL_BITMAP</span></span></span><a class="headerlink" href="#c.SymbolType.SYMBOL_BITMAP" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineDataMode">
+<span class="target" id="group__selector__element_1gaaf09d08e20f2d3edd4f52ad644e226a4"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineDataMode</span></span></span><a class="headerlink" href="#c.LineDataMode" title="Link to this definition"></a><br /></dt>
+<dd><p>Distinguishes separate coordinate inputs from complex-vector input. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineDataMode.LINE_DATA_XY">
+<span class="target" id="group__selector__element_1ggaaf09d08e20f2d3edd4f52ad644e226a4a4699bb92ee43b5adea81fbfce7ac25b6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_DATA_XY</span></span></span><a class="headerlink" href="#c.LineDataMode.LINE_DATA_XY" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineDataMode.LINE_DATA_COMPLEX">
+<span class="target" id="group__selector__element_1ggaaf09d08e20f2d3edd4f52ad644e226a4a507640eede3c4f4f20840520505adaa4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_DATA_COMPLEX</span></span></span><a class="headerlink" href="#c.LineDataMode.LINE_DATA_COMPLEX" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineSymbolPoints">
+<span class="target" id="group__selector__element_1ga7e7dc231813f4e1155db222faaf3523c"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineSymbolPoints</span></span></span><a class="headerlink" href="#c.LineSymbolPoints" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects original or reduced points for symbol placement. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineSymbolPoints.LINE_SYMBOL_POINTS_ALL">
+<span class="target" id="group__selector__element_1gga7e7dc231813f4e1155db222faaf3523ca718ed849573588b14e73766d572ca213"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_SYMBOL_POINTS_ALL</span></span></span><a class="headerlink" href="#c.LineSymbolPoints.LINE_SYMBOL_POINTS_ALL" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineSymbolPoints.LINE_SYMBOL_POINTS_REDUCED">
+<span class="target" id="group__selector__element_1gga7e7dc231813f4e1155db222faaf3523ca7189f695573ac6b49052f9a88676f077"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_SYMBOL_POINTS_REDUCED</span></span></span><a class="headerlink" href="#c.LineSymbolPoints.LINE_SYMBOL_POINTS_REDUCED" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineAreaClose">
+<span class="target" id="group__selector__element_1gaf0bf6a52ed33b3a339b4cbe3c8cbf5be"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineAreaClose</span></span></span><a class="headerlink" href="#c.LineAreaClose" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects how an area-fill polygon closes around its mapped trace. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineAreaClose.LINE_AREA_BASELINE">
+<span class="target" id="group__selector__element_1ggaf0bf6a52ed33b3a339b4cbe3c8cbf5bea84ce6e5b8bb4c84697ed4d51e40060ed"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_AREA_BASELINE</span></span></span><a class="headerlink" href="#c.LineAreaClose.LINE_AREA_BASELINE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineAreaClose.LINE_AREA_CHORD">
+<span class="target" id="group__selector__element_1ggaf0bf6a52ed33b3a339b4cbe3c8cbf5bea663d95016d8815ff71ffd747c5d25741"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_AREA_CHORD</span></span></span><a class="headerlink" href="#c.LineAreaClose.LINE_AREA_CHORD" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineAreaClose.LINE_AREA_ORIGIN">
+<span class="target" id="group__selector__element_1ggaf0bf6a52ed33b3a339b4cbe3c8cbf5bead9bfa9df1b11bed1f70fc530e26f07db"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_AREA_ORIGIN</span></span></span><a class="headerlink" href="#c.LineAreaClose.LINE_AREA_ORIGIN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineDataCoordinates">
+<span class="target" id="group__selector__element_1ga103592eb24815323e425dbbb0d969f60"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineDataCoordinates</span></span></span><a class="headerlink" href="#c.LineDataCoordinates" title="Link to this definition"></a><br /></dt>
+<dd><p>Identifies the coordinate interpretation applied to line inputs. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineDataCoordinates.LINE_COORDINATES_CARTESIAN">
+<span class="target" id="group__selector__element_1gga103592eb24815323e425dbbb0d969f60a35a856440ba85c5f3205adf8a48417a9"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_COORDINATES_CARTESIAN</span></span></span><a class="headerlink" href="#c.LineDataCoordinates.LINE_COORDINATES_CARTESIAN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineDataCoordinates.LINE_COORDINATES_POLAR">
+<span class="target" id="group__selector__element_1gga103592eb24815323e425dbbb0d969f60a0aec3b215eb3a605e309d62863ccabc4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_COORDINATES_POLAR</span></span></span><a class="headerlink" href="#c.LineDataCoordinates.LINE_COORDINATES_POLAR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineComplexDataFormat">
+<span class="target" id="group__selector__element_1gadce53a9ca66713cca940a1c23cf33145"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineComplexDataFormat</span></span></span><a class="headerlink" href="#c.LineComplexDataFormat" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects how complex samples are interpreted on a Smith chart. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineComplexDataFormat.LINE_CDATA_GAMMA">
+<span class="target" id="group__selector__element_1ggadce53a9ca66713cca940a1c23cf33145a3436a4310af2cb657e6deb25b2153fd4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_CDATA_GAMMA</span></span></span><a class="headerlink" href="#c.LineComplexDataFormat.LINE_CDATA_GAMMA" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineComplexDataFormat.LINE_CDATA_IMPEDANCE">
+<span class="target" id="group__selector__element_1ggadce53a9ca66713cca940a1c23cf33145a43899c6fecbe1aa83d17cc0989e89c9a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_CDATA_IMPEDANCE</span></span></span><a class="headerlink" href="#c.LineComplexDataFormat.LINE_CDATA_IMPEDANCE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineComplexDataFormat.LINE_CDATA_ADMITTANCE">
+<span class="target" id="group__selector__element_1ggadce53a9ca66713cca940a1c23cf33145ad1d7ab4146330eb282663f5cac4fc5a0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_CDATA_ADMITTANCE</span></span></span><a class="headerlink" href="#c.LineComplexDataFormat.LINE_CDATA_ADMITTANCE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineBandMode">
+<span class="target" id="group__selector__element_1ga8fd74655300785fd38efa50e8ab9f1ab"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineBandMode</span></span></span><a class="headerlink" href="#c.LineBandMode" title="Link to this definition"></a><br /></dt>
+<dd><p>Chooses the error dimension used to construct the band, or disables band construction. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineBandMode.LINE_BAND_NONE">
+<span class="target" id="group__selector__element_1gga8fd74655300785fd38efa50e8ab9f1aba7909c7fc704aee71be5e893bcdcc22d1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_BAND_NONE</span></span></span><a class="headerlink" href="#c.LineBandMode.LINE_BAND_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineBandMode.LINE_BAND_Y">
+<span class="target" id="group__selector__element_1gga8fd74655300785fd38efa50e8ab9f1abae344f990d0d8b07b3dcc865eebcb91bf"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_BAND_Y</span></span></span><a class="headerlink" href="#c.LineBandMode.LINE_BAND_Y" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineBandMode.LINE_BAND_X">
+<span class="target" id="group__selector__element_1gga8fd74655300785fd38efa50e8ab9f1aba8d67e9dfe86c1a84f47339671581df82"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_BAND_X</span></span></span><a class="headerlink" href="#c.LineBandMode.LINE_BAND_X" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineScalarOption">
+<span class="target" id="group__selector__element_1ga3bb2e31aeb4a1ec1471454e03c0cb2a5"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineScalarOption</span></span></span><a class="headerlink" href="#c.LineScalarOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects a scalar field while validating requested line options before commit. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineScalarOption.LINE_SCALAR_OPTION_NONE">
+<span class="target" id="group__selector__element_1gga3bb2e31aeb4a1ec1471454e03c0cb2a5ac2c7744ed09c2eecdf3c31a79c6275af"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_SCALAR_OPTION_NONE</span></span></span><a class="headerlink" href="#c.LineScalarOption.LINE_SCALAR_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineScalarOption.LINE_SCALAR_OPTION_MAX_SYMBOLS">
+<span class="target" id="group__selector__element_1gga3bb2e31aeb4a1ec1471454e03c0cb2a5a57882fa774e0c627ca082b28b5c90fb1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_SCALAR_OPTION_MAX_SYMBOLS</span></span></span><a class="headerlink" href="#c.LineScalarOption.LINE_SCALAR_OPTION_MAX_SYMBOLS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineScalarOption.LINE_SCALAR_OPTION_SMOOTH">
+<span class="target" id="group__selector__element_1gga3bb2e31aeb4a1ec1471454e03c0cb2a5a363c86e37c35a4936e21d9424dfe23aa"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_SCALAR_OPTION_SMOOTH</span></span></span><a class="headerlink" href="#c.LineScalarOption.LINE_SCALAR_OPTION_SMOOTH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineScalarOption.LINE_SCALAR_OPTION_TRACE">
+<span class="target" id="group__selector__element_1gga3bb2e31aeb4a1ec1471454e03c0cb2a5a9913f70eea57a89d4f13f7e98ef9eba4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_SCALAR_OPTION_TRACE</span></span></span><a class="headerlink" href="#c.LineScalarOption.LINE_SCALAR_OPTION_TRACE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.LineAreaOption">
+<span class="target" id="group__selector__element_1gabe695d5b08f2d2b2e5b796b9dc3dcbe1"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineAreaOption</span></span></span><a class="headerlink" href="#c.LineAreaOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Distinguishes the area pattern and tile resources staged by line configuration. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineAreaOption.LINE_AREA_OPTION_NONE">
+<span class="target" id="group__selector__element_1ggabe695d5b08f2d2b2e5b796b9dc3dcbe1afaa362c172bbc2dcee08961327a6fd31"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_AREA_OPTION_NONE</span></span></span><a class="headerlink" href="#c.LineAreaOption.LINE_AREA_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineAreaOption.LINE_AREA_OPTION_PATTERN">
+<span class="target" id="group__selector__element_1ggabe695d5b08f2d2b2e5b796b9dc3dcbe1aa777eb31e14b0806fc70ad7a9c48fe51"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_AREA_OPTION_PATTERN</span></span></span><a class="headerlink" href="#c.LineAreaOption.LINE_AREA_OPTION_PATTERN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.LineAreaOption.LINE_AREA_OPTION_TILE">
+<span class="target" id="group__selector__element_1ggabe695d5b08f2d2b2e5b796b9dc3dcbe1a6f5f38cdd0b4036549621b88c4b6c428"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LINE_AREA_OPTION_TILE</span></span></span><a class="headerlink" href="#c.LineAreaOption.LINE_AREA_OPTION_TILE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.ElemDataOption">
+<span class="target" id="group__selector__element_1gab29b03071db02367f36c65fb44352547"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ElemDataOption</span></span></span><a class="headerlink" href="#c.ElemDataOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Identifies a paired or individual data slot while replaying element configuration arguments in order. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_NONE">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547ab8b62c03396df1ab6c9385743eecf0fa"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_NONE</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_PAIRS">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547a17c5f9df3887ea5a08f2ecdcca17fa7c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_PAIRS</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_PAIRS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_WEIGHTS">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547aece6836b984e48f18a9f9863bf93f7c7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_WEIGHTS</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_WEIGHTS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_X">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547a867c1649c9328e4e1a32362d5abe6e18"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_X</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_X" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_Y">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547a753268704e15287dc4713f98c3d4b0be"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_Y</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_Y" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_X_ERROR">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547ac2c69864dae83088b5840a4f4833eaea"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_X_ERROR</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_X_ERROR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_X_HIGH">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547a754a35bcc87b60204c7f744b5b9b3c00"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_X_HIGH</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_X_HIGH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_X_LOW">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547a072830b51422a5b66bebaa0bf2302585"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_X_LOW</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_X_LOW" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_Y_ERROR">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547a70f0db8db003a34d4d97fea3a0d4b248"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_Y_ERROR</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_Y_ERROR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_Y_HIGH">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547afe3e9e869b2a83d35e619b69f79911b0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_Y_HIGH</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_Y_HIGH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemDataOption.ELEM_DATA_OPTION_Y_LOW">
+<span class="target" id="group__selector__element_1ggab29b03071db02367f36c65fb44352547ab3a7aa3b54970f48d696fc618c469869"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_DATA_OPTION_Y_LOW</span></span></span><a class="headerlink" href="#c.ElemDataOption.ELEM_DATA_OPTION_Y_LOW" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.ElemPenOption">
+<span class="target" id="group__selector__element_1ga13cd6b25a38cbc0e8bc31cb9515c107f"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ElemPenOption</span></span></span><a class="headerlink" href="#c.ElemPenOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects the normal or active pen reference being staged. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemPenOption.ELEM_PEN_OPTION_NONE">
+<span class="target" id="group__selector__element_1gga13cd6b25a38cbc0e8bc31cb9515c107fadc7027725b448a103e6532e2c97466d6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_PEN_OPTION_NONE</span></span></span><a class="headerlink" href="#c.ElemPenOption.ELEM_PEN_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemPenOption.ELEM_PEN_OPTION_ACTIVE">
+<span class="target" id="group__selector__element_1gga13cd6b25a38cbc0e8bc31cb9515c107fa9859d30115bb81af7307ae49bc234312"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_PEN_OPTION_ACTIVE</span></span></span><a class="headerlink" href="#c.ElemPenOption.ELEM_PEN_OPTION_ACTIVE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemPenOption.ELEM_PEN_OPTION_NORMAL">
+<span class="target" id="group__selector__element_1gga13cd6b25a38cbc0e8bc31cb9515c107fa33b1be13be6e2a9cf98464f93caec29e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_PEN_OPTION_NORMAL</span></span></span><a class="headerlink" href="#c.ElemPenOption.ELEM_PEN_OPTION_NORMAL" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.ElemAxisOption">
+<span class="target" id="group__selector__element_1ga6091d90e84782ad9501b3cf6163b9deb"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ElemAxisOption</span></span></span><a class="headerlink" href="#c.ElemAxisOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects the horizontal or vertical axis reference being staged. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemAxisOption.ELEM_AXIS_OPTION_NONE">
+<span class="target" id="group__selector__element_1gga6091d90e84782ad9501b3cf6163b9deba1c017f4f5554135f5958bd34d6848871"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_AXIS_OPTION_NONE</span></span></span><a class="headerlink" href="#c.ElemAxisOption.ELEM_AXIS_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemAxisOption.ELEM_AXIS_OPTION_X">
+<span class="target" id="group__selector__element_1gga6091d90e84782ad9501b3cf6163b9debae819cf549059254e6c4b53c1f7fe32d4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_AXIS_OPTION_X</span></span></span><a class="headerlink" href="#c.ElemAxisOption.ELEM_AXIS_OPTION_X" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ElemAxisOption.ELEM_AXIS_OPTION_Y">
+<span class="target" id="group__selector__element_1gga6091d90e84782ad9501b3cf6163b9deba9699b68380cf30b167949bf143d2f9cf"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ELEM_AXIS_OPTION_Y</span></span></span><a class="headerlink" href="#c.ElemAxisOption.ELEM_AXIS_OPTION_Y" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.ClosestOption">
+<span class="target" id="group__selector__element_1gaad3df03d51f5c1fe515378df3e6676c0"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClosestOption</span></span></span><a class="headerlink" href="#c.ClosestOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Identifies a search option before dispatching the closest-point query to elements. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClosestOption.CLOSEST_OPTION_ALONG">
+<span class="target" id="group__selector__element_1ggaad3df03d51f5c1fe515378df3e6676c0a69b5902eef709e54de6326ce7ce19cd9"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLOSEST_OPTION_ALONG</span></span></span><a class="headerlink" href="#c.ClosestOption.CLOSEST_OPTION_ALONG" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClosestOption.CLOSEST_OPTION_HALO">
+<span class="target" id="group__selector__element_1ggaad3df03d51f5c1fe515378df3e6676c0ac203a7f2a0e9c1a5a3a8d34782f608b8"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLOSEST_OPTION_HALO</span></span></span><a class="headerlink" href="#c.ClosestOption.CLOSEST_OPTION_HALO" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClosestOption.CLOSEST_OPTION_INTERPOLATE">
+<span class="target" id="group__selector__element_1ggaad3df03d51f5c1fe515378df3e6676c0a6773e43587b0bc5eca40003841fa7e69"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLOSEST_OPTION_INTERPOLATE</span></span></span><a class="headerlink" href="#c.ClosestOption.CLOSEST_OPTION_INTERPOLATE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>

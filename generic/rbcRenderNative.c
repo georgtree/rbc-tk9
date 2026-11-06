@@ -1,13 +1,16 @@
-/* rbcRenderNative.c -- Native screen geometry and batching.
+/**
+ * @file rbcRenderNative.c
+ * @brief Shared native drawing, geometry conversion and rectangular clip storage.
+ *
  * See license.terms for copyright and redistribution terms.
  *
  * Geometry is already mapped by the components. GCs, tiles and bitmap resources
  * are borrowed; the existing integer conversions and platform batching limits
- * are deliberately retained. */
-#include "rbcRenderNative.h"
-/** @file rbcRenderNative.c
- * Shared native drawing, geometry conversion and rectangular clip storage.
+ * are deliberately retained.
  */
+
+#include "rbcRenderNative.h"
+
 /** @defgroup native_shared_drawing Shared native drawing helpers
  * Private backend services operating on already mapped geometry.
  */

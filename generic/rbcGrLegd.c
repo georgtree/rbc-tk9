@@ -1,7 +1,6 @@
-/*
- * rbcGrLegd.c --
- *
- *      This module implements the legend for the rbc graph widget.
+/**
+ * @file rbcGrLegd.c
+ * @brief Global, external and track-local legend implementation.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcGrLegd.c
- * Global, external and track-local legend implementation.
- */
 /** @defgroup legend_layout Legend measurement and placement
  * Internal legend services; not part of the public stubs API.
  */
@@ -222,6 +218,10 @@ static int GetLegendPixelDimension(Tcl_Size count, int entrySize, int borderWidt
     (LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_STYLE_CHANGED | LEGEND_PADDING_CHANGED |                   \
      LEGEND_SHADOW_CHANGED | LEGEND_POSITION_CHANGED | LEGEND_VALIDATE_CHANGED)
 
+/** @ingroup component_option_tables
+ * @brief Graph-wide legend placement, entry styling and selection settings.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec legendOptionSpecs[] = {
     {TK_OPTION_BORDER, "-activebackground", "activeBackground", "ActiveBackground", DEF_LEGEND_ACTIVE_BACKGROUND, -1,
      offsetof(Legend, activeBorder), 0, DEF_LEGEND_ACTIVE_BG_MONO, LEGEND_REDRAW_CHANGED},
@@ -271,6 +271,10 @@ static const Tk_OptionSpec legendOptionSpecs[] = {
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* Inherit styling while keeping local legends opt-in and inside their row. */
+/** @ingroup component_option_tables
+ * @brief Track-local legend defaults and overrides; the end entry chains to legendOptionSpecs.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec trackLegendOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "yes", -1, offsetof(Legend, hidden), 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED},
@@ -297,7 +301,7 @@ typedef int RbcGrLegdOp(Legend *legendPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
  * @brief Shared dispatch header followed by a legend-specific handler pointer.
  */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrLegdOp *proc; /**< Typed command handler for this operation. */
 } LegendOpSpec;
 

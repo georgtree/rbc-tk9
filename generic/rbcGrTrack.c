@@ -29,6 +29,10 @@ typedef struct {
     Tcl_Obj *barMode; /**< Default bar mode; -1 inherits the graph setting. */
 } TrackDefaults;
 
+/** @ingroup component_option_tables
+ * @brief Per-track layout, axis and bar-placement settings stored independently of the enclosing graph.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec trackOptionSpecs[] = {
     {TK_OPTION_STRING, "-weight", "weight", "Weight", "1.0", offsetof(TrackDefaults, weight), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-minheight", "minHeight", "MinHeight", "40", offsetof(TrackDefaults, minHeight), -1, 0, NULL,

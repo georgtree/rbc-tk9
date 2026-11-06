@@ -1,7 +1,10 @@
-/*
- * rbcGraph.c --
+/**
+ * @file rbcGraph.c
+ * @brief Common graph widget creation, configuration, layout and redisplay.
  *
- *      This module implements a graph widget for the rbc toolkit.
+ * Owns the Tk window/command lifecycle and screen frame orchestration.
+ * Components retain their mapping and rendering responsibilities; export
+ * commands manage their temporary layouts separately.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -20,15 +23,6 @@
  *
  * 7) Arrows for line markers
  *
- */
-
-/**
- * @file rbcGraph.c
- * @brief Common graph widget creation, configuration, layout and redisplay.
- *
- * Owns the Tk window/command lifecycle and screen frame orchestration.
- * Components retain their mapping and rendering responsibilities; export
- * commands manage their temporary layouts separately.
  */
 
 /**
@@ -144,6 +138,8 @@ Rbc_Uid rbcWindowMarkerUid;
  * @brief Retained values, resource ownership and widget option commit ordering.
  */
 
+/** @ingroup selector_graph
+ * @brief Selects a widget dimension during staged conversion of graph pixel options. */
 typedef enum {
     GRAPH_PIXEL_OPTION_NONE,
     GRAPH_PIXEL_OPTION_BORDER_WIDTH,
@@ -176,6 +172,8 @@ typedef struct {
     int reqWidth; /**< Requested widget width in pixels staged for commit or abort. */
 } GraphPixelTransaction;
 
+/** @ingroup selector_graph
+ * @brief Selects the horizontal or vertical plot padding during widget configuration. */
 typedef enum { GRAPH_PADDING_OPTION_NONE, GRAPH_PADDING_OPTION_X, GRAPH_PADDING_OPTION_Y } GraphPaddingOption;
 
 #define GRAPH_PADDING_OPTION_MASK(option) (1u << ((unsigned int)(option) - 1u))
@@ -221,6 +219,10 @@ static const char *const graphAntialiasNames[] = {"default", "none", "gray", "fa
 #endif
 
 static const char *const trackLayoutNames[] = {"fit", "scroll", NULL};
+/** @ingroup component_option_tables
+ * @brief Widget options stored in Graph; change masks identify work to schedule after configuration succeeds.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec graphOptionSpecs[] = {
     {TK_OPTION_STRING_TABLE, "-tracklayout", "trackLayout", "TrackLayout", "fit", -1, offsetof(Graph, trackScroll), 0,
      (ClientData)trackLayoutNames, GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
@@ -393,7 +395,7 @@ typedef struct {
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     Rbc_GraphOpProc *proc; /**< Typed command handler for this operation. */
 } GraphOpSpec;
 

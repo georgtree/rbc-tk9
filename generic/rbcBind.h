@@ -1,14 +1,3 @@
-/*
- * rbcBind.h --
- *
- *      Private object binding tables shared by graphs and legends.
- *
- * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
- * All rights reserved.
- *
- * See "license.terms" for details.
- */
-
 /**
  * @file rbcBind.h
  * @brief Private object picking and Tk binding dispatch interfaces.
@@ -16,6 +5,11 @@
  * Tables borrow the window, owner and picked objects. They own their Tk binding
  * table and event-handler registration. Call on the owning Tk thread; the
  * owner must keep the table alive throughout binding-script execution.
+ *
+ * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
+ * All rights reserved.
+ *
+ * See "license.terms" for details.
  */
 
 #ifndef _RBCBIND

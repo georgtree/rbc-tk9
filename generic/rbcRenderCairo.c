@@ -1,7 +1,10 @@
-/* Cairo screen renderer and disabled-build fallbacks. See license.terms. */
-/** @file rbcRenderCairo.c
- * Cairo screen output, surface ownership and disabled-build fallbacks.
+/**
+ * @file rbcRenderCairo.c
+ * @brief Cairo screen output, surface ownership and disabled-build fallbacks.
+ *
+ * See license.terms.
  */
+
 /** @defgroup cairo_backend Cairo backend internals
  * Private context and image-conversion services, compiled with Cairo enabled.
  */

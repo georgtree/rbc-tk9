@@ -1,7 +1,6 @@
-/*
- * rbcGrPen.c --
- *
- *      This module implements pens for the rbc graph widget.
+/**
+ * @file rbcGrPen.c
+ * @brief Pen and palette implementation contracts.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcGrPen.c
- * Pen and palette implementation contracts.
- */
 /** @defgroup pen_internals Named pen internals
  * Private helpers; no new public API.
  */
@@ -25,7 +21,7 @@ typedef int RbcGrPenOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_O
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrPenOp *proc; /**< Typed command handler for this operation. */
 } PenOpSpec;
 

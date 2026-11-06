@@ -91,6 +91,7 @@
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-and-member-comment-placement">Contract and member comment placement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#file-headers">File headers</a></li>
 </ul>
 </li>
 </ul>
@@ -168,6 +169,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html">Vector command C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-operations.html">Vector indexed edits and rearrangement</a><ul>
@@ -218,6 +220,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html">Expression engine internal C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-numerics.html">Expression reductions and scalar kernels</a><ul>
@@ -596,6 +599,87 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="#implementation-selectors">Implementation selectors</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#c.Rbc_Renderer"><code class="docutils literal notranslate"><span class="pre">Rbc_Renderer</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.Rbc_Renderer.RBC_RENDERER_NATIVE"><code class="docutils literal notranslate"><span class="pre">RBC_RENDERER_NATIVE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Rbc_Renderer.RBC_RENDERER_CAIRO"><code class="docutils literal notranslate"><span class="pre">RBC_RENDERER_CAIRO</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Rbc_Antialias"><code class="docutils literal notranslate"><span class="pre">Rbc_Antialias</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.Rbc_Antialias.RBC_ANTIALIAS_DEFAULT"><code class="docutils literal notranslate"><span class="pre">RBC_ANTIALIAS_DEFAULT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Rbc_Antialias.RBC_ANTIALIAS_NONE"><code class="docutils literal notranslate"><span class="pre">RBC_ANTIALIAS_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Rbc_Antialias.RBC_ANTIALIAS_GRAY"><code class="docutils literal notranslate"><span class="pre">RBC_ANTIALIAS_GRAY</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Rbc_Antialias.RBC_ANTIALIAS_FAST"><code class="docutils literal notranslate"><span class="pre">RBC_ANTIALIAS_FAST</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Rbc_Antialias.RBC_ANTIALIAS_GOOD"><code class="docutils literal notranslate"><span class="pre">RBC_ANTIALIAS_GOOD</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.Rbc_Antialias.RBC_ANTIALIAS_BEST"><code class="docutils literal notranslate"><span class="pre">RBC_ANTIALIAS_BEST</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.GraphBindContext"><code class="docutils literal notranslate"><span class="pre">GraphBindContext</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphBindContext.GRAPH_BIND_CONTEXT_AXIS"><code class="docutils literal notranslate"><span class="pre">GRAPH_BIND_CONTEXT_AXIS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphBindContext.GRAPH_BIND_CONTEXT_ELEMENT"><code class="docutils literal notranslate"><span class="pre">GRAPH_BIND_CONTEXT_ELEMENT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphBindContext.GRAPH_BIND_CONTEXT_MARKER"><code class="docutils literal notranslate"><span class="pre">GRAPH_BIND_CONTEXT_MARKER</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphBindContext.GRAPH_BIND_CONTEXT_TRACK"><code class="docutils literal notranslate"><span class="pre">GRAPH_BIND_CONTEXT_TRACK</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.ClassType"><code class="docutils literal notranslate"><span class="pre">ClassType</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_UNKNOWN"><code class="docutils literal notranslate"><span class="pre">CLASS_UNKNOWN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_LINE_ELEMENT"><code class="docutils literal notranslate"><span class="pre">CLASS_LINE_ELEMENT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_STRIP_ELEMENT"><code class="docutils literal notranslate"><span class="pre">CLASS_STRIP_ELEMENT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_BAR_ELEMENT"><code class="docutils literal notranslate"><span class="pre">CLASS_BAR_ELEMENT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_BITMAP_MARKER"><code class="docutils literal notranslate"><span class="pre">CLASS_BITMAP_MARKER</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_IMAGE_MARKER"><code class="docutils literal notranslate"><span class="pre">CLASS_IMAGE_MARKER</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_LINE_MARKER"><code class="docutils literal notranslate"><span class="pre">CLASS_LINE_MARKER</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_POLYGON_MARKER"><code class="docutils literal notranslate"><span class="pre">CLASS_POLYGON_MARKER</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_TEXT_MARKER"><code class="docutils literal notranslate"><span class="pre">CLASS_TEXT_MARKER</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.ClassType.CLASS_WINDOW_MARKER"><code class="docutils literal notranslate"><span class="pre">CLASS_WINDOW_MARKER</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.PolarRepresentation"><code class="docutils literal notranslate"><span class="pre">PolarRepresentation</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.PolarRepresentation.POLAR_REPRESENTATION_POLAR"><code class="docutils literal notranslate"><span class="pre">POLAR_REPRESENTATION_POLAR</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.PolarRepresentation.POLAR_REPRESENTATION_SMITH"><code class="docutils literal notranslate"><span class="pre">POLAR_REPRESENTATION_SMITH</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.SmithGridMode"><code class="docutils literal notranslate"><span class="pre">SmithGridMode</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.SmithGridMode.SMITH_GRID_IMPEDANCE"><code class="docutils literal notranslate"><span class="pre">SMITH_GRID_IMPEDANCE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SmithGridMode.SMITH_GRID_ADMITTANCE"><code class="docutils literal notranslate"><span class="pre">SMITH_GRID_ADMITTANCE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.SmithGridMode.SMITH_GRID_BOTH"><code class="docutils literal notranslate"><span class="pre">SMITH_GRID_BOTH</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.BarModes"><code class="docutils literal notranslate"><span class="pre">BarModes</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.BarModes.MODE_INFRONT"><code class="docutils literal notranslate"><span class="pre">MODE_INFRONT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.BarModes.MODE_STACKED"><code class="docutils literal notranslate"><span class="pre">MODE_STACKED</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.BarModes.MODE_ALIGNED"><code class="docutils literal notranslate"><span class="pre">MODE_ALIGNED</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.BarModes.MODE_OVERLAP"><code class="docutils literal notranslate"><span class="pre">MODE_OVERLAP</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.MonoAttribute"><code class="docutils literal notranslate"><span class="pre">MonoAttribute</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.MonoAttribute.PS_MONO_BACKGROUND"><code class="docutils literal notranslate"><span class="pre">PS_MONO_BACKGROUND</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.MonoAttribute.PS_MONO_FOREGROUND"><code class="docutils literal notranslate"><span class="pre">PS_MONO_FOREGROUND</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.GraphPixelOption"><code class="docutils literal notranslate"><span class="pre">GraphPixelOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_BORDER_WIDTH"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_BORDER_WIDTH</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_BOTTOM_MARGIN"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_BOTTOM_MARGIN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_HALO"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_HALO</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_HEIGHT"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_HEIGHT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_LEFT_MARGIN"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_LEFT_MARGIN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_RIGHT_MARGIN"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_RIGHT_MARGIN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_TOP_MARGIN"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_TOP_MARGIN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_WIDTH"><code class="docutils literal notranslate"><span class="pre">GRAPH_PIXEL_OPTION_WIDTH</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.GraphPaddingOption"><code class="docutils literal notranslate"><span class="pre">GraphPaddingOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPaddingOption.GRAPH_PADDING_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">GRAPH_PADDING_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPaddingOption.GRAPH_PADDING_OPTION_X"><code class="docutils literal notranslate"><span class="pre">GRAPH_PADDING_OPTION_X</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.GraphPaddingOption.GRAPH_PADDING_OPTION_Y"><code class="docutils literal notranslate"><span class="pre">GRAPH_PADDING_OPTION_Y</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.BarMode"><code class="docutils literal notranslate"><span class="pre">BarMode</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -641,6 +725,7 @@
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#labels-geometry-and-presentation">Labels, geometry and presentation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#layout-queries-scrolling-and-notifications">Layout, queries, scrolling and notifications</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -733,6 +818,7 @@
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-configuration-and-smoothing">Line configuration and smoothing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#shared-error-bar-geometry">Shared error-bar geometry</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -931,6 +1017,7 @@
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#window-marker-geometry-management-and-callbacks">Window marker geometry management and callbacks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#pass-batching-and-renderer-dispatch">Pass batching and renderer dispatch</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1064,6 +1151,7 @@
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#graph-command-and-traversal">Graph command and traversal</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#svg-and-pdf-command-helpers-and-format-adapters">SVG and PDF command helpers and format adapters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="document-rendering.html">Document renderer primitives</a><ul>
@@ -1221,6 +1309,7 @@
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#graph-options-and-document-assembly">Graph options and document assembly</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#windows-binary-preview-packaging">Windows binary preview packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1296,6 +1385,7 @@
 <li class="toctree-l2"><a class="reference internal" href="image-color-reference.html">Image color processing C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#palette-reduction-implementation">Palette-reduction implementation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="image-compatibility.html">Temporary images and private Tk adapters</a><ul>
@@ -1394,6 +1484,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#cleanup-boundaries">Cleanup boundaries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#root-and-nested-child-lookup">Root and nested child lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#reading-an-option-table">Reading an option table</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="configuration-reference.html">Component configuration C reference</a><ul>
@@ -1402,6 +1493,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#option-lookup-and-metadata">Option lookup and metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#relative-child-lookup">Relative child lookup</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#component-option-tables">Component option tables</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="bindings.html">Binding dispatch and picking</a><ul>
@@ -1474,9 +1566,13 @@
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#selection-versus-execution">Selection versus execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#maintenance-checks">Maintenance checks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#lookup-inputs-and-output">Lookup inputs and output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#operation-families-and-their-record-types">Operation families and their record types</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dispatch-reference.html#implementation-selectors">Implementation selectors</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="value-conversion.html">Shared value conversion and numeric policy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#screen-units-and-staged-values">Screen units and staged values</a></li>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#dashes-and-callbacks">Dashes and callbacks</a></li>
@@ -2040,7 +2136,7 @@ screen composition helpers.</p>
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.GraphStruct.representation">
-<span class="target" id="struct_graph_struct_1aae1b2319003011716c1e82ce20789a30"></span><span class="n"><span class="pre">PolarRepresentation</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">representation</span></span></span><a class="headerlink" href="#c.GraphStruct.representation" title="Link to this definition"></a><br /></dt>
+<span class="target" id="struct_graph_struct_1aae1b2319003011716c1e82ce20789a30"></span><a class="reference internal" href="#c.PolarRepresentation" title="PolarRepresentation"><span class="n"><span class="pre">PolarRepresentation</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">representation</span></span></span><a class="headerlink" href="#c.GraphStruct.representation" title="Link to this definition"></a><br /></dt>
 <dd><p>Polar or Smith presentation selector; data coordinates remain Cartesian. </p>
 </dd></dl>
 
@@ -2191,7 +2287,7 @@ screen composition helpers.</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.GraphStruct.antialias">
 <span class="target" id="struct_graph_struct_1a834a52149c50d90c724846973cb16441"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">antialias</span></span></span><a class="headerlink" href="#c.GraphStruct.antialias" title="Link to this definition"></a><br /></dt>
-<dd><p>Rbc_Antialias; applies to Cairo geometry. </p>
+<dd><p><a class="reference internal" href="#group__selector__graph_1ga70eb1dddf767de43d1f991691f3b8f23"><span class="std std-ref">Rbc_Antialias</span></a>; applies to Cairo geometry. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -2203,7 +2299,7 @@ screen composition helpers.</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.GraphStruct.renderer">
 <span class="target" id="struct_graph_struct_1a016dd68e5866520654d31c08b90a6f7d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">renderer</span></span></span><a class="headerlink" href="#c.GraphStruct.renderer" title="Link to this definition"></a><br /></dt>
-<dd><p>Rbc_Renderer selected by -renderer. </p>
+<dd><p><a class="reference internal" href="#group__selector__graph_1gafb0415a4e3c2de59ee5d034157945184"><span class="std std-ref">Rbc_Renderer</span></a> selected by -renderer. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -2251,8 +2347,8 @@ screen composition helpers.</p>
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.GraphStruct.mode">
-<span class="target" id="struct_graph_struct_1aedee51e6debc2b4cd85911d3609fb4a9"></span><span class="n"><span class="pre">BarMode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mode</span></span></span><a class="headerlink" href="#c.GraphStruct.mode" title="Link to this definition"></a><br /></dt>
-<dd><p>BarMode selector for coincident bars, including overlap. </p>
+<span class="target" id="struct_graph_struct_1aedee51e6debc2b4cd85911d3609fb4a9"></span><a class="reference internal" href="#c.BarMode" title="BarMode"><span class="n"><span class="pre">BarMode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mode</span></span></span><a class="headerlink" href="#c.GraphStruct.mode" title="Link to this definition"></a><br /></dt>
+<dd><p><a class="reference internal" href="#group__selector__graph_1ga47f1713638350902f02e865f263f034b"><span class="std std-ref">BarMode</span></a> selector for coincident bars, including overlap. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -2561,7 +2657,7 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPixelOption">
-<span class="target" id="group__graph__option__transactions_1gaff9c450ad8a13540c2d7fcbdafb75e9d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPixelOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__graph__option__transactions_1gaff9c450ad8a13540c2d7fcbdafb75e9d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.GraphPixelOption" title="GraphPixelOption"><span class="n"><span class="pre">GraphPixelOption</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPixelOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Identify a retained graph distance option. </p>
 <p>Returns GRAPH_PIXEL_OPTION_NONE for other or unresolved options. The classification is used both for explicit-override masks and ordered parsing.</p>
 <dl class="field-list simple">
@@ -2575,7 +2671,7 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPixelObject">
-<span class="target" id="group__graph__option__transactions_1ga6b1cac71366ce30c7f8e704a210dda25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPixelObject</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPixelObject" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__graph__option__transactions_1ga6b1cac71366ce30c7f8e704a210dda25"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPixelObject</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.GraphPixelOption" title="GraphPixelOption"><span class="n"><span class="pre">GraphPixelOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPixelObject" title="Link to this definition"></a><br /></dt>
 <dd><p>Borrow the retained Tcl object for a graph distance. </p>
 <p>Does not change its reference count. The option must be a valid distance selector; invalid selectors panic rather than returning a recoverable error.</p>
 <dl class="field-list simple">
@@ -2590,7 +2686,7 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphPixelOption">
-<span class="target" id="group__graph__option__transactions_1gaffdaaaf19621df8e08a85c5c803c2057"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphPixelOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphPixelOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.GraphPixelTransaction" title="GraphPixelTransaction"><span class="n"><span class="pre">GraphPixelTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphPixelOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__graph__option__transactions_1gaffdaaaf19621df8e08a85c5c803c2057"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphPixelOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.GraphPixelOption" title="GraphPixelOption"><span class="n"><span class="pre">GraphPixelOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.GraphPixelTransaction" title="GraphPixelTransaction"><span class="n"><span class="pre">GraphPixelTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphPixelOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Parse one distance into a candidate transaction. </p>
 <p>Uses the graph window for unit conversion. All distances except highlight thickness require nonnegative values; highlight thickness uses Tk conversion directly. On success sets the selected field and mask bit; on conversion error leaves that candidate unchanged and returns TCL_ERROR.</p>
 <dl class="field-list simple">
@@ -2637,7 +2733,7 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPaddingOption">
-<span class="target" id="group__graph__option__transactions_1gac26422a65ec20089eec0373b867ef736"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPaddingOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPaddingOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__graph__option__transactions_1gac26422a65ec20089eec0373b867ef736"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.GraphPaddingOption" title="GraphPaddingOption"><span class="n"><span class="pre">GraphPaddingOption</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPaddingOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPaddingOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Identify retained X or Y plot padding. </p>
 <p>Returns GRAPH_PADDING_OPTION_NONE for other or unresolved options. The input object remains caller-owned.</p>
 <dl class="field-list simple">
@@ -2651,7 +2747,7 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphPaddingObject">
-<span class="target" id="group__graph__option__transactions_1ga79acff74738d316bcdfe3a38bb9f86f9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPaddingObject</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPaddingObject" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__graph__option__transactions_1ga79acff74738d316bcdfe3a38bb9f86f9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphPaddingObject</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <a class="reference internal" href="#c.GraphPaddingOption" title="GraphPaddingOption"><span class="n"><span class="pre">GraphPaddingOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphPaddingObject" title="Link to this definition"></a><br /></dt>
 <dd><p>Borrow the retained Tcl object for plot padding. </p>
 <p>Returns the X or Y object without retaining it. Invalid selectors panic.</p>
 <dl class="field-list simple">
@@ -2666,7 +2762,7 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.StageGraphPaddingOption">
-<span class="target" id="group__graph__option__transactions_1ga3ea6b5da7b915191ed641bad8de46f34"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphPaddingOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">GraphPaddingOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.GraphPaddingTransaction" title="GraphPaddingTransaction"><span class="n"><span class="pre">GraphPaddingTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphPaddingOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__graph__option__transactions_1ga3ea6b5da7b915191ed641bad8de46f34"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageGraphPaddingOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.GraphPaddingOption" title="GraphPaddingOption"><span class="n"><span class="pre">GraphPaddingOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.GraphPaddingTransaction" title="GraphPaddingTransaction"><span class="n"><span class="pre">GraphPaddingTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.StageGraphPaddingOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Parse one plot-padding candidate. </p>
 <p>Rbc_GetPadFromObj validates using the graph window. On success stores the padding and sets its mask bit; on error reports TCL_ERROR without publishing any live padding. The selector must be X or Y.</p>
 <dl class="field-list simple">
@@ -2713,7 +2809,7 @@ Preserve both records and save the interpreter state around DisplayGraphFrame. R
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphOptions.GetGraphBarModeFromObj">
-<span class="target" id="group__graph__option__transactions_1gac05a22b83de2c49fb8393491fb0ba979"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphBarModeFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">BarMode</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">modePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphBarModeFromObj" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__graph__option__transactions_1gac05a22b83de2c49fb8393491fb0ba979"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetGraphBarModeFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.BarMode" title="BarMode"><span class="n"><span class="pre">BarMode</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">modePtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGraphOptions.GetGraphBarModeFromObj" title="Link to this definition"></a><br /></dt>
 <dd><p>Parse a graph-wide bar mode with Tcl abbreviation rules. </p>
 <p>Normal and infront map to MODE_INFRONT. Writes the destination only on success; invalid or ambiguous names return TCL_ERROR with a diagnostic.</p>
 <dl class="field-list simple">
@@ -3759,7 +3855,7 @@ layouts part of the installed C API.</p>
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.GraphBarModeTransaction.mode">
-<span class="target" id="struct_graph_bar_mode_transaction_1a6884fd417aeb14d2cd4c1677ad169907"></span><span class="n"><span class="pre">BarMode</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mode</span></span></span><a class="headerlink" href="#c.GraphBarModeTransaction.mode" title="Link to this definition"></a><br /></dt>
+<span class="target" id="struct_graph_bar_mode_transaction_1a6884fd417aeb14d2cd4c1677ad169907"></span><a class="reference internal" href="#c.BarMode" title="BarMode"><span class="n"><span class="pre">BarMode</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mode</span></span></span><a class="headerlink" href="#c.GraphBarModeTransaction.mode" title="Link to this definition"></a><br /></dt>
 <dd><p>Validated mode selector staged for commit or abort. </p>
 </dd></dl>
 
@@ -3775,7 +3871,7 @@ layouts part of the installed C API.</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.GraphOpSpec.header">
 <span class="target" id="struct_graph_op_spec_1a5fe7990a3308bfce755d7048c13a8eb9"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.GraphOpSpec.header" title="Link to this definition"></a><br /></dt>
-<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+<dd><p>Operation name, total argument bounds and usage suffix. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -3983,6 +4079,320 @@ layouts part of the installed C API.</p>
 </dd></dl>
 
 </div>
+</dd></dl>
+
+</section>
+<section id="implementation-selectors">
+<h2>Implementation selectors<a class="headerlink" href="#implementation-selectors" title="Link to this heading"></a></h2>
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_Renderer">
+<span class="target" id="group__selector__graph_1gafb0415a4e3c2de59ee5d034157945184"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Renderer</span></span></span><a class="headerlink" href="#c.Rbc_Renderer" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects the graph’s screen drawing backend; export format is selected separately. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_Renderer.RBC_RENDERER_NATIVE">
+<span class="target" id="group__selector__graph_1ggafb0415a4e3c2de59ee5d034157945184a895e578beebaeead127d233a11f339e7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDERER_NATIVE</span></span></span><a class="headerlink" href="#c.Rbc_Renderer.RBC_RENDERER_NATIVE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_Renderer.RBC_RENDERER_CAIRO">
+<span class="target" id="group__selector__graph_1ggafb0415a4e3c2de59ee5d034157945184a5ef39ab39c13e0565171acca7983c71d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_RENDERER_CAIRO</span></span></span><a class="headerlink" href="#c.Rbc_Renderer.RBC_RENDERER_CAIRO" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_Antialias">
+<span class="target" id="group__selector__graph_1ga70eb1dddf767de43d1f991691f3b8f23"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Antialias</span></span></span><a class="headerlink" href="#c.Rbc_Antialias" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects the requested screen antialias policy for renderers that implement it. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_Antialias.RBC_ANTIALIAS_DEFAULT">
+<span class="target" id="group__selector__graph_1gga70eb1dddf767de43d1f991691f3b8f23a4eaa918d6dad3db6249d88dc45f9f731"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_ANTIALIAS_DEFAULT</span></span></span><a class="headerlink" href="#c.Rbc_Antialias.RBC_ANTIALIAS_DEFAULT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_Antialias.RBC_ANTIALIAS_NONE">
+<span class="target" id="group__selector__graph_1gga70eb1dddf767de43d1f991691f3b8f23a146b374b970151822002befc09a38748"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_ANTIALIAS_NONE</span></span></span><a class="headerlink" href="#c.Rbc_Antialias.RBC_ANTIALIAS_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_Antialias.RBC_ANTIALIAS_GRAY">
+<span class="target" id="group__selector__graph_1gga70eb1dddf767de43d1f991691f3b8f23a18c0a1375be2d7418ccc1892ecfe7438"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_ANTIALIAS_GRAY</span></span></span><a class="headerlink" href="#c.Rbc_Antialias.RBC_ANTIALIAS_GRAY" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_Antialias.RBC_ANTIALIAS_FAST">
+<span class="target" id="group__selector__graph_1gga70eb1dddf767de43d1f991691f3b8f23a8eabcb17b571af3feef38c404c65ba53"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_ANTIALIAS_FAST</span></span></span><a class="headerlink" href="#c.Rbc_Antialias.RBC_ANTIALIAS_FAST" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_Antialias.RBC_ANTIALIAS_GOOD">
+<span class="target" id="group__selector__graph_1gga70eb1dddf767de43d1f991691f3b8f23ada70ac706c9182bc33ba4ba4955f2374"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_ANTIALIAS_GOOD</span></span></span><a class="headerlink" href="#c.Rbc_Antialias.RBC_ANTIALIAS_GOOD" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_Antialias.RBC_ANTIALIAS_BEST">
+<span class="target" id="group__selector__graph_1gga70eb1dddf767de43d1f991691f3b8f23a94a6d70b67bdae27434d110ff32a3a6d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_ANTIALIAS_BEST</span></span></span><a class="headerlink" href="#c.Rbc_Antialias.RBC_ANTIALIAS_BEST" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.GraphBindContext">
+<span class="target" id="group__selector__graph_1ga5685eacd3be455773be4d1a11490b7ef"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphBindContext</span></span></span><a class="headerlink" href="#c.GraphBindContext" title="Link to this definition"></a><br /></dt>
+<dd><p>Discriminates the picked component passed through the graph binding table. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphBindContext.GRAPH_BIND_CONTEXT_AXIS">
+<span class="target" id="group__selector__graph_1gga5685eacd3be455773be4d1a11490b7efa26f83aca9acedc10496c0ded6f53e381"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_BIND_CONTEXT_AXIS</span></span></span><a class="headerlink" href="#c.GraphBindContext.GRAPH_BIND_CONTEXT_AXIS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphBindContext.GRAPH_BIND_CONTEXT_ELEMENT">
+<span class="target" id="group__selector__graph_1gga5685eacd3be455773be4d1a11490b7efaef73b315c5b698b43551f56cb5d2647c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_BIND_CONTEXT_ELEMENT</span></span></span><a class="headerlink" href="#c.GraphBindContext.GRAPH_BIND_CONTEXT_ELEMENT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphBindContext.GRAPH_BIND_CONTEXT_MARKER">
+<span class="target" id="group__selector__graph_1gga5685eacd3be455773be4d1a11490b7efa759c29ad8a7b81c3111c8b3a2c64b443"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_BIND_CONTEXT_MARKER</span></span></span><a class="headerlink" href="#c.GraphBindContext.GRAPH_BIND_CONTEXT_MARKER" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphBindContext.GRAPH_BIND_CONTEXT_TRACK">
+<span class="target" id="group__selector__graph_1gga5685eacd3be455773be4d1a11490b7efa872169ab9a151e90e887285cdec5da4a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_BIND_CONTEXT_TRACK</span></span></span><a class="headerlink" href="#c.GraphBindContext.GRAPH_BIND_CONTEXT_TRACK" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.ClassType">
+<span class="target" id="group__selector__graph_1ga92f93237c843e4b3fff7b7cc4c80f415"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassType</span></span></span><a class="headerlink" href="#c.ClassType" title="Link to this definition"></a><br /></dt>
+<dd><p>Legacy graph class identifiers; this list is not a registry of all current marker or element classes. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_UNKNOWN">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a614fd08f9a6cd84e97785eb2c551dafe"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_UNKNOWN</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_UNKNOWN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_LINE_ELEMENT">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a2da7a274efd5f69eadad1b21dfba3a30"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_LINE_ELEMENT</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_LINE_ELEMENT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_STRIP_ELEMENT">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a337221d212d33758de50d1225d0ed0af"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_STRIP_ELEMENT</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_STRIP_ELEMENT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_BAR_ELEMENT">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a3963707047714157b9b29515f2512273"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_BAR_ELEMENT</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_BAR_ELEMENT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_BITMAP_MARKER">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a74995750d513cca8cc178a95acd7164e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_BITMAP_MARKER</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_BITMAP_MARKER" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_IMAGE_MARKER">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a8cb3a9bc8dfabaafc0ed231c86cce73d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_IMAGE_MARKER</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_IMAGE_MARKER" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_LINE_MARKER">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a4a5f41b69016dae08641e3bd115b2d68"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_LINE_MARKER</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_LINE_MARKER" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_POLYGON_MARKER">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a59ef5aee81cdfb7c89c1aa08daf80390"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_POLYGON_MARKER</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_POLYGON_MARKER" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_TEXT_MARKER">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415a5f7b8d4be236467eb2320037f0616a29"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_TEXT_MARKER</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_TEXT_MARKER" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.ClassType.CLASS_WINDOW_MARKER">
+<span class="target" id="group__selector__graph_1gga92f93237c843e4b3fff7b7cc4c80f415aff0bb14fe0a9b0e7ec5aaee8c7d07de4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLASS_WINDOW_MARKER</span></span></span><a class="headerlink" href="#c.ClassType.CLASS_WINDOW_MARKER" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.PolarRepresentation">
+<span class="target" id="group__selector__graph_1ga4d3569944f8ed0916ffcd6a1c54467ba"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolarRepresentation</span></span></span><a class="headerlink" href="#c.PolarRepresentation" title="Link to this definition"></a><br /></dt>
+<dd><p>Chooses polar or Smith presentation of Cartesian data. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.PolarRepresentation.POLAR_REPRESENTATION_POLAR">
+<span class="target" id="group__selector__graph_1gga4d3569944f8ed0916ffcd6a1c54467baaba5caa64e1c262d7d943d4f8c4111896"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">POLAR_REPRESENTATION_POLAR</span></span></span><a class="headerlink" href="#c.PolarRepresentation.POLAR_REPRESENTATION_POLAR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.PolarRepresentation.POLAR_REPRESENTATION_SMITH">
+<span class="target" id="group__selector__graph_1gga4d3569944f8ed0916ffcd6a1c54467baac8ad5e3b80409668eb067133b78be75a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">POLAR_REPRESENTATION_SMITH</span></span></span><a class="headerlink" href="#c.PolarRepresentation.POLAR_REPRESENTATION_SMITH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.SmithGridMode">
+<span class="target" id="group__selector__graph_1ga2af7435cd66d7d277930d342a92e94d6"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SmithGridMode</span></span></span><a class="headerlink" href="#c.SmithGridMode" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects impedance circles, admittance circles or both for a Smith grid. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SmithGridMode.SMITH_GRID_IMPEDANCE">
+<span class="target" id="group__selector__graph_1gga2af7435cd66d7d277930d342a92e94d6a9c2fe5bdbd7bb68481a5ea5456386c51"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SMITH_GRID_IMPEDANCE</span></span></span><a class="headerlink" href="#c.SmithGridMode.SMITH_GRID_IMPEDANCE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SmithGridMode.SMITH_GRID_ADMITTANCE">
+<span class="target" id="group__selector__graph_1gga2af7435cd66d7d277930d342a92e94d6af723ad7080537f17516ee663d8055b60"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SMITH_GRID_ADMITTANCE</span></span></span><a class="headerlink" href="#c.SmithGridMode.SMITH_GRID_ADMITTANCE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.SmithGridMode.SMITH_GRID_BOTH">
+<span class="target" id="group__selector__graph_1gga2af7435cd66d7d277930d342a92e94d6aa2add0c406d5e3b01fb515a934f24c7a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SMITH_GRID_BOTH</span></span></span><a class="headerlink" href="#c.SmithGridMode.SMITH_GRID_BOTH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.BarModes">
+<span class="target" id="group__selector__graph_1gaae272f21ece4e3e7f8cb9a6967ac0097"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarModes</span></span></span><a class="headerlink" href="#c.BarModes" title="Link to this definition"></a><br /></dt>
+<dd><p>Chooses the placement of bars that share an abscissa, including stacking and grouped positioning. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.BarModes.MODE_INFRONT">
+<span class="target" id="group__selector__graph_1ggaae272f21ece4e3e7f8cb9a6967ac0097a4d08d8ee165b5fa782d47d184a58497a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MODE_INFRONT</span></span></span><a class="headerlink" href="#c.BarModes.MODE_INFRONT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.BarModes.MODE_STACKED">
+<span class="target" id="group__selector__graph_1ggaae272f21ece4e3e7f8cb9a6967ac0097a8bbe361aa3b901ef58d250d16a6dece4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MODE_STACKED</span></span></span><a class="headerlink" href="#c.BarModes.MODE_STACKED" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.BarModes.MODE_ALIGNED">
+<span class="target" id="group__selector__graph_1ggaae272f21ece4e3e7f8cb9a6967ac0097ab2ed8bf5af822c763cafca2f603acba1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MODE_ALIGNED</span></span></span><a class="headerlink" href="#c.BarModes.MODE_ALIGNED" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.BarModes.MODE_OVERLAP">
+<span class="target" id="group__selector__graph_1ggaae272f21ece4e3e7f8cb9a6967ac0097ab9617126b7ad329b48619983be7d10d3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MODE_OVERLAP</span></span></span><a class="headerlink" href="#c.BarModes.MODE_OVERLAP" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.MonoAttribute">
+<span class="target" id="group__selector__graph_1ga327929c4641dadf3a9db6f2beca79abc"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MonoAttribute</span></span></span><a class="headerlink" href="#c.MonoAttribute" title="Link to this definition"></a><br /></dt>
+<dd><p>Legacy foreground/background identifiers for monochrome <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a> attributes. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.MonoAttribute.PS_MONO_BACKGROUND">
+<span class="target" id="group__selector__graph_1gga327929c4641dadf3a9db6f2beca79abca55953b753807c4527ff9a04d4ae276dc"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PS_MONO_BACKGROUND</span></span></span><a class="headerlink" href="#c.MonoAttribute.PS_MONO_BACKGROUND" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.MonoAttribute.PS_MONO_FOREGROUND">
+<span class="target" id="group__selector__graph_1gga327929c4641dadf3a9db6f2beca79abca62133dd0109b43077860729620c6bbca"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PS_MONO_FOREGROUND</span></span></span><a class="headerlink" href="#c.MonoAttribute.PS_MONO_FOREGROUND" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.GraphPixelOption">
+<span class="target" id="group__selector__graph_1ga3a64a086d060b4f1658c04b79fe8da94"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphPixelOption</span></span></span><a class="headerlink" href="#c.GraphPixelOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects a widget dimension during staged conversion of graph pixel options. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_NONE">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94ab68ea7342b533772b462865211c4d53c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_NONE</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_BORDER_WIDTH">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a7750033947cdc7a48c8641c8b5d31540"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_BORDER_WIDTH</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_BORDER_WIDTH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_BOTTOM_MARGIN">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a397edf6a1ef3ffc592d283b8981bbce5"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_BOTTOM_MARGIN</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_BOTTOM_MARGIN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_HALO">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a5a5c97e8c4bffbd6c4a5a425ea0460e1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_HALO</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_HALO" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_HEIGHT">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a19eb270f20889ca06181d6a8ef24cea6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_HEIGHT</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_HEIGHT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a4b718c15bd215df6c6b9cfe1bda1c19e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_HIGHLIGHT_WIDTH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_LEFT_MARGIN">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a1047e2cc883c3487b777ee9cdeb261b3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_LEFT_MARGIN</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_LEFT_MARGIN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a03db2664d08d0f2fae0d4b381e3ddd3d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_PLOT_BORDER_WIDTH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_RIGHT_MARGIN">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a6498ae67912f2c0eb3d0bc4aad1e38bb"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_RIGHT_MARGIN</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_RIGHT_MARGIN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_TOP_MARGIN">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a7c6df2389b64a1fcd32d2543433f1e05"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_TOP_MARGIN</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_TOP_MARGIN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPixelOption.GRAPH_PIXEL_OPTION_WIDTH">
+<span class="target" id="group__selector__graph_1gga3a64a086d060b4f1658c04b79fe8da94a769aa52811c3530b9b42e6a7d58fc22c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PIXEL_OPTION_WIDTH</span></span></span><a class="headerlink" href="#c.GraphPixelOption.GRAPH_PIXEL_OPTION_WIDTH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.GraphPaddingOption">
+<span class="target" id="group__selector__graph_1ga7e214f4a01fd357ce5229b750f1aa2fc"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GraphPaddingOption</span></span></span><a class="headerlink" href="#c.GraphPaddingOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects the horizontal or vertical plot padding during widget configuration. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPaddingOption.GRAPH_PADDING_OPTION_NONE">
+<span class="target" id="group__selector__graph_1gga7e214f4a01fd357ce5229b750f1aa2fca99402108b9d1e8a1170eeb5f5da2c4b1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PADDING_OPTION_NONE</span></span></span><a class="headerlink" href="#c.GraphPaddingOption.GRAPH_PADDING_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPaddingOption.GRAPH_PADDING_OPTION_X">
+<span class="target" id="group__selector__graph_1gga7e214f4a01fd357ce5229b750f1aa2fca36031be1800f175323d4722eabb5c6eb"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PADDING_OPTION_X</span></span></span><a class="headerlink" href="#c.GraphPaddingOption.GRAPH_PADDING_OPTION_X" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.GraphPaddingOption.GRAPH_PADDING_OPTION_Y">
+<span class="target" id="group__selector__graph_1gga7e214f4a01fd357ce5229b750f1aa2fcab3d37b1a79976fb05af23e22a8790827"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GRAPH_PADDING_OPTION_Y</span></span></span><a class="headerlink" href="#c.GraphPaddingOption.GRAPH_PADDING_OPTION_Y" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.BarMode">
+<span class="target" id="group__selector__graph_1ga47f1713638350902f02e865f263f034b"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><a class="reference internal" href="#c.BarModes" title="BarModes"><span class="n"><span class="pre">BarModes</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BarMode</span></span></span><a class="headerlink" href="#c.BarMode" title="Link to this definition"></a><br /></dt>
+<dd><p>Chooses the placement of bars that share an abscissa, including stacking and grouped positioning. </p>
 </dd></dl>
 
 </section>

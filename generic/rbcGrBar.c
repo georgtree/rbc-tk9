@@ -1,7 +1,6 @@
-/*
- * rbcGrBar.c --
- *
- *      This module implements barchart elements for the rbc graph widget.
+/**
+ * @file rbcGrBar.c
+ * @brief Bar elements: configuration, grouping, geometry, drawing and export.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcGrBar.c
- * Bar elements: configuration, grouping, geometry, drawing and export.
- */
 /** @defgroup bar_configuration Bar configuration and pen lifecycle
  * Internal constructors and staged configuration; no public stubs are added.
  */
@@ -193,6 +189,10 @@ static const char *const errorBarPositionNames[] = {"data", "bar", NULL};
 
 static const char *const barAlignNames[] = {"center", "left", "right", NULL};
 
+/** @ingroup component_option_tables
+ * @brief Bar element data bindings, placement, error presentation and pen selection.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec barElemOptionSpecs[] = {
     {TK_OPTION_STRING, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenObjPtr), -1,
      0, NULL, BAR_ELEM_PEN_MASK},
@@ -448,8 +448,16 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          0},                                                                                                           \
         {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
 
+/** @ingroup component_option_tables
+ * @brief Shared bar pen entries instantiated with normal foreground and background defaults.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec normalBarPenOptionSpecs[] = {
     BAR_PEN_OPTION_ENTRIES(DEF_PEN_NORMAL_BACKGROUND, DEF_PEN_NORMAL_FOREGROUND)};
+/** @ingroup component_option_tables
+ * @brief The same bar pen entries instantiated with active foreground and background defaults.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec activeBarPenOptionSpecs[] = {
     BAR_PEN_OPTION_ENTRIES(DEF_PEN_ACTIVE_BACKGROUND, DEF_PEN_ACTIVE_FOREGROUND)};
 

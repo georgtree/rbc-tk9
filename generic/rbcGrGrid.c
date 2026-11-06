@@ -1,7 +1,6 @@
-/*
- * rbcGrGrid.c --
- *
- *      This module implements grid lines for the rbc graph widget.
+/**
+ * @file rbcGrGrid.c
+ * @brief Grid configuration and output helpers.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcGrGrid.c
- * Grid configuration and output helpers.
- */
 /** @defgroup grid_internals Grid configuration and output helpers
  * Private component helpers; not installed C API entry points.
  */
@@ -99,6 +95,10 @@ static const Tk_ObjCustomOption polarLabelAnchorOption = {
     "polarLabelAnchor", SetPolarLabelAnchor, GetPolarLabelAnchor, RestorePolarLabelAnchor, FreePolarLabelAnchor, NULL};
 static const char *const smithGridNames[] = {"impedance", "admittance", "both", NULL};
 
+/** @ingroup component_option_tables
+ * @brief Graph grid settings, including Cartesian and polar presentation fields.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec graphGridOptionSpecs[] = {
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
@@ -145,6 +145,10 @@ static const Tk_OptionSpec graphGridOptionSpecs[] = {
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* Track grids use the Cartesian options only. */
+/** @ingroup component_option_tables
+ * @brief Cartesian options for an individual track grid; lookup uses the track view, not the global grid table.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec trackGridOptionSpecs[] = {
     {TK_OPTION_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, -1, offsetof(Grid, colorPtr), 0,
      DEF_GRID_FG_MONO, GRID_REDRAW | GRID_GC_CHANGED},
@@ -162,10 +166,18 @@ static const Tk_OptionSpec trackGridOptionSpecs[] = {
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* Polar grids share graph options, but are visible by default. */
+/** @ingroup component_option_tables
+ * @brief Polar grid visibility override; the end entry chains to graphGridOptionSpecs for the remaining options.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec polarGridOptionSpecs[] = {
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, (ClientData)graphGridOptionSpecs, 0}};
 
+/** @ingroup component_option_tables
+ * @brief Options selected for a bar graph grid; use the table selected at construction when querying defaults.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec barGridOptionSpecs[] = {
     {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
      offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
@@ -972,7 +984,7 @@ typedef int RbcGrGridOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrGridOp *proc; /**< Typed command handler for this operation. */
 } GridOpSpec;
 

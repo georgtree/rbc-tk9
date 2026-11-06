@@ -1,9 +1,13 @@
 /**
  * @file rbcGrExport.c
- * @defgroup graph_export_commands SVG/PDF graph command internals
  * @brief Shared export commands, document context and graph traversal.
+ *
  * See license.terms for details.
  */
+
+/** @defgroup graph_export_commands SVG/PDF graph command internals
+ */
+
 #include "rbcFont.h"
 #include "rbcGrTrack.h"
 #include <stdarg.h>

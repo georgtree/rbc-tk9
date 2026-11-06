@@ -101,3 +101,12 @@ Document each structure's purpose and ownership, then attach field descriptions 
 ... */`` or a preceding documentation block). Include units, valid counts, optional/sentinel values and borrowed versus
 owned resources where relevant. Ordinary adjacent comments do not automatically become member documentation. Check that
 the structure is actually included in the reference and that its members appear in the rendered output.
+
+File headers
+------------
+
+Use one Doxygen file comment at the top of a module: its actual filename,
+a brief statement of the module's responsibility, then the existing copyright
+and license notice. Retain attribution and redistribution terms when merging
+an older banner. Give each ``@defgroup`` its own comment, outside the file
+comment, so a group description cannot become the brief for the whole file.

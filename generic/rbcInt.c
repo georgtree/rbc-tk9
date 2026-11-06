@@ -1,8 +1,6 @@
-/*
- * rbcInt.c --
- *
- *      This file constructs the basic functionality of the
- *      rbc commands.
+/**
+ * @file rbcInt.c
+ * @brief Interpreter-local package initialization and delayed Tk registration.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -10,10 +8,6 @@
  * See "license.terms" for details.
  */
 
-/**
- * @file rbcInt.c
- * @brief Interpreter-local package initialization and delayed Tk registration.
- */
 /** @defgroup initialization_private Package initialization helpers
  * Private loader callbacks and readiness bookkeeping, not installed interfaces.
  */

@@ -12,6 +12,8 @@
 #include <tcl.h>
 #include <tk.h>
 
+/** @ingroup selector_export
+ * @brief Tags the output document so renderer adapters select PostScript, SVG or PDF operations. */
 typedef enum { RBC_EXPORT_POSTSCRIPT, RBC_EXPORT_SVG, RBC_EXPORT_PDF } Rbc_ExportBackend;
 
 /**

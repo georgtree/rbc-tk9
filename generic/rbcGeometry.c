@@ -1,16 +1,12 @@
-/*
- * rbcGeometry.c --
- *
- *      Point/segment/polygon geometry, clipping and line simplification.
+/**
+ * @file rbcGeometry.c
+ * @brief Geometry validation and subdivision.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  * See "license.terms" for details.
  */
 
-/** @file rbcGeometry.c
- * Geometry validation and subdivision.
- */
 /** @defgroup geometry_internals Geometry validation and subdivision
  * Private helpers; callers retain storage and lifetime responsibilities.
  */

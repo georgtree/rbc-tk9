@@ -1,8 +1,6 @@
-/*
- * rbcVecObjCmd.c --
- *
- *      This file contains all commands to process the operations
- *      on instances of a vector.
+/**
+ * @file rbcVecCmd.c
+ * @brief Vector instance operations, conversions and binary input.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -10,10 +8,6 @@
  * See "license.terms" for details.
  */
 
-/**
- * @file rbcVecCmd.c
- * @brief Vector instance operations, conversions and binary input.
- */
 /**
  * @defgroup vector_command_paths Vector instance command paths
  * @brief Selected private mutation and input helpers; see the developer manual
@@ -636,6 +630,8 @@ static int ComplexArithmetic(Tcl_Interp *interp, int operator, Rbc_Complex a, Rb
     return TCL_OK;
 }
 
+/** @ingroup selector_vector_command
+ * @brief Identifies the numeric format decoded by vector binread. */
 enum NativeFormats {
     FMT_UNKNOWN = -1,
     FMT_UCHAR,
@@ -670,7 +666,7 @@ typedef int RbcVectorCmdOp(VectorObject *vPtr, Tcl_Interp *interp, Tcl_Size objc
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcVectorCmdOp *proc; /**< Typed command handler for this operation. */
 } VectorInstOpSpec;
 

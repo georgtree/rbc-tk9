@@ -51,3 +51,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: Rbc_ExportContext
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_export
+   :content-only:
+   :members:

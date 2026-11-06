@@ -33,3 +33,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: MathFunction
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_expression_engine
+   :content-only:
+   :members:

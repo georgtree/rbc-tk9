@@ -91,6 +91,7 @@
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-and-member-comment-placement">Contract and member comment placement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#file-headers">File headers</a></li>
 </ul>
 </li>
 </ul>
@@ -168,6 +169,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html">Vector command C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-operations.html">Vector indexed edits and rearrangement</a><ul>
@@ -291,6 +293,42 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#implementation-selectors">Implementation selectors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#c.Tokens"><code class="docutils literal notranslate"><span class="pre">Tokens</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.VALUE"><code class="docutils literal notranslate"><span class="pre">VALUE</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.OPEN_PAREN"><code class="docutils literal notranslate"><span class="pre">OPEN_PAREN</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.CLOSE_PAREN"><code class="docutils literal notranslate"><span class="pre">CLOSE_PAREN</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.COMMA"><code class="docutils literal notranslate"><span class="pre">COMMA</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.END"><code class="docutils literal notranslate"><span class="pre">END</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.UNKNOWN"><code class="docutils literal notranslate"><span class="pre">UNKNOWN</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.MULT"><code class="docutils literal notranslate"><span class="pre">MULT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.DIVIDE"><code class="docutils literal notranslate"><span class="pre">DIVIDE</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.MOD"><code class="docutils literal notranslate"><span class="pre">MOD</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.PLUS"><code class="docutils literal notranslate"><span class="pre">PLUS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.MINUS"><code class="docutils literal notranslate"><span class="pre">MINUS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.LEFT_SHIFT"><code class="docutils literal notranslate"><span class="pre">LEFT_SHIFT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.RIGHT_SHIFT"><code class="docutils literal notranslate"><span class="pre">RIGHT_SHIFT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.LESS"><code class="docutils literal notranslate"><span class="pre">LESS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.GREATER"><code class="docutils literal notranslate"><span class="pre">GREATER</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.LEQ"><code class="docutils literal notranslate"><span class="pre">LEQ</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.GEQ"><code class="docutils literal notranslate"><span class="pre">GEQ</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.EQUAL"><code class="docutils literal notranslate"><span class="pre">EQUAL</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.NEQ"><code class="docutils literal notranslate"><span class="pre">NEQ</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.OLD_BIT_AND"><code class="docutils literal notranslate"><span class="pre">OLD_BIT_AND</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.EXPONENT"><code class="docutils literal notranslate"><span class="pre">EXPONENT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.OLD_BIT_OR"><code class="docutils literal notranslate"><span class="pre">OLD_BIT_OR</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.OLD_QUESTY"><code class="docutils literal notranslate"><span class="pre">OLD_QUESTY</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.OLD_COLON"><code class="docutils literal notranslate"><span class="pre">OLD_COLON</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.AND"><code class="docutils literal notranslate"><span class="pre">AND</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.OR"><code class="docutils literal notranslate"><span class="pre">OR</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.UNARY_MINUS"><code class="docutils literal notranslate"><span class="pre">UNARY_MINUS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.OLD_UNARY_PLUS"><code class="docutils literal notranslate"><span class="pre">OLD_UNARY_PLUS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.NOT"><code class="docutils literal notranslate"><span class="pre">NOT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Tokens.OLD_BIT_NOT"><code class="docutils literal notranslate"><span class="pre">OLD_BIT_NOT</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-numerics.html">Expression reductions and scalar kernels</a><ul>
@@ -362,6 +400,7 @@
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#construction-and-redraw-support">Construction and redraw support</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#windows-metafile-packaging">Windows metafile packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -407,6 +446,7 @@
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#labels-geometry-and-presentation">Labels, geometry and presentation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#layout-queries-scrolling-and-notifications">Layout, queries, scrolling and notifications</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -499,6 +539,7 @@
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-configuration-and-smoothing">Line configuration and smoothing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#shared-error-bar-geometry">Shared error-bar geometry</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -697,6 +738,7 @@
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#window-marker-geometry-management-and-callbacks">Window marker geometry management and callbacks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#pass-batching-and-renderer-dispatch">Pass batching and renderer dispatch</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -830,6 +872,7 @@
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#graph-command-and-traversal">Graph command and traversal</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#svg-and-pdf-command-helpers-and-format-adapters">SVG and PDF command helpers and format adapters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="document-rendering.html">Document renderer primitives</a><ul>
@@ -987,6 +1030,7 @@
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#graph-options-and-document-assembly">Graph options and document assembly</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#windows-binary-preview-packaging">Windows binary preview packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1062,6 +1106,7 @@
 <li class="toctree-l2"><a class="reference internal" href="image-color-reference.html">Image color processing C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#palette-reduction-implementation">Palette-reduction implementation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="image-compatibility.html">Temporary images and private Tk adapters</a><ul>
@@ -1160,6 +1205,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#cleanup-boundaries">Cleanup boundaries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#root-and-nested-child-lookup">Root and nested child lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#reading-an-option-table">Reading an option table</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="configuration-reference.html">Component configuration C reference</a><ul>
@@ -1168,6 +1214,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#option-lookup-and-metadata">Option lookup and metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#relative-child-lookup">Relative child lookup</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#component-option-tables">Component option tables</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="bindings.html">Binding dispatch and picking</a><ul>
@@ -1240,9 +1287,13 @@
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#selection-versus-execution">Selection versus execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#maintenance-checks">Maintenance checks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#lookup-inputs-and-output">Lookup inputs and output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#operation-families-and-their-record-types">Operation families and their record types</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dispatch-reference.html#implementation-selectors">Implementation selectors</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="value-conversion.html">Shared value conversion and numeric policy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#screen-units-and-staged-values">Screen units and staged values</a></li>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#dashes-and-callbacks">Dashes and callbacks</a></li>
@@ -2287,6 +2338,166 @@ layouts part of the installed C API.</p>
 </dd></dl>
 
 </div>
+</dd></dl>
+
+</section>
+<section id="implementation-selectors">
+<h2>Implementation selectors<a class="headerlink" href="#implementation-selectors" title="Link to this heading"></a></h2>
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Tokens">
+<span class="target" id="group__selector__expression__engine_1ga7722396ed46bc111e7b794948986f8af"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tokens</span></span></span><a class="headerlink" href="#c.Tokens" title="Link to this definition"></a><br /></dt>
+<dd><p>Lexical token and operator identifiers consumed by the vector expression parser. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.VALUE">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afad3a10aa8b647d6a6db651ef882ff8bff"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VALUE</span></span></span><a class="headerlink" href="#c.Tokens.VALUE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.OPEN_PAREN">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afaf0b0ce2414f256bad9da221d2532147d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OPEN_PAREN</span></span></span><a class="headerlink" href="#c.Tokens.OPEN_PAREN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.CLOSE_PAREN">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa7093c88a2f741fb4dae5c36809a1958f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CLOSE_PAREN</span></span></span><a class="headerlink" href="#c.Tokens.CLOSE_PAREN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.COMMA">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afaf81277bcd86412fe04bb68718ea09392"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">COMMA</span></span></span><a class="headerlink" href="#c.Tokens.COMMA" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.END">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afadc6f24fd6915a3f2786a1b7045406924"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">END</span></span></span><a class="headerlink" href="#c.Tokens.END" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.UNKNOWN">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa6ce26a62afab55d7606ad4e92428b30c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UNKNOWN</span></span></span><a class="headerlink" href="#c.Tokens.UNKNOWN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.MULT">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa18a2956fb463e60c1a099d6d69e2c0ef"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MULT</span></span></span><a class="headerlink" href="#c.Tokens.MULT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.DIVIDE">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa0cb86713ee09fe297dde9ab03d50d5da"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DIVIDE</span></span></span><a class="headerlink" href="#c.Tokens.DIVIDE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.MOD">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa140fcc89db148e5975f1486e794675ba"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MOD</span></span></span><a class="headerlink" href="#c.Tokens.MOD" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.PLUS">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa87fe59ef12c3d13dc2a4d14c9b16c1f9"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PLUS</span></span></span><a class="headerlink" href="#c.Tokens.PLUS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.MINUS">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afaf613d73b4e7b570ffd967df4a13c4225"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MINUS</span></span></span><a class="headerlink" href="#c.Tokens.MINUS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.LEFT_SHIFT">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afaa60e0fb36a94d3c010509841ec680e34"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LEFT_SHIFT</span></span></span><a class="headerlink" href="#c.Tokens.LEFT_SHIFT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.RIGHT_SHIFT">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afad990ff1f515df972aaad015b3c6a6002"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RIGHT_SHIFT</span></span></span><a class="headerlink" href="#c.Tokens.RIGHT_SHIFT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.LESS">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa95c736070f99b99eb80d1eac1f4ca60f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LESS</span></span></span><a class="headerlink" href="#c.Tokens.LESS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.GREATER">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa25b5ca2f56d99ba6ffcb5316adac34c1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GREATER</span></span></span><a class="headerlink" href="#c.Tokens.GREATER" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.LEQ">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa5eba1d52e68e10fb2dafcb363cec49b7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LEQ</span></span></span><a class="headerlink" href="#c.Tokens.LEQ" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.GEQ">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa99705e9593e3e5c078150b293c86561e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GEQ</span></span></span><a class="headerlink" href="#c.Tokens.GEQ" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.EQUAL">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa59a84258a4cb9025b567ee5139455029"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EQUAL</span></span></span><a class="headerlink" href="#c.Tokens.EQUAL" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.NEQ">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afab4ab8d2a8dc61f08e3cc919787c79cd8"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEQ</span></span></span><a class="headerlink" href="#c.Tokens.NEQ" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.OLD_BIT_AND">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afab5b9471eb4744cc2ee5c5863a0aab45f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OLD_BIT_AND</span></span></span><a class="headerlink" href="#c.Tokens.OLD_BIT_AND" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.EXPONENT">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa8eea420782341fe9e372bcd388ed77f8"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EXPONENT</span></span></span><a class="headerlink" href="#c.Tokens.EXPONENT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.OLD_BIT_OR">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa0415f5aca58f52c3bfb8ea590b37acc4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OLD_BIT_OR</span></span></span><a class="headerlink" href="#c.Tokens.OLD_BIT_OR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.OLD_QUESTY">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa15f006e081b605b108996e2dccd75d2d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OLD_QUESTY</span></span></span><a class="headerlink" href="#c.Tokens.OLD_QUESTY" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.OLD_COLON">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afad3230e0a9807e9655d28da421bebf55d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OLD_COLON</span></span></span><a class="headerlink" href="#c.Tokens.OLD_COLON" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.AND">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa865555c9f2e0458a7078486aa1b3254f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AND</span></span></span><a class="headerlink" href="#c.Tokens.AND" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.OR">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa96727447c0ad447987df1c6415aef074"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OR</span></span></span><a class="headerlink" href="#c.Tokens.OR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.UNARY_MINUS">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa39becd34dc60022dd8ac4108fc7e4797"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UNARY_MINUS</span></span></span><a class="headerlink" href="#c.Tokens.UNARY_MINUS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.OLD_UNARY_PLUS">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afad274a159735e9a664e92e0dd41861167"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OLD_UNARY_PLUS</span></span></span><a class="headerlink" href="#c.Tokens.OLD_UNARY_PLUS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.NOT">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa0378ebc895849163b249d0b330257dd6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NOT</span></span></span><a class="headerlink" href="#c.Tokens.NOT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Tokens.OLD_BIT_NOT">
+<span class="target" id="group__selector__expression__engine_1gga7722396ed46bc111e7b794948986f8afa5b42d13ff40661b7a609cc1ad550eb26"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OLD_BIT_NOT</span></span></span><a class="headerlink" href="#c.Tokens.OLD_BIT_NOT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>

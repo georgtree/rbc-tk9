@@ -1,19 +1,10 @@
-/*
- * rbcGrPolar.c --
+/**
+ * @file rbcGrPolar.c
+ * @brief Polar and Smith grid geometry and label presentation.
  *
- *      Polar-specific graph mapping.
- *
- *      Polar graph data remain Cartesian:
- *
- *          x = real
- *          y = imaginary
- *
- *      This module changes only the representation of the grid.
+ * Polar and Smith graph data remain Cartesian: x = real, y = imaginary.
  */
 
-/** @file rbcGrPolar.c
- * Polar and Smith grid geometry and label presentation.
- */
 /** @defgroup polar_geometry Polar grid geometry internals
  * Private data-plane helpers; axes and grid records are borrowed.
  * Mapping requires cleared destination caches and does not draw labels.

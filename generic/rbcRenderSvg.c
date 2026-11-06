@@ -1,7 +1,10 @@
-/* Svg renderer. See license.terms. */
-/** @file rbcRenderSvg.c
- * SVG primitives, XML strings, definitions and embedded raster data.
+/**
+ * @file rbcRenderSvg.c
+ * @brief SVG primitives, XML strings, definitions and embedded raster data.
+ *
+ * See license.terms.
  */
+
 /** @defgroup svg_backend SVG backend internals
  * Private append-only output helpers borrowing the current export context.
  */

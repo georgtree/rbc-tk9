@@ -1,9 +1,13 @@
-/* Native Win geometry and batching. See license.terms.
- * Platform contexts remain private; shared Tk drawing is in rbcRenderNative.c. */
-#include "rbcRenderNative.h"
-/** @file rbcRenderNativeWin.c
- * Windows native drawing batches and GDI clip/resource ownership.
+/**
+ * @file rbcRenderNativeWin.c
+ * @brief Windows native drawing batches and GDI clip/resource ownership.
+ *
+ * See license.terms.
+ * Platform contexts remain private; shared Tk drawing is in rbcRenderNative.c.
  */
+
+#include "rbcRenderNative.h"
+
 /** @defgroup native_windows_drawing Windows native backend
  * Private Windows implementation; extracted separately from X11 namesakes.
  */

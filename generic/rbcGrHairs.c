@@ -1,17 +1,13 @@
-/*
- * rbcGrHairs.c --
- *
- *      This module implements crosshairs for the rbc graph widget.
+/**
+ * @file rbcGrHairs.c
+ * @brief Crosshair configuration and motion helpers.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
-*/
-
-/** @file rbcGrHairs.c
- * Crosshair configuration and motion helpers.
  */
+
 /** @defgroup crosshair_internals Crosshair configuration and motion helpers
  * Private component helpers; not installed C API entry points.
  */
@@ -58,6 +54,10 @@ struct CrosshairsStruct {
 #define HAIRS_STATE_CHANGED (1U << 2)
 #define HAIRS_INITIALIZE_MASK (HAIRS_GC_CHANGED | HAIRS_POSITION_CHANGED)
 
+/** @ingroup component_option_tables
+ * @brief Crosshair visibility, location and stroke resources used by the screen overlay.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec crosshairsOptionSpecs[] = {
     {TK_OPTION_COLOR, "-color", "color", "Color", DEF_HAIRS_FOREGROUND, -1, offsetof(Crosshairs, colorPtr), 0,
      DEF_HAIRS_FG_MONO, HAIRS_GC_CHANGED},
@@ -78,7 +78,7 @@ typedef int RbcGrHairsOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrHairsOp *proc; /**< Typed command handler for this operation. */
 } CrosshairsOpSpec;
 

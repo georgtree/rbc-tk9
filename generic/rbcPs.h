@@ -16,6 +16,8 @@
 
 #include "rbcText.h"
 
+/** @ingroup selector_postscript
+ * @brief Selects monochrome, greyscale or colour conversion for PostScript output. */
 typedef enum { PS_MODE_MONOCHROME, PS_MODE_GREYSCALE, PS_MODE_COLOR } PsColorMode;
 
 typedef struct PsTokenStruct *PsToken;

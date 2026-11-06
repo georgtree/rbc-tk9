@@ -91,6 +91,7 @@
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-and-member-comment-placement">Contract and member comment placement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#file-headers">File headers</a></li>
 </ul>
 </li>
 </ul>
@@ -168,6 +169,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html">Vector command C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-operations.html">Vector indexed edits and rearrangement</a><ul>
@@ -218,6 +220,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html">Expression engine internal C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-numerics.html">Expression reductions and scalar kernels</a><ul>
@@ -289,6 +292,7 @@
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#construction-and-redraw-support">Construction and redraw support</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#windows-metafile-packaging">Windows metafile packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -677,6 +681,45 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="#implementation-selectors">Implementation selectors</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#c.AxisComponents"><code class="docutils literal notranslate"><span class="pre">AxisComponents</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisComponents.MAJOR_TICK"><code class="docutils literal notranslate"><span class="pre">MAJOR_TICK</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisComponents.MINOR_TICK"><code class="docutils literal notranslate"><span class="pre">MINOR_TICK</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisComponents.TICK_LABEL"><code class="docutils literal notranslate"><span class="pre">TICK_LABEL</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisComponents.AXIS_LINE"><code class="docutils literal notranslate"><span class="pre">AXIS_LINE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.AxisLimitOption"><code class="docutils literal notranslate"><span class="pre">AxisLimitOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">AXIS_LIMIT_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_MIN"><code class="docutils literal notranslate"><span class="pre">AXIS_LIMIT_OPTION_MIN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_MAX"><code class="docutils literal notranslate"><span class="pre">AXIS_LIMIT_OPTION_MAX</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_SCROLL_MIN"><code class="docutils literal notranslate"><span class="pre">AXIS_LIMIT_OPTION_SCROLL_MIN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_SCROLL_MAX"><code class="docutils literal notranslate"><span class="pre">AXIS_LIMIT_OPTION_SCROLL_MAX</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.AxisTickOption"><code class="docutils literal notranslate"><span class="pre">AxisTickOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisTickOption.AXIS_TICK_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">AXIS_TICK_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisTickOption.AXIS_TICK_OPTION_MAJOR"><code class="docutils literal notranslate"><span class="pre">AXIS_TICK_OPTION_MAJOR</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisTickOption.AXIS_TICK_OPTION_MINOR"><code class="docutils literal notranslate"><span class="pre">AXIS_TICK_OPTION_MINOR</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.AxisPixelOption"><code class="docutils literal notranslate"><span class="pre">AxisPixelOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisPixelOption.AXIS_PIXEL_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">AXIS_PIXEL_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisPixelOption.AXIS_PIXEL_OPTION_BORDER_WIDTH"><code class="docutils literal notranslate"><span class="pre">AXIS_PIXEL_OPTION_BORDER_WIDTH</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisPixelOption.AXIS_PIXEL_OPTION_LINE_WIDTH"><code class="docutils literal notranslate"><span class="pre">AXIS_PIXEL_OPTION_LINE_WIDTH</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisPixelOption.AXIS_PIXEL_OPTION_SCROLL_INCREMENT"><code class="docutils literal notranslate"><span class="pre">AXIS_PIXEL_OPTION_SCROLL_INCREMENT</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.AxisShadowOption"><code class="docutils literal notranslate"><span class="pre">AxisShadowOption</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisShadowOption.AXIS_SHADOW_OPTION_NONE"><code class="docutils literal notranslate"><span class="pre">AXIS_SHADOW_OPTION_NONE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisShadowOption.AXIS_SHADOW_OPTION_LIMITS"><code class="docutils literal notranslate"><span class="pre">AXIS_SHADOW_OPTION_LIMITS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisShadowOption.AXIS_SHADOW_OPTION_TICK"><code class="docutils literal notranslate"><span class="pre">AXIS_SHADOW_OPTION_TICK</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#c.AxisShadowOption.AXIS_SHADOW_OPTION_TITLE"><code class="docutils literal notranslate"><span class="pre">AXIS_SHADOW_OPTION_TITLE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#c.AxisComponent"><code class="docutils literal notranslate"><span class="pre">AxisComponent</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -769,6 +812,7 @@
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-configuration-and-smoothing">Line configuration and smoothing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#shared-error-bar-geometry">Shared error-bar geometry</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -967,6 +1011,7 @@
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#window-marker-geometry-management-and-callbacks">Window marker geometry management and callbacks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#pass-batching-and-renderer-dispatch">Pass batching and renderer dispatch</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1100,6 +1145,7 @@
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#graph-command-and-traversal">Graph command and traversal</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#svg-and-pdf-command-helpers-and-format-adapters">SVG and PDF command helpers and format adapters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="export-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="export-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="document-rendering.html">Document renderer primitives</a><ul>
@@ -1257,6 +1303,7 @@
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#graph-options-and-document-assembly">Graph options and document assembly</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#windows-binary-preview-packaging">Windows binary preview packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1332,6 +1379,7 @@
 <li class="toctree-l2"><a class="reference internal" href="image-color-reference.html">Image color processing C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#palette-reduction-implementation">Palette-reduction implementation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="image-compatibility.html">Temporary images and private Tk adapters</a><ul>
@@ -1430,6 +1478,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#cleanup-boundaries">Cleanup boundaries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#root-and-nested-child-lookup">Root and nested child lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#reading-an-option-table">Reading an option table</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="configuration-reference.html">Component configuration C reference</a><ul>
@@ -1438,6 +1487,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#option-lookup-and-metadata">Option lookup and metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#relative-child-lookup">Relative child lookup</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#component-option-tables">Component option tables</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="bindings.html">Binding dispatch and picking</a><ul>
@@ -1510,9 +1560,13 @@
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#selection-versus-execution">Selection versus execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#maintenance-checks">Maintenance checks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#lookup-inputs-and-output">Lookup inputs and output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#operation-families-and-their-record-types">Operation families and their record types</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dispatch-reference.html#implementation-selectors">Implementation selectors</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="value-conversion.html">Shared value conversion and numeric policy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#screen-units-and-staged-values">Screen units and staged values</a></li>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#dashes-and-callbacks">Dashes and callbacks</a></li>
@@ -2312,7 +2366,7 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisLimitOption">
-<span class="target" id="group__axis__transactions_1ga0f0895cbe7af5dd33bd033da9e23e02f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">AxisLimitOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisLimitOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisLimitOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__axis__transactions_1ga0f0895cbe7af5dd33bd033da9e23e02f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.AxisLimitOption" title="AxisLimitOption"><span class="n"><span class="pre">AxisLimitOption</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisLimitOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisLimitOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Classify an axis limit option. </p>
 <p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for display and scroll minima/maxima. Returns the NONE enum for unrelated or unresolved names; performs no allocation.</p>
 <dl class="field-list simple">
@@ -2342,7 +2396,7 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisPixelOption">
-<span class="target" id="group__axis__transactions_1ga42a30a5431075998f33cc0cfb6e40413"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">AxisPixelOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisPixelOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__axis__transactions_1ga42a30a5431075998f33cc0cfb6e40413"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.AxisPixelOption" title="AxisPixelOption"><span class="n"><span class="pre">AxisPixelOption</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisPixelOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisPixelOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Classify an axis pixel option. </p>
 <p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for border width, line width and scroll increment. Returns the NONE enum for unrelated or unresolved names; performs no allocation.</p>
 <dl class="field-list simple">
@@ -2356,7 +2410,7 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisPixelOption">
-<span class="target" id="group__axis__transactions_1ga0aa97efd4296f777665d7f3b88efbbfd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisPixelOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">AxisPixelOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisPixelTransaction" title="AxisPixelTransaction"><span class="n"><span class="pre">AxisPixelTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisPixelOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__axis__transactions_1ga0aa97efd4296f777665d7f3b88efbbfd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisPixelOption</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.AxisPixelOption" title="AxisPixelOption"><span class="n"><span class="pre">AxisPixelOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisPixelTransaction" title="AxisPixelTransaction"><span class="n"><span class="pre">AxisPixelTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisPixelOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Stage one validated pixel-distance value. </p>
 <p>Border and line widths must be nonnegative; scroll increment must be positive. Uses Tk-window scaling through Rbc_GetPixelsFromObj. Success updates the selected scalar and mask only; an invalid internal enum panics.</p>
 <dl class="field-list simple">
@@ -2404,7 +2458,7 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisLimit">
-<span class="target" id="group__axis__transactions_1ga77c89df3e9ebb83c2861372b3851e0ec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisLimit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">AxisLimitOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisLimitTransaction" title="AxisLimitTransaction"><span class="n"><span class="pre">AxisLimitTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisLimit" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__axis__transactions_1ga77c89df3e9ebb83c2861372b3851e0ec"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisLimit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.AxisLimitOption" title="AxisLimitOption"><span class="n"><span class="pre">AxisLimitOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisLimitTransaction" title="AxisLimitTransaction"><span class="n"><span class="pre">AxisLimitTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisLimit" title="Link to this definition"></a><br /></dt>
 <dd><p>Stage one display or scroll limit. </p>
 <p>Evaluates the candidate before writing the selected scalar and setting its mask bit. Failure leaves the candidate unchanged. An invalid internal enum panics. Cross-field and logarithmic range validation belong to preparation.</p>
 <dl class="field-list simple">
@@ -2466,7 +2520,7 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisTickOption">
-<span class="target" id="group__axis__transactions_1ga2a32791fc64330f2a8e70b64fe016258"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">AxisTickOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisTickOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisTickOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__axis__transactions_1ga2a32791fc64330f2a8e70b64fe016258"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.AxisTickOption" title="AxisTickOption"><span class="n"><span class="pre">AxisTickOption</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisTickOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisTickOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Classify an axis tick option. </p>
 <p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for major and minor tick lists. Returns the NONE enum for unrelated or unresolved names; performs no allocation.</p>
 <dl class="field-list simple">
@@ -2589,7 +2643,7 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisTicks">
-<span class="target" id="group__axis__transactions_1gac681897cde0434f0f7678cbb63c6b5e3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">AxisTickOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTickTransaction" title="AxisTickTransaction"><span class="n"><span class="pre">AxisTickTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisTicks" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__axis__transactions_1gac681897cde0434f0f7678cbb63c6b5e3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisTicks</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.AxisTickOption" title="AxisTickOption"><span class="n"><span class="pre">AxisTickOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisTickTransaction" title="AxisTickTransaction"><span class="n"><span class="pre">AxisTickTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisTicks" title="Link to this definition"></a><br /></dt>
 <dd><p>Stage a major or minor explicit tick allocation. </p>
 <p>Parses and allocates the replacement before releasing an earlier candidate for that option. NULL is a valid staged candidate selecting automatic ticks. Success sets the mask; failure retains previous candidates. Invalid internal enums free the new allocation and panic.</p>
 <dl class="field-list simple">
@@ -2665,7 +2719,7 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.GetAxisShadowOption">
-<span class="target" id="group__axis__transactions_1ga5a411431e50f29bcaec2315e4ffc826e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">AxisShadowOption</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisShadowOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisShadowOption" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__axis__transactions_1ga5a411431e50f29bcaec2315e4ffc826e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#c.AxisShadowOption" title="AxisShadowOption"><span class="n"><span class="pre">AxisShadowOption</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAxisShadowOption</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.GetAxisShadowOption" title="Link to this definition"></a><br /></dt>
 <dd><p>Classify an axis shadow option. </p>
 <p>Resolves the canonical name using axisOptionSpecs and returns the corresponding enum for limits, tick and title shadows. Returns the NONE enum for unrelated or unresolved names; performs no allocation.</p>
 <dl class="field-list simple">
@@ -2679,7 +2733,7 @@ Namespaces below disambiguate private handler names without changing linkage.</p
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGrAxisTransactions.StageAxisShadow">
-<span class="target" id="group__axis__transactions_1ga0f425a1696b74b777a5f92afaed56f8e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisShadow</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <span class="n"><span class="pre">AxisShadowOption</span></span><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisShadowTransaction" title="AxisShadowTransaction"><span class="n"><span class="pre">AxisShadowTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisShadow" title="Link to this definition"></a><br /></dt>
+<span class="target" id="group__axis__transactions_1ga0f425a1696b74b777a5f92afaed56f8e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StageAxisShadow</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">objPtr</span></span>, <a class="reference internal" href="#c.AxisShadowOption" title="AxisShadowOption"><span class="n"><span class="pre">AxisShadowOption</span></span></a><span class="w"> </span><span class="n"><span class="pre">option</span></span>, <a class="reference internal" href="#c.rbcGrAxisTransactions.AxisShadowTransaction" title="AxisShadowTransaction"><span class="n"><span class="pre">AxisShadowTransaction</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">transactionPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcGrAxisTransactions.StageAxisShadow" title="Link to this definition"></a><br /></dt>
 <dd><p>Stage one owned shadow colour and offset. </p>
 <p>Acquires and validates a new shadow before releasing an earlier candidate for the same option. Success transfers the new colour reference into the transaction and sets its mask. Invalid internal enums release the new colour and panic.</p>
 <dl class="field-list simple">
@@ -4105,7 +4159,7 @@ layouts part of the installed C API.</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.AxisOpSpec.header">
 <span class="target" id="struct_axis_op_spec_1a6d9298b1d89c0ae44b7e12b5bd30b7d4"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.AxisOpSpec.header" title="Link to this definition"></a><br /></dt>
-<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+<dd><p>Operation name, total argument bounds and usage suffix. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -4126,7 +4180,7 @@ layouts part of the installed C API.</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.AxisVirtualOpSpec.header">
 <span class="target" id="struct_axis_virtual_op_spec_1ac0cad38d796592e20a9e6dbd9fc1c415"></span><a class="reference internal" href="dispatch-reference.html#c.Rbc_OpSpecHeader" title="Rbc_OpSpecHeader"><span class="n"><span class="pre">Rbc_OpSpecHeader</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">header</span></span></span><a class="headerlink" href="#c.AxisVirtualOpSpec.header" title="Link to this definition"></a><br /></dt>
-<dd><p>Shared operation name, abbreviation and argument-count metadata. </p>
+<dd><p>Operation name, total argument bounds and usage suffix. </p>
 </dd></dl>
 
 <dl class="c var">
@@ -4846,6 +4900,150 @@ layouts part of the installed C API.</p>
 </dd></dl>
 
 </div>
+</dd></dl>
+
+</section>
+<section id="implementation-selectors">
+<h2>Implementation selectors<a class="headerlink" href="#implementation-selectors" title="Link to this heading"></a></h2>
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.AxisComponents">
+<span class="target" id="group__selector__axis_1ga811f55b7805938e34fc204abe180bd6d"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisComponents</span></span></span><a class="headerlink" href="#c.AxisComponents" title="Link to this definition"></a><br /></dt>
+<dd><p>Legacy identifiers for tick marks, labels and the axis line; no current axis code dispatches on this type. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisComponents.MAJOR_TICK">
+<span class="target" id="group__selector__axis_1gga811f55b7805938e34fc204abe180bd6da1dbc40c9ff8de8a147f07533778d3ea4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MAJOR_TICK</span></span></span><a class="headerlink" href="#c.AxisComponents.MAJOR_TICK" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisComponents.MINOR_TICK">
+<span class="target" id="group__selector__axis_1gga811f55b7805938e34fc204abe180bd6dae5c0ca57ac6fb399b54badd2eb722644"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MINOR_TICK</span></span></span><a class="headerlink" href="#c.AxisComponents.MINOR_TICK" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisComponents.TICK_LABEL">
+<span class="target" id="group__selector__axis_1gga811f55b7805938e34fc204abe180bd6da5b02fc9048e5fb29bc61998fa556e01c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TICK_LABEL</span></span></span><a class="headerlink" href="#c.AxisComponents.TICK_LABEL" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisComponents.AXIS_LINE">
+<span class="target" id="group__selector__axis_1gga811f55b7805938e34fc204abe180bd6da617c3c5e08f7692bc7ff0408c61c3544"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_LINE</span></span></span><a class="headerlink" href="#c.AxisComponents.AXIS_LINE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.AxisLimitOption">
+<span class="target" id="group__selector__axis_1gae2a1c2b0badcee181da430d2a58eb8ed"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisLimitOption</span></span></span><a class="headerlink" href="#c.AxisLimitOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects which explicit data or scroll limit a pending axis configuration updates. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisLimitOption.AXIS_LIMIT_OPTION_NONE">
+<span class="target" id="group__selector__axis_1ggae2a1c2b0badcee181da430d2a58eb8eda7d9eb2a381dcd7f9ebc0eb845d0408c2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_LIMIT_OPTION_NONE</span></span></span><a class="headerlink" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisLimitOption.AXIS_LIMIT_OPTION_MIN">
+<span class="target" id="group__selector__axis_1ggae2a1c2b0badcee181da430d2a58eb8eda55575750192b04b44960fe23d289b68b"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_LIMIT_OPTION_MIN</span></span></span><a class="headerlink" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_MIN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisLimitOption.AXIS_LIMIT_OPTION_MAX">
+<span class="target" id="group__selector__axis_1ggae2a1c2b0badcee181da430d2a58eb8edaea54632ef959accd10d2fbfeae3a519a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_LIMIT_OPTION_MAX</span></span></span><a class="headerlink" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_MAX" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisLimitOption.AXIS_LIMIT_OPTION_SCROLL_MIN">
+<span class="target" id="group__selector__axis_1ggae2a1c2b0badcee181da430d2a58eb8edad916a038abcff785d404f11b53642ca6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_LIMIT_OPTION_SCROLL_MIN</span></span></span><a class="headerlink" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_SCROLL_MIN" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisLimitOption.AXIS_LIMIT_OPTION_SCROLL_MAX">
+<span class="target" id="group__selector__axis_1ggae2a1c2b0badcee181da430d2a58eb8edaa89e3196a244a1d9fb6025de8a6d3d12"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_LIMIT_OPTION_SCROLL_MAX</span></span></span><a class="headerlink" href="#c.AxisLimitOption.AXIS_LIMIT_OPTION_SCROLL_MAX" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.AxisTickOption">
+<span class="target" id="group__selector__axis_1ga72a01eea4b370f32c6af3907cc9d9a25"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisTickOption</span></span></span><a class="headerlink" href="#c.AxisTickOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Distinguishes major and minor tick-list inputs during axis configuration. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisTickOption.AXIS_TICK_OPTION_NONE">
+<span class="target" id="group__selector__axis_1gga72a01eea4b370f32c6af3907cc9d9a25a6d28e5392831af65851c86e7c1134c76"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_TICK_OPTION_NONE</span></span></span><a class="headerlink" href="#c.AxisTickOption.AXIS_TICK_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisTickOption.AXIS_TICK_OPTION_MAJOR">
+<span class="target" id="group__selector__axis_1gga72a01eea4b370f32c6af3907cc9d9a25acd1af173fae9016e61140fbaa8e3d4bf"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_TICK_OPTION_MAJOR</span></span></span><a class="headerlink" href="#c.AxisTickOption.AXIS_TICK_OPTION_MAJOR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisTickOption.AXIS_TICK_OPTION_MINOR">
+<span class="target" id="group__selector__axis_1gga72a01eea4b370f32c6af3907cc9d9a25a91fdabc1d5732d554f57fe595501df44"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_TICK_OPTION_MINOR</span></span></span><a class="headerlink" href="#c.AxisTickOption.AXIS_TICK_OPTION_MINOR" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.AxisPixelOption">
+<span class="target" id="group__selector__axis_1ga8318b4c766d92cca59097dbd0921f0fc"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisPixelOption</span></span></span><a class="headerlink" href="#c.AxisPixelOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects the dimension to convert from a Tk screen distance before committing axis options. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisPixelOption.AXIS_PIXEL_OPTION_NONE">
+<span class="target" id="group__selector__axis_1gga8318b4c766d92cca59097dbd0921f0fca901b2c820645be4cb44d6dfee90415ca"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_PIXEL_OPTION_NONE</span></span></span><a class="headerlink" href="#c.AxisPixelOption.AXIS_PIXEL_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisPixelOption.AXIS_PIXEL_OPTION_BORDER_WIDTH">
+<span class="target" id="group__selector__axis_1gga8318b4c766d92cca59097dbd0921f0fca73ff37241b0e9edfbe640c805f00bb31"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_PIXEL_OPTION_BORDER_WIDTH</span></span></span><a class="headerlink" href="#c.AxisPixelOption.AXIS_PIXEL_OPTION_BORDER_WIDTH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisPixelOption.AXIS_PIXEL_OPTION_LINE_WIDTH">
+<span class="target" id="group__selector__axis_1gga8318b4c766d92cca59097dbd0921f0fca10fd3ca213e6f96ce0bceea0ef2298be"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_PIXEL_OPTION_LINE_WIDTH</span></span></span><a class="headerlink" href="#c.AxisPixelOption.AXIS_PIXEL_OPTION_LINE_WIDTH" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisPixelOption.AXIS_PIXEL_OPTION_SCROLL_INCREMENT">
+<span class="target" id="group__selector__axis_1gga8318b4c766d92cca59097dbd0921f0fcaf2fd66268197c99d9190e060135f0192"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_PIXEL_OPTION_SCROLL_INCREMENT</span></span></span><a class="headerlink" href="#c.AxisPixelOption.AXIS_PIXEL_OPTION_SCROLL_INCREMENT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.AxisShadowOption">
+<span class="target" id="group__selector__axis_1gab145fec3499d774ecb338c719812242b"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisShadowOption</span></span></span><a class="headerlink" href="#c.AxisShadowOption" title="Link to this definition"></a><br /></dt>
+<dd><p>Selects which text style receives a staged shadow resource. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisShadowOption.AXIS_SHADOW_OPTION_NONE">
+<span class="target" id="group__selector__axis_1ggab145fec3499d774ecb338c719812242ba9d25aaa76c36e2650f0fe08ec93fd81a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_SHADOW_OPTION_NONE</span></span></span><a class="headerlink" href="#c.AxisShadowOption.AXIS_SHADOW_OPTION_NONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisShadowOption.AXIS_SHADOW_OPTION_LIMITS">
+<span class="target" id="group__selector__axis_1ggab145fec3499d774ecb338c719812242ba785a5dcffefc0e5b7c0409f556828337"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_SHADOW_OPTION_LIMITS</span></span></span><a class="headerlink" href="#c.AxisShadowOption.AXIS_SHADOW_OPTION_LIMITS" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisShadowOption.AXIS_SHADOW_OPTION_TICK">
+<span class="target" id="group__selector__axis_1ggab145fec3499d774ecb338c719812242ba7a7a8d4c8a71c8d0d2e5663ca690bb4f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_SHADOW_OPTION_TICK</span></span></span><a class="headerlink" href="#c.AxisShadowOption.AXIS_SHADOW_OPTION_TICK" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.AxisShadowOption.AXIS_SHADOW_OPTION_TITLE">
+<span class="target" id="group__selector__axis_1ggab145fec3499d774ecb338c719812242ba528d848f3e63097042991f1ea1316c70"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AXIS_SHADOW_OPTION_TITLE</span></span></span><a class="headerlink" href="#c.AxisShadowOption.AXIS_SHADOW_OPTION_TITLE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.AxisComponent">
+<span class="target" id="group__selector__axis_1gab30fe6d8ba7ac7ed5cc780917e170d68"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><a class="reference internal" href="#c.AxisComponents" title="AxisComponents"><span class="n"><span class="pre">AxisComponents</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisComponent</span></span></span><a class="headerlink" href="#c.AxisComponent" title="Link to this definition"></a><br /></dt>
+<dd><p>Legacy identifiers for tick marks, labels and the axis line; no current axis code dispatches on this type. </p>
 </dd></dl>
 
 </section>

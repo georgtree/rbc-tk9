@@ -163,6 +163,8 @@ typedef double(Rbc_VectorIndexProc)(Rbc_Vector *vecPtr);
  *    table associating a precedence with each operator.  The order
  *    of types is important.  Consult the code before changing it.
  */
+/** @ingroup selector_expression_engine
+ * @brief Lexical token and operator identifiers consumed by the vector expression parser. */
 enum Tokens {
     VALUE,
     OPEN_PAREN,

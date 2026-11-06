@@ -91,6 +91,7 @@
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#extraction-checks-for-declarations-and-platform-branches">Extraction checks for declarations and platform branches</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-and-member-comment-placement">Contract and member comment placement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#file-headers">File headers</a></li>
 </ul>
 </li>
 </ul>
@@ -168,6 +169,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-command-reference.html">Vector command C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector-command-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vector-operations.html">Vector indexed edits and rearrangement</a><ul>
@@ -218,6 +220,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-engine-reference.html">Expression engine internal C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="expression-engine-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="expression-numerics.html">Expression reductions and scalar kernels</a><ul>
@@ -289,6 +292,7 @@
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#construction-and-redraw-support">Construction and redraw support</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#windows-metafile-packaging">Windows metafile packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="graph-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -334,6 +338,7 @@
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#labels-geometry-and-presentation">Labels, geometry and presentation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#layout-queries-scrolling-and-notifications">Layout, queries, scrolling and notifications</a></li>
 <li class="toctree-l4"><a class="reference internal" href="axis-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="axis-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -426,6 +431,7 @@
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#line-configuration-and-smoothing">Line configuration and smoothing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#shared-error-bar-geometry">Shared error-bar geometry</a></li>
 <li class="toctree-l4"><a class="reference internal" href="element-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="element-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -624,6 +630,7 @@
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#window-marker-geometry-management-and-callbacks">Window marker geometry management and callbacks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#pass-batching-and-renderer-dispatch">Pass batching and renderer dispatch</a></li>
 <li class="toctree-l4"><a class="reference internal" href="marker-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="marker-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -820,6 +827,15 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#implementation-selectors">Implementation selectors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#c.Rbc_ExportBackend"><code class="docutils literal notranslate"><span class="pre">Rbc_ExportBackend</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#c.Rbc_ExportBackend.RBC_EXPORT_POSTSCRIPT"><code class="docutils literal notranslate"><span class="pre">RBC_EXPORT_POSTSCRIPT</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Rbc_ExportBackend.RBC_EXPORT_SVG"><code class="docutils literal notranslate"><span class="pre">RBC_EXPORT_SVG</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#c.Rbc_ExportBackend.RBC_EXPORT_PDF"><code class="docutils literal notranslate"><span class="pre">RBC_EXPORT_PDF</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="document-rendering.html">Document renderer primitives</a><ul>
@@ -977,6 +993,7 @@
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#graph-options-and-document-assembly">Graph options and document assembly</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#windows-binary-preview-packaging">Windows binary preview packaging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="postscript-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 </ul>
@@ -1052,6 +1069,7 @@
 <li class="toctree-l2"><a class="reference internal" href="image-color-reference.html">Image color processing C reference</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#palette-reduction-implementation">Palette-reduction implementation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="image-color-reference.html#implementation-selectors">Implementation selectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="image-compatibility.html">Temporary images and private Tk adapters</a><ul>
@@ -1150,6 +1168,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#lookup-and-configure-metadata">Lookup and configure metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#cleanup-boundaries">Cleanup boundaries</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration.html#root-and-nested-child-lookup">Root and nested child lookup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#reading-an-option-table">Reading an option table</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="configuration-reference.html">Component configuration C reference</a><ul>
@@ -1158,6 +1177,7 @@
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#option-lookup-and-metadata">Option lookup and metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#relative-child-lookup">Relative child lookup</a></li>
 <li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#data-records-and-member-contracts">Data records and member contracts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration-reference.html#component-option-tables">Component option tables</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="bindings.html">Binding dispatch and picking</a><ul>
@@ -1230,9 +1250,13 @@
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#selection-versus-execution">Selection versus execution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#maintenance-checks">Maintenance checks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#lookup-inputs-and-output">Lookup inputs and output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-dispatch.html#operation-families-and-their-record-types">Operation families and their record types</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dispatch-reference.html">Typed dispatch C reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dispatch-reference.html#implementation-selectors">Implementation selectors</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="value-conversion.html">Shared value conversion and numeric policy</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#screen-units-and-staged-values">Screen units and staged values</a></li>
 <li class="toctree-l3"><a class="reference internal" href="value-conversion.html#dashes-and-callbacks">Dashes and callbacks</a></li>
@@ -1284,7 +1308,7 @@ mode and restoring screen layout.</p>
 <h2>Document context<a class="headerlink" href="#document-context" title="Link to this heading"></a></h2>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ExportInit">
-<span class="target" id="rbc_export_8h_1a2fafddbc546d1809ad01113ba038d775"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportInit</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <span class="n"><span class="pre">Rbc_ExportBackend</span></span><span class="w"> </span><span class="n"><span class="pre">backend</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">decorations</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportInit" title="Link to this definition"></a><br /></dt>
+<span class="target" id="rbc_export_8h_1a2fafddbc546d1809ad01113ba038d775"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportInit</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exportPtr</span></span>, <a class="reference internal" href="#c.Rbc_ExportBackend" title="Rbc_ExportBackend"><span class="n"><span class="pre">Rbc_ExportBackend</span></span></a><span class="w"> </span><span class="n"><span class="pre">backend</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">decorations</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ExportInit" title="Link to this definition"></a><br /></dt>
 <dd><p>Initialize fresh caller-owned export storage. </p>
 <p>Zero the record, borrow interp and tkwin, and select the embedded DString as the append destination. Call only on an uninitialized or already freed record; this does not release an earlier document. Font embedding starts disabled. The caller supplies backend state and any alternate buffer after this call.</p>
 <dl class="field-list simple">
@@ -1458,9 +1482,7 @@ adapters own document framing, while shared services own configuration, geometry
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__graph__export__commands"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">SVG/PDF</span> <span class="pre">graph</span> <span class="pre">command</span> <span class="pre">internals</span></span></dt>
-<dd><p>Shared export commands, document context and graph traversal. </p>
-<p>See license.terms for details. </p>
-<div class="breathe-sectiondef docutils container">
+<dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcGraphExportCommands.ExportOptionField">
@@ -1716,7 +1738,7 @@ adapters own document framing, while shared services own configuration, geometry
 
 <dl class="c var">
 <dt class="sig sig-object c" id="c.rbcGraphExportCommands.Rbc_GraphExportFormat.backend">
-<span class="target" id="struct_rbc___graph_export_format_1abd43f172864697a0982429457bf817b3"></span><span class="n"><span class="pre">Rbc_ExportBackend</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">backend</span></span></span><a class="headerlink" href="#c.rbcGraphExportCommands.Rbc_GraphExportFormat.backend" title="Link to this definition"></a><br /></dt>
+<span class="target" id="struct_rbc___graph_export_format_1abd43f172864697a0982429457bf817b3"></span><a class="reference internal" href="#c.Rbc_ExportBackend" title="Rbc_ExportBackend"><span class="n"><span class="pre">Rbc_ExportBackend</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">backend</span></span></span><a class="headerlink" href="#c.rbcGraphExportCommands.Rbc_GraphExportFormat.backend" title="Link to this definition"></a><br /></dt>
 <dd><p>Document backend selector. </p>
 </dd></dl>
 
@@ -1787,7 +1809,7 @@ layouts part of the installed C API.</p>
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="c var">
 <dt class="sig sig-object c" id="c.Rbc_ExportContext.backend">
-<span class="target" id="struct_rbc___export_context_1a155f0f500b150772b236963d8ce1c211"></span><span class="n"><span class="pre">Rbc_ExportBackend</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">backend</span></span></span><a class="headerlink" href="#c.Rbc_ExportContext.backend" title="Link to this definition"></a><br /></dt>
+<span class="target" id="struct_rbc___export_context_1a155f0f500b150772b236963d8ce1c211"></span><a class="reference internal" href="#c.Rbc_ExportBackend" title="Rbc_ExportBackend"><span class="n"><span class="pre">Rbc_ExportBackend</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">backend</span></span></span><a class="headerlink" href="#c.Rbc_ExportContext.backend" title="Link to this definition"></a><br /></dt>
 <dd><p>Selected document backend. </p>
 </dd></dl>
 
@@ -1852,6 +1874,31 @@ layouts part of the installed C API.</p>
 </dd></dl>
 
 </div>
+</dd></dl>
+
+</section>
+<section id="implementation-selectors">
+<h2>Implementation selectors<a class="headerlink" href="#implementation-selectors" title="Link to this heading"></a></h2>
+<dl class="c enum">
+<dt class="sig sig-object c" id="c.Rbc_ExportBackend">
+<span class="target" id="group__selector__export_1ga705fd957915c7474cea55581654c547f"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportBackend</span></span></span><a class="headerlink" href="#c.Rbc_ExportBackend" title="Link to this definition"></a><br /></dt>
+<dd><p>Tags the output document so renderer adapters select <a class="reference internal" href="postscript-reference.html#struct_post_script"><span class="std std-ref">PostScript</span></a>, SVG or PDF operations. </p>
+<p><em>Values:</em></p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_ExportBackend.RBC_EXPORT_POSTSCRIPT">
+<span class="target" id="group__selector__export_1gga705fd957915c7474cea55581654c547fad13c1a4fd1845368aaa182c30cc9eae2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_EXPORT_POSTSCRIPT</span></span></span><a class="headerlink" href="#c.Rbc_ExportBackend.RBC_EXPORT_POSTSCRIPT" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_ExportBackend.RBC_EXPORT_SVG">
+<span class="target" id="group__selector__export_1gga705fd957915c7474cea55581654c547fa64333b3483fe21e13659f8cf8c38fde0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_EXPORT_SVG</span></span></span><a class="headerlink" href="#c.Rbc_ExportBackend.RBC_EXPORT_SVG" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.Rbc_ExportBackend.RBC_EXPORT_PDF">
+<span class="target" id="group__selector__export_1gga705fd957915c7474cea55581654c547fa6ce6f8e7292a4e4b80af849b2a6c3375"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RBC_EXPORT_PDF</span></span></span><a class="headerlink" href="#c.Rbc_ExportBackend.RBC_EXPORT_PDF" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>

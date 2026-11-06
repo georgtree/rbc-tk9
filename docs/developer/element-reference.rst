@@ -215,3 +215,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: ElemTagsTransaction
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_element
+   :content-only:
+   :members:

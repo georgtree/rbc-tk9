@@ -1,9 +1,13 @@
-/* Native X11 geometry and batching. See license.terms.
- * Platform contexts remain private; shared Tk drawing is in rbcRenderNative.c. */
-#include "rbcRenderNative.h"
-/** @file rbcRenderNativeX11.c
- * X11 request batching and platform fallback decisions.
+/**
+ * @file rbcRenderNativeX11.c
+ * @brief X11 request batching and platform fallback decisions.
+ *
+ * See license.terms.
+ * Platform contexts remain private; shared Tk drawing is in rbcRenderNative.c.
  */
+
+#include "rbcRenderNative.h"
+
 /** @defgroup native_x11_drawing X11 native backend
  * Private X11 implementation of the shared native backend interface.
  */

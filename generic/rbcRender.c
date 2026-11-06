@@ -1,7 +1,10 @@
-/* Common screen adapters and rendering dispatch. See license.terms. */
-/** @file rbcRender.c
- * Common renderer dispatch and narrowly scoped native screen adapters.
+/**
+ * @file rbcRender.c
+ * @brief Common renderer dispatch and narrowly scoped native screen adapters.
+ *
+ * See license.terms.
  */
+
 /** @defgroup render_dispatch_internals Screen dispatch internals
  * Private adapters selected by capability-specific constructors. Graphs,
  * styles, drawables and component geometry remain borrowed.

@@ -1,15 +1,3 @@
-/*
- * rbcVector.h --
- *
- *      Public definitions for RBC vectors.
- *
- * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
- * All rights reserved.
- *
- * See "license.terms" for details.
- */
-
-
 /**
  * @file rbcVector.h
  * @brief Opaque vector types and client notification declarations.
@@ -18,6 +6,11 @@
  * lifetime; they neither own nor preserve the vector. Use these interfaces
  * on the interpreter's owning thread. The client notification declarations
  * here are not entries in the generated public stubs table.
+ *
+ * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
+ * All rights reserved.
+ *
+ * See "license.terms" for details.
  */
 
 #ifndef _RBCVECTOR

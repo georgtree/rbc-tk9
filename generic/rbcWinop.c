@@ -1,17 +1,11 @@
-/*
- * rbcWinop.c --
- *
- *      This module implements simple window commands for the rbc toolkit.
+/**
+ * @file rbcWinop.c
+ * @brief Standalone window commands and photo-operation dispatch; not graph rendering.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
- */
-
-/**
- * @file rbcWinop.c
- * @brief Standalone window commands and photo-operation dispatch; not graph rendering.
  */
 
 /** @defgroup winop_commands Window and photo command internals
@@ -40,7 +34,7 @@ typedef int RbcWinOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, T
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcWinOp *proc; /**< Typed command handler for this operation. */
 } WinopOpSpec;
 #ifndef WIN32

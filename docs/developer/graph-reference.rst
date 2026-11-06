@@ -116,3 +116,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: SnapData
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_graph
+   :content-only:
+   :members:

@@ -106,3 +106,29 @@ separator: ``child`` resolves to ``.child``. Other parents add one dot; ``.conta
 ``.container.child``. Dotted relative names can select descendants. Missing windows and a ``NULL`` parent return
 ``NULL``; successful results remain Tk-owned. This also preserves the real-child path used by
 :c:func:`Rbc_InitComponentOptions` before its anonymous proxy fallback.
+
+Reading an option table
+-----------------------
+
+Start with the table passed to the component's option-table constructor.
+A Tk option specification associates a Tcl switch and resource-database
+name/class with its default, conversion policy and offsets in the receiving
+record. Object and internal offsets refer to different representations;
+a negative offset means that slot is unused. A change mask reports which
+parts of the component may need attention. The component decides when to
+remap, rebuild resources or redraw after a successful commit.
+
+For example, :c:var:`graphGridOptionSpecs` associates grid colour with a
+field of :c:struct:`Grid` and with redraw/GC change flags. A polar grid takes
+its visibility default from :c:var:`polarGridOptionSpecs`, whose end entry
+points to the base table. A track instead uses :c:var:`trackGridOptionSpecs`.
+Do not flatten these three tables into a single list of defaults.
+:c:var:`trackLegendOptionSpecs` is another example of an end entry which
+chains to a base table. A normal end entry terminates lookup.
+
+Two exceptions matter when adding options. SVG and PDF share an output
+dispatcher whose option accessors understand concrete integer-backed fields;
+placing a resource-owning field in their tables would also require changing
+the accessors and cleanup policy (see :doc:`exports`). The EPS canvas item
+uses legacy Tk configuration specifications, not the Tk option-table
+transaction used by graph components (see :doc:`eps-canvas`).

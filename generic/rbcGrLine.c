@@ -1,17 +1,13 @@
-/*
- * rbcGrLine.c --
- *
- *      This module implements line graph and stripchart elements for
- *      the rbc graph widget.
+/**
+ * @file rbcGrLine.c
+ * @brief Line/strip/polar data, geometry, drawing and transaction contracts.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
  */
-/** @file rbcGrLine.c
- * Line/strip/polar data, geometry, drawing and transaction contracts.
- */
+
 /** @defgroup line_decimation Line decimation internals
  * Private screen-density reduction services. All objects are borrowed from
  * the owning graph; these routines neither mutate source vectors nor invoke Tcl.
@@ -89,6 +85,8 @@
     (((((dir) & PEN_DECREASING) == 0) && ((next) < (last))) || ((((dir) & PEN_INCREASING) == 0) && ((next) > (last))))
 
 
+/** @ingroup selector_element
+ * @brief Selects construction of the mapped trace; the final value terminates the smoothing-name map. */
 typedef enum {
     PEN_SMOOTH_NONE,      /* Line segments */
     PEN_SMOOTH_STEP,      /* Step-and-hold */
@@ -109,6 +107,8 @@ static SmoothingInfo smoothingInfo[] = {{"linear", PEN_SMOOTH_NONE},         {"s
                                         {"quadratic", PEN_SMOOTH_QUADRATIC}, {"catrom", PEN_SMOOTH_CATROM},
                                         {(char *)NULL, PEN_SMOOTH_LAST}};
 
+/** @ingroup selector_element
+ * @brief Selects full or automatically reduced screen geometry; source indices still refer to original data. */
 typedef enum { LINE_DECIMATE_NONE, LINE_DECIMATE_AUTO } LineDecimation;
 
 static const char *const lineDecimateNames[] = {"none", "auto", NULL};
@@ -178,6 +178,8 @@ typedef struct {
 /*
  * Symbol types for line elements
  */
+/** @ingroup selector_element
+ * @brief Selects the concrete point-symbol geometry or bitmap used by a line pen. */
 typedef enum {
     SYMBOL_NONE,
     SYMBOL_SQUARE,
@@ -213,13 +215,21 @@ typedef struct {
     Pixmap mask; /**< Acquired symbol mask, or None. */
 } ParsedSymbol;
 
+/** @ingroup selector_element
+ * @brief Distinguishes separate coordinate inputs from complex-vector input. */
 typedef enum { LINE_DATA_XY, LINE_DATA_COMPLEX } LineDataMode;
 
+/** @ingroup selector_element
+ * @brief Selects original or reduced points for symbol placement. */
 typedef enum { LINE_SYMBOL_POINTS_ALL, LINE_SYMBOL_POINTS_REDUCED } LineSymbolPoints;
 static const char *lineSymbolPointNames[] = {"all", "reduced", NULL};
 
+/** @ingroup selector_element
+ * @brief Selects how an area-fill polygon closes around its mapped trace. */
 typedef enum { LINE_AREA_BASELINE, LINE_AREA_CHORD, LINE_AREA_ORIGIN } LineAreaClose;
 static const char *lineAreaCloseNames[] = {"baseline", "chord", "origin", NULL};
+/** @ingroup selector_element
+ * @brief Identifies the coordinate interpretation applied to line inputs. */
 typedef enum { LINE_COORDINATES_CARTESIAN, LINE_COORDINATES_POLAR } LineDataCoordinates;
 
 static const char *lineDataCoordinateNames[] = {"cartesian", "polar", NULL};
@@ -247,6 +257,8 @@ typedef struct {
     ElemVector param; /**< Replacement interpolation-parameter data staged for commit or abort. */
 } LineParamTransaction;
 
+/** @ingroup selector_element
+ * @brief Selects how complex samples are interpreted on a Smith chart. */
 typedef enum {
     LINE_CDATA_GAMMA,
     LINE_CDATA_IMPEDANCE,
@@ -348,6 +360,8 @@ typedef struct {
     LineBandPolygon *polygons; /**< Owned linked mapped polygons. */
 } LineErrorBand;
 
+/** @ingroup selector_element
+ * @brief Chooses the error dimension used to construct the band, or disables band construction. */
 typedef enum { LINE_BAND_NONE, LINE_BAND_Y, LINE_BAND_X } LineBandMode;
 
 static const char *lineErrorBandNames[] = {"none", "y", "x", NULL};
@@ -533,6 +547,8 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_ELEM_COMPLEX_TRANSFORM_MASK (LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_Z0_MASK)
 #define LINE_ELEM_SCALAR_MASK (LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_SMOOTH_MASK | LINE_ELEM_TRACE_MASK)
 
+/** @ingroup selector_element
+ * @brief Selects a scalar field while validating requested line options before commit. */
 typedef enum {
     LINE_SCALAR_OPTION_NONE,
     LINE_SCALAR_OPTION_MAX_SYMBOLS,
@@ -550,6 +566,8 @@ typedef struct {
     int penDir; /**< Validated trace direction selector staged for commit or abort. */
 } LineScalarTransaction;
 
+/** @ingroup selector_element
+ * @brief Distinguishes the area pattern and tile resources staged by line configuration. */
 typedef enum {
     LINE_AREA_OPTION_NONE,
     LINE_AREA_OPTION_PATTERN,
@@ -1176,6 +1194,10 @@ typedef struct {
          NULL,                                                                                                         \
          LINE_ELEM_ERROR_BAND_MASK},
 
+/** @ingroup component_option_tables
+ * @brief Line element options composed from the shared line data and presentation entries.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec lineElemOptionSpecs[] = {
     LINE_ELEMENT_ERROR_BAND_OPTION_ENTRIES LINE_ELEMENT_OPTION_ENTRIES(
         LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY, LINE_ELEMENT_STATE_OPTION_ENTRY,
@@ -1186,6 +1208,10 @@ static const Tk_OptionSpec lineElemOptionSpecs[] = {
      LINE_ELEM_PARAM_MASK},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
+/** @ingroup component_option_tables
+ * @brief Strip element configuration; the element retains strip-specific mapping and drawing callbacks.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec stripElemOptionSpecs[] = {
     LINE_ELEMENT_ERROR_BAND_OPTION_ENTRIES LINE_ELEMENT_OPTION_ENTRIES(
         LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY, LINE_ELEMENT_NO_OPTION_ENTRIES,
@@ -1394,10 +1420,22 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          0},                                                                                                           \
         {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
 
+/** @ingroup component_option_tables
+ * @brief Line pen stroke and symbol entries using the normal colour default.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec normalLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(DEF_PEN_NORMAL_COLOR)};
 
+/** @ingroup component_option_tables
+ * @brief Line pen entries using the active colour default.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec activeLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(DEF_PEN_ACTIVE_COLOR)};
 
+/** @ingroup component_option_tables
+ * @brief Polar element data and presentation options, including complex-data interpretation.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec polarElemOptionSpecs[] = {
     {TK_OPTION_STRING_TABLE, "-datacoordinates", "dataCoordinates", "DataCoordinates", "cartesian", -1,
      offsetof(Line, dataCoordinates), 0, (ClientData)lineDataCoordinateNames, LINE_ELEM_MAP_ITEM_MASK},

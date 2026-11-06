@@ -1,7 +1,12 @@
-/* Shared export state and helpers. Not installed. See license.terms. */
-/** @file rbcRenderExportInt.h
- * Borrowed export state and private backend construction helpers.
+/**
+ * @file rbcRenderExportInt.h
+ * @brief Borrowed export state and private backend construction helpers.
+ *
+ * Private header; not installed.
+ *
+ * See license.terms.
  */
+
 /** @defgroup export_backend Export backend support
  * Private helpers shared by document renderers; not installed C APIs.
  */

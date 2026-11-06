@@ -1,9 +1,6 @@
-
-/*
- * rbcUnixImage.c --
- *
- *	This module implements image processing procedures for the rbc
- *	toolkit.
+/**
+ * @file rbcUnixImage.c
+ * @brief X11 drawable capture and native bitmap conversion.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -11,10 +8,6 @@
  * See "license.terms" for details.
  */
 
-/**
- * @file rbcUnixImage.c
- * @brief X11 drawable capture and native bitmap conversion.
- */
 /**
  * @defgroup x11_image_helpers X11 image sizing and capture helpers
  * @brief Checked dimensions, visual channel masks and asynchronous capture errors.

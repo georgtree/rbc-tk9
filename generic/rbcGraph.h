@@ -1,14 +1,3 @@
-/*
- * rbcGraph.h --
- *
- *      Shared graph widget records and component interfaces.
- *
- * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
- * All rights reserved.
- *
- * See "license.terms" for details.
- */
-
 /**
  * @file rbcGraph.h
  * @brief Private graph widget state and component interfaces.
@@ -16,6 +5,11 @@
  * Graph, barchart, stripchart, polar and trackgraph share this infrastructure.
  * These declarations are not part of the installed vector API. Calls belong
  * on the owning Tk thread; borrowed records do not keep widgets alive.
+ *
+ * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
+ * All rights reserved.
+ *
+ * See "license.terms" for details.
  */
 
 #ifndef _RBCGRAPH
@@ -30,13 +24,19 @@
 #include "rbcVector.h"
 /*#include "rbcWin.h"*/
 
+/** @ingroup selector_graph
+ * @brief Selects the graph's screen drawing backend; export format is selected separately. */
 typedef enum { RBC_RENDERER_NATIVE, RBC_RENDERER_CAIRO } Rbc_Renderer;
 
+/** @ingroup selector_graph
+ * @brief Selects the requested screen antialias policy for renderers that implement it. */
 typedef enum {
     RBC_ANTIALIAS_DEFAULT, RBC_ANTIALIAS_NONE, RBC_ANTIALIAS_GRAY,
     RBC_ANTIALIAS_FAST, RBC_ANTIALIAS_GOOD, RBC_ANTIALIAS_BEST
 } Rbc_Antialias;
 
+/** @ingroup selector_graph
+ * @brief Discriminates the picked component passed through the graph binding table. */
 typedef enum {
     GRAPH_BIND_CONTEXT_AXIS = 1, GRAPH_BIND_CONTEXT_ELEMENT, GRAPH_BIND_CONTEXT_MARKER, GRAPH_BIND_CONTEXT_TRACK
 } GraphBindContext;
@@ -83,6 +83,8 @@ typedef struct LegendStruct Legend;
  *
  * -------------------------------------------------------------------
  */
+/** @ingroup selector_graph
+ * @brief Legacy graph class identifiers; this list is not a registry of all current marker or element classes. */
 typedef enum {
     CLASS_UNKNOWN,
     CLASS_LINE_ELEMENT,
@@ -110,7 +112,11 @@ typedef struct {
     int isAuto; /**< Nonzero selects geometry-dependent anchoring. */
 } PolarLabelAnchor;
 
+/** @ingroup selector_graph
+ * @brief Chooses polar or Smith presentation of Cartesian data. */
 typedef enum { POLAR_REPRESENTATION_POLAR, POLAR_REPRESENTATION_SMITH } PolarRepresentation;
+/** @ingroup selector_graph
+ * @brief Selects impedance circles, admittance circles or both for a Smith grid. */
 typedef enum { SMITH_GRID_IMPEDANCE, SMITH_GRID_ADMITTANCE, SMITH_GRID_BOTH } SmithGridMode;
 
 /** @brief Accumulated state for bars sharing a grouping key.
@@ -141,6 +147,8 @@ typedef struct {
  *    modes:
  */
 
+/** @ingroup selector_graph
+ * @brief Chooses the placement of bars that share an abscissa, including stacking and grouped positioning. */
 typedef enum BarModes {
     MODE_INFRONT, /* Each successive segment is drawn in
                    * front of the previous. */
@@ -196,6 +204,8 @@ struct PenStruct {
      */
 };
 
+/** @ingroup selector_graph
+ * @brief Legacy foreground/background identifiers for monochrome PostScript attributes. */
 typedef enum { PS_MONO_BACKGROUND, PS_MONO_FOREGROUND } MonoAttribute;
 
 /** @brief Persistent graph PostScript options and computed page placement.

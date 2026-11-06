@@ -1,7 +1,6 @@
-/*
- * rbcGrMarker.c --
- *
- *      This module implements markers for the rbc graph widget.
+/**
+ * @file rbcGrMarker.c
+ * @brief Shared marker services and concrete marker classes.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcGrMarker.c
- * Shared marker services and concrete marker classes.
- */
 /** @defgroup marker_configuration Marker common option transactions
  * Internal services shared by concrete marker classes.
  */
@@ -217,6 +213,10 @@ typedef struct {
     GC fillGC; /**< Owned native text-background GC. */
 } TextMarker;
 
+/** @ingroup component_option_tables
+ * @brief Text marker content, placement and text presentation resources.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec textMarkerOptionSpecs[] = {
     {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(TextMarker, anchor), 0, NULL, 0},
     {TK_OPTION_COLOR, "-background", "background", "MarkerBackground", NULL, -1, offsetof(TextMarker, fillColor),
@@ -286,6 +286,10 @@ typedef struct {
     int height; /**< Current size of the child window. */
 } WindowMarker;
 
+/** @ingroup component_option_tables
+ * @brief Embedded window, requested dimensions and placement within the marker.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec windowMarkerOptionSpecs[] = {
     {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(WindowMarker, anchor), 0, NULL,
      0},
@@ -347,6 +351,10 @@ typedef struct {
     int nOutlinePts; /**< Number of mapped outline vertices. */
 } BitmapMarker;
 
+/** @ingroup component_option_tables
+ * @brief Bitmap marker resource and foreground/background presentation.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec bitmapMarkerOptionSpecs[] = {
     {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(BitmapMarker, anchor), 0, NULL,
      0},
@@ -418,6 +426,10 @@ typedef struct {
     int state; /**< Validated Tk interaction state. */
 } ParsedMarkerOptions;
 
+/** @ingroup component_option_tables
+ * @brief Image marker resource and placement; the table does not own the application image master.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec imageMarkerOptionSpecs[] = {
     {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(ImageMarker, anchor), 0, NULL, 0},
     {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_IMAGE_TAGS, offsetof(Marker, bindTagsObjPtr), -1,
@@ -448,6 +460,8 @@ static const Tk_OptionSpec imageMarkerOptionSpecs[] = {
  *
  * -------------------------------------------------------------------
  */
+/** @ingroup selector_marker
+ * @brief Selects the endpoints that receive arrowheads on a line marker. */
 typedef enum { LINE_ARROW_NONE, LINE_ARROW_FIRST, LINE_ARROW_LAST, LINE_ARROW_BOTH } LineArrow;
 
 static const char *const arrowStrings[] = {"none", "first", "last", "both", NULL};
@@ -501,6 +515,10 @@ typedef struct {
     int xorState; /**< State of the XOR drawing. Indicates if the marker is currently drawn. */
 } LineMarker;
 
+/** @ingroup component_option_tables
+ * @brief Line marker coordinates, endpoint arrows and stroke options.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
     {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_LINE_TAGS, offsetof(Marker, bindTagsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, 0},
@@ -681,10 +699,18 @@ static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
          NULL,                                                                                                           \
          0}
 
+/** @ingroup component_option_tables
+ * @brief Polygon marker boundary and interior options for a colour display.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec polygonMarkerOptionSpecs[] = {
     POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR, DEF_MARKER_POLYGON_TAGS),
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
+/** @ingroup component_option_tables
+ * @brief Monochrome polygon marker defaults for the same marker record layout.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec polygonMarkerMonoOptionSpecs[] = {
     POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, DEF_MARKER_POLYGON_TAGS),
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
@@ -696,9 +722,17 @@ static const Tk_OptionSpec polygonMarkerMonoOptionSpecs[] = {
          (ClientData)arcStyles,  0},                                                                                   \
         {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}
 
+/** @ingroup component_option_tables
+ * @brief Arc marker ellipse, sweep, closure and fill/outline options for a colour display.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec arcMarkerOptionSpecs[] = {
     POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR, "Arc all"),
     ARC_MARKER_OPTION_ENTRIES};
+/** @ingroup component_option_tables
+ * @brief Monochrome arc marker defaults for the same marker record layout.
+ * @hideinitializer
+ */
 static const Tk_OptionSpec arcMarkerMonoOptionSpecs[] = {
     POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, "Arc all"), ARC_MARKER_OPTION_ENTRIES};
 #undef ARC_MARKER_OPTION_ENTRIES
@@ -761,7 +795,7 @@ typedef int RbcGrMarkerOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tc
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     RbcGrMarkerOp *proc; /**< Typed command handler for this operation. */
 } MarkerOpSpec;
 

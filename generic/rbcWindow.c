@@ -2,15 +2,15 @@
  * @file rbcWindow.c
  * @brief Native window identifiers and borrowed interpreter-local payloads.
  *
- *      Native client/wrapper identifiers and interpreter-local window data.
- *      Shared declarations are in rbcInt.h.
- * @defgroup window_helpers Window association and X11 lookup internals
- * @defgroup window_windows Windows native handle lookup
- *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
+ */
+
+/** @defgroup window_helpers Window association and X11 lookup internals
+ */
+/** @defgroup window_windows Windows native handle lookup
  */
 
 #include "rbcInt.h"

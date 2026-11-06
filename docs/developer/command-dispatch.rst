@@ -60,3 +60,65 @@ Lookup inputs and output
 index. Argument limits count the entire command, including widget and operation words. The returned integer index is
 assigned only after both name lookup and arity validation succeed; the caller then dispatches through its own typed
 entry.
+
+Operation families and their record types
+-----------------------------------------
+
+Most RBC commands that look like Tcl ensembles are a C object command plus one or more dispatch tables. In ``.g axis
+configure x -min 0``, ``graphOps`` selects the axis handler at word 1. That handler looks up ``configure`` at word 2 in
+its own table. Both count the widget command in the total argument count. There is no minimum-abbreviation field: the
+first integer after the name is minimum **argument count**. Tcl resolves a unique prefix against the table passed to
+:c:func:`Rbc_GetOpIndexFromObj`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 27 32 41
+
+   * - Command family
+     - Table (in defining module)
+     - Row type or dispatch rule
+   * - Graph widget
+     - ``graphOps``
+     - :c:struct:`GraphOpSpec`; selects the next component or widget handler.
+   * - Named axes / margin axes
+     - Two function-local arrays both named ``axisOps``
+     - :c:struct:`AxisVirtualOpSpec` routes named-axis commands; :c:struct:`AxisOpSpec` passes the selected margin.
+   * - Elements, markers and pens
+     - ``elemOps``, ``markerOps``, ``penOps``
+     - :c:struct:`ElementOpSpec`, :c:struct:`MarkerOpSpec`, :c:struct:`PenOpSpec`.
+   * - Grid / crosshairs
+     - ``gridOps``, ``xhairOps``
+     - :c:struct:`GridOpSpec` and :c:struct:`CrosshairsOpSpec`.
+   * - Widget legend / track legend
+     - ``legendOps``, ``trackLegendOps``
+     - Both use :c:struct:`rbcGrLegendCommands.LegendOpSpec`; sharing a row type does not imply the same set of
+       operations.
+   * - PostScript
+     - ``psOps``
+     - :c:struct:`PostScriptOpSpec`; its page and output policy is separate from SVG/PDF.
+   * - Vector management / vector instance
+     - ``vectorOpCmd``, ``vectorInstOpCmd``
+     - :c:struct:`VectorOpSpec` and :c:struct:`rbcVectorCommands.VectorInstOpSpec`.  The latter passes the receiver to
+       its handler.
+   * - Spline
+     - ``splineOps``
+     - :c:struct:`SplineOpSpec`.
+   * - Window operations / image subcommands
+     - ``winOps``, ``imageOps``
+     - Both use :c:struct:`WinopOpSpec`; the operation word is at a different index.
+
+Two dispatchers illustrate why a callback should not be assumed from an operation name alone:
+
+* :c:func:`Rbc_TrackOp` indexes an array of :c:struct:`Rbc_OpSpecHeader` directly. There is no function-pointer
+  field. The local ``TRACK_OP_*`` enum mirrors the row order; inserting or moving a row requires the corresponding enum
+  change.
+* :c:func:`Rbc_GraphExportOp` looks up ``cget``, ``configure`` and ``output`` in a null-terminated string array and
+  checks the selected form itself.  :c:struct:`rbcGraphExportCommands.Rbc_GraphExportFormat` supplies the concrete
+  option table and document lifecycle callbacks.
+
+Not every table of names dispatches commands. In ``rbcGrMarker.c``, ``markerTypeMap`` associates a type name with an
+interned marker identifier; ``markerSearchMap`` associates ``enclosed`` and ``overlapping`` with search modes. Neither
+record has a usage string or a callback. Likewise, in ``rbcGraph.c``, the local ``barModes`` table maps both ``normal``
+and ``infront`` to the same bar-placement selector. ``SnapFormatS`` pairs a format name with the local ``SnapFormatE``
+value; the available formats depend on the platform. These records only translate an argument for the operation which
+owns them.

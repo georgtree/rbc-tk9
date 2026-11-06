@@ -31,3 +31,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: TrueColorMasks
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_image_color
+   :content-only:
+   :members:

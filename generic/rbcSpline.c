@@ -1,7 +1,6 @@
-/*
- * rbcSpline.c --
- *
- *      Cartesian and parametric interpolation, and the Tcl spline command.
+/**
+ * @file rbcSpline.c
+ * @brief Spline implementation helpers.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -9,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcSpline.c
- * Spline implementation helpers.
- */
 /** @defgroup spline_internals Spline implementation helpers
  * Private implementation helpers; not installed C API entry points.
  */
@@ -22,7 +18,7 @@ typedef int (*Rbc_SplineOp)(const Point2D *, Tcl_Size, Point2D *, Tcl_Size);
 
 /** @brief Typed command dispatch entry with shared argument validation metadata. */
 typedef struct {
-    Rbc_OpSpecHeader header; /**< Shared operation name, abbreviation and argument-count metadata. */
+    Rbc_OpSpecHeader header; /**< Operation name, total argument bounds and usage suffix. */
     Rbc_SplineOp proc; /**< Typed command handler for this operation. */
 } SplineOpSpec;
 

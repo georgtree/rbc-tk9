@@ -174,3 +174,10 @@ layouts part of the installed C API.
 
 .. doxygenstruct:: ParsedMarkerOptions
    :members:
+
+Implementation selectors
+------------------------
+
+.. doxygengroup:: selector_marker
+   :content-only:
+   :members:

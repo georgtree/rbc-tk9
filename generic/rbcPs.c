@@ -1,23 +1,27 @@
+/**
+ * @file rbcPs.c
+ * @brief Private PostScript token, conversion and legacy drawing services.
+ *
+ * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
+ * All rights reserved.
+ *
+ * See "license.terms" for details.
+ */
+
 /** @defgroup ps_token_lifetime PostScript token lifetime and buffers
  * Private ownership and borrowed buffer accessors.
  */
 /** @defgroup ps_token_output PostScript syntax and prolog appending
  * Private append services; framing and delivery remain with the graph command.
  */
-/**
- * @file rbcPs.c
- * @brief Private PostScript token, conversion and legacy drawing services.
- * @defgroup ps_legacy_primitives Legacy PostScript drawing primitives
+/** @defgroup ps_legacy_primitives Legacy PostScript drawing primitives
  * @brief Append drawing programs to a borrowed token; no page delivery.
- * @defgroup ps_raster_encoding PostScript raster and bitmap encoding
+ */
+/** @defgroup ps_raster_encoding PostScript raster and bitmap encoding
  * @brief Legacy image conversion, bitmap payloads and capture wrappers.
- * @defgroup ps_text_mapping PostScript font mapping and text placement
+ */
+/** @defgroup ps_text_mapping PostScript font mapping and text placement
  * @brief Legacy font names and screen-metric text, without embedded outlines.
- *
- * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
- * All rights reserved.
- *
- * See "license.terms" for details.
  */
 
 #include "rbcInt.h"

@@ -1,18 +1,20 @@
 /**
  * @file rbcImage.c
  * @brief CPU image processing and Tk photo conversion.
- * @defgroup image_resample_internals Image resampling kernels and contributions
- * @defgroup image_quantize_internals RGB quantization internals
- * @defgroup image_rotation_internals Color-image rotation internals
- * @defgroup image_storage_internals Image storage and coordinate helpers
- *
- *      This module implements image processing procedures for the rbc
- *      toolkit.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
  *
  * See "license.terms" for details.
+ */
+
+/** @defgroup image_resample_internals Image resampling kernels and contributions
+ */
+/** @defgroup image_quantize_internals RGB quantization internals
+ */
+/** @defgroup image_rotation_internals Color-image rotation internals
+ */
+/** @defgroup image_storage_internals Image storage and coordinate helpers
  */
 
 #include "rbcInt.h"
@@ -27,6 +29,8 @@
 #define CLAMP(c) ((((c) < 0.0) ? 0.0 : ((c) > 255.0) ? 255.0 : (c)))
 
 #define NC 256
+/** @ingroup selector_image_color
+ * @brief Channel indices for the red, green and blue components of image operations. */
 enum ColorIndices { RED, GREEN, BLUE };
 
 #define R0 (cubePtr->r0)

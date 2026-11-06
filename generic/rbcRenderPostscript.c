@@ -1,7 +1,10 @@
-/* Postscript renderer. See license.terms. */
-/** @file rbcRenderPostscript.c
- * PostScript drawing backend.
+/**
+ * @file rbcRenderPostscript.c
+ * @brief PostScript drawing backend.
+ *
+ * See license.terms.
  */
+
 /** @defgroup postscript_backend PostScript drawing backend
  * Private renderer callbacks; components use the common renderer interface.
  */

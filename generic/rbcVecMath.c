@@ -1,8 +1,6 @@
-/*
- * rbcVecMath.c --
- *
- *      Collections of procedures and structures to perform
- *      math functions on vector objects.
+/**
+ * @file rbcVecMath.c
+ * @brief Vector-expression parser, temporary storage and math-function adapters.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -10,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcVecMath.c
- * Vector-expression parser, temporary storage and math-function adapters.
- */
 /** @defgroup expression_engine Expression engine internals
  * Private evaluator helpers. Registered vector types remain immutable.
  */

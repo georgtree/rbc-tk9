@@ -1,8 +1,6 @@
-/*
- * rbcWinImage.c --
- *
- *      This module implements image processing procedures for the rbc
- *      toolkit.
+/**
+ * @file rbcWinImage.c
+ * @brief Windows drawable capture, transparency masks and monochrome transforms.
  *
  * Copyright (c) 2009 Samuel Green, Nicholas Hudson, Stanton Sievers, Jarrod Stormo
  * All rights reserved.
@@ -10,9 +8,6 @@
  * See "license.terms" for details.
  */
 
-/** @file rbcWinImage.c
- * Windows drawable capture, transparency masks and monochrome transforms.
- */
 /** @defgroup windows_bitmap_images Windows bitmap and capture services
  * Platform implementation, extracted separately from shared image declarations.
  */

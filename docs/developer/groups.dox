@@ -492,3 +492,37 @@
 /** @addtogroup graph_snapshot_windows
  * @ingroup rbc_graphs
  */
+
+/** @defgroup component_option_tables Component option tables
+ * @ingroup rbc_graphs
+ */
+
+/** @defgroup selector_vector_command Vector command implementation selectors
+ */
+
+/** @defgroup selector_postscript Postscript implementation selectors
+ */
+
+/** @defgroup selector_marker Marker implementation selectors
+ */
+
+/** @defgroup selector_image_color Image color implementation selectors
+ */
+
+/** @defgroup selector_graph Graph implementation selectors
+ */
+
+/** @defgroup selector_expression_engine Expression engine implementation selectors
+ */
+
+/** @defgroup selector_export Export implementation selectors
+ */
+
+/** @defgroup selector_element Element implementation selectors
+ */
+
+/** @defgroup selector_dispatch Dispatch implementation selectors
+ */
+
+/** @defgroup selector_axis Axis implementation selectors
+ */

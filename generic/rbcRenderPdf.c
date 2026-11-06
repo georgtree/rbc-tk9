@@ -1,7 +1,10 @@
-/* Pdf renderer. See license.terms. */
-/** @file rbcRenderPdf.c
- * PDF drawing backend.
+/**
+ * @file rbcRenderPdf.c
+ * @brief PDF drawing backend.
+ *
+ * See license.terms.
  */
+
 /** @defgroup pdf_backend PDF drawing backend
  * Private renderer callbacks; components use the common renderer interface.
  */
