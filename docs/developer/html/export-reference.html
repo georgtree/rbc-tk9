@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1277,8 +1278,8 @@
              
   <section id="export-orchestration-c-reference">
 <h1>Export orchestration C reference<a class="headerlink" href="#export-orchestration-c-reference" title="Link to this heading"></a></h1>
-<p>These interfaces are private. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for ownership, format policy
-and the distinction between ending export mode and restoring screen layout.</p>
+<p>These interfaces are private. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for ownership, format policy and the distinction between ending export
+mode and restoring screen layout.</p>
 <section id="document-context">
 <h2>Document context<a class="headerlink" href="#document-context" title="Link to this heading"></a></h2>
 <dl class="c function">
@@ -1452,9 +1453,8 @@ and the distinction between ending export mode and restoring screen layout.</p>
 </section>
 <section id="svg-and-pdf-command-helpers-and-format-adapters">
 <h2>SVG and PDF command helpers and format adapters<a class="headerlink" href="#svg-and-pdf-command-helpers-and-format-adapters" title="Link to this heading"></a></h2>
-<p>The policy record and internal helpers below implement the transaction described
-in <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>. The concrete adapters own document framing, while shared
-services own configuration, geometry restoration and delivery.</p>
+<p>The policy record and internal helpers below implement the transaction described in <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>. The concrete
+adapters own document framing, while shared services own configuration, geometry restoration and delivery.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__graph__export__commands"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">SVG/PDF</span> <span class="pre">graph</span> <span class="pre">command</span> <span class="pre">internals</span></span></dt>
@@ -1776,8 +1776,8 @@ services own configuration, geometry restoration and delivery.</p>
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.Rbc_ExportContext">
 <span class="target" id="struct_rbc___export_context"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ExportContext</span></span></span><a class="headerlink" href="#c.Rbc_ExportContext" title="Link to this definition"></a><br /></dt>

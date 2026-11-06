@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,65 +1215,53 @@
              
   <section id="typed-command-dispatch">
 <h1>Typed command dispatch<a class="headerlink" href="#typed-command-dispatch" title="Link to this heading"></a></h1>
-<p>Rbc_GetOpIndexFromObj in <code class="docutils literal notranslate"><span class="pre">rbcUtil.c</span></code> selects an operation and validates its
-argument count. It does not invoke the callback, own a command object or manage
-component lifetime. Each component supplies a persistent typed table whose
-first member is Rbc_OpSpecHeader, followed by its correctly typed callback and
-any component-specific fields.</p>
+<p><a class="reference internal" href="dispatch-reference.html#c.Rbc_GetOpIndexFromObj" title="Rbc_GetOpIndexFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetOpIndexFromObj()</span></code></a> in <code class="docutils literal notranslate"><span class="pre">rbcUtil.c</span></code> selects an operation and validates its argument count. It does not
+invoke the callback, own a command object or manage component lifetime. Each component supplies a persistent typed table
+whose first member is Rbc_OpSpecHeader, followed by its correctly typed callback and any component-specific fields.</p>
 <section id="table-layout-and-lifetime">
 <h2>Table layout and lifetime<a class="headerlink" href="#table-layout-and-lifetime" title="Link to this heading"></a></h2>
-<p>The first header field is the operation name; a NULL name terminates the array.
-The caller passes sizeof of the complete entry as specSize, not sizeof of the
-header or callback. The helper uses that byte stride both for Tcl’s indexed-name
-lookup and to locate the selected header. Keeping dispatch at the caller avoids
-casting unrelated function pointer types through a shared generic signature.</p>
-<p>Tcl_GetIndexFromObjStruct accepts unique operation-name abbreviations and caches
-lookup information in the Tcl object. Tables and their name strings must outlive
-objects that can reuse that information. Function-local temporary arrays are
-not suitable replacements for the usual static const tables.</p>
+<p>The first header field is the operation name; a NULL name terminates the array. The caller passes sizeof of the
+complete entry as specSize, not sizeof of the header or callback. The helper uses that byte stride both for Tcl’s
+indexed-name lookup and to locate the selected header. Keeping dispatch at the caller avoids casting unrelated function
+pointer types through a shared generic signature.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Tcl_GetIndexFromObjStruct</span></code> accepts unique operation-name abbreviations and caches lookup information in the Tcl
+object. Tables and their name strings must outlive objects that can reuse that information. Function-local temporary
+arrays are not suitable replacements for the usual static const tables.</p>
 </section>
 <section id="argument-counts-and-diagnostics">
 <h2>Argument counts and diagnostics<a class="headerlink" href="#argument-counts-and-diagnostics" title="Link to this heading"></a></h2>
-<p>operPos identifies the operation word in the complete objc/objv vector. Both
-minArgs and maxArgs count every word in that vector, including the widget or
-command name and intervening subcommands. A nonpositive maximum is unbounded.</p>
-<p>For a missing operation word the helper reports a generic subcommand usage.
-For an unknown or ambiguous operation it retains Tcl’s lookup error. Once an
-operation is selected, a count error uses its usage suffix and the prefix
-through the operation word. indexPtr is written only after all checks succeed;
-on error callers must not dispatch using an old or uninitialized index.</p>
-<p>A nested dispatcher that shifts objc/objv must define its counts against the
-vector it actually passes to lookup. For example, the winop image dispatcher
-validates its own nested table before removing the image word for the shared
+<p>operPos identifies the operation word in the complete objc/objv vector. Both minArgs and maxArgs count every word in
+that vector, including the widget or command name and intervening subcommands. A nonpositive maximum is unbounded.</p>
+<p>For a missing operation word the helper reports a generic subcommand usage. For an unknown or ambiguous operation it
+retains Tcl’s lookup error. Once an operation is selected, a count error uses its usage suffix and the prefix through
+the operation word. indexPtr is written only after all checks succeed; on error callers must not dispatch using an old
+or uninitialized index.</p>
+<p>A nested dispatcher that shifts objc/objv must define its counts against the vector it actually passes to lookup. For
+example, the winop image dispatcher validates its own nested table before removing the image word for the shared
 handler. See <a class="reference internal" href="winop-internals.html"><span class="doc">Window and photo command implementation</span></a>.</p>
 </section>
 <section id="selection-versus-execution">
 <h2>Selection versus execution<a class="headerlink" href="#selection-versus-execution" title="Link to this heading"></a></h2>
-<p>The helper asserts a non-NULL table/output pointer and an adequate stride in
-assert-enabled builds. It does not validate arbitrary memory, ensure callback
-signatures match, or check an entire table’s structural consistency at runtime.
-The table declaration and caller form that contract.</p>
-<p>Successful selection also says nothing about callback safety. A selected
-operation can evaluate Tcl, change vector storage or destroy its widget. The
-owning command must preserve/revalidate the appropriate resources and return
-the handler’s status. See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>, <a class="reference internal" href="expressions.html"><span class="doc">Vector expression evaluation</span></a> and
-<a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for those separate boundaries.</p>
+<p>The helper asserts a non-NULL table/output pointer and an adequate stride in assert-enabled builds. It does not validate
+arbitrary memory, ensure callback signatures match, or check an entire table’s structural consistency at runtime. The
+table declaration and caller form that contract.</p>
+<p>Successful selection also says nothing about callback safety. A selected operation can evaluate Tcl, change vector
+storage or destroy its widget. The owning command must preserve/revalidate the appropriate resources and return the
+handler’s status. See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>, <a class="reference internal" href="expressions.html"><span class="doc">Vector expression evaluation</span></a> and <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for those separate boundaries.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>When adding an operation, test exact names, accepted abbreviations, ambiguity,
-missing arguments and excess arguments in the existing component test family.
-Check nested paths independently. A header or stride change should also pass
-<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code>. Reference documentation describes the common selector;
-the individual Tcl command manuals remain the source for user-facing syntax.</p>
+<p>When adding an operation, test exact names, accepted abbreviations, ambiguity, missing arguments and excess arguments in
+the existing component test family. Check nested paths independently. A header or stride change should also pass <code class="docutils literal notranslate"><span class="pre">make</span>
+<span class="pre">test-headers</span></code>. Reference documentation describes the common selector; the individual Tcl command manuals remain the
+source for user-facing syntax.</p>
 </section>
 <section id="lookup-inputs-and-output">
 <h2>Lookup inputs and output<a class="headerlink" href="#lookup-inputs-and-output" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="dispatch-reference.html#c.Rbc_GetOpIndexFromObj" title="Rbc_GetOpIndexFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetOpIndexFromObj()</span></code></a> receives the byte stride of a persistent typed
-table and a nonnegative operation-word index. Argument limits count the entire
-command, including widget and operation words. The returned integer index is
-assigned only after both name lookup and arity validation succeed; the caller
-then dispatches through its own typed entry.</p>
+<p><a class="reference internal" href="dispatch-reference.html#c.Rbc_GetOpIndexFromObj" title="Rbc_GetOpIndexFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetOpIndexFromObj()</span></code></a> receives the byte stride of a persistent typed table and a nonnegative operation-word
+index. Argument limits count the entire command, including widget and operation words. The returned integer index is
+assigned only after both name lookup and arity validation succeed; the caller then dispatches through its own typed
+entry.</p>
 </section>
 </section>
 

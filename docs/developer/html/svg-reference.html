@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1259,13 +1260,11 @@
              
   <section id="svg-backend-c-reference">
 <h1>SVG backend C reference<a class="headerlink" href="#svg-backend-c-reference" title="Link to this heading"></a></h1>
-<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcRenderSvg.c</span></code>. They borrow the export token;
-component callers use the renderer interface. See <a class="reference internal" href="svg-output.html"><span class="doc">SVG definitions and image encoding</span></a>.</p>
-<p>Use <a class="reference internal" href="#c.SvgStrokeAttributes" title="SvgStrokeAttributes"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgStrokeAttributes()</span></code></a> and <a class="reference internal" href="#c.SvgFillPattern" title="SvgFillPattern"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgFillPattern()</span></code></a> for paint-state
-contracts, <a class="reference internal" href="#c.SvgString" title="SvgString"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgString()</span></code></a> for text escaping, and <a class="reference internal" href="#c.SvgPhotoBlock" title="SvgPhotoBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a>
-for raster encoding. PNG helpers count bytes; geometry helpers count vertices,
-segments or rectangles. Emission is append-only and document errors remain
-separate from a helper’s return value.</p>
+<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcRenderSvg.c</span></code>. They borrow the export token; component callers use the renderer
+interface. See <a class="reference internal" href="svg-output.html"><span class="doc">SVG definitions and image encoding</span></a>.</p>
+<p>Use <a class="reference internal" href="#c.SvgStrokeAttributes" title="SvgStrokeAttributes"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgStrokeAttributes()</span></code></a> and <a class="reference internal" href="#c.SvgFillPattern" title="SvgFillPattern"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgFillPattern()</span></code></a> for paint-state contracts, <a class="reference internal" href="#c.SvgString" title="SvgString"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgString()</span></code></a> for text
+escaping, and <a class="reference internal" href="#c.SvgPhotoBlock" title="SvgPhotoBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a> for raster encoding. PNG helpers count bytes; geometry helpers count vertices,
+segments or rectangles. Emission is append-only and document errors remain separate from a helper’s return value.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__svg__backend"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">SVG</span> <span class="pre">backend</span> <span class="pre">internals</span></span></dt>

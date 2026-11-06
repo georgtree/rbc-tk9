@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,39 +1215,29 @@
              
   <section id="color-image-rotation-and-bitmap-transforms">
 <h1>Color-image rotation and bitmap transforms<a class="headerlink" href="#color-image-rotation-and-bitmap-transforms" title="Link to this heading"></a></h1>
-<p>Color images and monochrome bitmaps use different transformation paths.
-<code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> operates on CPU-side RGBA storage; <code class="docutils literal notranslate"><span class="pre">rbcWinImage.c</span></code> and
-<code class="docutils literal notranslate"><span class="pre">rbcUnixImage.c</span></code> operate on native depth-one pixmaps. These services are
-private image utilities used by components and native renderers, not additional
-renderer backends. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for storage ownership and
-<a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for ordinary resizing.</p>
+<p>Color images and monochrome bitmaps use different transformation paths. <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> operates on CPU-side RGBA
+storage; <code class="docutils literal notranslate"><span class="pre">rbcWinImage.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcUnixImage.c</span></code> operate on native depth-one pixmaps. These services are private image
+utilities used by components and native renderers, not additional renderer backends. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for storage
+ownership and <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for ordinary resizing.</p>
 <section id="color-image-rotation">
 <h2>Color-image rotation<a class="headerlink" href="#color-image-rotation" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_RotateColorImage" title="Rbc_RotateColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RotateColorImage()</span></code></a> borrows the source and always returns independent
-storage. A zero-degree operation still copies the image. Empty input is copied
-before quadrant handling, retaining its dimensions. Angles must be finite and
-are normalized modulo 360 degrees; positive rotation is counterclockwise in
-display coordinates.</p>
-<p>The function first selects a multiple of 90 degrees, leaving a residual angle
-in the range -45 to 45 degrees. Exact quadrant rotations copy complete pixels
-without interpolation; 90 and 270 degrees exchange width and height. For
-example, the 90-degree path maps source pixel <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> to
-<code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">sourceWidth</span> <span class="pre">-</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">1)</span></code>.</p>
-<p>A nonzero residual goes through <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.Rotate45" title="rbcImageRotation.Rotate45"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.Rotate45()</span></code></a>. Despite that helper’s name,
-its argument is radians, not degrees. It performs a row shear, a column shear,
-and a final row shear, using tangent of the half-angle and sine of the angle.
-Two intermediate images are released internally. The public function also
-releases any quadrant-rotated temporary, leaving only the final owned result.</p>
-<p>Each shear blends neighboring contributions with fixed-point arithmetic and
-clamps channels to byte range. Background is transparent white, including its
-RGB values: it is not transparent black. RGB and alpha are processed separately,
-without premultiplication or gamma conversion. This affects partially transparent
-edge pixels, as discussed for filtering in <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a>.</p>
-<p>Dimensions are derived from the three-shear construction, with checked integer
-conversion and extra space in the later passes. Do not substitute a generic
-rotated bounding-box formula and assume identical dimensions or pixels.
-Non-finite angles and unrepresentable rotation dimensions panic; command-level
-validation remains the caller’s responsibility.</p>
+<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_RotateColorImage" title="Rbc_RotateColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RotateColorImage()</span></code></a> borrows the source and always returns independent storage. A zero-degree operation still
+copies the image. Empty input is copied before quadrant handling, retaining its dimensions. Angles must be finite and
+are normalized modulo 360 degrees; positive rotation is counterclockwise in display coordinates.</p>
+<p>The function first selects a multiple of 90 degrees, leaving a residual angle in the range -45 to 45 degrees. Exact
+quadrant rotations copy complete pixels without interpolation; 90 and 270 degrees exchange width and height. For
+example, the 90-degree path maps source pixel <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> to <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">sourceWidth</span> <span class="pre">-</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">1)</span></code>.</p>
+<p>A nonzero residual goes through <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.Rotate45" title="rbcImageRotation.Rotate45"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.Rotate45()</span></code></a>. Despite that helper’s name, its argument is
+radians, not degrees. It performs a row shear, a column shear, and a final row shear, using tangent of the half-angle
+and sine of the angle. Two intermediate images are released internally. The public function also releases any
+quadrant-rotated temporary, leaving only the final owned result.</p>
+<p>Each shear blends neighboring contributions with fixed-point arithmetic and clamps channels to byte range. Background is
+transparent white, including its RGB values: it is not transparent black. RGB and alpha are processed separately,
+without premultiplication or gamma conversion. This affects partially transparent edge pixels, as discussed for
+filtering in <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a>.</p>
+<p>Dimensions are derived from the three-shear construction, with checked integer conversion and extra space in the later
+passes. Do not substitute a generic rotated bounding-box formula and assume identical dimensions or pixels. Non-finite
+angles and unrepresentable rotation dimensions panic; command-level validation remains the caller’s responsibility.</p>
 </section>
 <section id="quadrant-selection-and-intermediate-geometry">
 <h2>Quadrant selection and intermediate geometry<a class="headerlink" href="#quadrant-selection-and-intermediate-geometry" title="Link to this heading"></a></h2>
@@ -1286,12 +1277,11 @@ validation remains the caller’s responsibility.</p>
 </tr>
 </tbody>
 </table>
-<p>The endpoint choices are intentional: 45 degrees uses no quadrant copy,
-while 135 degrees uses a 90-degree copy followed by a positive 45-degree
-residual. Changing which exact rotation precedes a shear can change intermediate
-rounding even when the final mathematical angle is equivalent.</p>
-<p>For source width W and height H <em>after</em> any quadrant copy, <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.Rotate45" title="rbcImageRotation.Rotate45"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.Rotate45()</span></code></a> uses
-s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:</p>
+<p>The endpoint choices are intentional: 45 degrees uses no quadrant copy, while 135 degrees uses a 90-degree copy followed
+by a positive 45-degree residual. Changing which exact rotation precedes a shear can change intermediate rounding even
+when the final mathematical angle is equivalent.</p>
+<p>For source width W and height H <em>after</em> any quadrant copy, <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.Rotate45" title="rbcImageRotation.Rotate45"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.Rotate45()</span></code></a> uses s = sin(theta), c =
+cos(theta), and t = tan(theta/2). Its image sizes are:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1319,143 +1309,112 @@ s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:</p>
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.GetRotationDimension" title="rbcImageRotation.GetRotationDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.GetRotationDimension()</span></code></a> checks finiteness and the nonnegative int range before
-truncation. It does not ceil the result. <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.GetShearOffset" title="rbcImageRotation.GetShearOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.GetShearOffset()</span></code></a> floors the displacement,
-including negative values, and checks the int range. The fractional argument
-is the original displacement minus that integer offset, so it lies in [0, 1)
-for valid geometry. The caller’s residual-angle restriction keeps the
-construction within the intended two-neighbor filtering regime.</p>
+<p><a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.GetRotationDimension" title="rbcImageRotation.GetRotationDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.GetRotationDimension()</span></code></a> checks finiteness and the nonnegative int range before truncation. It
+does not ceil the result. <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.GetShearOffset" title="rbcImageRotation.GetShearOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.GetShearOffset()</span></code></a> floors the displacement, including negative values,
+and checks the int range. The fractional argument is the original displacement minus that integer offset, so it lies in
+[0, 1) for valid geometry. The caller’s residual-angle restriction keeps the construction within the intended
+two-neighbor filtering regime.</p>
 </section>
 <section id="shear-traversal-and-boundary-pixels">
 <h2>Shear traversal and boundary pixels<a class="headerlink" href="#shear-traversal-and-boundary-pixels" title="Link to this heading"></a></h2>
-<p>The historical helper names describe the fixed coordinate: <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.ShearY" title="rbcImageRotation.ShearY"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.ShearY()</span></code></a> processes
-a row at fixed y and moves pixels horizontally; <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.ShearX" title="rbcImageRotation.ShearX"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.ShearX()</span></code></a> processes a column at
-fixed x and moves pixels vertically. Each initializes its complete destination
-row or column to the background before sampling. The source and destination
-must be distinct, since that initialization would overwrite an aliased source.</p>
-<p>Each source channel contributes a fraction computed with the same 14-bit
-fixed-point macros used by resampling. The output combines the current pixel
-with the carried fraction from its predecessor and clamps to a byte. The carry
-starts from the background channel value; after the last source pixel, an
-additional residual pixel is emitted if it falls within the destination.
-The routines still advance carry state for clipped source contributions.
-Clipping therefore limits writes without restarting the filter at the first
-visible pixel.</p>
-<p>These are private kernels with caller-established invariants: the fixed row
-or column exists in both images, the fraction is in range, and advancing the
-integer displacement across the source remains representable. They validate
-individual destination writes, not arbitrary source indices or caller-provided
-fractions. The public rotation path supplies matching intermediate dimensions.
-Each pass clamps independently, and transparent white participates in straight
-RGBA filtering. It must not be silently replaced with premultiplied or
-transparent-black interpolation during refactoring.</p>
-<p>The first intermediate is freed after the column shear; the second is freed
-after the final row shear. A quadrant-rotated temporary belongs to the outer
-dispatcher and is freed only when a further residual rotation replaces it.
-With an exact quadrant angle, that temporary itself becomes the returned image.
-Zero rotation returns a full copy. Empty input bypasses all shears and retains
-its original dimensions, even when the requested angle would normally exchange
-them.</p>
+<p>The historical helper names describe the fixed coordinate: <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.ShearY" title="rbcImageRotation.ShearY"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.ShearY()</span></code></a> processes a row at fixed y
+and moves pixels horizontally; <a class="reference internal" href="image-transform-reference.html#c.rbcImageRotation.ShearX" title="rbcImageRotation.ShearX"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageRotation.ShearX()</span></code></a> processes a column at fixed x and moves pixels
+vertically. Each initializes its complete destination row or column to the background before sampling. The source and
+destination must be distinct, since that initialization would overwrite an aliased source.</p>
+<p>Each source channel contributes a fraction computed with the same 14-bit fixed-point macros used by resampling. The
+output combines the current pixel with the carried fraction from its predecessor and clamps to a byte. The carry starts
+from the background channel value; after the last source pixel, an additional residual pixel is emitted if it falls
+within the destination. The routines still advance carry state for clipped source contributions. Clipping therefore
+limits writes without restarting the filter at the first visible pixel.</p>
+<p>These are private kernels with caller-established invariants: the fixed row or column exists in both images, the
+fraction is in range, and advancing the integer displacement across the source remains representable. They validate
+individual destination writes, not arbitrary source indices or caller-provided fractions. The public rotation path
+supplies matching intermediate dimensions. Each pass clamps independently, and transparent white participates in
+straight RGBA filtering. It must not be silently replaced with premultiplied or transparent-black interpolation during
+refactoring.</p>
+<p>The first intermediate is freed after the column shear; the second is freed after the final row shear. A
+quadrant-rotated temporary belongs to the outer dispatcher and is freed only when a further residual rotation replaces
+it. With an exact quadrant angle, that temporary itself becomes the returned image. Zero rotation returns a full
+copy. Empty input bypasses all shears and retains its original dimensions, even when the requested angle would normally
+exchange them.</p>
 </section>
 <section id="one-bit-bitmap-ownership">
 <h2>One-bit bitmap ownership<a class="headerlink" href="#one-bit-bitmap-ownership" title="Link to this heading"></a></h2>
-<p>Bitmap transforms borrow a valid Tk window and a source pixmap whose actual
-size matches the supplied dimensions. Successful results are newly owned
-pixmaps, released using <code class="docutils literal notranslate"><span class="pre">Tk_FreePixmap</span></code> on the corresponding display. They
-are not <code class="docutils literal notranslate"><span class="pre">Rbc_ColorImage</span></code> objects and must not be freed with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code> or
-<a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
-<p>Rotation computes a containing bounding box and uses special cases for exact
-right angles. General angles map destination pixels back to source coordinates;
-samples outside the source are left clear. Unlike color rotation, this is
+<p>Bitmap transforms borrow a valid Tk window and a source pixmap whose actual size matches the supplied
+dimensions. Successful results are newly owned pixmaps, released using <code class="docutils literal notranslate"><span class="pre">Tk_FreePixmap</span></code> on the corresponding
+display. They are not <code class="docutils literal notranslate"><span class="pre">Rbc_ColorImage</span></code> objects and must not be freed with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code> or <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
+<p>Rotation computes a containing bounding box and uses special cases for exact right angles. General angles map
+destination pixels back to source coordinates; samples outside the source are left clear. Unlike color rotation, this is
 discrete one-bit sampling with no partially covered pixels.</p>
-<p>X11 implementations obtain source and destination <code class="docutils literal notranslate"><span class="pre">XImage</span></code> objects, populate
-the destination and upload it with <code class="docutils literal notranslate"><span class="pre">XPutImage</span></code>. Temporary XImages are released
-with <code class="docutils literal notranslate"><span class="pre">XDestroyImage</span></code>. Windows rotation works through monochrome bitmap bytes
-and DIB metadata, including DWORD-aligned scanlines and checked buffer sizes.
-Those byte-layout rules must not be replaced with packed RGBA assumptions.</p>
+<p>X11 implementations obtain source and destination <code class="docutils literal notranslate"><span class="pre">XImage</span></code> objects, populate the destination and upload it with
+<code class="docutils literal notranslate"><span class="pre">XPutImage</span></code>. Temporary XImages are released with <code class="docutils literal notranslate"><span class="pre">XDestroyImage</span></code>. Windows rotation works through monochrome bitmap
+bytes and DIB metadata, including DWORD-aligned scanlines and checked buffer sizes. Those byte-layout rules must not be
+replaced with packed RGBA assumptions.</p>
 </section>
 <section id="scaling-and-virtual-regions">
 <h2>Scaling and virtual regions<a class="headerlink" href="#scaling-and-virtual-regions" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_ScaleBitmap" title="Rbc_ScaleBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap()</span></code></a> returns the full requested output. X11 explicitly samples
-nearest source pixels. Windows uses <code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code> with <code class="docutils literal notranslate"><span class="pre">SRCCOPY</span></code> through
-paired drawable-DC acquisition and release. These are separate implementations;
+<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_ScaleBitmap" title="Rbc_ScaleBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScaleBitmap()</span></code></a> returns the full requested output. X11 explicitly samples nearest source pixels. Windows uses
+<code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code> with <code class="docutils literal notranslate"><span class="pre">SRCCOPY</span></code> through paired drawable-DC acquisition and release. These are separate implementations;
 do not infer identical downscaling details from their shared C signature.</p>
-<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_ScaleRotateBitmapRegion" title="Rbc_ScaleRotateBitmapRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion()</span></code></a> avoids allocating the full virtual output.
-It uses the rotated source bounding box and the virtual destination dimensions
-to map a requested region back to source pixels. The returned bitmap is only
-<code class="docutils literal notranslate"><span class="pre">regionWidth</span></code> by <code class="docutils literal notranslate"><span class="pre">regionHeight</span></code>. Bitmap markers use this route for the
-visible portion of a larger transformed marker, applying the same transform
-to its mask when needed.</p>
-<p>The region must lie within the virtual destination, and coordinate additions
-must remain representable. The right-angle paths read source samples directly;
-they do not implement general out-of-range padding or edge clamping. This is
-unlike <a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a>, which explicitly clamps virtual coordinates
-to source edges. Keep these contracts distinct when sharing callers.</p>
+<p><a class="reference internal" href="image-transform-reference.html#c.Rbc_ScaleRotateBitmapRegion" title="Rbc_ScaleRotateBitmapRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScaleRotateBitmapRegion()</span></code></a> avoids allocating the full virtual output. It uses the rotated source bounding
+box and the virtual destination dimensions to map a requested region back to source pixels. The returned bitmap is only
+<code class="docutils literal notranslate"><span class="pre">regionWidth</span></code> by <code class="docutils literal notranslate"><span class="pre">regionHeight</span></code>. Bitmap markers use this route for the visible portion of a larger transformed
+marker, applying the same transform to its mask when needed.</p>
+<p>The region must lie within the virtual destination, and coordinate additions must remain representable. The right-angle
+paths read source samples directly; they do not implement general out-of-range padding or edge clamping. This is unlike
+<a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a>, which explicitly clamps virtual coordinates to source edges. Keep these contracts
+distinct when sharing callers.</p>
 </section>
 <section id="failure-and-platform-differences">
 <h2>Failure and platform differences<a class="headerlink" href="#failure-and-platform-differences" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">None</span></code> indicates a detected bitmap-transform failure, but failure checking
-is not uniform. X11 scaling rejects nonpositive dimensions explicitly;
-Windows scaling relies on its caller and native operations. Windows scaling
-also returns its allocated pixmap without propagating <code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code> failure.</p>
-<p>The rotation dimension outputs are not portable failure indicators. X11 writes
-them on success; Windows clears them after initial argument validation and
-before later operations. Always check the returned pixmap first, and require
-non-NULL output pointers on both platforms. These helpers do not provide a
-uniform Tcl diagnostic interface.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> indicates a detected bitmap-transform failure, but failure checking is not uniform. X11 scaling rejects
+nonpositive dimensions explicitly; Windows scaling relies on its caller and native operations. Windows scaling also
+returns its allocated pixmap without propagating <code class="docutils literal notranslate"><span class="pre">StretchBlt</span></code> failure.</p>
+<p>The rotation dimension outputs are not portable failure indicators. X11 writes them on success; Windows clears them
+after initial argument validation and before later operations. Always check the returned pixmap first, and require
+non-NULL output pointers on both platforms. These helpers do not provide a uniform Tcl diagnostic interface.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Use an asymmetric pattern to detect mirroring and rotation direction. Check
-zero, positive and negative right angles, angles near quadrant boundaries,
-non-square images and arbitrary rotations. For color images, inspect RGBA
-values at transparent edges as well as appearance. For bitmaps, exercise
-scanline widths around byte and DWORD boundaries, scaling and contained virtual
-regions on both Windows and X11. Verify returned dimensions, source preservation
-and matching resource cleanup independently of the rendered result.</p>
+<p>Use an asymmetric pattern to detect mirroring and rotation direction. Check zero, positive and negative right angles,
+angles near quadrant boundaries, non-square images and arbitrary rotations. For color images, inspect RGBA values at
+transparent edges as well as appearance. For bitmaps, exercise scanline widths around byte and DWORD boundaries, scaling
+and contained virtual regions on both Windows and X11. Verify returned dimensions, source preservation and matching
+resource cleanup independently of the rendered result.</p>
 </section>
 <section id="x11-capture-dimensions-and-visual-channels">
 <h2>X11 capture dimensions and visual channels<a class="headerlink" href="#x11-capture-dimensions-and-visual-channels" title="Link to this heading"></a></h2>
 <p>The X11 helpers distinguish geometric dimensions, pixel counts and packed row sizes.
-<a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetBitmapDimension" title="rbcX11Image.GetBitmapDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetBitmapDimension()</span></code></a> rounds upward with <code class="docutils literal notranslate"><span class="pre">ceil</span></code> and returns zero
-when the result is nonfinite, below one or above <code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code>. Pixel-count and packed row
-helpers instead treat negative arguments as internal programming errors and panic. A
-packed one-bit row occupies ceiling(width/8) bytes; it is not the DWORD-aligned Windows
+<a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.GetBitmapDimension" title="rbcX11Image.GetBitmapDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.GetBitmapDimension()</span></code></a> rounds upward with <code class="docutils literal notranslate"><span class="pre">ceil</span></code> and returns zero when the result is nonfinite,
+below one or above <code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code>. Pixel-count and packed row helpers instead treat negative arguments as internal
+programming errors and panic. A packed one-bit row occupies ceiling(width/8) bytes; it is not the DWORD-aligned Windows
 representation.</p>
 <p>Drawable capture installs a temporary Tk handler for <code class="docutils literal notranslate"><span class="pre">BadMatch</span></code> from <code class="docutils literal notranslate"><span class="pre">X_GetImage</span></code>.
-<a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.XGetImageErrorProc" title="rbcX11Image.XGetImageErrorProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.XGetImageErrorProc()</span></code></a> only records failure in the caller’s status
-slot. <code class="docutils literal notranslate"><span class="pre">XSync</span></code> runs before the handler is removed, keeping that slot alive while
-asynchronous errors are delivered. Capture frees any returned XImage on that failure
-path. This handler does not suppress every possible X error or provide a Tcl error
-message.</p>
-<p>For TrueColor capture, <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.ComputeMasks" title="rbcX11Image.ComputeMasks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.ComputeMasks()</span></code></a> builds local extraction shifts
-from nonzero contiguous RGB masks in the X11 pixel layout. Channels with fewer than
-eight bits are shifted left, preserving the existing behavior: maximum five-bit and
-six-bit values become 248 and 252, rather than 255. Eight-bit values pass through
-unchanged. Channels wider than eight bits discard their low bits before indexing the
-256-entry gamma table; a ten-bit value of 1023 therefore becomes 255, and 512 becomes
-128. This prevents an out-of-bounds lookup on 30-bit TrueColor displays without changing
-the per-pixel extraction structure.</p>
-<p>Mask bit counts are computed during capture setup using the low 32 bits of
-each visual mask. Ordinary captures prepare only three channel masks. The gamma
-table and mask metadata belong to the capture call, rather than shared global
-state.</p>
-<p>The private <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-image</span></code> harness tests every sample for five-, six-,
-eight- and ten-bit channels at multiple bit positions. These X11-only cases use
-the actual mask helper and do not require a 30-bit display server. They run in
-the existing photo test file and skip on Windows; the public C API is unchanged.</p>
+<a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.XGetImageErrorProc" title="rbcX11Image.XGetImageErrorProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.XGetImageErrorProc()</span></code></a> only records failure in the caller’s status slot. <code class="docutils literal notranslate"><span class="pre">XSync</span></code> runs before the
+handler is removed, keeping that slot alive while asynchronous errors are delivered. Capture frees any returned XImage
+on that failure path. This handler does not suppress every possible X error or provide a Tcl error message.</p>
+<p>For TrueColor capture, <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.ComputeMasks" title="rbcX11Image.ComputeMasks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.ComputeMasks()</span></code></a> builds local extraction shifts from nonzero contiguous RGB
+masks in the X11 pixel layout. Channels with fewer than eight bits are shifted left, preserving the existing behavior:
+maximum five-bit and six-bit values become 248 and 252, rather than 255. Eight-bit values pass through
+unchanged. Channels wider than eight bits discard their low bits before indexing the 256-entry gamma table; a ten-bit
+value of 1023 therefore becomes 255, and 512 becomes
+128. This prevents an out-of-bounds lookup on 30-bit TrueColor displays without changing the per-pixel extraction
+structure.</p>
+<p>Mask bit counts are computed during capture setup using the low 32 bits of each visual mask. Ordinary captures prepare
+only three channel masks. The gamma table and mask metadata belong to the capture call, rather than shared global state.</p>
+<p>The private <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-image</span></code> harness tests every sample for five-, six-, eight- and ten-bit channels at multiple bit
+positions. These X11-only cases use the actual mask helper and do not require a 30-bit display server. They run in the
+existing photo test file and skip on Windows; the public C API is unchanged.</p>
 </section>
 <section id="x11-capture-and-opacity-mask-inputs">
 <h2>X11 capture and opacity-mask inputs<a class="headerlink" href="#x11-capture-and-opacity-mask-inputs" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_DrawableToColorImage" title="rbcX11Image.Rbc_DrawableToColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_DrawableToColorImage()</span></code></a> borrows a compatible window and
-drawable, captures the complete requested rectangle and returns owned opaque
-RGBA storage. Width, height and gamma must be positive, with finite gamma.
-Release successful output with <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
-<p><a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_PhotoImageMask" title="rbcX11Image.Rbc_PhotoImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_PhotoImageMask()</span></code></a> reads a supplied photo block, including
-its stride and alpha offset. <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_ColorImageMask" title="rbcX11Image.Rbc_ColorImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_ColorImageMask()</span></code></a> reads RBC
-RGBA pixels. Both treat zero alpha as transparent and nonzero alpha as opaque.
-On X11, fully opaque input returns None; otherwise the returned bitmap belongs
-to the caller and requires Tk_FreePixmap.</p>
+<p><a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_DrawableToColorImage" title="rbcX11Image.Rbc_DrawableToColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_DrawableToColorImage()</span></code></a> borrows a compatible window and drawable, captures the complete requested
+rectangle and returns owned opaque RGBA storage. Width, height and gamma must be positive, with finite gamma. Release
+successful output with <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
+<p><a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_PhotoImageMask" title="rbcX11Image.Rbc_PhotoImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_PhotoImageMask()</span></code></a> reads a supplied photo block, including its stride and alpha
+offset. <a class="reference internal" href="image-transform-reference.html#c.rbcX11Image.Rbc_ColorImageMask" title="rbcX11Image.Rbc_ColorImageMask"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcX11Image.Rbc_ColorImageMask()</span></code></a> reads RBC RGBA pixels. Both treat zero alpha as transparent and nonzero
+alpha as opaque. On X11, fully opaque input returns None; otherwise the returned bitmap belongs to the caller and
+requires Tk_FreePixmap.</p>
 </section>
 </section>
 

@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,245 +1215,187 @@
              
   <section id="vector-instance-commands-and-binary-input">
 <h1>Vector instance commands and binary input<a class="headerlink" href="#vector-instance-commands-and-binary-input" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code> dispatches instance operations and implements many of their
-conversion and mutation paths. This chapter covers selected common paths, not
-every instance operation. See <a class="reference internal" href="vector-command-reference.html"><span class="doc">Vector command C reference</span></a> for their C
-contracts, <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a> for evaluating conversions, and <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>
-for storage ownership and client notifications.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code> dispatches instance operations and implements many of their conversion and mutation paths. This chapter
+covers selected common paths, not every instance operation. See <a class="reference internal" href="vector-command-reference.html"><span class="doc">Vector command C reference</span></a> for their C contracts,
+<a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a> for evaluating conversions, and <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for storage ownership and client notifications.</p>
 <section id="dispatch-and-mutation-boundaries">
 <h2>Dispatch and mutation boundaries<a class="headerlink" href="#dispatch-and-mutation-boundaries" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.Rbc_VectorInstanceObjCmd" title="rbcVectorCommands.Rbc_VectorInstanceObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstanceObjCmd</span></code></a>
-checks operation spelling and arity, rejects operations
-unsupported for complex vectors, and checks read-only state for operations
-that write their receiver. Output operations must check their own destinations.
-It resets the receiver’s selection to the full vector before calling a handler.
-It preserves the receiver and interpreter during the handler. This retains the
-record, not its destroyed storage: each handler still needs lifetime checks
-after callback-capable work.</p>
-<p>The handler receives the <strong>full</strong> argument array: <code class="docutils literal notranslate"><span class="pre">objv[0]</span></code> is the vector
-command, <code class="docutils literal notranslate"><span class="pre">objv[1]</span></code> the operation, and operation-specific input starts at
-<code class="docutils literal notranslate"><span class="pre">objv[2]</span></code>. The dispatcher does not shift this array. This differs from
-<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList" title="rbcVectorCommands.ConvertCommandList"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConvertCommandList</span></code></a>, whose
-arguments contain only values. See <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> for borrowed
-Tcl argument lifetimes. Each handler reference specifies its accepted count
-and the meaning of the remaining positions.</p>
-<p>Handler return status and interpreter result are separate contracts. Query
-handlers explicitly set their results; successful mutation handlers do not
-uniformly return a name, length or value list. A successful status also does
-not promise that callbacks left the committed data unchanged.</p>
-<p>Mutation, array-cache flushing and client notification are separate steps.
-A helper that changes storage does not necessarily perform all three. Immediate
-notifications and Tcl variable traces are callback boundaries; numerical
-expression conversion and reflected-channel operations can also execute Tcl.
-Handler-specific protection must not be inferred from the common dispatcher.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.Rbc_VectorInstanceObjCmd" title="rbcVectorCommands.Rbc_VectorInstanceObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorInstanceObjCmd</span></code></a> checks operation spelling and arity,
+rejects operations unsupported for complex vectors, and checks read-only state for operations that write their
+receiver. Output operations must check their own destinations. It resets the receiver’s selection to the full vector
+before calling a handler. It preserves the receiver and interpreter during the handler. This retains the record, not
+its destroyed storage: each handler still needs lifetime checks after callback-capable work.</p>
+<p>The handler receives the <strong>full</strong> argument array: <code class="docutils literal notranslate"><span class="pre">objv[0]</span></code> is the vector command, <code class="docutils literal notranslate"><span class="pre">objv[1]</span></code> the operation, and
+operation-specific input starts at <code class="docutils literal notranslate"><span class="pre">objv[2]</span></code>. The dispatcher does not shift this array. This differs from
+<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList" title="rbcVectorCommands.ConvertCommandList"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConvertCommandList</span></code></a>, whose arguments contain only values. See
+<a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> for borrowed Tcl argument lifetimes. Each handler reference specifies its accepted count and
+the meaning of the remaining positions.</p>
+<p>Handler return status and interpreter result are separate contracts. Query handlers explicitly set their results;
+successful mutation handlers do not uniformly return a name, length or value list. A successful status also does not
+promise that callbacks left the committed data unchanged.</p>
+<p>Mutation, array-cache flushing and client notification are separate steps. A helper that changes storage does not
+necessarily perform all three. Immediate notifications and Tcl variable traces are callback boundaries; numerical
+expression conversion and reflected-channel operations can also execute Tcl. Handler-specific protection must not be
+inferred from the common dispatcher.</p>
 </section>
 <section id="control-operations-and-array-access">
 <h2>Control operations and array access<a class="headerlink" href="#control-operations-and-array-access" title="Link to this heading"></a></h2>
-<p>Complex support is selected by handler identity, separately from the operation
-table. Aliases sharing a handler share its eligibility. The read-only gate is
-also explicit: it checks receiver writes, including argument-dependent setters,
-while operations writing other vectors must validate those destinations.
-Unsupported complex operations are rejected before the read-only check.
-Dispatch errors leave the previous selection unchanged; accepted operations
-start with the complete receiver selected.</p>
+<p>Complex support is selected by handler identity, separately from the operation table. Aliases sharing a handler share
+its eligibility. The read-only gate is also explicit: it checks receiver writes, including argument-dependent setters,
+while operations writing other vectors must validate those destinations. Unsupported complex operations are rejected
+before the read-only check. Dispatch errors leave the previous selection unchanged; accepted operations start with the
+complete receiver selected.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.TypeOp" title="rbcVectorCommands.TypeOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">TypeOp</span></code></a> reports <code class="docutils literal notranslate"><span class="pre">real</span></code> or <code class="docutils literal notranslate"><span class="pre">complex</span></code> and never changes storage type.
 <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ReadOnlyOp" title="rbcVectorCommands.ReadOnlyOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadOnlyOp</span></code></a> returns the current boolean, optionally changing it after boolean
-conversion succeeds. It is reversible and emits no value-change notification.
-The flag protects data writes, not command renaming, mapping or lifecycle.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ClearOp" title="rbcVectorCommands.ClearOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClearOp</span></code></a> implements <code class="docutils literal notranslate"><span class="pre">clear</span></code>,
-meaning <strong>clear the mapped-array cache</strong>, not empty the vector. It is
-allowed for protected vectors and explicitly flushes even when automatic
-flushing is disabled. The cache normally retains only its <code class="docutils literal notranslate"><span class="pre">end</span></code> entry after
-recreation; subsequent reads materialize values again. User unset/write traces
-may run during flushing, and their side effects can include data changes,
-remapping or destruction. The handler returns TCL_OK after the void helper and
-does not report lower-level cache recreation status.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.VariableOp" title="rbcVectorCommands.VariableOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">VariableOp</span></code></a> queries the stored mapping name, or delegates replacement/removal
-to <a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorMapVariable" title="Rbc_VectorMapVariable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorMapVariable()</span></code></a>. An empty argument removes the association; it does not
-rename the vector command or discard numerical storage. The returned mapping
-spelling need not be a fully qualified command name. Array names reject
-parentheses before removing an old mapping, although literal vector command
-names may contain them. For later mapping failures, the old array is not
-restored. See <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a> for trace ownership and lifetime boundaries.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ExprOp" title="rbcVectorCommands.ExprOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ExprOp</span></code></a> assigns to the existing receiver. Evaluation creates a
-temporary result and checks that the original destination survives and remains
-writable before copying compatible data. A real result can populate a complex
-destination with zero imaginary parts; a complex result cannot change a real
-destination’s type. On success the handler requests a full notification through
-<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.NotifyCommandWrite" title="rbcVectorCommands.NotifyCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyCommandWrite</span></code></a>. On evaluation/assignment failure it returns the error
-without that publication step. Neither case rolls back Tcl callback effects.
-This differs from ensemble expression forms that return a list or create a
-named vector; see <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> for the evaluator contracts.</p>
+:c:conversion succeeds. It is reversible and emits no value-change notification. The flag protects data writes, not
+:c:command renaming, mapping or lifecycle.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ClearOp" title="rbcVectorCommands.ClearOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClearOp</span></code></a> implements <code class="docutils literal notranslate"><span class="pre">clear</span></code>, meaning <strong>clear the mapped-array cache</strong>, not empty
+the vector. It is allowed for protected vectors and explicitly flushes even when automatic flushing is disabled. The
+cache normally retains only its <code class="docutils literal notranslate"><span class="pre">end</span></code> entry after recreation; subsequent reads materialize values again. User
+unset/write traces may run during flushing, and their side effects can include data changes, remapping or
+destruction. The handler returns TCL_OK after the void helper and does not report lower-level cache recreation status.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.VariableOp" title="rbcVectorCommands.VariableOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">VariableOp</span></code></a> queries the stored mapping name, or delegates replacement/removal to
+<a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorMapVariable" title="Rbc_VectorMapVariable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorMapVariable()</span></code></a>. An empty argument removes the association; it does not rename the vector command or
+discard numerical storage. The returned mapping spelling need not be a fully qualified command name. Array names reject
+parentheses before removing an old mapping, although literal vector command names may contain them. For later mapping
+failures, the old array is not restored. See <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a> for trace ownership and lifetime boundaries.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ExprOp" title="rbcVectorCommands.ExprOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ExprOp</span></code></a> assigns to the existing receiver. Evaluation creates a temporary result and
+checks that the original destination survives and remains writable before copying compatible data. A real result can
+populate a complex destination with zero imaginary parts; a complex result cannot change a real destination’s type. On
+success the handler requests a full notification through <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.NotifyCommandWrite" title="rbcVectorCommands.NotifyCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyCommandWrite</span></code></a>. On evaluation/assignment failure it returns the error without that publication
+step. Neither case rolls back Tcl callback effects. This differs from ensemble expression forms that return a list or
+create a named vector; see <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> for the evaluator contracts.</p>
 </section>
 <section id="append-and-replacement">
 <h2>Append and replacement<a class="headerlink" href="#append-and-replacement" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AppendOp" title="rbcVectorCommands.AppendOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">AppendOp</span></code></a> tries each argument as a vector reference before treating it as a
-list. Vector append requires matching types and permits self-append. List
-conversion stages every value before changing destination storage. Failed
-conversion or a read-only check cannot leave an appended prefix of that list.
-Earlier successful arguments remain appended if a later argument fails, and
-the handler still notifies clients about those earlier changes.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SetOp" title="rbcVectorCommands.SetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetOp</span></code></a> also prefers vector references. It stages vector ranges, including
-self-copy, and transfers completed list storage into the destination. Failed
-list conversion does not resize or overwrite destination values. Callback
-side effects are not rolled back: a callback may edit the vector, and append
-uses its current length after conversion. Destruction or locking prevents the
-subsequent commit. Renaming does not change the retained destination identity.</p>
-<p>List staging retains a private Tcl list representation, so conversion callbacks
-can shimmer the original argument without invalidating the remaining values.
-Storage installation precedes invocation of any old custom free procedure.
-Cache flushing and notifications check that the object and interpreter remain
-live and preserve command results/errors across callbacks.</p>
-<p>These protections cover the reviewed set/append/binread/sort paths, not every
-legacy mutation handler. Mapped-array trace protection and its layout checks
-are described separately in <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a>.</p>
+list. Vector append requires matching types and permits self-append. List conversion stages every value before changing
+destination storage. Failed conversion or a read-only check cannot leave an appended prefix of that list. Earlier
+successful arguments remain appended if a later argument fails, and the handler still notifies clients about those
+earlier changes.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SetOp" title="rbcVectorCommands.SetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetOp</span></code></a> also prefers vector references. It stages vector ranges, including self-copy,
+and transfers completed list storage into the destination. Failed list conversion does not resize or overwrite
+destination values. Callback side effects are not rolled back: a callback may edit the vector, and append uses its
+current length after conversion. Destruction or locking prevents the subsequent commit. Renaming does not change the
+retained destination identity.</p>
+<p>List staging retains a private Tcl list representation, so conversion callbacks can shimmer the original argument
+without invalidating the remaining values. Storage installation precedes invocation of any old custom free procedure.
+Cache flushing and notifications check that the object and interpreter remain live and preserve command results/errors
+across callbacks.</p>
+<p>These protections cover the reviewed set/append/binread/sort paths, not every legacy mutation handler. Mapped-array
+trace protection and its layout checks are described separately in <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a>.</p>
 </section>
 <section id="sorting">
 <h2>Sorting<a class="headerlink" href="#sorting" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorSortIndex" title="Rbc_VectorSortIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorSortIndex()</span></code></a> builds an owned array of indices without moving values.
-The first vector’s selected interval determines the indices; callers must
-provide valid corresponding storage in every key vector. Keys are compared
-lexicographically, and a heap sort constructs the permutation. Sorting is not
-stable and does not define a total ordering for NaNs. Complex keys are rejected.
-An empty successful sort still returns an allocation so NULL denotes failure.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortOp" title="rbcVectorCommands.SortOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortOp</span></code></a> resolves and retains all destination objects, validates them,
-and allocates the permutation and one reusable scratch array. It applies every
-permutation before invoking any variable trace or observer. This avoids a full
-output allocation per vector. Callbacks see all sorted data; later callbacks
-may legitimately edit or delete it. Renames retain identity, and deleted objects
-are skipped rather than resolving a replacement with the same name.</p>
+<p><a class="reference internal" href="vector-access-reference.html#c.Rbc_VectorSortIndex" title="Rbc_VectorSortIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorSortIndex()</span></code></a> builds an owned array of indices without moving values. The first vector’s selected
+interval determines the indices; callers must provide valid corresponding storage in every key vector. Keys are compared
+lexicographically, and a heap sort constructs the permutation. Sorting is not stable and does not define a total
+ordering for NaNs. Complex keys are rejected. An empty successful sort still returns an allocation so NULL denotes
+failure.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortOp" title="rbcVectorCommands.SortOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortOp</span></code></a> resolves and retains all destination objects, validates them, and allocates
+the permutation and one reusable scratch array. It applies every permutation before invoking any variable trace or
+observer. This avoids a full output allocation per vector. Callbacks see all sorted data; later callbacks may
+legitimately edit or delete it. Renames retain identity, and deleted objects are skipped rather than resolving a
+replacement with the same name.</p>
 </section>
 <section id="binary-channel-input">
 <h2>Binary channel input<a class="headerlink" href="#binary-channel-input" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.BinreadOp" title="rbcVectorCommands.BinreadOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">BinreadOp</span></code></a> retains a readable Tcl channel
-for the duration of the command. Formats select supported native C
-scalar types by family and byte width; bytes are converted to doubles. This is
-not a platform-independent file format, and large integers may lose precision.
-Real vectors consume one scalar per value; complex vectors consume interleaved
-real/imaginary pairs. Byte swapping reverses each scalar independently.</p>
-<p>The option callbacks use an argument <strong>slice</strong>, unlike instance handlers.
-<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseFormat" title="rbcVectorCommands.ParseFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseFormat</span></code></a> and
-<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseAt" title="rbcVectorCommands.ParseAt"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseAt</span></code></a> read their first value from
-<code class="docutils literal notranslate"><span class="pre">objv[0]</span></code> and return a consumed count (one), or -1 on error. Those return
-values are not Tcl status codes. The format callback writes a native type
-and byte width; the position callback writes a zero-based storage position
-and may evaluate an index expression.</p>
-<p>The starting position defaults to the current length. A positive requested
-count performs one read, which may be short. A zero count reads successive
-chunks until EOF or a zero-byte read. Every returned chunk must contain complete
-logical values; partial scalars or complex pairs are rejected rather than
-carried into the next read. Nonblocking zero-byte reads stop the operation.</p>
-<p>The handler saves and restores the channel’s translation option and temporarily
-uses binary translation. It does not snapshot all channel settings. A temporary
-channel registration prevents reflected callbacks from freeing the channel
-under the read. The command checks whether the caller closed it and stops rather
-than using an unregistered handle; it does not reopen or restore a closed channel.
-The channel remains caller-owned. Destination lifetime/read-only checks follow
-reflected reads, and the complete original error state survives cleanup callbacks.</p>
-<p>The conversion helpers <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyValues" title="rbcVectorCommands.CopyValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyValues</span></code></a> and
-<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyComplexValues" title="rbcVectorCommands.CopyComplexValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyComplexValues</span></code></a> receive
-logical value counts, not byte counts. The latter reads two native scalars
-per complex value. Their input buffer must have the native alignment and
-representation required by the selected format; byte swapping modifies that
-buffer in place. Both advance a caller-owned storage index and leave cache
-flushing and notification to the surrounding operation.</p>
-<p>Each successful chunk is copied directly into storage, reusing capacity when
-possible. Completed chunks remain if a later read or translation restoration
-fails. The error path flushes and notifies any surviving destination when data
-was committed, preserving the original error and its options. The incomplete
-final chunk is not committed. Successful completion returns the logical value
-count. The command does not stage the entire stream or retry a short positive-
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.BinreadOp" title="rbcVectorCommands.BinreadOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">BinreadOp</span></code></a> retains a readable Tcl channel for the duration of the
+command. Formats select supported native C scalar types by family and byte width; bytes are converted to doubles. This
+is not a platform-independent file format, and large integers may lose precision. Real vectors consume one scalar per
+value; complex vectors consume interleaved real/imaginary pairs. Byte swapping reverses each scalar independently.</p>
+<p>The option callbacks use an argument <strong>slice</strong>, unlike instance handlers. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseFormat" title="rbcVectorCommands.ParseFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseFormat</span></code></a> and <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ParseAt" title="rbcVectorCommands.ParseAt"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseAt</span></code></a> read their first value from
+<code class="docutils literal notranslate"><span class="pre">objv[0]</span></code> and return a consumed count (one), or -1 on error. Those return values are not Tcl status codes. The format
+callback writes a native type and byte width; the position callback writes a zero-based storage position and may
+evaluate an index expression.</p>
+<p>The starting position defaults to the current length. A positive requested count performs one read, which may be
+short. A zero count reads successive chunks until EOF or a zero-byte read. Every returned chunk must contain complete
+logical values; partial scalars or complex pairs are rejected rather than carried into the next read. Nonblocking
+zero-byte reads stop the operation.</p>
+<p>The handler saves and restores the channel’s translation option and temporarily uses binary translation. It does not
+snapshot all channel settings. A temporary channel registration prevents reflected callbacks from freeing the channel
+under the read. The command checks whether the caller closed it and stops rather than using an unregistered handle; it
+does not reopen or restore a closed channel. The channel remains caller-owned. Destination lifetime/read-only checks
+follow reflected reads, and the complete original error state survives cleanup callbacks.</p>
+<p>The conversion helpers <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyValues" title="rbcVectorCommands.CopyValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyValues</span></code></a> and <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CopyComplexValues" title="rbcVectorCommands.CopyComplexValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyComplexValues</span></code></a> receive logical value counts, not byte counts. The latter reads two native
+scalars per complex value. Their input buffer must have the native alignment and representation required by the selected
+format; byte swapping modifies that buffer in place. Both advance a caller-owned storage index and leave cache flushing
+and notification to the surrounding operation.</p>
+<p>Each successful chunk is copied directly into storage, reusing capacity when possible. Completed chunks remain if a
+later read or translation restoration fails. The error path flushes and notifies any surviving destination when data was
+committed, preserving the original error and its options. The incomplete final chunk is not committed. Successful
+completion returns the logical value count. The command does not stage the entire stream or retry a short positive-
 count read to satisfy the requested count.</p>
 </section>
 <section id="vector-ensemble-and-registry-operations">
 <h2>Vector ensemble and registry operations<a class="headerlink" href="#vector-ensemble-and-registry-operations" title="Link to this heading"></a></h2>
-<p>The ensemble in <code class="docutils literal notranslate"><span class="pre">rbcVector.c</span></code> is separate from the instance dispatcher in
-<code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. Its typed table validates operation names and argument counts;
-each handler owns its own mutation and callback policy. See
-<a class="reference internal" href="vector-storage-private-reference.html"><span class="doc">Vector storage private C reference</span></a> for the handler contracts and
-<a class="reference internal" href="vector-storage.html"><span class="doc">Vector C API and storage primitives</span></a> for registry ownership.</p>
+<p>The ensemble in <code class="docutils literal notranslate"><span class="pre">rbcVector.c</span></code> is separate from the instance dispatcher in <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. Its typed table validates
+operation names and argument counts; each handler owns its own mutation and callback policy. See
+<a class="reference internal" href="vector-storage-private-reference.html"><span class="doc">Vector storage private C reference</span></a> for the handler contracts and <a class="reference internal" href="vector-storage.html"><span class="doc">Vector C API and storage primitives</span></a> for registry ownership.</p>
 <section id="ensemble-argument-and-callback-contracts">
 <h3>Ensemble argument and callback contracts<a class="headerlink" href="#ensemble-argument-and-callback-contracts" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorObjCmd" title="VectorObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorObjCmd()</span></code></a> forwards the full ensemble argument array. Creation,
-destruction, naming, renaming and expression handlers read operation input
-starting at index 2. <a class="reference internal" href="vector-storage-private-reference.html#c.VectorSimplifyOp" title="VectorSimplifyOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorSimplifyOp()</span></code></a> is the exception: it removes
-the ensemble command word before calling <a class="reference internal" href="vector-storage-private-reference.html#c.VectorSimplifyObjCmd" title="VectorSimplifyObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorSimplifyObjCmd()</span></code></a>,
-which receives the same six arguments as standalone simplify. Its first
-vector name is consequently at index 1.</p>
-<p>The creation-option parsers <a class="reference internal" href="vector-storage-private-reference.html#c.ParseBool" title="ParseBool"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseBool()</span></code></a>, <a class="reference internal" href="vector-storage-private-reference.html#c.ParseVectorLength" title="ParseVectorLength"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseVectorLength()</span></code></a>
-and <a class="reference internal" href="vector-storage-private-reference.html#c.ParseVectorType" title="ParseVectorType"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseVectorType()</span></code></a> receive a value slice and return one consumed
-argument or -1. Their <code class="docutils literal notranslate"><span class="pre">clientData</span></code> is a borrowed option-name string, while
-the ensemble handlers receive interpreter-owned vector registry data.
-<a class="reference internal" href="vector-storage-private-reference.html#c.VectorRenameTrace" title="VectorRenameTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorRenameTrace()</span></code></a> instead receives a caller-owned integer flag,
-and <a class="reference internal" href="vector-storage-private-reference.html#c.SimplifyDeleted" title="SimplifyDeleted"><code class="xref c c-func docutils literal notranslate"><span class="pre">SimplifyDeleted()</span></code></a> receives a caller-owned observer-ID slot.
-Neither callback owns or frees that storage. See <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>
-for why an untyped callback pointer must have a concrete per-function contract.</p>
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorObjCmd" title="VectorObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorObjCmd()</span></code></a> forwards the full ensemble argument array. Creation, destruction, naming, renaming and expression
+handlers read operation input starting at index 2. <a class="reference internal" href="vector-storage-private-reference.html#c.VectorSimplifyOp" title="VectorSimplifyOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorSimplifyOp()</span></code></a> is the exception: it removes the ensemble
+command word before calling <a class="reference internal" href="vector-storage-private-reference.html#c.VectorSimplifyObjCmd" title="VectorSimplifyObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorSimplifyObjCmd()</span></code></a>, which receives the same six arguments as standalone
+simplify. Its first vector name is consequently at index 1.</p>
+<p>The creation-option parsers <a class="reference internal" href="vector-storage-private-reference.html#c.ParseBool" title="ParseBool"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseBool()</span></code></a>, <a class="reference internal" href="vector-storage-private-reference.html#c.ParseVectorLength" title="ParseVectorLength"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseVectorLength()</span></code></a> and <a class="reference internal" href="vector-storage-private-reference.html#c.ParseVectorType" title="ParseVectorType"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseVectorType()</span></code></a> receive a
+value slice and return one consumed argument or -1. Their <code class="docutils literal notranslate"><span class="pre">clientData</span></code> is a borrowed option-name string, while the
+ensemble handlers receive interpreter-owned vector registry data. <a class="reference internal" href="vector-storage-private-reference.html#c.VectorRenameTrace" title="VectorRenameTrace"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorRenameTrace()</span></code></a> instead receives a
+caller-owned integer flag, and <a class="reference internal" href="vector-storage-private-reference.html#c.SimplifyDeleted" title="SimplifyDeleted"><code class="xref c c-func docutils literal notranslate"><span class="pre">SimplifyDeleted()</span></code></a> receives a caller-owned observer-ID slot. Neither callback
+owns or frees that storage. See <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> for why an untyped callback pointer must have a concrete
+per-function contract.</p>
 </section>
 <section id="creation-and-reuse">
 <h3>Creation and reuse<a class="headerlink" href="#creation-and-reuse" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorCreateObjCmd" title="VectorCreateObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorCreateObjCmd()</span></code></a> collects names and options, then prechecks existing
-candidate vectors for read-only state. This is not a transaction across the
-whole argument list: subsequent names, size specifications, command collisions
-or mapping failures can fail after earlier vectors were successfully processed.
-The result on success is the last vector’s qualified name, not a list of names.</p>
-<p>An exact registered name wins over the legacy numeric <code class="docutils literal notranslate"><span class="pre">name(size)</span></code> or
-<code class="docutils literal notranslate"><span class="pre">name(first:last)</span></code> syntax. Otherwise a numeric-looking final balanced group
-is interpreted as a size/range; <code class="docutils literal notranslate"><span class="pre">-literal</span></code> disables that interpretation.
-The first index becomes the vector offset. An explicitly supplied type must
-match an existing vector; omission preserves its type. Positive sizes request a
-length change, while zero does not truncate existing storage. New storage starts
-empty unless a positive size is requested.</p>
-<p>Default array mapping is requested only for real vectors whose names contain
-no opening parenthesis. Complex vectors and parenthesized names require an
-explicit separate array name to request mapping. Absence of a mapping request
-must not be confused with unmapping an existing array. Command and mapping
-setup are delegated to <a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorCreate" title="Rbc_VectorCreate"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorCreate()</span></code></a>; reusing a vector can execute
-command-deletion and variable traces. The handler retains the returned object
-across resizing and publication, then checks that it still exists before
-reading its name. Existing-vector changes publish a full update.</p>
+<p><a class="reference internal" href="vector-storage-private-reference.html#c.VectorCreateObjCmd" title="VectorCreateObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorCreateObjCmd()</span></code></a> collects names and options, then prechecks existing candidate vectors for read-only
+state. This is not a transaction across the whole argument list: subsequent names, size specifications, command
+collisions or mapping failures can fail after earlier vectors were successfully processed. The result on success is the
+last vector’s qualified name, not a list of names.</p>
+<p>An exact registered name wins over the legacy numeric <code class="docutils literal notranslate"><span class="pre">name(size)</span></code> or <code class="docutils literal notranslate"><span class="pre">name(first:last)</span></code> syntax. Otherwise a
+numeric-looking final balanced group is interpreted as a size/range; <code class="docutils literal notranslate"><span class="pre">-literal</span></code> disables that interpretation. The
+first index becomes the vector offset. An explicitly supplied type must match an existing vector; omission preserves its
+type. Positive sizes request a length change, while zero does not truncate existing storage. New storage starts empty
+unless a positive size is requested.</p>
+<p>Default array mapping is requested only for real vectors whose names contain no opening parenthesis. Complex vectors and
+parenthesized names require an explicit separate array name to request mapping. Absence of a mapping request must not be
+confused with unmapping an existing array. Command and mapping setup are delegated to <a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorCreate" title="Rbc_VectorCreate"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorCreate()</span></code></a>;
+reusing a vector can execute command-deletion and variable traces. The handler retains the returned object across
+resizing and publication, then checks that it still exists before reading its name. Existing-vector changes publish a
+full update.</p>
 </section>
 <section id="named-expression-results">
 <h3>Named expression results<a class="headerlink" href="#named-expression-results" title="Link to this heading"></a></h3>
-<p>Ordinary <code class="docutils literal notranslate"><span class="pre">expr</span></code> returns Tcl values through <a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">-name</span></code>,
-the handler resolves the destination namespace, checks for collisions and
-evaluates once into a temporary vector. It checks collisions again because
-expression callbacks may have created the requested target. A final <code class="docutils literal notranslate"><span class="pre">#auto</span></code>
-component delegates unique naming to vector creation.</p>
-<p>The new vector has the evaluated real or complex type and no mapped array.
-Its storage pointer, length, capacity and release procedure are transferred
-from the temporary; the temporary is detached before destruction. This avoids
-conversion through a Tcl list and never changes an existing vector’s type.
-On success the Tcl result is the new qualified name. Errors dispose of the
-owned temporary, but do not undo side effects of expression callbacks.</p>
+<p>Ordinary <code class="docutils literal notranslate"><span class="pre">expr</span></code> returns Tcl values through <a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">-name</span></code>, the handler resolves the
+destination namespace, checks for collisions and evaluates once into a temporary vector. It checks collisions again
+because expression callbacks may have created the requested target. A final <code class="docutils literal notranslate"><span class="pre">#auto</span></code> component delegates unique naming
+to vector creation.</p>
+<p>The new vector has the evaluated real or complex type and no mapped array. Its storage pointer, length, capacity and
+release procedure are transferred from the temporary; the temporary is detached before destruction. This avoids
+conversion through a Tcl list and never changes an existing vector’s type. On success the Tcl result is the new
+qualified name. Errors dispose of the owned temporary, but do not undo side effects of expression callbacks.</p>
 </section>
 <section id="rename-destruction-and-enumeration">
 <h3>Rename, destruction and enumeration<a class="headerlink" href="#rename-destruction-and-enumeration" title="Link to this heading"></a></h3>
-<p>Rename uses literal registry names rather than range syntax. It preserves the
-C object, data allocation and observer connections. The mapped array retains
-its original name and association. A commandless vector can be renamed by
-moving its registry entry alone. Otherwise the handler calls global <code class="docutils literal notranslate"><span class="pre">::rename</span></code>
-and monitors command traces for deletion, recursive rename and a changed final
-command name. It checks registry collisions again before moving the entry.
-These checks are not rollback: trace side effects, including an already renamed
-command, can remain after a later error. Read-only data does not prohibit rename.</p>
-<p>Destroy resolves each argument immediately before freeing that vector. Earlier
-destructions remain if a later name fails, and callbacks can affect later
-lookups. Its lookup accepts a selection, but destruction removes the whole
-vector, not the selected values. Calling destroy without names succeeds without
-work. Destruction remains allowed for read-only vectors.</p>
-<p>Names enumerates registry keys, not Tcl command aliases or array variables.
-The optional Tcl glob pattern matches the fully qualified key, and results
-follow hash-table order rather than sorted order. Enumeration performs no
-vector notification. The range-aware lookup used by destroy is different:
-<a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorLookupName" title="Rbc_VectorLookupName"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorLookupName()</span></code></a> can change a selection and evaluate index expressions,
-returns a borrowed pointer, and does not retain a vector for its caller.</p>
+<p>Rename uses literal registry names rather than range syntax. It preserves the C object, data allocation and observer
+connections. The mapped array retains its original name and association. A commandless vector can be renamed by moving
+its registry entry alone. Otherwise the handler calls global <code class="docutils literal notranslate"><span class="pre">::rename</span></code> and monitors command traces for deletion,
+recursive rename and a changed final command name. It checks registry collisions again before moving the entry. These
+checks are not rollback: trace side effects, including an already renamed command, can remain after a later
+error. Read-only data does not prohibit rename.</p>
+<p>Destroy resolves each argument immediately before freeing that vector. Earlier destructions remain if a later name
+fails, and callbacks can affect later lookups. Its lookup accepts a selection, but destruction removes the whole vector,
+not the selected values. Calling destroy without names succeeds without work. Destruction remains allowed for read-only
+vectors.</p>
+<p>Names enumerates registry keys, not Tcl command aliases or array variables. The optional Tcl glob pattern matches the
+fully qualified key, and results follow hash-table order rather than sorted order. Enumeration performs no vector
+notification. The range-aware lookup used by destroy is different: <a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorLookupName" title="Rbc_VectorLookupName"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorLookupName()</span></code></a> can change a selection
+and evaluate index expressions, returns a borrowed pointer, and does not retain a vector for its caller.</p>
 </section>
 </section>
 <section id="shared-command-helper-ownership">
 <h2>Shared command-helper ownership<a class="headerlink" href="#shared-command-helper-ownership" title="Link to this heading"></a></h2>
-<p>The common helpers separate storage preparation, commit and publication.
-A successful preparation alone does not change the vector’s metadata or
-publish data. The ownership transition depends on the helper:</p>
+<p>The common helpers separate storage preparation, commit and publication. A successful preparation alone does not change
+the vector’s metadata or publish data. The ownership transition depends on the helper:</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Storage returned by command helpers</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
@@ -1486,74 +1429,58 @@ publish data. The ownership transition depends on the helper:</p>
 </tr>
 </tbody>
 </table>
-<p>Failed preparation does not establish a usable output contract: output fields
-may have been written before failure. In particular, a prepared current pointer
-is borrowed and cannot be freed as abandoned staging storage. These helpers
-are synchronous; holding a prepared pointer across unrelated Tcl evaluation
-requires separate protection against storage replacement. Their
-callers retain the vector and interpreter; the helpers’ liveness checks cannot
-make an unretained pointer safe. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CheckCommandRange" title="rbcVectorCommands.CheckCommandRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">CheckCommandRange</span></code></a> validates each endpoint
-against current length but does not establish ordering or writability.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandWrite" title="rbcVectorCommands.PrepareCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">PrepareCommandWrite</span></code></a> reuses sufficient capacity and grows geometrically when
-necessary, copying the current logical prefix. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandResize" title="rbcVectorCommands.PrepareCommandResize"><code class="xref c c-func docutils literal notranslate"><span class="pre">PrepareCommandResize</span></code></a> instead
-recomputes capacity from the explicit-resize policy, including zero capacity
-at zero length and smaller allocations after substantial shrink. Neither helper
-initializes added values or releases the old allocation. A prepared pointer may
-still be the vector’s current storage, so an abandoned preparation must not
-unconditionally free it. Callers must supply nonnegative requested lengths.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AllocateCommandData" title="rbcVectorCommands.AllocateCommandData"><code class="xref c c-func docutils literal notranslate"><span class="pre">AllocateCommandData</span></code></a> always returns independent uninitialized storage, with
-a one-byte allocation for an empty result. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList" title="rbcVectorCommands.ConvertCommandList"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConvertCommandList</span></code></a> instead uses
-NULL for an empty successful conversion and retains a private outer Tcl list
-while converting its elements. Neither helper installs destination metadata.
-Conversion failure frees staged storage; effects of conversion callbacks remain.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.FinishCommandWrite" title="rbcVectorCommands.FinishCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code></a> installs data, dimensions, whole-vector selection and
-invalid extrema before releasing detached old storage. Reused storage keeps its
-release procedure; a new pointer becomes dynamically owned. Custom release
-callbacks see the committed vector, may change or destroy it, and cannot be
-followed by unchecked storage access. The helper preserves interpreter state
-across release and does not notify observers.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.NotifyCommandWrite" title="rbcVectorCommands.NotifyCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyCommandWrite</span></code></a> performs enabled cache flushing, rechecks liveness and
-publishes either a full update or a suffix beginning at the supplied index.
-The suffix ends at the current length after flushing. It preserves command
-results and error options, but does not freeze the vector against trace or
-observer side effects.</p>
+<p>Failed preparation does not establish a usable output contract: output fields may have been written before failure. In
+particular, a prepared current pointer is borrowed and cannot be freed as abandoned staging storage. These helpers are
+synchronous; holding a prepared pointer across unrelated Tcl evaluation requires separate protection against storage
+replacement. Their callers retain the vector and interpreter; the helpers’ liveness checks cannot make an unretained
+pointer safe. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CheckCommandRange" title="rbcVectorCommands.CheckCommandRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">CheckCommandRange</span></code></a> validates each endpoint against current
+length but does not establish ordering or writability.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandWrite" title="rbcVectorCommands.PrepareCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">PrepareCommandWrite</span></code></a> reuses sufficient capacity and grows geometrically
+when necessary, copying the current logical prefix. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PrepareCommandResize" title="rbcVectorCommands.PrepareCommandResize"><code class="xref c c-func docutils literal notranslate"><span class="pre">PrepareCommandResize</span></code></a> instead recomputes capacity from the explicit-resize policy, including zero
+capacity at zero length and smaller allocations after substantial shrink. Neither helper initializes added values or
+releases the old allocation. A prepared pointer may still be the vector’s current storage, so an abandoned preparation
+must not unconditionally free it. Callers must supply nonnegative requested lengths.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.AllocateCommandData" title="rbcVectorCommands.AllocateCommandData"><code class="xref c c-func docutils literal notranslate"><span class="pre">AllocateCommandData</span></code></a> always returns independent uninitialized storage,
+with a one-byte allocation for an empty result. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ConvertCommandList" title="rbcVectorCommands.ConvertCommandList"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConvertCommandList</span></code></a>
+instead uses NULL for an empty successful conversion and retains a private outer Tcl list while converting its
+elements. Neither helper installs destination metadata. Conversion failure frees staged storage; effects of conversion
+callbacks remain.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.FinishCommandWrite" title="rbcVectorCommands.FinishCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code></a> installs data, dimensions, whole-vector selection
+and invalid extrema before releasing detached old storage. Reused storage keeps its release procedure; a new pointer
+becomes dynamically owned. Custom release callbacks see the committed vector, may change or destroy it, and cannot be
+followed by unchecked storage access. The helper preserves interpreter state across release and does not notify
+observers.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.NotifyCommandWrite" title="rbcVectorCommands.NotifyCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyCommandWrite</span></code></a> performs enabled cache flushing, rechecks liveness
+and publishes either a full update or a suffix beginning at the supplied index. The suffix ends at the current length
+after flushing. It preserves command results and error options, but does not freeze the vector against trace or observer
+side effects.</p>
 <section id="output-identity-and-partial-creation">
 <h3>Output identity and partial creation<a class="headerlink" href="#output-identity-and-partial-creation" title="Link to this heading"></a></h3>
-<p>Output names are qualified in the current namespace before lookup. A missing
-local output therefore does not reuse a same-named global vector. Existing
-outputs must have matching type and be writable; resolving them does not
-replace their commands or remap their variables. New outputs are initially
-created without a mapped array so mapping traces cannot observe unfinished data.</p>
+<p>Output names are qualified in the current namespace before lookup. A missing local output therefore does not reuse a
+same-named global vector. Existing outputs must have matching type and be writable; resolving them does not replace
+their commands or remap their variables. New outputs are initially created without a mapped array so mapping traces
+cannot observe unfinished data.</p>
 <p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.GetCommandOutputs" title="rbcVectorCommands.GetCommandOutputs"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetCommandOutputs</span></code></a> first checks existing destinations, then collects
-preserved identities and creates missing outputs. This is not an all-or-nothing
-creation transaction: a later failure releases references and temporary records
-but does not destroy earlier new vectors. Duplicate output names can represent
-multiple references to the same object; handlers decide whether that aliasing
-is permitted for their operation.</p>
-<p>After data commit, <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PublishCommandOutput" title="rbcVectorCommands.PublishCommandOutput"><code class="xref c c-func docutils literal notranslate"><span class="pre">PublishCommandOutput</span></code></a> adds a default array mapping only
-for new real vectors whose names contain no opening parenthesis. It publishes
-the retained identity rather than finding a possibly different vector by name.
-Mapping errors remain errors after commit; successful mapping and notification
-do not roll back callback effects. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ReleaseCommandOutputs" title="rbcVectorCommands.ReleaseCommandOutputs"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReleaseCommandOutputs</span></code></a> releases the
-preservation references and record array, not the vectors themselves.</p>
+preserved identities and creates missing outputs. This is not an all-or-nothing creation transaction: a later failure
+releases references and temporary records but does not destroy earlier new vectors. Duplicate output names can represent
+multiple references to the same object; handlers decide whether that aliasing is permitted for their operation.</p>
+<p>After data commit, <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.PublishCommandOutput" title="rbcVectorCommands.PublishCommandOutput"><code class="xref c c-func docutils literal notranslate"><span class="pre">PublishCommandOutput</span></code></a> adds a default array mapping
+only for new real vectors whose names contain no opening parenthesis. It publishes the retained identity rather than
+finding a possibly different vector by name. Mapping errors remain errors after commit; successful mapping and
+notification do not roll back callback effects. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ReleaseCommandOutputs" title="rbcVectorCommands.ReleaseCommandOutputs"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReleaseCommandOutputs</span></code></a> releases the preservation references and record array, not the vectors
+themselves.</p>
 </section>
 <section id="permutation-mechanics">
 <h3>Permutation mechanics<a class="headerlink" href="#permutation-mechanics" title="Link to this heading"></a></h3>
-<p>The sort helpers operate on an index array. The first vector’s inclusive
-selection determines the initial storage indices, and every key vector must
-support those same indices. The allocation helper checks numeric types and
-allocation sizes, but does not validate all key lengths for its callers.</p>
-<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CompareVectorIndices" title="rbcVectorCommands.CompareVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">CompareVectorIndices</span></code></a> examines
-keys lexicographically. Equal comparisons advance to
-the next key; a NaN also advances because both ordered comparisons are false.
-No original-index tie-breaker is added.
-<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortVectorIndices" title="rbcVectorCommands.SortVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortVectorIndices</span></code></a> uses
-<a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SiftVectorIndices" title="rbcVectorCommands.SiftVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SiftVectorIndices</span></code></a> to repair the heap.
-Sorting therefore remains unstable
-and does not define a total ordering for NaNs. It uses constant auxiliary
-storage beyond the permutation and O(n log n) comparisons, each potentially
-examining every key. The numerical vectors remain untouched until a command
-handler applies the resulting permutation.</p>
+<p>The sort helpers operate on an index array. The first vector’s inclusive selection determines the initial storage
+indices, and every key vector must support those same indices. The allocation helper checks numeric types and allocation
+sizes, but does not validate all key lengths for its callers.</p>
+<p><a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.CompareVectorIndices" title="rbcVectorCommands.CompareVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">CompareVectorIndices</span></code></a> examines keys lexicographically. Equal
+comparisons advance to the next key; a NaN also advances because both ordered comparisons are false. No original-index
+tie-breaker is added. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SortVectorIndices" title="rbcVectorCommands.SortVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SortVectorIndices</span></code></a> uses <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.SiftVectorIndices" title="rbcVectorCommands.SiftVectorIndices"><code class="xref c c-func docutils literal notranslate"><span class="pre">SiftVectorIndices</span></code></a> to repair the heap. Sorting therefore remains unstable and does not define a
+total ordering for NaNs. It uses constant auxiliary storage beyond the permutation and O(n log n) comparisons, each
+potentially examining every key. The numerical vectors remain untouched until a command handler applies the resulting
+permutation.</p>
 </section>
 </section>
 </section>

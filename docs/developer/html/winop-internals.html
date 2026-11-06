@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,66 +1215,56 @@
              
   <section id="window-and-photo-command-implementation">
 <h1>Window and photo command implementation<a class="headerlink" href="#window-and-photo-command-implementation" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcWinop.c</span></code> implements the standalone <code class="docutils literal notranslate"><span class="pre">rbc::winop</span></code> command when NO_WINOP
-is not defined. It owns no per-handle object: <a class="reference internal" href="winop-reference.html#c.WinopCmd" title="WinopCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">WinopCmd()</span></code></a> selects an operation
-and passes the current Tk main window as client data. See the Tcl manual for
-command syntax; this chapter describes dispatch, resources and limitations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcWinop.c</span></code> implements the standalone <code class="docutils literal notranslate"><span class="pre">rbc::winop</span></code> command when NO_WINOP is not defined. It owns no per-handle
+object: <a class="reference internal" href="winop-reference.html#c.WinopCmd" title="WinopCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">WinopCmd()</span></code></a> selects an operation and passes the current Tk main window as client data. See the Tcl manual
+for command syntax; this chapter describes dispatch, resources and limitations.</p>
 <section id="dispatch-and-platform-boundaries">
 <h2>Dispatch and platform boundaries<a class="headerlink" href="#dispatch-and-platform-boundaries" title="Link to this heading"></a></h2>
-<p>The direct winOps table and nested imageOps table are separate. <a class="reference internal" href="winop-reference.html#c.ImageOp" title="ImageOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ImageOp()</span></code></a> validates
-its own operation/arity, then removes the <code class="docutils literal notranslate"><span class="pre">image</span></code> word by passing <code class="docutils literal notranslate"><span class="pre">objc</span> <span class="pre">-</span> <span class="pre">1</span></code>
-and <code class="docutils literal notranslate"><span class="pre">objv</span> <span class="pre">+</span> <span class="pre">1</span></code>. Shared handlers consequently keep the same source/destination
-argument indices. Do not add a handler to one table assuming the other is an
-automatic alias: quantize is direct-only, while gradient and rotate are nested.</p>
-<p><a class="reference internal" href="winop-reference.html#c.GetRealizedWindow" title="GetRealizedWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetRealizedWindow()</span></code></a> resolves a Tk path and creates its native window if necessary;
-it does not map it. <a class="reference internal" href="winop-reference.html#c.StringToWindow" title="StringToWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToWindow()</span></code></a> accepts paths or legacy Tcl integer IDs.
-Toplevel paths select wrappers. Numeric parsing uses Tcl_GetInt, so this path
-must not be described as accepting arbitrary pointer-width native handles.
-Windows numeric IDs pass through <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsResources.Rbc_WinWindowFromHWND" title="rbcWindowsResources.Rbc_WinWindowFromHWND"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinWindowFromHWND()</span></code></a>. See
-<a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a> for raw-handle versus drawable distinctions.</p>
-<p>Window operations issue native map, unmap, stack and movement requests. Pointer
-query/warp uses screen or window coordinates, not graph data coordinates.
-The colormap operation is compiled only for X11. These operations neither
+<p>The direct winOps table and nested imageOps table are separate. <a class="reference internal" href="winop-reference.html#c.ImageOp" title="ImageOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ImageOp()</span></code></a> validates its own operation/arity,
+then removes the <code class="docutils literal notranslate"><span class="pre">image</span></code> word by passing <code class="docutils literal notranslate"><span class="pre">objc</span> <span class="pre">-</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">objv</span> <span class="pre">+</span> <span class="pre">1</span></code>. Shared handlers consequently keep the same
+source/destination argument indices. Do not add a handler to one table assuming the other is an automatic alias:
+quantize is direct-only, while gradient and rotate are nested.</p>
+<p><a class="reference internal" href="winop-reference.html#c.GetRealizedWindow" title="GetRealizedWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetRealizedWindow()</span></code></a> resolves a Tk path and creates its native window if necessary; it does not map
+it. <a class="reference internal" href="winop-reference.html#c.StringToWindow" title="StringToWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToWindow()</span></code></a> accepts paths or legacy Tcl integer IDs. Toplevel paths select wrappers. Numeric parsing
+uses Tcl_GetInt, so this path must not be described as accepting arbitrary pointer-width native handles. Windows
+numeric IDs pass through <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsResources.Rbc_WinWindowFromHWND" title="rbcWindowsResources.Rbc_WinWindowFromHWND"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinWindowFromHWND()</span></code></a>. See <a class="reference internal" href="window-services.html"><span class="doc">Shared drawing and window services</span></a> for raw-handle
+versus drawable distinctions.</p>
+<p>Window operations issue native map, unmap, stack and movement requests. Pointer query/warp uses screen or window
+coordinates, not graph data coordinates. The colormap operation is compiled only for X11. These operations neither
 participate in graph mapping nor acquire renderer contexts.</p>
 </section>
 <section id="native-command-contracts">
 <h2>Native command contracts<a class="headerlink" href="#native-command-contracts" title="Link to this heading"></a></h2>
-<p>Lower and raise accept Tk paths only. They resolve and restack each window in
-order, stop on a lookup error, and do not propagate Tk_RestackWindow status.
-Map and unmap also accept legacy integer IDs, but do not use <a class="reference internal" href="winop-reference.html#c.StringToWindow" title="StringToWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToWindow()</span></code></a>:
-numeric values are cast directly to Window. Their Tk-path branch realizes the
-client window, edits TK_MAPPED through Tk_FakeWin, and sends the native request.
-It does not select the toplevel wrapper or call Tk_MapWindow/Tk_UnmapWindow.
-Consequently, the conversion and wrapper rules of snap must not be generalized
-to these operations. Multi-window commands do not roll back earlier requests
-when a later argument is invalid; an empty window list succeeds.</p>
-<p>Move validates both screen distances before Tk_MoveWindow and uses coordinates
-relative to the parent. Changes realizes a window, applies backing-store and
-save-under hints to a toplevel’s real window, and is a no-op for child windows.
+<p>Lower and raise accept Tk paths only. They resolve and restack each window in order, stop on a lookup error, and do not
+propagate Tk_RestackWindow status. Map and unmap also accept legacy integer IDs, but do not use
+<a class="reference internal" href="winop-reference.html#c.StringToWindow" title="StringToWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">StringToWindow()</span></code></a>: numeric values are cast directly to Window. Their Tk-path branch realizes the client window,
+edits TK_MAPPED through Tk_FakeWin, and sends the native request. It does not select the toplevel wrapper or call
+Tk_MapWindow/Tk_UnmapWindow. Consequently, the conversion and wrapper rules of snap must not be generalized to these
+operations. Multi-window commands do not roll back earlier requests when a later argument is invalid; an empty window
+list succeeds.</p>
+<p>Move validates both screen distances before Tk_MoveWindow and uses coordinates relative to the parent. Changes realizes
+a window, applies backing-store and save-under hints to a toplevel’s real window, and is a no-op for child windows.
 Successful submission does not guarantee that a server honors these hints.</p>
-<p>Query reports root coordinates as <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. If XQueryPointer returns false, it
-returns TCL_OK without setting a new result. Warpto without an argument is a
-query; an <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> argument selects the screen root, while a Tk path selects
-the center of a mapped window. These are native pointer operations and can
-generate events, but the handlers do not run a Tcl event loop themselves.</p>
-<p>For numeric snapshot targets, <a class="reference internal" href="winop-reference.html#c.GetWindowSize" title="GetWindowSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetWindowSize()</span></code></a> has platform-specific geometry:
-Windows reads the outer GetWindowRect, while X11 uses XGetGeometry dimensions.
-The X11 implementation synchronizes before removing its scoped error handler,
-whose client data points to a stack-local flag. Failed queries leave output
-dimensions untouched; only dimension overflow adds a diagnostic in this helper.
-The Windows helper likewise writes dimensions only after a successful query.</p>
-<p>Colormap is a legacy X11 diagnostic, not a general visual inspection API. It
-probes at most 256 writable cells, releases them, then queries IDs 0 through
-255. Its bookkeeping assumes returned pixel IDs fit that range. Returned pairs
-identify cells not acquired by the probe; they do not identify their owners.</p>
+<p>Query reports root coordinates as <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. If XQueryPointer returns false, it returns TCL_OK without setting a new
+result. Warpto without an argument is a query; an <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> argument selects the screen root, while a Tk path selects the
+center of a mapped window. These are native pointer operations and can generate events, but the handlers do not run a
+Tcl event loop themselves.</p>
+<p>For numeric snapshot targets, <a class="reference internal" href="winop-reference.html#c.GetWindowSize" title="GetWindowSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetWindowSize()</span></code></a> has platform-specific geometry: Windows reads the outer
+GetWindowRect, while X11 uses XGetGeometry dimensions. The X11 implementation synchronizes before removing its scoped
+error handler, whose client data points to a stack-local flag. Failed queries leave output dimensions untouched; only
+dimension overflow adds a diagnostic in this helper. The Windows helper likewise writes dimensions only after a
+successful query.</p>
+<p>Colormap is a legacy X11 diagnostic, not a general visual inspection API. It probes at most 256 writable cells, releases
+them, then queries IDs 0 through
+255. Its bookkeeping assumes returned pixel IDs fit that range. Returned pairs identify cells not acquired by the probe;
+they do not identify their owners.</p>
 </section>
 <section id="photo-operation-ownership">
 <h2>Photo-operation ownership<a class="headerlink" href="#photo-operation-ownership" title="Link to this heading"></a></h2>
-<p>Most operations require existing Tk photos. Tk_FindPhoto handles and filter
-descriptors are borrowed. Color-image snapshots, transformed results and
-convolution kernels are owned locally and released through their matching
-APIs. Destination writes can notify Tk image clients; a handle lookup is not a
-lifetime guard. See <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> and <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a>.</p>
+<p>Most operations require existing Tk photos. Tk_FindPhoto handles and filter descriptors are borrowed. Color-image
+snapshots, transformed results and convolution kernels are owned locally and released through their matching
+APIs. Destination writes can notify Tk image clients; a handle lookup is not a lifetime guard. See
+<a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> and <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a>.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 20.0%" />
@@ -1321,52 +1312,41 @@ lifetime guard. See <a class="reference internal" href="image-compatibility.html
 </tr>
 </tbody>
 </table>
-<p>Gradient retains its historical formulas. Linear uses clamped random noise
-multiplied by the horizontal pixel index, rather than a normalized left-to-right
-ramp. Radial uses distance from the normalized center; rectangular uses a fixed
-rotation and Manhattan distance. Blank produces opaque white while still
-requiring valid endpoint colors. Tests must not assume deterministic pixels for
-the three randomized modes. Readjpeg delegates to the platform decoder only
-when JPEG support was compiled in; otherwise it fails before photo lookup.</p>
-<p>Resample rejects source dimensions of one pixel or less. If either destination
-dimension is one pixel or less, it sets source dimensions and copies. Subsample
-instead uses the requested region dimensions for such a destination. Both
-resolve an optional vertical filter only when the first filter is non-NULL.
-The pixel algorithms and edge policies are described in <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a>,
-<a class="reference internal" href="image-transforms.html"><span class="doc">Color-image rotation and bitmap transforms</span></a> and <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a>.</p>
+<p>Gradient retains its historical formulas. Linear uses clamped random noise multiplied by the horizontal pixel index,
+rather than a normalized left-to-right ramp. Radial uses distance from the normalized center; rectangular uses a fixed
+rotation and Manhattan distance. Blank produces opaque white while still requiring valid endpoint colors. Tests must not
+assume deterministic pixels for the three randomized modes. Readjpeg delegates to the platform decoder only when JPEG
+support was compiled in; otherwise it fails before photo lookup.</p>
+<p>Resample rejects source dimensions of one pixel or less. If either destination dimension is one pixel or less, it sets
+source dimensions and copies. Subsample instead uses the requested region dimensions for such a destination. Both
+resolve an optional vertical filter only when the first filter is non-NULL. The pixel algorithms and edge policies are
+described in <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a>, <a class="reference internal" href="image-transforms.html"><span class="doc">Color-image rotation and bitmap transforms</span></a> and <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a>.</p>
 </section>
 <section id="failure-and-callback-boundaries">
 <h2>Failure and callback boundaries<a class="headerlink" href="#failure-and-callback-boundaries" title="Link to this heading"></a></h2>
-<p>These handlers do not provide a uniform transaction. Quantize can resize its
-destination before detecting an invalid color count. Several paths ignore
-Tk_PhotoSetSize/Tk_PhotoPutBlock status or publish via a void helper, so TCL_OK
-must not be interpreted as a checked commit of every lower-level photo write.
-Do not document a destination-unchanged-on-error guarantee for this family.</p>
-<p>Rotate validates photo names before evaluating the angle, preserving the
-interpreter across Tcl_ExprDoubleObj. After evaluation it rejects destroyed Tk
-state and looks up both photos again before accessing pixels. Deleted photos
-produce an error; same-name replacements become the current source/destination.
-Expression errors retain their original diagnostic. This protects the angle
-callback boundary without changing the family’s photo-publication semantics.</p>
-<p>Snap has a deliberate path-specific distinction: a Tk path uses the client
-window and Tk dimensions, while numeric IDs use native geometry lookup.
-Visibility and platform capture behavior matter. Tests should not confuse
-this with widget <code class="docutils literal notranslate"><span class="pre">snap</span></code> or SVG/PDF/PostScript output, which have their own
-rendering and restoration contracts.</p>
+<p>These handlers do not provide a uniform transaction. Quantize can resize its destination before detecting an invalid
+color count. Several paths ignore Tk_PhotoSetSize/Tk_PhotoPutBlock status or publish via a void helper, so TCL_OK must
+not be interpreted as a checked commit of every lower-level photo write. Do not document a
+destination-unchanged-on-error guarantee for this family.</p>
+<p>Rotate validates photo names before evaluating the angle, preserving the interpreter across Tcl_ExprDoubleObj. After
+evaluation it rejects destroyed Tk state and looks up both photos again before accessing pixels. Deleted photos produce
+an error; same-name replacements become the current source/destination. Expression errors retain their original
+diagnostic. This protects the angle callback boundary without changing the family’s photo-publication semantics.</p>
+<p>Snap has a deliberate path-specific distinction: a Tk path uses the client window and Tk dimensions, while numeric IDs
+use native geometry lookup. Visibility and platform capture behavior matter. Tests should not confuse this with widget
+<code class="docutils literal notranslate"><span class="pre">snap</span></code> or SVG/PDF/PostScript output, which have their own rendering and restoration contracts.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Use the existing <code class="docutils literal notranslate"><span class="pre">RBC.winop.*.A.test</span></code> and <code class="docutils literal notranslate"><span class="pre">RBC.winop.image.*.A.test</span></code> families.
-Check direct and nested dispatch separately, invalid kernels and regions,
-source/destination dimensions, and toplevel snapshots on both platforms.
-These tests need a Tk display. Pixel algorithms alone cannot validate native
-capture, wrapper handling or photo client notifications.</p>
+<p>Use the existing <code class="docutils literal notranslate"><span class="pre">RBC.winop.*.A.test</span></code> and <code class="docutils literal notranslate"><span class="pre">RBC.winop.image.*.A.test</span></code> families. Check direct and nested dispatch
+separately, invalid kernels and regions, source/destination dimensions, and toplevel snapshots on both platforms. These
+tests need a Tk display. Pixel algorithms alone cannot validate native capture, wrapper handling or photo client
+notifications.</p>
 </section>
 <section id="command-registration">
 <h2>Command registration<a class="headerlink" href="#command-registration" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="winop-reference.html#c.Rbc_WinopInit" title="Rbc_WinopInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_WinopInit()</span></code></a> registers the static dispatcher on an interpreter with
-Tk and the RBC namespace initialized. It creates no window and installs no
-client-data ownership or deletion callback.</p>
+<p><a class="reference internal" href="winop-reference.html#c.Rbc_WinopInit" title="Rbc_WinopInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_WinopInit()</span></code></a> registers the static dispatcher on an interpreter with Tk and the RBC namespace initialized. It
+creates no window and installs no client-data ownership or deletion callback.</p>
 </section>
 </section>
 

@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1258,8 +1259,8 @@
              
   <section id="line-decimation-c-reference">
 <h1>Line decimation C reference<a class="headerlink" href="#line-decimation-c-reference" title="Link to this heading"></a></h1>
-<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code>. They are not cross-module APIs.
-See <a class="reference internal" href="decimation.html"><span class="doc">Line decimation and source identity</span></a> for fallback order and source-index ownership.</p>
+<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code>. They are not cross-module APIs.  See <a class="reference internal" href="decimation.html"><span class="doc">Line decimation and source identity</span></a> for fallback
+order and source-index ownership.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__line__decimation"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">decimation</span> <span class="pre">internals</span></span></dt>
@@ -1375,9 +1376,8 @@ Retains first/min/max/last representatives per pixel bucket and continuous run. 
 
 <section id="source-summaries-and-bucket-searches">
 <h2>Source summaries and bucket searches<a class="headerlink" href="#source-summaries-and-bucket-searches" title="Link to this heading"></a></h2>
-<p>These helpers distinguish owned block storage from borrowed source arrays,
-cache validity from log-domain eligibility, and partial append results from
-complete mappings. The namespace is documentation-only.</p>
+<p>These helpers distinguish owned block storage from borrowed source arrays, cache validity from log-domain eligibility,
+and partial append results from complete mappings. The namespace is documentation-only.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__line__cache__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">cache</span> <span class="pre">internals</span></span></dt>
@@ -1628,8 +1628,8 @@ complete mappings. The namespace is documentation-only.</p>
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.LineDecimateBlock">
 <span class="target" id="struct_line_decimate_block"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LineDecimateBlock</span></span></span><a class="headerlink" href="#c.LineDecimateBlock" title="Link to this definition"></a><br /></dt>

@@ -566,6 +566,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1273,17 +1274,13 @@
              
   <section id="expression-numerical-c-reference">
 <h1>Expression numerical C reference<a class="headerlink" href="#expression-numerical-c-reference" title="Link to this heading"></a></h1>
-<p>These private reducers and scalar kernels implement the expression adapters.
-They are not installed C API entry points. See <a class="reference internal" href="expression-numerics.html"><span class="doc">Expression reductions and scalar kernels</span></a> for
-sample selection, formulas, ownership and compatibility caveats.</p>
-<p>Scalar kernel arguments are copied values, while reducers borrow a
-live real or complex internal vector. Neither form acquires vector ownership. Parameter contracts
-state the input interpretation; the surrounding adapters control error and
-finite-value handling. See <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> and
-<a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>.</p>
-<p>Reducers document selected versus full-length input explicitly. Numeric return
-values, Tcl statuses and output-pointer writes have different failure contracts;
-see <a class="reference internal" href="expression-numerics.html"><span class="doc">Expression reductions and scalar kernels</span></a> before reusing a helper outside its adapter.</p>
+<p>These private reducers and scalar kernels implement the expression adapters. They are not installed C API entry
+points. See <a class="reference internal" href="expression-numerics.html"><span class="doc">Expression reductions and scalar kernels</span></a> for sample selection, formulas, ownership and compatibility caveats.</p>
+<p>Scalar kernel arguments are copied values, while reducers borrow a live real or complex internal vector. Neither form
+acquires vector ownership. Parameter contracts state the input interpretation; the surrounding adapters control error
+and finite-value handling. See <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> and <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>.</p>
+<p>Reducers document selected versus full-length input explicitly. Numeric return values, Tcl statuses and output-pointer
+writes have different failure contracts; see <a class="reference internal" href="expression-numerics.html"><span class="doc">Expression reductions and scalar kernels</span></a> before reusing a helper outside its adapter.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__expression__numerics"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Expression</span> <span class="pre">numerical</span> <span class="pre">kernels</span></span></dt>

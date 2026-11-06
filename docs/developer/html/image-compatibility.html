@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,117 +1215,92 @@
              
   <section id="temporary-images-and-private-tk-adapters">
 <h1>Temporary images and private Tk adapters<a class="headerlink" href="#temporary-images-and-private-tk-adapters" title="Link to this heading"></a></h1>
-<p>The tail of <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> bridges gaps in the image API used by older RBC
-components. It contains copied image-instance, image-master and photo-instance
-structure layouts, plus temporary-photo creation and deletion helpers.
-These are private RBC facilities. Their <code class="docutils literal notranslate"><span class="pre">Tk_</span></code> names do not make them public
-Tk APIs or Tk stub entries.</p>
+<p>The tail of <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> bridges gaps in the image API used by older RBC components. It contains copied
+image-instance, image-master and photo-instance structure layouts, plus temporary-photo creation and deletion helpers.
+These are private RBC facilities. Their <code class="docutils literal notranslate"><span class="pre">Tk_</span></code> names do not make them public Tk APIs or Tk stub entries.</p>
 <section id="private-layout-access">
 <h2>Private-layout access<a class="headerlink" href="#private-layout-access" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageIsDeleted" title="Tk_ImageIsDeleted"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageIsDeleted()</span></code></a> inspects the instance’s master and type pointers. It can
-recognize a deleted image while the caller still owns a retained instance;
-it cannot make a NULL or dangling instance pointer safe. <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetMaster" title="Tk_ImageGetMaster"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetMaster()</span></code></a>
-returns a borrowed pointer. <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetType" title="Tk_ImageGetType"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetType()</span></code></a> requires that master to exist
+<p><a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageIsDeleted" title="Tk_ImageIsDeleted"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageIsDeleted()</span></code></a> inspects the instance’s master and type pointers. It can recognize a deleted image while the
+caller still owns a retained instance; it cannot make a NULL or dangling instance pointer
+safe. <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetMaster" title="Tk_ImageGetMaster"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetMaster()</span></code></a> returns a borrowed pointer. <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetType" title="Tk_ImageGetType"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetType()</span></code></a> requires that master to exist
 and can return NULL after deletion.</p>
-<p><a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetPhotoPixmap" title="Tk_ImageGetPhotoPixmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetPhotoPixmap()</span></code></a> and <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetPhotoGC" title="Tk_ImageGetPhotoGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetPhotoGC()</span></code></a> require a live type before
-checking whether it is a photo. They expose Tk-owned display resources rather
-than independent pixel data. Callers must not free these resources or assume
-that they remain stable across image changes. The GC is not caller-owned
-scratch state. A different live image type yields <code class="docutils literal notranslate"><span class="pre">None</span></code> or NULL respectively.</p>
-<p><a class="reference internal" href="image-compatibility-reference.html#c.Rbc_NameOfImage" title="Rbc_NameOfImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NameOfImage()</span></code></a> passes the borrowed master to <code class="docutils literal notranslate"><span class="pre">Tk_NameOfImage</span></code>. Its result
-is a borrowed name, not a retained Tcl object. Copy the name before any operation
-that could invalidate its owner. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for independent photo
-snapshots, which use photo blocks instead of these display-resource accessors.</p>
+<p><a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetPhotoPixmap" title="Tk_ImageGetPhotoPixmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetPhotoPixmap()</span></code></a> and <a class="reference internal" href="image-compatibility-reference.html#c.Tk_ImageGetPhotoGC" title="Tk_ImageGetPhotoGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Tk_ImageGetPhotoGC()</span></code></a> require a live type before checking whether it is a
+photo. They expose Tk-owned display resources rather than independent pixel data. Callers must not free these resources
+or assume that they remain stable across image changes. The GC is not caller-owned scratch state. A different live image
+type yields <code class="docutils literal notranslate"><span class="pre">None</span></code> or NULL respectively.</p>
+<p><a class="reference internal" href="image-compatibility-reference.html#c.Rbc_NameOfImage" title="Rbc_NameOfImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NameOfImage()</span></code></a> passes the borrowed master to <code class="docutils literal notranslate"><span class="pre">Tk_NameOfImage</span></code>. Its result is a borrowed name, not a
+retained Tcl object. Copy the name before any operation that could invalidate its owner. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for
+independent photo snapshots, which use photo blocks instead of these display-resource accessors.</p>
 </section>
 <section id="tk-compatibility-boundary">
 <h2>Tk compatibility boundary<a class="headerlink" href="#tk-compatibility-boundary" title="Link to this heading"></a></h2>
-<p>The copied structures are an ABI assumption: the fields actually read must
-match the linked Tk version and platform. Merely compiling against Tk headers
-or passing a header-order test does not establish that runtime layout contract.
-When changing supported Tk versions, compare against that version’s
-<code class="docutils literal notranslate"><span class="pre">generic/tkImage.c</span></code> and <code class="docutils literal notranslate"><span class="pre">generic/tkImgPhoto.h</span></code>, including field types and
-alignment. A field appended beyond the accessed prefix differs from one inserted
-before an accessed field; avoid blanket conclusions from structure names alone.</p>
-<p>Keep these casts localized. New components should prefer supported photo-block
-and image APIs where those satisfy the requirement, rather than duplicating
-private structures or adding more consumers of Tk-owned pixmaps and GCs.</p>
+<p>The copied structures are an ABI assumption: the fields actually read must match the linked Tk version and
+platform. Merely compiling against Tk headers or passing a header-order test does not establish that runtime layout
+contract. When changing supported Tk versions, compare against that version’s <code class="docutils literal notranslate"><span class="pre">generic/tkImage.c</span></code> and
+<code class="docutils literal notranslate"><span class="pre">generic/tkImgPhoto.h</span></code>, including field types and alignment. A field appended beyond the accessed prefix differs from
+one inserted before an accessed field; avoid blanket conclusions from structure names alone.</p>
+<p>Keep these casts localized. New components should prefer supported photo-block and image APIs where those satisfy the
+requirement, rather than duplicating private structures or adding more consumers of Tk-owned pixmaps and GCs.</p>
 </section>
 <section id="two-resources-in-a-temporary-photo">
 <h2>Two resources in a temporary photo<a class="headerlink" href="#two-resources-in-a-temporary-photo" title="Link to this heading"></a></h2>
-<p>A temporary photo has a named image in Tk’s image registry and an acquired
-<code class="docutils literal notranslate"><span class="pre">Tk_Image</span></code> instance used by the component. Creation evaluates
-<code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">create</span> <span class="pre">photo</span></code> and then calls <code class="docutils literal notranslate"><span class="pre">Tk_GetImage</span></code> for the returned name.
-It retains the interpreter result object while consuming that name, since
-instance acquisition may replace the interpreter result on failure.</p>
-<p>On success, the caller owns the instance and is responsible for removing the
-named image as well. The installed <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.TempImageChangedProc" title="rbcImageStorage.TempImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.TempImageChangedProc()</span></code></a> does nothing;
-<code class="docutils literal notranslate"><span class="pre">clientData</span></code> is passed through without ownership transfer. Despite its old
-comment, the callback does not currently take action when the image is deleted.
-Temporary photos are ordinary named Tk images, not hidden storage immune to
-script-side deletion or modification.</p>
-<p>Image markers use temporary photos for scaled display regions and release them
-when returning to natural size or changing their source. The EPS canvas item
-also uses them. Source snapshots, temporary photos and native pixmaps have
+<p>A temporary photo has a named image in Tk’s image registry and an acquired <code class="docutils literal notranslate"><span class="pre">Tk_Image</span></code> instance used by the
+component. Creation evaluates <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">create</span> <span class="pre">photo</span></code> and then calls <code class="docutils literal notranslate"><span class="pre">Tk_GetImage</span></code> for the returned name. It retains
+the interpreter result object while consuming that name, since instance acquisition may replace the interpreter result
+on failure.</p>
+<p>On success, the caller owns the instance and is responsible for removing the named image as well. The installed
+<a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.TempImageChangedProc" title="rbcImageStorage.TempImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.TempImageChangedProc()</span></code></a> does nothing; <code class="docutils literal notranslate"><span class="pre">clientData</span></code> is passed through without ownership
+transfer. Despite its old comment, the callback does not currently take action when the image is deleted. Temporary
+photos are ordinary named Tk images, not hidden storage immune to script-side deletion or modification.</p>
+<p>Image markers use temporary photos for scaled display regions and release them when returning to natural size or
+changing their source. The EPS canvas item also uses them. Source snapshots, temporary photos and native pixmaps have
 separate release mechanisms; do not substitute one for another.</p>
 </section>
 <section id="deletion-and-failure-ownership">
 <h2>Deletion and failure ownership<a class="headerlink" href="#deletion-and-failure-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="image-compatibility-reference.html#c.Rbc_DestroyTemporaryImage" title="Rbc_DestroyTemporaryImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTemporaryImage()</span></code></a> copies the name of a live image, deletes it with
-<code class="docutils literal notranslate"><span class="pre">Tk_DeleteImage</span></code> and releases the retained instance with <code class="docutils literal notranslate"><span class="pre">Tk_FreeImage</span></code>.
-An already-deleted image still has its instance released. NULL is a successful
-no-op. Cleanup always consumes a non-NULL token and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>; callers
-must not retry with that token.</p>
-<p>Deletion uses Tk’s C API rather than evaluating the replaceable Tcl <code class="docutils literal notranslate"><span class="pre">image</span></code>
-command. A failing wrapper or a renamed command therefore cannot block private
-resource release. The helper preserves the interpreter and saves/restores its
+<p><a class="reference internal" href="image-compatibility-reference.html#c.Rbc_DestroyTemporaryImage" title="Rbc_DestroyTemporaryImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTemporaryImage()</span></code></a> copies the name of a live image, deletes it with <code class="docutils literal notranslate"><span class="pre">Tk_DeleteImage</span></code> and releases the
+retained instance with <code class="docutils literal notranslate"><span class="pre">Tk_FreeImage</span></code>. An already-deleted image still has its instance released. NULL is a successful
+no-op. Cleanup always consumes a non-NULL token and returns <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>; callers must not retry with that token.</p>
+<p>Deletion uses Tk’s C API rather than evaluating the replaceable Tcl <code class="docutils literal notranslate"><span class="pre">image</span></code> command. A failing wrapper or a renamed
+command therefore cannot block private resource release. The helper preserves the interpreter and saves/restores its
 state around cleanup, retaining the caller’s result and error information.</p>
-<p>Creation retains its result-name object through acquisition and rollback. If
-<code class="docutils literal notranslate"><span class="pre">Tk_GetImage</span></code> fails after successful photo creation, the helper deletes the
-named image through Tk’s C API while preserving the acquisition error. Scaled
+<p>Creation retains its result-name object through acquisition and rollback. If <code class="docutils literal notranslate"><span class="pre">Tk_GetImage</span></code> fails after successful
+photo creation, the helper deletes the named image through Tk’s C API while preserving the acquisition error. Scaled
 image markers also release their temporary color buffer on this failure path.</p>
 </section>
 <section id="callbacks-and-interpreter-state">
 <h2>Callbacks and interpreter state<a class="headerlink" href="#callbacks-and-interpreter-state" title="Link to this heading"></a></h2>
-<p>Creation still evaluates <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">create</span> <span class="pre">photo</span></code> with ordinary Tcl evaluation
-flags. Command wrappers, namespace command resolution and execution traces can
-run arbitrary Tcl. Retaining the result name protects that object only; it does
-not preserve the component or its window. Enclosing operations remain
-responsible for lifetime protection and callback validity.</p>
-<p>C-level deletion does not execute the Tcl <code class="docutils literal notranslate"><span class="pre">image</span></code> command, but Tk can notify
-other clients attached to the image. Callers detach their temporary-image field
-before cleanup so a reentrant teardown cannot release the same instance twice.
-Detaching a field does not itself preserve the enclosing component; retain the
-broader lifetime discipline described in <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and
-<a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a>.</p>
+<p>Creation still evaluates <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">create</span> <span class="pre">photo</span></code> with ordinary Tcl evaluation flags. Command wrappers, namespace command
+resolution and execution traces can run arbitrary Tcl. Retaining the result name protects that object only; it does not
+preserve the component or its window. Enclosing operations remain responsible for lifetime protection and callback
+validity.</p>
+<p>C-level deletion does not execute the Tcl <code class="docutils literal notranslate"><span class="pre">image</span></code> command, but Tk can notify other clients attached to the
+image. Callers detach their temporary-image field before cleanup so a reentrant teardown cannot release the same
+instance twice. Detaching a field does not itself preserve the enclosing component; retain the broader lifetime
+discipline described in <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a>.</p>
 </section>
 <section id="private-cleanup-tests">
 <h2>Private cleanup tests<a class="headerlink" href="#private-cleanup-tests" title="Link to this heading"></a></h2>
-<p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-image</span></code> with a Tk display. The private harness includes the image
-implementation to inject acquisition failure and count instance releases without
-adding production commands or installed APIs. It checks rollback, original-error
-retention, ordinary deletion, a failing or renamed Tcl image command, external
-image deletion and NULL cleanup. Normal suite runs skip these tests unless
-<code class="docutils literal notranslate"><span class="pre">RBC_IMAGE_TEST_LIB</span></code> identifies the harness library.</p>
+<p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-image</span></code> with a Tk display. The private harness includes the image implementation to inject acquisition
+failure and count instance releases without adding production commands or installed APIs. It checks rollback,
+original-error retention, ordinary deletion, a failing or renamed Tcl image command, external image deletion and NULL
+cleanup. Normal suite runs skip these tests unless <code class="docutils literal notranslate"><span class="pre">RBC_IMAGE_TEST_LIB</span></code> identifies the harness library.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Cover normal create/delete cycles, scaled markers returning to natural size,
-external image deletion, command wrappers that fail creation or deletion,
-instance-acquisition failure and owner destruction during evaluation. Observe
-both image names and retained instances: removing a registry name alone does
-not prove the client reference was released. Private-layout checks need the
-supported Tk versions and both native platforms; documentation generation
+<p>Cover normal create/delete cycles, scaled markers returning to natural size, external image deletion, command wrappers
+that fail creation or deletion, instance-acquisition failure and owner destruction during evaluation. Observe both image
+names and retained instances: removing a registry name alone does not prove the client reference was
+released. Private-layout checks need the supported Tk versions and both native platforms; documentation generation
 cannot validate that ABI boundary.</p>
 </section>
 <section id="image-region-and-notification-arguments">
 <h2>Image region and notification arguments<a class="headerlink" href="#image-region-and-notification-arguments" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.Rbc_SetRegion" title="rbcImageStorage.Rbc_SetRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.Rbc_SetRegion()</span></code></a> writes inclusive integer endpoints:
-<code class="docutils literal notranslate"><span class="pre">right</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">width</span> <span class="pre">-</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">bottom</span> <span class="pre">=</span> <span class="pre">y</span> <span class="pre">+</span> <span class="pre">height</span> <span class="pre">-</span> <span class="pre">1</span></code>. It checks endpoint
-overflow but does not normalize nonpositive sizes. Its returned pointer is the
-same caller-owned record.</p>
-<p><a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.TempImageChangedProc" title="rbcImageStorage.TempImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.TempImageChangedProc()</span></code></a> intentionally ignores every Tk
-notification argument. It neither dereferences client data nor schedules
-redraw; temporary-image owners manage updates themselves.</p>
+<p><a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.Rbc_SetRegion" title="rbcImageStorage.Rbc_SetRegion"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.Rbc_SetRegion()</span></code></a> writes inclusive integer endpoints: <code class="docutils literal notranslate"><span class="pre">right</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">width</span> <span class="pre">-</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">bottom</span> <span class="pre">=</span> <span class="pre">y</span> <span class="pre">+</span>
+<span class="pre">height</span> <span class="pre">-</span> <span class="pre">1</span></code>. It checks endpoint overflow but does not normalize nonpositive sizes. Its returned pointer is the same
+caller-owned record.</p>
+<p><a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.TempImageChangedProc" title="rbcImageStorage.TempImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.TempImageChangedProc()</span></code></a> intentionally ignores every Tk notification argument. It neither
+dereferences client data nor schedules redraw; temporary-image owners manage updates themselves.</p>
 </section>
 </section>
 

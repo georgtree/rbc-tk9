@@ -529,6 +529,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1237,9 +1238,8 @@
   <section id="vector-access-c-reference">
 <h1>Vector access C reference<a class="headerlink" href="#vector-access-c-reference" title="Link to this heading"></a></h1>
 <p>These declarations are private to RBC. See <a class="reference internal" href="vector-access.html"><span class="doc">Vector names, indices and mapped arrays</span></a>.</p>
-<p>Parameter directions and Tcl ownership follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>.
-Indices in these contracts are zero-based storage positions unless explicitly
-identified as external indices. Selection and append sentinels require caller
+<p>Parameter directions and Tcl ownership follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>.  Indices in these contracts are zero-based
+storage positions unless explicitly identified as external indices. Selection and append sentinels require caller
 validation before storage access.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VectorFlushCache">
@@ -1514,9 +1514,8 @@ Scans real storage in ascending index order, ignores NaNs and infinities, and ke
 
 <section id="scalar-complex-helpers">
 <h2>Scalar complex helpers<a class="headerlink" href="#scalar-complex-helpers" title="Link to this heading"></a></h2>
-<p>These private helpers copy scalars by value. They neither allocate vector
-storage nor invoke Tcl callbacks. Arithmetic results are not checked for
-finiteness; callers choose their own error policy. See <a class="reference internal" href="vector-numerics.html"><span class="doc">Vector queries and numerical generators</span></a>.</p>
+<p>These private helpers copy scalars by value. They neither allocate vector storage nor invoke Tcl callbacks. Arithmetic
+results are not checked for finiteness; callers choose their own error policy. See <a class="reference internal" href="vector-numerics.html"><span class="doc">Vector queries and numerical generators</span></a>.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ComplexFromReal">
 <span class="target" id="rbc_vector_int_8h_1aaa96710eb8fbfb376ff8fa61ffef8cb3"></span><a class="reference internal" href="vector-reference.html#c.Rbc_Complex" title="Rbc_Complex"><span class="n"><span class="pre">Rbc_Complex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ComplexFromReal</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">value</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ComplexFromReal" title="Link to this definition"></a><br /></dt>

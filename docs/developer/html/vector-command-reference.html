@@ -562,6 +562,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1269,13 +1270,12 @@
              
   <section id="vector-command-c-reference">
 <h1>Vector command C reference<a class="headerlink" href="#vector-command-c-reference" title="Link to this heading"></a></h1>
-<p>Selected private handlers and helpers from <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. See
-<a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a> for dispatch, partial updates and callback limitations.</p>
-<p>Parameter directions and interpreter ownership follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>.
-For list-conversion helpers, <code class="docutils literal notranslate"><span class="pre">objc</span></code>/<code class="docutils literal notranslate"><span class="pre">objv</span></code> describe only the value slice;
-they do not include a command name. Storage capacities count typed values,
-while allocation helpers explicitly identify byte counts. See the ownership
-table in <a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a> before releasing a prepared output.</p>
+<p>Selected private handlers and helpers from <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. See <a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a> for dispatch, partial updates and
+callback limitations.</p>
+<p>Parameter directions and interpreter ownership follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. For list-conversion helpers,
+<code class="docutils literal notranslate"><span class="pre">objc</span></code>/<code class="docutils literal notranslate"><span class="pre">objv</span></code> describe only the value slice; they do not include a command name. Storage capacities count typed
+values, while allocation helpers explicitly identify byte counts. See the ownership table in <a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a>
+before releasing a prepared output.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__vector__command__paths"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Vector</span> <span class="pre">instance</span> <span class="pre">command</span> <span class="pre">paths</span></span></dt>
@@ -2087,8 +2087,8 @@ Heapifies the permutation, then moves successive maxima to the end and repairs t
 
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.rbcVectorCommands.CommandOutput">
 <span class="target" id="struct_command_output"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CommandOutput</span></span></span><a class="headerlink" href="#c.rbcVectorCommands.CommandOutput" title="Link to this definition"></a><br /></dt>

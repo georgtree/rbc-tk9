@@ -728,6 +728,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1435,13 +1436,11 @@
              
   <section id="coordinate-mapping-c-reference">
 <h1>Coordinate mapping C reference<a class="headerlink" href="#coordinate-mapping-c-reference" title="Link to this heading"></a></h1>
-<p>These private helpers borrow their graph, axes and track records. Callers
-prepare current layout and retain the records throughout the operation.
-See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for coordinate conventions and scoped viewport usage.</p>
-<p>Parameter directions use <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Raw data, axis-space
-coordinates, normalized fractions and widget pixels are distinct inputs; the
-helper-stage table in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> links the internal range implementations
-in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>.</p>
+<p>These private helpers borrow their graph, axes and track records. Callers prepare current layout and retain the records
+throughout the operation.  See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for coordinate conventions and scoped viewport usage.</p>
+<p>Parameter directions use <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Raw data, axis-space coordinates, normalized fractions and widget
+pixels are distinct inputs; the helper-stage table in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> links the internal range implementations in
+<a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>.</p>
 <section id="data-and-screen-coordinates">
 <h2>Data and screen coordinates<a class="headerlink" href="#data-and-screen-coordinates" title="Link to this heading"></a></h2>
 <dl class="c function">
@@ -1681,8 +1680,8 @@ Restores active track, plot bounds, offsets, ranges, scales and padding. Does no
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.ElemComplexVector">
 <span class="target" id="struct_elem_complex_vector"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ElemComplexVector</span></span></span><a class="headerlink" href="#c.ElemComplexVector" title="Link to this definition"></a><br /></dt>

@@ -1,11 +1,9 @@
 Bar element C reference
 =======================
 
-See :doc:`bars` for configuration boundaries, grouping passes, mapped storage,
-rendering and cleanup. These routines belong to ``rbcGrBar.c``. The exported
-``Rbc_`` names are internal cross-module services, not additions to the public
-vector stubs API. Namespaces below disambiguate private documentation symbols;
-they do not change C linkage.
+See :doc:`bars` for configuration boundaries, grouping passes, mapped storage, rendering and cleanup. These routines
+belong to ``rbcGrBar.c``. The exported ``Rbc_`` names are internal cross-module services, not additions to the public
+vector stubs API. Namespaces below disambiguate private documentation symbols; they do not change C linkage.
 
 Bar grouping state
 ------------------

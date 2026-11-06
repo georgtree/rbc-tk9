@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,21 +1215,16 @@
              
   <section id="bar-elements">
 <h1>Bar elements<a class="headerlink" href="#bar-elements" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code> implements bar elements through the shared <a class="reference internal" href="element-reference.html#c.ElementProcs" title="ElementProcs"><code class="xref c c-type docutils literal notranslate"><span class="pre">ElementProcs</span></code></a>
-interface. Source data and axis transactions follow <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>; screen
-mapping uses the axis/track scope described in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a>. The contracts in
-<a class="reference internal" href="bar-reference.html"><span class="doc">Bar element C reference</span></a> cover the concrete module from construction through
-cleanup. Placement and mapping borrow source arrays without running Tcl
-scripts; configuration may evaluate data expressions, and value labels may
-invoke application commands. Those callback boundaries need separate lifetime
-review.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrBar.c</span></code> implements bar elements through the shared <a class="reference internal" href="element-reference.html#c.ElementProcs" title="ElementProcs"><code class="xref c c-type docutils literal notranslate"><span class="pre">ElementProcs</span></code></a> interface. Source data and axis
+transactions follow <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>; screen mapping uses the axis/track scope described in <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a>. The contracts
+in <a class="reference internal" href="bar-reference.html"><span class="doc">Bar element C reference</span></a> cover the concrete module from construction through cleanup. Placement and mapping borrow source
+arrays without running Tcl scripts; configuration may evaluate data expressions, and value labels may invoke application
+commands. Those callback boundaries need separate lifetime review.</p>
 <section id="records-and-ownership">
 <h2>Records and ownership<a class="headerlink" href="#records-and-ownership" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Bar</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Element</span></code> first and <code class="docutils literal notranslate"><span class="pre">BarPen</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Pen</span></code> first. The
-conversion and offset macros preserve that common-header layout; a static
-assertion checks the element header offset. Constructors return common-header
-pointers, not independently allocated header objects. <code class="docutils literal notranslate"><span class="pre">BarRectangle</span></code> aliases
-the renderer’s rectangle type.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Bar</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Element</span></code> first and <code class="docutils literal notranslate"><span class="pre">BarPen</span></code> embeds <code class="docutils literal notranslate"><span class="pre">Pen</span></code> first. The conversion and offset macros preserve that
+common-header layout; a static assertion checks the element header offset. Constructors return common-header pointers,
+not independently allocated header objects. <code class="docutils literal notranslate"><span class="pre">BarRectangle</span></code> aliases the renderer’s rectangle type.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Storage and release responsibilities</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
@@ -1277,86 +1273,71 @@ the renderer’s rectangle type.</p>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">BarPenStyle</span></code> stores a concrete <code class="docutils literal notranslate"><span class="pre">BarPen</span> <span class="pre">*</span></code> alongside its weight range and
-borrowed geometry slices. Never free those slices separately. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ClearPalette" title="rbcGrBarGeometry.ClearPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ClearPalette()</span></code></a>
-invalidates only counts: after <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ResetBar" title="rbcGrBarGeometry.ResetBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ResetBar()</span></code></a> the slice addresses may still contain
-old values and must not be dereferenced until remapping installs valid views.</p>
+<p><code class="docutils literal notranslate"><span class="pre">BarPenStyle</span></code> stores a concrete <code class="docutils literal notranslate"><span class="pre">BarPen</span> <span class="pre">*</span></code> alongside its weight range and borrowed geometry slices. Never free those
+slices separately. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ClearPalette" title="rbcGrBarGeometry.ClearPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ClearPalette()</span></code></a> invalidates only counts: after
+<a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ResetBar" title="rbcGrBarGeometry.ResetBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ResetBar()</span></code></a> the slice addresses may still contain old values and must not be dereferenced until
+remapping installs valid views.</p>
 </section>
 <section id="creation-and-configuration">
 <h2>Creation and configuration<a class="headerlink" href="#creation-and-configuration" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.Rbc_BarElement" title="rbcGrBarConfiguration.Rbc_BarElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.Rbc_BarElement()</span></code></a> allocates zeroed storage, copies the element name and initial
-label, installs <code class="docutils literal notranslate"><span class="pre">barProcs</span></code>, initializes the embedded pen, and creates an empty
-palette. It does not register the element, apply Tk option defaults or produce
-geometry. Shared creation must finish these steps. The method table uses ordinary
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.Rbc_BarElement" title="rbcGrBarConfiguration.Rbc_BarElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.Rbc_BarElement()</span></code></a> allocates zeroed storage, copies the element name and initial label,
+installs <code class="docutils literal notranslate"><span class="pre">barProcs</span></code>, initializes the embedded pen, and creates an empty palette. It does not register the element,
+apply Tk option defaults or produce geometry. Shared creation must finish these steps. The method table uses ordinary
 paired X/Y counting; it has no complex-vector point-count override.</p>
 <p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.Rbc_BarPen" title="rbcGrBarConfiguration.Rbc_BarPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.Rbc_BarPen()</span></code></a> similarly creates an unregistered named pen. Only the exact name
-<code class="docutils literal notranslate"><span class="pre">activeBar</span></code> selects active defaults. <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.InitPen" title="rbcGrBarConfiguration.InitPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.InitPen()</span></code></a> installs callbacks and fallback
-fields in zeroed storage; it is not a substitute for Tk option initialization.
-Named pens and embedded pens share derived-resource configuration, but have
-different allocation and option-table owners. See <a class="reference internal" href="pens.html"><span class="doc">Pens and style palettes</span></a> and
+<code class="docutils literal notranslate"><span class="pre">activeBar</span></code> selects active defaults. <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.InitPen" title="rbcGrBarConfiguration.InitPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.InitPen()</span></code></a> installs callbacks and fallback fields in
+zeroed storage; it is not a substitute for Tk option initialization. Named pens and embedded pens share
+derived-resource configuration, but have different allocation and option-table owners. See <a class="reference internal" href="pens.html"><span class="doc">Pens and style palettes</span></a> and
 <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for the common machinery.</p>
 <p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.ConfigureBar" title="rbcGrBarConfiguration.ConfigureBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.ConfigureBar()</span></code></a> runs after candidate Tk option fields have been installed:</p>
 <ol class="arabic simple">
-<li><p>Reject nonfinite bar width and offset. A finite nonpositive element width
-intentionally means use the graph width.</p></li>
-<li><p>Prepare changed data, named pens, axis/track references, state, tags and palette
-through the shared transactions. Initial configuration prepares every category.</p></li>
+<li><p>Reject nonfinite bar width and offset. A finite nonpositive element width intentionally means use the graph width.</p></li>
+<li><p>Prepare changed data, named pens, axis/track references, state, tags and palette through the shared
+transactions. Initial configuration prepares every category.</p></li>
 <li><p>Validate and configure the embedded pen when its options changed.</p></li>
-<li><p>Commit state, tags, axes, pens and palette; point the default palette entry at
-the resulting concrete normal pen.</p></li>
-<li><p>Commit staged data, synchronize its retained Tcl representations and mark
-mapping dirty when required by the option mask.</p></li>
+<li><p>Commit state, tags, axes, pens and palette; point the default palette entry at the resulting concrete normal pen.</p></li>
+<li><p>Commit staged data, synchronize its retained Tcl representations and mark mapping dirty when required by the option
+mask.</p></li>
 </ol>
-<p>On a preparation error, the function frees prepared candidates and returns
-<code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>. The surrounding option transaction restores candidate Tk fields.
-There is no fallible element operation after the embedded pen commits. This
-ordering must be retained when adding options: validation after that point could
-leave derived state inconsistent with restored Tcl options. Data-expression
-callbacks retain the shared transaction’s lifetime restrictions; arbitrary
+<p>On a preparation error, the function frees prepared candidates and returns <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>. The surrounding option
+transaction restores candidate Tk fields. There is no fallible element operation after the embedded pen commits. This
+ordering must be retained when adding options: validation after that point could leave derived state inconsistent with
+restored Tcl options. Data-expression callbacks retain the shared transaction’s lifetime restrictions; arbitrary
 application side effects are not rolled back.</p>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.ConfigurePen" title="rbcGrBarConfiguration.ConfigurePen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.ConfigurePen()</span></code></a> validates all fallible derived values before replacing resources:
-opacity, label offset, command-prefix syntax, format, finite rotation, pixel
-widths, error color, show masks and shadow. It then builds replacement GCs and
-commits them together with the parsed values. On failure it releases staged
-colors; old derived resources remain live. The value command is validated here,
-not executed. Direct candidate Tk fields still need the caller’s rollback.</p>
-<p>Error-color conversion accepts an empty value as NULL and any nonempty,
-case-sensitive prefix of <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> as <code class="docutils literal notranslate"><span class="pre">COLOR_DEFAULT</span></code>. The latter is a
-sentinel, not a Tk color reference; <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.FreeBarPenColor" title="rbcGrBarConfiguration.FreeBarPenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.FreeBarPenColor()</span></code></a> must not pass it to
-<code class="docutils literal notranslate"><span class="pre">Tk_FreeColor</span></code>. Fill GC defaults choose foreground, then border color, then
-screen black. With both foreground and border, stipple gaps can be opaque;
-without both, the GC uses transparent stippling.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.ConfigurePen" title="rbcGrBarConfiguration.ConfigurePen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.ConfigurePen()</span></code></a> validates all fallible derived values before replacing resources: opacity,
+label offset, command-prefix syntax, format, finite rotation, pixel widths, error color, show masks and shadow. It then
+builds replacement GCs and commits them together with the parsed values. On failure it releases staged colors; old
+derived resources remain live. The value command is validated here, not executed. Direct candidate Tk fields still need
+the caller’s rollback.</p>
+<p>Error-color conversion accepts an empty value as NULL and any nonempty, case-sensitive prefix of <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> as
+<code class="docutils literal notranslate"><span class="pre">COLOR_DEFAULT</span></code>. The latter is a sentinel, not a Tk color reference; <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.FreeBarPenColor" title="rbcGrBarConfiguration.FreeBarPenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.FreeBarPenColor()</span></code></a>
+must not pass it to <code class="docutils literal notranslate"><span class="pre">Tk_FreeColor</span></code>. Fill GC defaults choose foreground, then border color, then screen black. With
+both foreground and border, stipple gaps can be opaque; without both, the GC uses transparent stippling.</p>
 </section>
 <section id="grouping-keys-and-passes">
 <h2>Grouping keys and passes<a class="headerlink" href="#grouping-keys-and-passes" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.Rbc_InitFreqTable" title="rbcGrBarLayout.Rbc_InitFreqTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.Rbc_InitFreqTable()</span></code></a> rebuilds graph-owned duplicate-X metadata from displayed,
-non-hidden, non-plot-hidden bar elements. It considers paired X/Y samples,
-rejecting nonfinite pairs and nonpositive Y on logarithmic Y axes. A key contains
-the original X and both axis pointers; signed zero is normalized. Offsets,
-alignment, width and pen identity do not form part of the key. Repeated X values
-inside one element can therefore participate in a group as well.</p>
-<p>Only duplicate keys receive persistent <a class="reference internal" href="bar-reference.html#c.FreqInfo" title="FreqInfo"><code class="xref c c-type docutils literal notranslate"><span class="pre">FreqInfo</span></code></a> records. <code class="docutils literal notranslate"><span class="pre">freqArr</span></code> owns
-these records; hash values borrow pointers into it. <code class="docutils literal notranslate"><span class="pre">nStacks</span></code> counts duplicate
-keys, not just groups currently drawn in stacked mode. Ordinary normal mode
-needs no table. Trackgraphs still build one because individual tracks may select
-another mode. The owning Y axis supplies a track override when configured;
-otherwise the graph mode applies. Track-owned axis identities isolate groups.</p>
-<p>Axis reset initializes this table, computes stack totals where needed, and
-resets placement counters before visiting element extents. Element mapping
-resets counters again before its ordered pass. <a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.Rbc_ResetStacks" title="rbcGrBarLayout.Rbc_ResetStacks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.Rbc_ResetStacks()</span></code></a> clears
-<code class="docutils literal notranslate"><span class="pre">count</span></code> and <code class="docutils literal notranslate"><span class="pre">lastY</span></code>, retaining frequency and precomputed sums. A new consumer
-must not call <a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.PlaceBar" title="rbcGrBarLayout.PlaceBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.PlaceBar()</span></code></a> as an independent query: it advances these counters.
-Skipping or reordering calls can change later bars’ placement.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.Rbc_InitFreqTable" title="rbcGrBarLayout.Rbc_InitFreqTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.Rbc_InitFreqTable()</span></code></a> rebuilds graph-owned duplicate-X metadata from displayed, non-hidden,
+non-plot-hidden bar elements. It considers paired X/Y samples, rejecting nonfinite pairs and nonpositive Y on
+logarithmic Y axes. A key contains the original X and both axis pointers; signed zero is normalized. Offsets, alignment,
+width and pen identity do not form part of the key. Repeated X values inside one element can therefore participate in a
+group as well.</p>
+<p>Only duplicate keys receive persistent <a class="reference internal" href="bar-reference.html#c.FreqInfo" title="FreqInfo"><code class="xref c c-type docutils literal notranslate"><span class="pre">FreqInfo</span></code></a> records. <code class="docutils literal notranslate"><span class="pre">freqArr</span></code> owns these records; hash values borrow
+pointers into it. <code class="docutils literal notranslate"><span class="pre">nStacks</span></code> counts duplicate keys, not just groups currently drawn in stacked mode. Ordinary normal
+mode needs no table. Trackgraphs still build one because individual tracks may select another mode. The owning Y axis
+supplies a track override when configured; otherwise the graph mode applies. Track-owned axis identities isolate groups.</p>
+<p>Axis reset initializes this table, computes stack totals where needed, and resets placement counters before visiting
+element extents. Element mapping resets counters again before its ordered pass. <a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.Rbc_ResetStacks" title="rbcGrBarLayout.Rbc_ResetStacks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.Rbc_ResetStacks()</span></code></a>
+clears <code class="docutils literal notranslate"><span class="pre">count</span></code> and <code class="docutils literal notranslate"><span class="pre">lastY</span></code>, retaining frequency and precomputed sums. A new consumer must not call
+<a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.PlaceBar" title="rbcGrBarLayout.PlaceBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.PlaceBar()</span></code></a> as an independent query: it advances these counters. Skipping or reordering calls can
+change later bars’ placement.</p>
 </section>
 <section id="placement-formulas">
 <h2>Placement formulas<a class="headerlink" href="#placement-formulas" title="Link to this heading"></a></h2>
-<p>Let <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> be the source values, <code class="docutils literal notranslate"><span class="pre">o</span></code> the element offset and <code class="docutils literal notranslate"><span class="pre">W</span></code> its
-positive configured width, falling back to the graph width. The full interval
-starts at <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">o</span> <span class="pre">-</span> <span class="pre">a</span></code>, where <code class="docutils literal notranslate"><span class="pre">a</span></code> is zero for left alignment, <code class="docutils literal notranslate"><span class="pre">W/2</span></code> for
-center alignment and <code class="docutils literal notranslate"><span class="pre">W</span></code> for right alignment. Alignment names refer to data-X
-edges, including when axes are inverted or descending.</p>
-<p>For a duplicate group of size <code class="docutils literal notranslate"><span class="pre">n</span></code>, let <code class="docutils literal notranslate"><span class="pre">k</span></code> be its one-based placement count
-in the traversal. The formulas are:</p>
+<p>Let <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> be the source values, <code class="docutils literal notranslate"><span class="pre">o</span></code> the element offset and <code class="docutils literal notranslate"><span class="pre">W</span></code> its positive configured width, falling back
+to the graph width. The full interval starts at <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">o</span> <span class="pre">-</span> <span class="pre">a</span></code>, where <code class="docutils literal notranslate"><span class="pre">a</span></code> is zero for left alignment, <code class="docutils literal notranslate"><span class="pre">W/2</span></code> for
+center alignment and <code class="docutils literal notranslate"><span class="pre">W</span></code> for right alignment. Alignment names refer to data-X edges, including when axes are inverted
+or descending.</p>
+<p>For a duplicate group of size <code class="docutils literal notranslate"><span class="pre">n</span></code>, let <code class="docutils literal notranslate"><span class="pre">k</span></code> be its one-based placement count in the traversal. The formulas are:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Mode</p></th>
@@ -1383,181 +1364,142 @@ in the traversal. The formulas are:</p>
 </tr>
 </tbody>
 </table>
-<p>A key without duplicates uses the full interval and baseline. Each member uses
-its own <code class="docutils literal notranslate"><span class="pre">W</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">o</span></code>. Mixed settings do not first produce one shared
-physical interval: they apply a shared slot count to independently anchored
-intervals. For example, with <code class="docutils literal notranslate"><span class="pre">n=2</span></code>, <code class="docutils literal notranslate"><span class="pre">x=10</span></code>, <code class="docutils literal notranslate"><span class="pre">W=4</span></code> and zero offset, a
-left-aligned first member occupies <code class="docutils literal notranslate"><span class="pre">[12,14]</span></code> in aligned mode; a right-aligned
-second member occupies <code class="docutils literal notranslate"><span class="pre">[6,8]</span></code>. With both centered the slots are <code class="docutils literal notranslate"><span class="pre">[10,12]</span></code>
-and <code class="docutils literal notranslate"><span class="pre">[8,10]</span></code>. Different anchors can separate, overlap or reverse the apparent
-order of the slots without changing group membership.</p>
-<p>Stack accumulation starts at zero and uses one signed running total, rather
-than separate positive and negative stacks. A nonfinite cumulative result is
-rejected without updating that total. Logarithmic Y rejects nonpositive source
-values; its first visible stack segment uses the effective baseline when the
-previous total is not positive. The effective baseline is the configured
-baseline, except that an unusable nonpositive log baseline becomes one.</p>
+<p>A key without duplicates uses the full interval and baseline. Each member uses its own <code class="docutils literal notranslate"><span class="pre">W</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">o</span></code>. Mixed
+settings do not first produce one shared physical interval: they apply a shared slot count to independently anchored
+intervals. For example, with <code class="docutils literal notranslate"><span class="pre">n=2</span></code>, <code class="docutils literal notranslate"><span class="pre">x=10</span></code>, <code class="docutils literal notranslate"><span class="pre">W=4</span></code> and zero offset, a left-aligned first member occupies
+<code class="docutils literal notranslate"><span class="pre">[12,14]</span></code> in aligned mode; a right-aligned second member occupies <code class="docutils literal notranslate"><span class="pre">[6,8]</span></code>. With both centered the slots are
+<code class="docutils literal notranslate"><span class="pre">[10,12]</span></code> and <code class="docutils literal notranslate"><span class="pre">[8,10]</span></code>. Different anchors can separate, overlap or reverse the apparent order of the slots without
+changing group membership.</p>
+<p>Stack accumulation starts at zero and uses one signed running total, rather than separate positive and negative
+stacks. A nonfinite cumulative result is rejected without updating that total. Logarithmic Y rejects nonpositive source
+values; its first visible stack segment uses the effective baseline when the previous total is not positive. The
+effective baseline is the configured baseline, except that an unusable nonpositive log baseline becomes one.</p>
 </section>
 <section id="data-limits-and-error-translations">
 <h2>Data limits and error translations<a class="headerlink" href="#data-limits-and-error-translations" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.GetBarExtents" title="rbcGrBarLayout.GetBarExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.GetBarExtents()</span></code></a> uses full anchored X intervals, source Y extrema, baseline
-rules and <a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.CheckStacks" title="rbcGrBarLayout.CheckStacks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.CheckStacks()</span></code></a> totals. Those totals are final signed sums computed
-separately by <a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.Rbc_ComputeStacks" title="rbcGrBarLayout.Rbc_ComputeStacks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.Rbc_ComputeStacks()</span></code></a>; they are not a list of every intermediate
-stack endpoint. Consequently this is not a tight union of all final screen
-rectangles. Linear Y retains the historical zero-inclusive lower-bound rule.
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.GetBarExtents" title="rbcGrBarLayout.GetBarExtents"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.GetBarExtents()</span></code></a> uses full anchored X intervals, source Y extrema, baseline rules and
+<a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.CheckStacks" title="rbcGrBarLayout.CheckStacks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.CheckStacks()</span></code></a> totals. Those totals are final signed sums computed separately by
+<a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.Rbc_ComputeStacks" title="rbcGrBarLayout.Rbc_ComputeStacks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.Rbc_ComputeStacks()</span></code></a>; they are not a list of every intermediate stack endpoint. Consequently this
+is not a tight union of all final screen rectangles. Linear Y retains the historical zero-inclusive lower-bound rule.
 Log X bounds use valid positive full intervals.</p>
-<p>Extents also run placement without viewport rejection so that error-bar
-translations follow group order. In <code class="docutils literal notranslate"><span class="pre">-errorbarposition</span> <span class="pre">bar</span></code> mode,
-<a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.SetBarErrorOffset" title="rbcGrBarGeometry.SetBarErrorOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.SetBarErrorOffset()</span></code></a> records, per original source index:</p>
+<p>Extents also run placement without viewport rejection so that error-bar translations follow group order. In
+<code class="docutils literal notranslate"><span class="pre">-errorbarposition</span> <span class="pre">bar</span></code> mode, <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.SetBarErrorOffset" title="rbcGrBarGeometry.SetBarErrorOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.SetBarErrorOffset()</span></code></a> records, per original source index:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">dx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">placedLeft</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">placedRight</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sourceX</span>
 <span class="n">dy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">placedValueY</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sourceY</span>
 </pre></div>
 </div>
-<p>The implementation averages the two X endpoints as half of each, avoiding an
-unnecessary intermediate sum. Offsets are computed before downward bars swap
-corners and before axis mapping. Symmetric errors and explicit low/high bounds
-receive the same data-space translation. Thus logarithmic axes apply their
-transform after translation, rather than translating an already mapped error
-segment by a fixed pixel distance.</p>
-<p>In <code class="docutils literal notranslate"><span class="pre">data</span></code> mode errors retain source positioning plus the element’s X offset;
-they do not follow alignment, slot subdivision or stack displacement. The shared
-error routines expand limits and map segments consistently with that choice.
-Temporary per-point offset arrays start with NaN entries: rejected placements
-must not acquire an apparently valid zero translation. The array is freed after
-error processing and is not stored in the element.</p>
+<p>The implementation averages the two X endpoints as half of each, avoiding an unnecessary intermediate sum. Offsets are
+computed before downward bars swap corners and before axis mapping. Symmetric errors and explicit low/high bounds
+receive the same data-space translation. Thus logarithmic axes apply their transform after translation, rather than
+translating an already mapped error segment by a fixed pixel distance.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">data</span></code> mode errors retain source positioning plus the element’s X offset; they do not follow alignment, slot
+subdivision or stack displacement. The shared error routines expand limits and map segments consistently with that
+choice. Temporary per-point offset arrays start with NaN entries: rejected placements must not acquire an apparently
+valid zero translation. The array is freed after error processing and is not stored in the element.</p>
 </section>
 <section id="screen-geometry-ownership-and-output">
 <h2>Screen geometry, ownership and output<a class="headerlink" href="#screen-geometry-ownership-and-output" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.MapBar" title="rbcGrBarLayout.MapBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.MapBar()</span></code></a> first releases previous mapped storage. It calls <a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.PlaceBar" title="rbcGrBarLayout.PlaceBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.PlaceBar()</span></code></a> in
-source order with viewport rejection enabled, saves any error translations,
-swaps downward Y edges, and maps both corners. Nonfinite results are skipped.
-Coordinates are bounded by the graph window before integer conversion. Width
-and height retain the historical rounding and inclusive extra pixel; changing
-these rules changes native output and picking geometry.</p>
-<p>Window-coordinate bounds do not replace plot clipping. Drawing a bar inside a
-track requires the renderer clip covering the complete element, including
-raised borders. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> and <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for that outer scope.</p>
-<p>The bar owns its rectangle array and <code class="docutils literal notranslate"><span class="pre">rectToData</span></code> source-index map, plus
-separate arrays for explicitly active rectangles. Shared element fields own
-mapped error segments and their source-index maps. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.MergePens" title="rbcGrBarGeometry.MergePens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.MergePens()</span></code></a> can reorder
-rectangles and errors into pen groups, keeping the corresponding index maps in
-step. Style slices borrow the resulting storage. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ResetBar" title="rbcGrBarGeometry.ResetBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ResetBar()</span></code></a> clears palette
-views, frees mapped arrays and zeros pointers/counts; source vectors remain
-owned by their original creators.</p>
-<p>Normal drawing batches rectangles through <a class="reference internal" href="reference.html#c.Rbc_RenderBeginBars" title="Rbc_RenderBeginBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginBars()</span></code></a> and
-<a class="reference internal" href="reference.html#c.Rbc_RenderFillRectangles" title="Rbc_RenderFillRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillRectangles()</span></code></a>. Export has its own callbacks consuming mapped bar
-geometry and pen styles. Value labels and legend samples are separate drawing
-paths. A legend sample outside the plot is not evidence that a bar escaped its
-clip.</p>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.ClosestBar" title="rbcGrBarLayout.ClosestBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.ClosestBar()</span></code></a> measures distance to mapped rectangles, then returns the original
-source X/Y and index through <code class="docutils literal notranslate"><span class="pre">rectToData</span></code>. A stacked hit therefore reports the
-sample contribution, not the cumulative top. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="rbcGrBarGeometry.Rbc_GetBarRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.Rbc_GetBarRectangle()</span></code></a> supplies
-mapped bounds when a caller needs the actual placed rectangle instead.</p>
+source order with viewport rejection enabled, saves any error translations, swaps downward Y edges, and maps both
+corners. Nonfinite results are skipped. Coordinates are bounded by the graph window before integer conversion. Width
+and height retain the historical rounding and inclusive extra pixel; changing these rules changes native output and
+picking geometry.</p>
+<p>Window-coordinate bounds do not replace plot clipping. Drawing a bar inside a track requires the renderer clip covering
+the complete element, including raised borders. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> and <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for that outer scope.</p>
+<p>The bar owns its rectangle array and <code class="docutils literal notranslate"><span class="pre">rectToData</span></code> source-index map, plus separate arrays for explicitly active
+rectangles. Shared element fields own mapped error segments and their source-index
+maps. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.MergePens" title="rbcGrBarGeometry.MergePens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.MergePens()</span></code></a> can reorder rectangles and errors into pen groups, keeping the corresponding
+index maps in step. Style slices borrow the resulting storage. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.ResetBar" title="rbcGrBarGeometry.ResetBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.ResetBar()</span></code></a> clears palette views,
+frees mapped arrays and zeros pointers/counts; source vectors remain owned by their original creators.</p>
+<p>Normal drawing batches rectangles through <a class="reference internal" href="reference.html#c.Rbc_RenderBeginBars" title="Rbc_RenderBeginBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderBeginBars()</span></code></a> and <a class="reference internal" href="reference.html#c.Rbc_RenderFillRectangles" title="Rbc_RenderFillRectangles"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderFillRectangles()</span></code></a>. Export
+has its own callbacks consuming mapped bar geometry and pen styles. Value labels and legend samples are separate drawing
+paths. A legend sample outside the plot is not evidence that a bar escaped its clip.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.ClosestBar" title="rbcGrBarLayout.ClosestBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.ClosestBar()</span></code></a> measures distance to mapped rectangles, then returns the original source X/Y and
+index through <code class="docutils literal notranslate"><span class="pre">rectToData</span></code>. A stacked hit therefore reports the sample contribution, not the cumulative
+top. <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="rbcGrBarGeometry.Rbc_GetBarRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.Rbc_GetBarRectangle()</span></code></a> supplies mapped bounds when a caller needs the actual placed
+rectangle instead.</p>
 </section>
 <section id="palette-grouping-and-active-geometry">
 <h2>Palette grouping and active geometry<a class="headerlink" href="#palette-grouping-and-active-geometry" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.MergePens" title="rbcGrBarGeometry.MergePens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.MergePens()</span></code></a> runs after normal rectangles and error segments have been mapped.
-One palette entry simply borrows the complete arrays. With multiple styles it
-allocates replacement arrays and groups entries by palette order, retaining the
-previous order within each style. Rectangle and error source-index maps move
-with their geometry. Labels and picking must use these maps rather than treating
-mapped-array position as a source index.</p>
-<p>The multiple-style path scans the mapped arrays for each palette entry; it is
-not an in-place partition. Do not change grouping order casually: it also sets
-the order in which overlapping rectangles are painted. Checked array-byte
-calculations reject invalid counts and size overflow, but these void mapping
-helpers do not report Tcl allocation errors. Ordinary allocations use the
-existing checked/fatal allocation conventions.</p>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.MapActiveBars" title="rbcGrBarGeometry.MapActiveBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.MapActiveBars()</span></code></a> frees its previous copies and scans mapped rectangles against
-the explicit source-index selection. Repeated requested indices do not duplicate
-a rectangle. Clipped or otherwise unmapped source samples cannot appear in the
-active subset. <code class="docutils literal notranslate"><span class="pre">activeToData</span></code> contains original data indices even after palette
-reordering. <code class="docutils literal notranslate"><span class="pre">ACTIVE_PENDING</span></code> is cleared after rebuilding, including empty
-results. Normal remapping builds explicit active copies before regrouping normal
-arrays; later activation can rebuild them from the regrouped arrays.</p>
-<p>The selection count is a three-way protocol: positive means explicit indices,
-negative means all mapped rectangles, and zero means none. All-active drawing
-uses the normal arrays directly instead of allocating a second full copy. Both
-screen and export paths use the active pen for rectangles and labels, without
-adding a separate active error-bar overlay.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.MergePens" title="rbcGrBarGeometry.MergePens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.MergePens()</span></code></a> runs after normal rectangles and error segments have been mapped. One palette
+entry simply borrows the complete arrays. With multiple styles it allocates replacement arrays and groups entries by
+palette order, retaining the previous order within each style. Rectangle and error source-index maps move with their
+geometry. Labels and picking must use these maps rather than treating mapped-array position as a source index.</p>
+<p>The multiple-style path scans the mapped arrays for each palette entry; it is not an in-place partition. Do not change
+grouping order casually: it also sets the order in which overlapping rectangles are painted. Checked array-byte
+calculations reject invalid counts and size overflow, but these void mapping helpers do not report Tcl allocation
+errors. Ordinary allocations use the existing checked/fatal allocation conventions.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.MapActiveBars" title="rbcGrBarGeometry.MapActiveBars"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.MapActiveBars()</span></code></a> frees its previous copies and scans mapped rectangles against the explicit
+source-index selection. Repeated requested indices do not duplicate a rectangle. Clipped or otherwise unmapped source
+samples cannot appear in the active subset. <code class="docutils literal notranslate"><span class="pre">activeToData</span></code> contains original data indices even after palette
+reordering. <code class="docutils literal notranslate"><span class="pre">ACTIVE_PENDING</span></code> is cleared after rebuilding, including empty results. Normal remapping builds explicit
+active copies before regrouping normal arrays; later activation can rebuild them from the regrouped arrays.</p>
+<p>The selection count is a three-way protocol: positive means explicit indices, negative means all mapped rectangles, and
+zero means none. All-active drawing uses the normal arrays directly instead of allocating a second full copy. Both
+screen and export paths use the active pen for rectangles and labels, without adding a separate active error-bar
+overlay.</p>
 </section>
 <section id="screen-and-export-dispatch">
 <h2>Screen and export dispatch<a class="headerlink" href="#screen-and-export-dispatch" title="Link to this heading"></a></h2>
-<p>Normal output visits each palette style in this order: rectangle batch, enabled
-X errors, enabled Y errors, then value labels. Source-map offsets advance by the
-style’s rectangle count, not the number of error segments. Active output has its
-own callbacks. Neither output path performs placement again: grouping counters
-belong to extents/mapping passes, not rendering.</p>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarOutput.DrawBarSegments" title="rbcGrBarOutput.DrawBarSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarOutput.DrawBarSegments()</span></code></a> passes the complete batch and its relief, border, stipple and
-opacity to the screen renderer. <a class="reference internal" href="bar-reference.html#c.rbcGrBarOutput.SegmentsExport" title="rbcGrBarOutput.SegmentsExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarOutput.SegmentsExport()</span></code></a> instead prepares a fill style
-and walks rectangles through the selected document backend; its historical name
-does not mean line segments or PostScript-only output. It preserves the one-pixel
-inset for fills and original rectangle dimensions for relief borders. Zero fill
-opacity suppresses the fill, but does not itself suppress an available nonflat
-border. An absent foreground and border produces no rectangle output.</p>
-<p>Stipple export without a foreground promotes the background color to stipple
-foreground and leaves the gaps transparent. Legend samples perform the same
-color normalization, but are independent square symbols drawn with the normal
-pen, not miniatures of individual palette or active rectangles. Screen samples
-retain integer centering and size-minus-one geometry, trying the legend renderer
-before the screen fallback. Zero opacity suppresses the legend sample even when
-a data rectangle could still have a relief border.</p>
-<p>Error colors use <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarColor" title="rbcGrBarConfiguration.GetBarColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarColor()</span></code></a> for native GC creation, screen strokes and
-all document backends. Explicit colors remain unchanged. Both an empty color
-and <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> inherit foreground, then the bar background, then black if
-neither is present. The final fallback uses caller-owned <code class="docutils literal notranslate"><span class="pre">XColor</span></code> storage:
-its RGB components are black and its pixel is the screen’s black pixel. Keep
-that storage alive through the renderer context’s use; no Tk color reference
-is acquired. Configuration passes the staged error color before committing it.
-Screen strokes still supply at least one pixel, while document strokes retain
-the configured width and the backend’s hairline handling.</p>
+<p>Normal output visits each palette style in this order: rectangle batch, enabled X errors, enabled Y errors, then value
+labels. Source-map offsets advance by the style’s rectangle count, not the number of error segments. Active output has
+its own callbacks. Neither output path performs placement again: grouping counters belong to extents/mapping passes, not
+rendering.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarOutput.DrawBarSegments" title="rbcGrBarOutput.DrawBarSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarOutput.DrawBarSegments()</span></code></a> passes the complete batch and its relief, border, stipple and opacity to the
+screen renderer. <a class="reference internal" href="bar-reference.html#c.rbcGrBarOutput.SegmentsExport" title="rbcGrBarOutput.SegmentsExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarOutput.SegmentsExport()</span></code></a> instead prepares a fill style and walks rectangles through the
+selected document backend; its historical name does not mean line segments or PostScript-only output. It preserves the
+one-pixel inset for fills and original rectangle dimensions for relief borders. Zero fill opacity suppresses the fill,
+but does not itself suppress an available nonflat border. An absent foreground and border produces no rectangle output.</p>
+<p>Stipple export without a foreground promotes the background color to stipple foreground and leaves the gaps
+transparent. Legend samples perform the same color normalization, but are independent square symbols drawn with the
+normal pen, not miniatures of individual palette or active rectangles. Screen samples retain integer centering and
+size-minus-one geometry, trying the legend renderer before the screen fallback. Zero opacity suppresses the legend
+sample even when a data rectangle could still have a relief border.</p>
+<p>Error colors use <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarColor" title="rbcGrBarConfiguration.GetBarColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarColor()</span></code></a> for native GC creation, screen strokes and all document
+backends. Explicit colors remain unchanged. Both an empty color and <code class="docutils literal notranslate"><span class="pre">defcolor</span></code> inherit foreground, then the bar
+background, then black if neither is present. The final fallback uses caller-owned <code class="docutils literal notranslate"><span class="pre">XColor</span></code> storage: its RGB
+components are black and its pixel is the screen’s black pixel. Keep that storage alive through the renderer context’s
+use; no Tk color reference is acquired. Configuration passes the staged error color before committing it. Screen
+strokes still supply at least one pixel, while document strokes retain the configured width and the backend’s hairline
+handling.</p>
 </section>
 <section id="value-labels-and-callbacks">
 <h2>Value labels and callbacks<a class="headerlink" href="#value-labels-and-callbacks" title="Link to this heading"></a></h2>
 <p><a class="reference internal" href="bar-reference.html#c.rbcGrBarOutput.DrawBarValues" title="rbcGrBarOutput.DrawBarValues"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarOutput.DrawBarValues()</span></code></a> and <a class="reference internal" href="bar-reference.html#c.rbcGrBarOutput.BarValuesExport" title="rbcGrBarOutput.BarValuesExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarOutput.BarValuesExport()</span></code></a> recover original X/Y values through
-the rectangle’s source-index map. Stacked labels therefore receive the source
-contribution, not the cumulative stack top. Each call to the shared label helper
-returns one owned Tcl object reference, released by the loop even for empty text.
-See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for command arguments, fallback formatting, background-error
-reporting and interpreter-result preservation.</p>
-<p>Without inversion the anchor is the horizontal center of the rectangle’s top
-edge, switching to its bottom edge when source Y is below the effective baseline.
-With inversion it is the vertical center of the right edge, switching to the left
-edge under the same source-value test. This decision uses source Y, not a new
-comparison of cumulative stack endpoints. The pen offset is added afterwards.
-Screen output checks integer bounds and truncates coordinates; document output
-retains floating-point coordinates.</p>
-<p>Label commands execute application Tcl while the output loop holds borrowed
-element, pen and geometry pointers. These loops do not preserve drawing records
-against deletion, reconfiguration or nested event processing. Callbacks must
-leave that drawing state unchanged and avoid nested event loops. Ownership of
-the returned label object protects its text, not the objects being drawn.</p>
+the rectangle’s source-index map. Stacked labels therefore receive the source contribution, not the cumulative stack
+top. Each call to the shared label helper returns one owned Tcl object reference, released by the loop even for empty
+text. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for command arguments, fallback formatting, background-error reporting and interpreter-result
+preservation.</p>
+<p>Without inversion the anchor is the horizontal center of the rectangle’s top edge, switching to its bottom edge when
+source Y is below the effective baseline. With inversion it is the vertical center of the right edge, switching to the
+left edge under the same source-value test. This decision uses source Y, not a new comparison of cumulative stack
+endpoints. The pen offset is added afterwards. Screen output checks integer bounds and truncates coordinates; document
+output retains floating-point coordinates.</p>
+<p>Label commands execute application Tcl while the output loop holds borrowed element, pen and geometry pointers. These
+loops do not preserve drawing records against deletion, reconfiguration or nested event processing. Callbacks must leave
+that drawing state unchanged and avoid nested event loops. Ownership of the returned label object protects its text, not
+the objects being drawn.</p>
 </section>
 <section id="cleanup-and-font-changes">
 <h2>Cleanup and font changes<a class="headerlink" href="#cleanup-and-font-changes" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.DestroyBar" title="rbcGrBarGeometry.DestroyBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.DestroyBar()</span></code></a> releases axes and named pens, destroys the embedded pen’s derived
-resources, detaches every data slot, resets mapped arrays and releases explicit
-active indices, palette and tags. It does not free the concrete allocation or
-Tk-managed option resources: shared element teardown owns those remaining steps.
-Detaching a named vector does not destroy the application’s vector.</p>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.DestroyPen" title="rbcGrBarConfiguration.DestroyPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.DestroyPen()</span></code></a> releases text-style drawing resources and manually derived colors
-and GCs, clearing released pointers. It deliberately leaves direct Tk option
-resources to the appropriate shared pen or element owner. Keeping this boundary
-explicit avoids double release of the embedded pen’s options.</p>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.Rbc_BarFontsChanged" title="rbcGrBarConfiguration.Rbc_BarFontsChanged"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.Rbc_BarFontsChanged()</span></code></a> visits both the named-pen table and every bar in the
-element table, including undisplayed elements. It resets label text styles with
-fonts, covering active/style pens through the named table and private embedded
-pens through the element table. It does not itself remap rectangles or schedule
-redrawing; the graph’s font-change workflow owns that work.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.DestroyBar" title="rbcGrBarGeometry.DestroyBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.DestroyBar()</span></code></a> releases axes and named pens, destroys the embedded pen’s derived resources,
+detaches every data slot, resets mapped arrays and releases explicit active indices, palette and tags. It does not free
+the concrete allocation or Tk-managed option resources: shared element teardown owns those remaining steps. Detaching a
+named vector does not destroy the application’s vector.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.DestroyPen" title="rbcGrBarConfiguration.DestroyPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.DestroyPen()</span></code></a> releases text-style drawing resources and manually derived colors and GCs,
+clearing released pointers. It deliberately leaves direct Tk option resources to the appropriate shared pen or element
+owner. Keeping this boundary explicit avoids double release of the embedded pen’s options.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.Rbc_BarFontsChanged" title="rbcGrBarConfiguration.Rbc_BarFontsChanged"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.Rbc_BarFontsChanged()</span></code></a> visits both the named-pen table and every bar in the element table,
+including undisplayed elements. It resets label text styles with fonts, covering active/style pens through the named
+table and private embedded pens through the element table. It does not itself remap rectangles or schedule redrawing;
+the graph’s font-change workflow owns that work.</p>
 </section>
 <section id="array-and-coordinate-contracts">
 <h2>Array and coordinate contracts<a class="headerlink" href="#array-and-coordinate-contracts" title="Link to this heading"></a></h2>
-<p>Bar helpers use three different indices. Source indices address paired X/Y
-samples; mapped indices address surviving rectangles after placement and
-clipping decisions; palette slices group those mapped rectangles for drawing.
-The parallel <code class="docutils literal notranslate"><span class="pre">rectToData</span></code> map preserves the link back to the original sample.
-Use <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="rbcGrBarGeometry.Rbc_GetBarRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.Rbc_GetBarRectangle()</span></code></a> with a source index, not an
-index into a style’s rectangle slice.</p>
+<p>Bar helpers use three different indices. Source indices address paired X/Y samples; mapped indices address surviving
+rectangles after placement and clipping decisions; palette slices group those mapped rectangles for drawing. The
+parallel <code class="docutils literal notranslate"><span class="pre">rectToData</span></code> map preserves the link back to the original sample. Use
+<a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="rbcGrBarGeometry.Rbc_GetBarRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.Rbc_GetBarRectangle()</span></code></a> with a source index, not an index into a style’s rectangle slice.</p>
 <table class="docutils align-default" id="id2">
 <caption><span class="caption-text">Array extents and ownership</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
 <colgroup>
@@ -1587,37 +1529,29 @@ index into a style’s rectangle slice.</p>
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.GetBarArrayByteCount" title="rbcGrBarLayout.GetBarArrayByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.GetBarArrayByteCount()</span></code></a> validates multiplication but
-allocates nothing. Its output is unchanged on error. That differs from the
-mapping helpers that discard old geometry before rebuilding it; a failed or
-empty mapping is not a promise to preserve the previous image.</p>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.PlaceBar" title="rbcGrBarLayout.PlaceBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.PlaceBar()</span></code></a> returns data-space corners and advances mutable
-group state. <a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.BarAnchorOffset" title="rbcGrBarLayout.BarAnchorOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.BarAnchorOffset()</span></code></a> uses the full effective
-width before any aligned/overlap subdivision. After mapping,
-<a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="rbcGrBarGeometry.Rbc_GetBarRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.Rbc_GetBarRectangle()</span></code></a> returns physical window bounds,
-including inversion, but does not intersect them with the final renderer clip.
-It writes output only on a successful source-index match.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.GetBarArrayByteCount" title="rbcGrBarLayout.GetBarArrayByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.GetBarArrayByteCount()</span></code></a> validates multiplication but allocates nothing. Its output is unchanged on
+error. That differs from the mapping helpers that discard old geometry before rebuilding it; a failed or empty mapping
+is not a promise to preserve the previous image.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.PlaceBar" title="rbcGrBarLayout.PlaceBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.PlaceBar()</span></code></a> returns data-space corners and advances mutable group
+state. <a class="reference internal" href="bar-reference.html#c.rbcGrBarLayout.BarAnchorOffset" title="rbcGrBarLayout.BarAnchorOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarLayout.BarAnchorOffset()</span></code></a> uses the full effective width before any aligned/overlap
+subdivision. After mapping, <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.Rbc_GetBarRectangle" title="rbcGrBarGeometry.Rbc_GetBarRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.Rbc_GetBarRectangle()</span></code></a> returns physical window bounds, including
+inversion, but does not intersect them with the final renderer clip. It writes output only on a successful source-index
+match.</p>
 </section>
 <section id="resource-and-output-contracts">
 <h2>Resource and output contracts<a class="headerlink" href="#resource-and-output-contracts" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarPenColorFromObj" title="rbcGrBarConfiguration.GetBarPenColorFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarPenColorFromObj()</span></code></a> can return NULL, the
-<code class="docutils literal notranslate"><span class="pre">COLOR_DEFAULT</span></code> sentinel, or an acquired Tk color. Use
-<a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.FreeBarPenColor" title="rbcGrBarConfiguration.FreeBarPenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.FreeBarPenColor()</span></code></a> for these staged results.
-By contrast, <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarColor" title="rbcGrBarConfiguration.GetBarColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarColor()</span></code></a> returns a borrowed
-resolved color or the supplied fallback storage. It acquires no reference;
-keep fallback storage alive until the renderer has finished using it.</p>
-<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.DestroyPen" title="rbcGrBarConfiguration.DestroyPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.DestroyPen()</span></code></a> does not free the pen allocation,
-and <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.DestroyBar" title="rbcGrBarGeometry.DestroyBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.DestroyBar()</span></code></a> does not free the element allocation.
-The embedded pen is part of the bar record. Shared lifecycle code owns final
-record and Tk-option cleanup, while these concrete callbacks release derived
-resources and dependencies.</p>
-<p>Screen and export helpers borrow their destination and prepared geometry.
-The outer element scope supplies clipping, including the relief borders that
-can extend beyond a rectangle’s fill. Legend-symbol callbacks instead receive
-sample-center coordinates; their size is independent of the mapped data bars.
-The screen callback’s width and height describe its destination drawable, not
-the requested sample dimensions. No output helper should call placement again
-or consume grouping cursors merely to render an existing rectangle.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarPenColorFromObj" title="rbcGrBarConfiguration.GetBarPenColorFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarPenColorFromObj()</span></code></a> can return NULL, the <code class="docutils literal notranslate"><span class="pre">COLOR_DEFAULT</span></code> sentinel, or an acquired Tk
+color. Use <a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.FreeBarPenColor" title="rbcGrBarConfiguration.FreeBarPenColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.FreeBarPenColor()</span></code></a> for these staged results. By contrast,
+<a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.GetBarColor" title="rbcGrBarConfiguration.GetBarColor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.GetBarColor()</span></code></a> returns a borrowed resolved color or the supplied fallback storage. It
+acquires no reference; keep fallback storage alive until the renderer has finished using it.</p>
+<p><a class="reference internal" href="bar-reference.html#c.rbcGrBarConfiguration.DestroyPen" title="rbcGrBarConfiguration.DestroyPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarConfiguration.DestroyPen()</span></code></a> does not free the pen allocation, and <a class="reference internal" href="bar-reference.html#c.rbcGrBarGeometry.DestroyBar" title="rbcGrBarGeometry.DestroyBar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrBarGeometry.DestroyBar()</span></code></a>
+does not free the element allocation. The embedded pen is part of the bar record. Shared lifecycle code owns final
+record and Tk-option cleanup, while these concrete callbacks release derived resources and dependencies.</p>
+<p>Screen and export helpers borrow their destination and prepared geometry. The outer element scope supplies clipping,
+including the relief borders that can extend beyond a rectangle’s fill. Legend-symbol callbacks instead receive
+sample-center coordinates; their size is independent of the mapped data bars. The screen callback’s width and height
+describe its destination drawable, not the requested sample dimensions. No output helper should call placement again or
+consume grouping cursors merely to render an existing rectangle.</p>
 </section>
 </section>
 

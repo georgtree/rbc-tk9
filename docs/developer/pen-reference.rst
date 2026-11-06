@@ -1,8 +1,8 @@
 Pen and palette C reference
 ===========================
 
-These private services distinguish counted named-pen references from borrowed
-normal-palette entries. See :doc:`pens` for lifetime and selection rules.
+These private services distinguish counted named-pen references from borrowed normal-palette entries. See :doc:`pens`
+for lifetime and selection rules.
 
 Pen ownership and palette records
 ---------------------------------
@@ -51,9 +51,8 @@ Element palettes
 Named pen implementation
 -------------------------
 
-The implementation group uses a documentation-only ``rbcGrPen`` scope to
-separate file-local handler names (such as DeleteOp) from identical names in
-other modules. This does not rename C symbols or introduce a runtime namespace.
+The implementation group uses a documentation-only ``rbcGrPen`` scope to separate file-local handler names (such as
+DeleteOp) from identical names in other modules. This does not rename C symbols or introduce a runtime namespace.
 
 .. c:namespace-push:: rbcGrPen
 
@@ -71,8 +70,8 @@ Palette implementation
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: PenOpSpec
    :members:

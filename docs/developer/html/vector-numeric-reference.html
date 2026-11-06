@@ -521,6 +521,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1228,12 +1229,11 @@
              
   <section id="vector-numerical-operation-c-reference">
 <h1>Vector numerical operation C reference<a class="headerlink" href="#vector-numerical-operation-c-reference" title="Link to this heading"></a></h1>
-<p>These private handlers are implemented in <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. Their runtime
-limitations are described in <a class="reference internal" href="vector-operations.html"><span class="doc">Vector indexed edits and rearrangement</span></a>.</p>
-<p>Instance handlers receive the full command argument array: command name at
-<code class="docutils literal notranslate"><span class="pre">objv[0]</span></code>, operation at <code class="docutils literal notranslate"><span class="pre">objv[1]</span></code>, then operation arguments. The dispatcher
-retains the receiver and interpreter; callbacks can still destroy their
-logical state. See <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> and <a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a>.</p>
+<p>These private handlers are implemented in <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. Their runtime limitations are described in
+<a class="reference internal" href="vector-operations.html"><span class="doc">Vector indexed edits and rearrangement</span></a>.</p>
+<p>Instance handlers receive the full command argument array: command name at <code class="docutils literal notranslate"><span class="pre">objv[0]</span></code>, operation at <code class="docutils literal notranslate"><span class="pre">objv[1]</span></code>, then
+operation arguments. The dispatcher retains the receiver and interpreter; callbacks can still destroy their logical
+state. See <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> and <a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a>.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__vector__numeric__paths"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Vector</span> <span class="pre">queries</span> <span class="pre">and</span> <span class="pre">numerical</span> <span class="pre">generators</span></span></dt>

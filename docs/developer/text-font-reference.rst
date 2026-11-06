@@ -55,8 +55,8 @@ PDF font resource encoding
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: ExportCharacter
    :members:

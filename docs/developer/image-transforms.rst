@@ -1,45 +1,35 @@
 Color-image rotation and bitmap transforms
 ==========================================
 
-Color images and monochrome bitmaps use different transformation paths.
-``rbcImage.c`` operates on CPU-side RGBA storage; ``rbcWinImage.c`` and
-``rbcUnixImage.c`` operate on native depth-one pixmaps. These services are
-private image utilities used by components and native renderers, not additional
-renderer backends. See :doc:`images-tiles` for storage ownership and
-:doc:`image-resampling` for ordinary resizing.
+Color images and monochrome bitmaps use different transformation paths. ``rbcImage.c`` operates on CPU-side RGBA
+storage; ``rbcWinImage.c`` and ``rbcUnixImage.c`` operate on native depth-one pixmaps. These services are private image
+utilities used by components and native renderers, not additional renderer backends. See :doc:`images-tiles` for storage
+ownership and :doc:`image-resampling` for ordinary resizing.
 
 Color-image rotation
 --------------------
 
-:c:func:`Rbc_RotateColorImage` borrows the source and always returns independent
-storage. A zero-degree operation still copies the image. Empty input is copied
-before quadrant handling, retaining its dimensions. Angles must be finite and
-are normalized modulo 360 degrees; positive rotation is counterclockwise in
-display coordinates.
+:c:func:`Rbc_RotateColorImage` borrows the source and always returns independent storage. A zero-degree operation still
+copies the image. Empty input is copied before quadrant handling, retaining its dimensions. Angles must be finite and
+are normalized modulo 360 degrees; positive rotation is counterclockwise in display coordinates.
 
-The function first selects a multiple of 90 degrees, leaving a residual angle
-in the range -45 to 45 degrees. Exact quadrant rotations copy complete pixels
-without interpolation; 90 and 270 degrees exchange width and height. For
-example, the 90-degree path maps source pixel ``(x, y)`` to
-``(y, sourceWidth - x - 1)``.
+The function first selects a multiple of 90 degrees, leaving a residual angle in the range -45 to 45 degrees. Exact
+quadrant rotations copy complete pixels without interpolation; 90 and 270 degrees exchange width and height. For
+example, the 90-degree path maps source pixel ``(x, y)`` to ``(y, sourceWidth - x - 1)``.
 
-A nonzero residual goes through :c:func:`rbcImageRotation.Rotate45`. Despite that helper's name,
-its argument is radians, not degrees. It performs a row shear, a column shear,
-and a final row shear, using tangent of the half-angle and sine of the angle.
-Two intermediate images are released internally. The public function also
-releases any quadrant-rotated temporary, leaving only the final owned result.
+A nonzero residual goes through :c:func:`rbcImageRotation.Rotate45`. Despite that helper's name, its argument is
+radians, not degrees. It performs a row shear, a column shear, and a final row shear, using tangent of the half-angle
+and sine of the angle. Two intermediate images are released internally. The public function also releases any
+quadrant-rotated temporary, leaving only the final owned result.
 
-Each shear blends neighboring contributions with fixed-point arithmetic and
-clamps channels to byte range. Background is transparent white, including its
-RGB values: it is not transparent black. RGB and alpha are processed separately,
-without premultiplication or gamma conversion. This affects partially transparent
-edge pixels, as discussed for filtering in :doc:`image-resampling`.
+Each shear blends neighboring contributions with fixed-point arithmetic and clamps channels to byte range. Background is
+transparent white, including its RGB values: it is not transparent black. RGB and alpha are processed separately,
+without premultiplication or gamma conversion. This affects partially transparent edge pixels, as discussed for
+filtering in :doc:`image-resampling`.
 
-Dimensions are derived from the three-shear construction, with checked integer
-conversion and extra space in the later passes. Do not substitute a generic
-rotated bounding-box formula and assume identical dimensions or pixels.
-Non-finite angles and unrepresentable rotation dimensions panic; command-level
-validation remains the caller's responsibility.
+Dimensions are derived from the three-shear construction, with checked integer conversion and extra space in the later
+passes. Do not substitute a generic rotated bounding-box formula and assume identical dimensions or pixels. Non-finite
+angles and unrepresentable rotation dimensions panic; command-level validation remains the caller's responsibility.
 
 Quadrant selection and intermediate geometry
 --------------------------------------------
@@ -69,13 +59,12 @@ After normalization into [0, 360), the dispatcher selects these paths:
      - None
      - angle - 360
 
-The endpoint choices are intentional: 45 degrees uses no quadrant copy,
-while 135 degrees uses a 90-degree copy followed by a positive 45-degree
-residual. Changing which exact rotation precedes a shear can change intermediate
-rounding even when the final mathematical angle is equivalent.
+The endpoint choices are intentional: 45 degrees uses no quadrant copy, while 135 degrees uses a 90-degree copy followed
+by a positive 45-degree residual. Changing which exact rotation precedes a shear can change intermediate rounding even
+when the final mathematical angle is equivalent.
 
-For source width W and height H *after* any quadrant copy, :c:func:`rbcImageRotation.Rotate45` uses
-s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:
+For source width W and height H *after* any quadrant copy, :c:func:`rbcImageRotation.Rotate45` uses s = sin(theta), c =
+cos(theta), and t = tan(theta/2). Its image sizes are:
 
 .. list-table::
    :header-rows: 1
@@ -94,160 +83,129 @@ s = sin(theta), c = cos(theta), and t = tan(theta/2). Its image sizes are:
      - truncate(H*abs(s) + W*c + 1)
      - Second-stage height
 
-:c:func:`rbcImageRotation.GetRotationDimension` checks finiteness and the nonnegative int range before
-truncation. It does not ceil the result. :c:func:`rbcImageRotation.GetShearOffset` floors the displacement,
-including negative values, and checks the int range. The fractional argument
-is the original displacement minus that integer offset, so it lies in [0, 1)
-for valid geometry. The caller's residual-angle restriction keeps the
-construction within the intended two-neighbor filtering regime.
+:c:func:`rbcImageRotation.GetRotationDimension` checks finiteness and the nonnegative int range before truncation. It
+does not ceil the result. :c:func:`rbcImageRotation.GetShearOffset` floors the displacement, including negative values,
+and checks the int range. The fractional argument is the original displacement minus that integer offset, so it lies in
+[0, 1) for valid geometry. The caller's residual-angle restriction keeps the construction within the intended
+two-neighbor filtering regime.
 
 Shear traversal and boundary pixels
 -----------------------------------
 
-The historical helper names describe the fixed coordinate: :c:func:`rbcImageRotation.ShearY` processes
-a row at fixed y and moves pixels horizontally; :c:func:`rbcImageRotation.ShearX` processes a column at
-fixed x and moves pixels vertically. Each initializes its complete destination
-row or column to the background before sampling. The source and destination
-must be distinct, since that initialization would overwrite an aliased source.
+The historical helper names describe the fixed coordinate: :c:func:`rbcImageRotation.ShearY` processes a row at fixed y
+and moves pixels horizontally; :c:func:`rbcImageRotation.ShearX` processes a column at fixed x and moves pixels
+vertically. Each initializes its complete destination row or column to the background before sampling. The source and
+destination must be distinct, since that initialization would overwrite an aliased source.
 
-Each source channel contributes a fraction computed with the same 14-bit
-fixed-point macros used by resampling. The output combines the current pixel
-with the carried fraction from its predecessor and clamps to a byte. The carry
-starts from the background channel value; after the last source pixel, an
-additional residual pixel is emitted if it falls within the destination.
-The routines still advance carry state for clipped source contributions.
-Clipping therefore limits writes without restarting the filter at the first
-visible pixel.
+Each source channel contributes a fraction computed with the same 14-bit fixed-point macros used by resampling. The
+output combines the current pixel with the carried fraction from its predecessor and clamps to a byte. The carry starts
+from the background channel value; after the last source pixel, an additional residual pixel is emitted if it falls
+within the destination. The routines still advance carry state for clipped source contributions. Clipping therefore
+limits writes without restarting the filter at the first visible pixel.
 
-These are private kernels with caller-established invariants: the fixed row
-or column exists in both images, the fraction is in range, and advancing the
-integer displacement across the source remains representable. They validate
-individual destination writes, not arbitrary source indices or caller-provided
-fractions. The public rotation path supplies matching intermediate dimensions.
-Each pass clamps independently, and transparent white participates in straight
-RGBA filtering. It must not be silently replaced with premultiplied or
-transparent-black interpolation during refactoring.
+These are private kernels with caller-established invariants: the fixed row or column exists in both images, the
+fraction is in range, and advancing the integer displacement across the source remains representable. They validate
+individual destination writes, not arbitrary source indices or caller-provided fractions. The public rotation path
+supplies matching intermediate dimensions. Each pass clamps independently, and transparent white participates in
+straight RGBA filtering. It must not be silently replaced with premultiplied or transparent-black interpolation during
+refactoring.
 
-The first intermediate is freed after the column shear; the second is freed
-after the final row shear. A quadrant-rotated temporary belongs to the outer
-dispatcher and is freed only when a further residual rotation replaces it.
-With an exact quadrant angle, that temporary itself becomes the returned image.
-Zero rotation returns a full copy. Empty input bypasses all shears and retains
-its original dimensions, even when the requested angle would normally exchange
-them.
+The first intermediate is freed after the column shear; the second is freed after the final row shear. A
+quadrant-rotated temporary belongs to the outer dispatcher and is freed only when a further residual rotation replaces
+it. With an exact quadrant angle, that temporary itself becomes the returned image. Zero rotation returns a full
+copy. Empty input bypasses all shears and retains its original dimensions, even when the requested angle would normally
+exchange them.
 
 One-bit bitmap ownership
 ------------------------
 
-Bitmap transforms borrow a valid Tk window and a source pixmap whose actual
-size matches the supplied dimensions. Successful results are newly owned
-pixmaps, released using ``Tk_FreePixmap`` on the corresponding display. They
-are not ``Rbc_ColorImage`` objects and must not be freed with ``ckfree`` or
-:c:func:`Rbc_FreeColorImage`.
+Bitmap transforms borrow a valid Tk window and a source pixmap whose actual size matches the supplied
+dimensions. Successful results are newly owned pixmaps, released using ``Tk_FreePixmap`` on the corresponding
+display. They are not ``Rbc_ColorImage`` objects and must not be freed with ``ckfree`` or :c:func:`Rbc_FreeColorImage`.
 
-Rotation computes a containing bounding box and uses special cases for exact
-right angles. General angles map destination pixels back to source coordinates;
-samples outside the source are left clear. Unlike color rotation, this is
+Rotation computes a containing bounding box and uses special cases for exact right angles. General angles map
+destination pixels back to source coordinates; samples outside the source are left clear. Unlike color rotation, this is
 discrete one-bit sampling with no partially covered pixels.
 
-X11 implementations obtain source and destination ``XImage`` objects, populate
-the destination and upload it with ``XPutImage``. Temporary XImages are released
-with ``XDestroyImage``. Windows rotation works through monochrome bitmap bytes
-and DIB metadata, including DWORD-aligned scanlines and checked buffer sizes.
-Those byte-layout rules must not be replaced with packed RGBA assumptions.
+X11 implementations obtain source and destination ``XImage`` objects, populate the destination and upload it with
+``XPutImage``. Temporary XImages are released with ``XDestroyImage``. Windows rotation works through monochrome bitmap
+bytes and DIB metadata, including DWORD-aligned scanlines and checked buffer sizes. Those byte-layout rules must not be
+replaced with packed RGBA assumptions.
 
 Scaling and virtual regions
 ---------------------------
 
-:c:func:`Rbc_ScaleBitmap` returns the full requested output. X11 explicitly samples
-nearest source pixels. Windows uses ``StretchBlt`` with ``SRCCOPY`` through
-paired drawable-DC acquisition and release. These are separate implementations;
+:c:func:`Rbc_ScaleBitmap` returns the full requested output. X11 explicitly samples nearest source pixels. Windows uses
+``StretchBlt`` with ``SRCCOPY`` through paired drawable-DC acquisition and release. These are separate implementations;
 do not infer identical downscaling details from their shared C signature.
 
-:c:func:`Rbc_ScaleRotateBitmapRegion` avoids allocating the full virtual output.
-It uses the rotated source bounding box and the virtual destination dimensions
-to map a requested region back to source pixels. The returned bitmap is only
-``regionWidth`` by ``regionHeight``. Bitmap markers use this route for the
-visible portion of a larger transformed marker, applying the same transform
-to its mask when needed.
+:c:func:`Rbc_ScaleRotateBitmapRegion` avoids allocating the full virtual output. It uses the rotated source bounding
+box and the virtual destination dimensions to map a requested region back to source pixels. The returned bitmap is only
+``regionWidth`` by ``regionHeight``. Bitmap markers use this route for the visible portion of a larger transformed
+marker, applying the same transform to its mask when needed.
 
-The region must lie within the virtual destination, and coordinate additions
-must remain representable. The right-angle paths read source samples directly;
-they do not implement general out-of-range padding or edge clamping. This is
-unlike :c:func:`Rbc_ResizeColorSubimage`, which explicitly clamps virtual coordinates
-to source edges. Keep these contracts distinct when sharing callers.
+The region must lie within the virtual destination, and coordinate additions must remain representable. The right-angle
+paths read source samples directly; they do not implement general out-of-range padding or edge clamping. This is unlike
+:c:func:`Rbc_ResizeColorSubimage`, which explicitly clamps virtual coordinates to source edges. Keep these contracts
+distinct when sharing callers.
 
 Failure and platform differences
 --------------------------------
 
-``None`` indicates a detected bitmap-transform failure, but failure checking
-is not uniform. X11 scaling rejects nonpositive dimensions explicitly;
-Windows scaling relies on its caller and native operations. Windows scaling
-also returns its allocated pixmap without propagating ``StretchBlt`` failure.
+``None`` indicates a detected bitmap-transform failure, but failure checking is not uniform. X11 scaling rejects
+nonpositive dimensions explicitly; Windows scaling relies on its caller and native operations. Windows scaling also
+returns its allocated pixmap without propagating ``StretchBlt`` failure.
 
-The rotation dimension outputs are not portable failure indicators. X11 writes
-them on success; Windows clears them after initial argument validation and
-before later operations. Always check the returned pixmap first, and require
-non-NULL output pointers on both platforms. These helpers do not provide a
-uniform Tcl diagnostic interface.
+The rotation dimension outputs are not portable failure indicators. X11 writes them on success; Windows clears them
+after initial argument validation and before later operations. Always check the returned pixmap first, and require
+non-NULL output pointers on both platforms. These helpers do not provide a uniform Tcl diagnostic interface.
 
 Maintenance checks
 ------------------
 
-Use an asymmetric pattern to detect mirroring and rotation direction. Check
-zero, positive and negative right angles, angles near quadrant boundaries,
-non-square images and arbitrary rotations. For color images, inspect RGBA
-values at transparent edges as well as appearance. For bitmaps, exercise
-scanline widths around byte and DWORD boundaries, scaling and contained virtual
-regions on both Windows and X11. Verify returned dimensions, source preservation
-and matching resource cleanup independently of the rendered result.
+Use an asymmetric pattern to detect mirroring and rotation direction. Check zero, positive and negative right angles,
+angles near quadrant boundaries, non-square images and arbitrary rotations. For color images, inspect RGBA values at
+transparent edges as well as appearance. For bitmaps, exercise scanline widths around byte and DWORD boundaries, scaling
+and contained virtual regions on both Windows and X11. Verify returned dimensions, source preservation and matching
+resource cleanup independently of the rendered result.
 
 X11 capture dimensions and visual channels
 ------------------------------------------
 
 The X11 helpers distinguish geometric dimensions, pixel counts and packed row sizes.
-:c:func:`rbcX11Image.GetBitmapDimension` rounds upward with ``ceil`` and returns zero
-when the result is nonfinite, below one or above ``INT_MAX``. Pixel-count and packed row
-helpers instead treat negative arguments as internal programming errors and panic. A
-packed one-bit row occupies ceiling(width/8) bytes; it is not the DWORD-aligned Windows
+:c:func:`rbcX11Image.GetBitmapDimension` rounds upward with ``ceil`` and returns zero when the result is nonfinite,
+below one or above ``INT_MAX``. Pixel-count and packed row helpers instead treat negative arguments as internal
+programming errors and panic. A packed one-bit row occupies ceiling(width/8) bytes; it is not the DWORD-aligned Windows
 representation.
 
 Drawable capture installs a temporary Tk handler for ``BadMatch`` from ``X_GetImage``.
-:c:func:`rbcX11Image.XGetImageErrorProc` only records failure in the caller's status
-slot. ``XSync`` runs before the handler is removed, keeping that slot alive while
-asynchronous errors are delivered. Capture frees any returned XImage on that failure
-path. This handler does not suppress every possible X error or provide a Tcl error
-message.
+:c:func:`rbcX11Image.XGetImageErrorProc` only records failure in the caller's status slot. ``XSync`` runs before the
+handler is removed, keeping that slot alive while asynchronous errors are delivered. Capture frees any returned XImage
+on that failure path. This handler does not suppress every possible X error or provide a Tcl error message.
 
-For TrueColor capture, :c:func:`rbcX11Image.ComputeMasks` builds local extraction shifts
-from nonzero contiguous RGB masks in the X11 pixel layout. Channels with fewer than
-eight bits are shifted left, preserving the existing behavior: maximum five-bit and
-six-bit values become 248 and 252, rather than 255. Eight-bit values pass through
-unchanged. Channels wider than eight bits discard their low bits before indexing the
-256-entry gamma table; a ten-bit value of 1023 therefore becomes 255, and 512 becomes
-128. This prevents an out-of-bounds lookup on 30-bit TrueColor displays without changing
-the per-pixel extraction structure.
+For TrueColor capture, :c:func:`rbcX11Image.ComputeMasks` builds local extraction shifts from nonzero contiguous RGB
+masks in the X11 pixel layout. Channels with fewer than eight bits are shifted left, preserving the existing behavior:
+maximum five-bit and six-bit values become 248 and 252, rather than 255. Eight-bit values pass through
+unchanged. Channels wider than eight bits discard their low bits before indexing the 256-entry gamma table; a ten-bit
+value of 1023 therefore becomes 255, and 512 becomes
+128. This prevents an out-of-bounds lookup on 30-bit TrueColor displays without changing the per-pixel extraction
+structure.
 
-Mask bit counts are computed during capture setup using the low 32 bits of
-each visual mask. Ordinary captures prepare only three channel masks. The gamma
-table and mask metadata belong to the capture call, rather than shared global
-state.
+Mask bit counts are computed during capture setup using the low 32 bits of each visual mask. Ordinary captures prepare
+only three channel masks. The gamma table and mask metadata belong to the capture call, rather than shared global state.
 
-The private ``make test-image`` harness tests every sample for five-, six-,
-eight- and ten-bit channels at multiple bit positions. These X11-only cases use
-the actual mask helper and do not require a 30-bit display server. They run in
-the existing photo test file and skip on Windows; the public C API is unchanged.
+The private ``make test-image`` harness tests every sample for five-, six-, eight- and ten-bit channels at multiple bit
+positions. These X11-only cases use the actual mask helper and do not require a 30-bit display server. They run in the
+existing photo test file and skip on Windows; the public C API is unchanged.
 
 X11 capture and opacity-mask inputs
 -----------------------------------
 
-:c:func:`rbcX11Image.Rbc_DrawableToColorImage` borrows a compatible window and
-drawable, captures the complete requested rectangle and returns owned opaque
-RGBA storage. Width, height and gamma must be positive, with finite gamma.
-Release successful output with :c:func:`Rbc_FreeColorImage`.
+:c:func:`rbcX11Image.Rbc_DrawableToColorImage` borrows a compatible window and drawable, captures the complete requested
+rectangle and returns owned opaque RGBA storage. Width, height and gamma must be positive, with finite gamma. Release
+successful output with :c:func:`Rbc_FreeColorImage`.
 
-:c:func:`rbcX11Image.Rbc_PhotoImageMask` reads a supplied photo block, including
-its stride and alpha offset. :c:func:`rbcX11Image.Rbc_ColorImageMask` reads RBC
-RGBA pixels. Both treat zero alpha as transparent and nonzero alpha as opaque.
-On X11, fully opaque input returns None; otherwise the returned bitmap belongs
-to the caller and requires Tk_FreePixmap.
+:c:func:`rbcX11Image.Rbc_PhotoImageMask` reads a supplied photo block, including its stride and alpha
+offset. :c:func:`rbcX11Image.Rbc_ColorImageMask` reads RBC RGBA pixels. Both treat zero alpha as transparent and nonzero
+alpha as opaque. On X11, fully opaque input returns None; otherwise the returned bitmap belongs to the caller and
+requires Tk_FreePixmap.

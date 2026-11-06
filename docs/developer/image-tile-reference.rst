@@ -78,10 +78,8 @@ Native tiled shapes
 
 .. c:namespace:: NULL
 
-The mask helper reference above describes X11. Windows tiled shapes and
-:c:func:`rbcWindowsTiles.TileRegion` are extracted separately in
-:doc:`native-windows-reference`; see :doc:`images-tiles` for origin and DC batching
-rules.
+The mask helper reference above describes X11. Windows tiled shapes and :c:func:`rbcWindowsTiles.TileRegion` are
+extracted separately in :doc:`native-windows-reference`; see :doc:`images-tiles` for origin and DC batching rules.
 
 Storage and coordinate implementation
 --------------------------------------

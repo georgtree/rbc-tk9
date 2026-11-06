@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1508,19 +1509,15 @@
              
   <section id="renderer-c-reference">
 <h1>Renderer C reference<a class="headerlink" href="#renderer-c-reference" title="Link to this heading"></a></h1>
-<p>These declarations are private implementation interfaces, not installed APIs.
-Callers must obey the capabilities of the constructor they selected; generic
-operation names do not imply that every context implements them.</p>
-<p>Parameter directions follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Context arguments
-refer to a specific constructor family; mutable context state does not imply
-ownership of borrowed graph, document, image or font resources. See
+<p>These declarations are private implementation interfaces, not installed APIs. Callers must obey the capabilities of the
+constructor they selected; generic operation names do not imply that every context implements them.</p>
+<p>Parameter directions follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Context arguments refer to a specific constructor family;
+mutable context state does not imply ownership of borrowed graph, document, image or font resources. See
 <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for batch lifetimes and scope pairing.</p>
-<p>Screen adapters and Cairo attempts have different result contracts. Native
-one-shot adapters retain the supplied GC behavior, including the explicitly
-documented origin/clip mutations. Cairo attempt helpers return a fallback flag;
-context constructors return an owned context or their documented failure value.
-See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> and <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for call sequences and
-coordinate conventions.</p>
+<p>Screen adapters and Cairo attempts have different result contracts. Native one-shot adapters retain the supplied GC
+behavior, including the explicitly documented origin/clip mutations. Cairo attempt helpers return a fallback flag;
+context constructors return an owned context or their documented failure value. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> and
+<a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for call sequences and coordinate conventions.</p>
 <section id="component-facing-interface">
 <h2>Component-facing interface<a class="headerlink" href="#component-facing-interface" title="Link to this heading"></a></h2>
 <p>Private graph rendering interface used by mapped components. </p>
@@ -3428,9 +3425,8 @@ Must preserve graph and drawing-resource lifetime and must not retain the target
 <span class="target" id="rbc_render_8h_1a3c493c24ce4366e11ebbc1f93b14b933"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><a class="reference internal" href="#c.Rbc_RenderTarget" title="Rbc_RenderTarget"><span class="n"><span class="pre">Rbc_RenderTarget</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RenderTarget</span></span></span><a class="headerlink" href="#c.Rbc_RenderTarget" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<p>The context typedef names the backend record documented below. It is rendered
-there once, rather than indexing both the typedef and struct under the same
-C identifier.</p>
+<p>The context typedef names the backend record documented below. It is rendered there once, rather than indexing both the
+typedef and struct under the same C identifier.</p>
 </section>
 <section id="backend-dispatch">
 <h2>Backend dispatch<a class="headerlink" href="#backend-dispatch" title="Link to this heading"></a></h2>
@@ -3886,25 +3882,21 @@ C identifier.</p>
 </div>
 </dd></dl>
 
-<p>Each operation-table member has a separate contract and link target. The first callback
-argument is the live context selected by its constructor; a non-NULL operation
-table alone does not establish that every callback is supported. In particular,
-<a class="reference internal" href="#c.Rbc_RenderOps.output" title="Rbc_RenderOps.output"><code class="xref c c-member docutils literal notranslate"><span class="pre">Rbc_RenderOps.output</span></code></a> is an optional table, and its individual entries
-can also be NULL. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the constructor capability matrix.</p>
-<p><a class="reference internal" href="#c.Rbc_RenderOps.end" title="Rbc_RenderOps.end"><code class="xref c c-member docutils literal notranslate"><span class="pre">Rbc_RenderOps.end</span></code></a> consumes owned heap contexts after common clip
-unwinding. Stack-based one-shot screen adapters must not use it. Rectangular
-clip callbacks implement backend state only; the common dispatcher owns the
+<p>Each operation-table member has a separate contract and link target. The first callback argument is the live context
+selected by its constructor; a non-NULL operation table alone does not establish that every callback is supported. In
+particular, <a class="reference internal" href="#c.Rbc_RenderOps.output" title="Rbc_RenderOps.output"><code class="xref c c-member docutils literal notranslate"><span class="pre">Rbc_RenderOps.output</span></code></a> is an optional table, and its individual entries can also be NULL. See
+<a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the constructor capability matrix.</p>
+<p><a class="reference internal" href="#c.Rbc_RenderOps.end" title="Rbc_RenderOps.end"><code class="xref c c-member docutils literal notranslate"><span class="pre">Rbc_RenderOps.end</span></code></a> consumes owned heap contexts after common clip unwinding. Stack-based one-shot screen
+adapters must not use it. Rectangular clip callbacks implement backend state only; the common dispatcher owns the
 nesting counter.</p>
 </section>
 <section id="common-screen-adapters">
 <h2>Common screen adapters<a class="headerlink" href="#common-screen-adapters" title="Link to this heading"></a></h2>
-<p>These private callbacks implement the constructor families described in
-<a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>. A populated operation table alone does not establish that a
-particular constructor initialized every callback’s required state. Each
-callback’s parameter description identifies the required family. Destructors
-consume heap contexts; synchronous decoration/detail contexts can be stack-based
-and must not be passed to them. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the internal adapter
-call relationships.</p>
+<p>These private callbacks implement the constructor families described in <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>. A populated operation table
+alone does not establish that a particular constructor initialized every callback’s required state. Each callback’s
+parameter description identifies the required family. Destructors consume heap contexts; synchronous decoration/detail
+contexts can be stack-based and must not be passed to them. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the internal adapter call
+relationships.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__render__dispatch__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Screen</span> <span class="pre">dispatch</span> <span class="pre">internals</span></span></dt>

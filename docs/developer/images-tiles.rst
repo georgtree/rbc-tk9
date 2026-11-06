@@ -1,10 +1,9 @@
 Image storage and tile clients
 ==============================
 
-Images cross several ownership boundaries. ``rbcImage.c`` supplies owned pixel
-buffers and conversion helpers; ``rbcTile.c`` caches a Tk image's native drawing
-resources for multiple clients. Components retain their own option and redraw
-responsibilities. These are private services, not the installed vector API.
+Images cross several ownership boundaries. ``rbcImage.c`` supplies owned pixel buffers and conversion helpers;
+``rbcTile.c`` caches a Tk image's native drawing resources for multiple clients. Components retain their own option and
+redraw responsibilities. These are private services, not the installed vector API.
 
 Pixel storage and Tk images
 ---------------------------
@@ -27,207 +26,166 @@ Pixel storage and Tk images
    * - Tile pixmap
      - A server-owned native cache. Clients borrow it only until update/release.
 
-``Pix32`` provides explicit red, green, blue and alpha byte fields. Use these
-fields and the image access macros; do not infer a portable packed integer
-channel order from the union's ``value`` member. New color images are zeroed,
-including alpha, so newly allocated pixels are transparent until populated.
-Dimensions are nonnegative and allocation arithmetic is checked; invalid or
-unrepresentable sizes panic rather than return a Tcl error. Even an empty image
-has an owning record. The free helper requires a valid non-NULL image.
+``Pix32`` provides explicit red, green, blue and alpha byte fields. Use these fields and the image access macros; do not
+infer a portable packed integer channel order from the union's ``value`` member. New color images are zeroed, including
+alpha, so newly allocated pixels are transparent until populated. Dimensions are nonnegative and allocation arithmetic
+is checked; invalid or unrepresentable sizes panic rather than return a Tcl error. Even an empty image has an owning
+record. The free helper requires a valid non-NULL image.
 
-Photo conversion copies rows using Tk's pitch, pixel size and channel offsets.
-:c:func:`Rbc_PhotoToColorImage` returns an independent snapshot.
-:c:func:`Rbc_PhotoRegionToColorImage` clamps the requested origin and limits spans
-to the remaining photo area. It returns an empty image when that effective
-region is empty. This is not rectangle intersection: a negative origin becomes
-zero without reducing a positive span. Later photo changes do not update either
-snapshot.
+Photo conversion copies rows using Tk's pitch, pixel size and channel offsets. :c:func:`Rbc_PhotoToColorImage` returns
+an independent snapshot. :c:func:`Rbc_PhotoRegionToColorImage` clamps the requested origin and limits spans to the
+remaining photo area. It returns an empty image when that effective region is empty. This is not rectangle intersection:
+a negative origin becomes zero without reducing a positive span. Later photo changes do not update either snapshot.
 
-:c:func:`Rbc_ColorImageToPhoto` resizes the destination and writes using
-``TK_PHOTO_COMPOSITE_SET``. Tk copies the supplied block; the caller keeps and
-can subsequently free the RBC image. This legacy void wrapper ignores the
-return statuses of the Tk resize/write operations. Callers requiring reliable
-error propagation must not treat its return as evidence of success.
+:c:func:`Rbc_ColorImageToPhoto` resizes the destination and writes using ``TK_PHOTO_COMPOSITE_SET``. Tk copies the
+supplied block; the caller keeps and can subsequently free the RBC image. This legacy void wrapper ignores the return
+statuses of the Tk resize/write operations. Callers requiring reliable error propagation must not treat its return as
+evidence of success.
 
 Allocation and photo-block conversion
 --------------------------------------
 
 :c:func:`rbcImageStorage.GetColorImagePixelCount` checks nonnegative dimensions and the size_t pixel
-product. :c:func:`Rbc_CreateColorImage` then allocates the record and the zeroed pixel
-array separately through the checked allocator. An empty result still requires
-:c:func:`Rbc_FreeColorImage`; it is not represented by NULL. Raw image mutations do not
-notify any Tk image or attached graph. Publishing pixels into a photo is a
-separate operation with Tk's own change-notification behavior.
+product. :c:func:`Rbc_CreateColorImage` then allocates the record and the zeroed pixel array separately through the
+checked allocator. An empty result still requires :c:func:`Rbc_FreeColorImage`; it is not represented by NULL. Raw image
+mutations do not notify any Tk image or attached graph. Publishing pixels into a photo is a separate operation with Tk's
+own change-notification behavior.
 
-The conversion routines use row pitch and pixel size rather than assuming the
-photo is tightly packed. A four-byte block copies RGB and alpha through all
-four channel offsets; a three-byte block copies RGB and supplies alpha 255.
-The region converter computes its starting displacement in Tcl_WideInt and
-checks ptrdiff_t representability, then walks each row using the photo pitch.
-That arithmetic check does not validate arbitrary image-block metadata or
-replace the requirement for a live, valid photo handle.
+The conversion routines use row pitch and pixel size rather than assuming the photo is tightly packed. A four-byte block
+copies RGB and alpha through all four channel offsets; a three-byte block copies RGB and supplies alpha 255. The region
+converter computes its starting displacement in Tcl_WideInt and checks ptrdiff_t representability, then walks each row
+using the photo pitch. That arithmetic check does not validate arbitrary image-block metadata or replace the
+requirement for a live, valid photo handle.
 
-For pixel sizes other than three or four, both whole-photo and region
-conversion replicate offset[0] into RGB and supply alpha 255. This preserves
-the existing whole-photo fallback policy: even a two-byte grayscale/alpha
-layout produces opaque pixels; its alpha channel is not used as grayscale.
+For pixel sizes other than three or four, both whole-photo and region conversion replicate offset[0] into RGB and supply
+alpha 255. This preserves the existing whole-photo fallback policy: even a two-byte grayscale/alpha layout produces
+opaque pixels; its alpha channel is not used as grayscale.
 
-:c:func:`Rbc_ColorImageToPhoto` constructs a block over the borrowed RBC pixels, with
-channel offsets derived from Pix32 members. It checks that width times pixel
-size fits Tk's int pitch before resizing and writing. No source ownership is
-transferred. Both Tk return statuses are ignored by the existing void API;
-a caller cannot infer transactional success or unchanged destination state
-from its return. Reliable error propagation would require a separate runtime
-change across callers.
+:c:func:`Rbc_ColorImageToPhoto` constructs a block over the borrowed RBC pixels, with channel offsets derived from Pix32
+members. It checks that width times pixel size fits Tk's int pitch before resizing and writing. No source ownership is
+transferred. Both Tk return statuses are ignored by the existing void API; a caller cannot infer transactional success
+or unchanged destination state from its return. Reliable error propagation would require a separate runtime change
+across callers.
 
 Snapshot pipeline
 -----------------
 
-:c:func:`Rbc_SnapPhoto` first validates dimensions and gamma and resolves an existing
-photo name. It then delegates native acquisition and gamma handling to
-Rbc_DrawableToColorImage. A missing photo or failed capture returns TCL_ERROR
-with an interpreter diagnostic. If requested destination dimensions differ,
-the captured image is box-filtered in both directions and replaced by the
-resampled allocation. The final photo write is followed by image cleanup.
+:c:func:`Rbc_SnapPhoto` first validates dimensions and gamma and resolves an existing photo name. It then delegates
+native acquisition and gamma handling to Rbc_DrawableToColorImage. A missing photo or failed capture returns TCL_ERROR
+with an interpreter diagnostic. If requested destination dimensions differ, the captured image is box-filtered in both
+directions and replaced by the resampled allocation. The final photo write is followed by image cleanup.
 
-Zero destination dimensions are accepted literally; they do not mean use the
-capture dimensions. The helper does not create a missing photo or own its
-handle. A TCL_OK result indicates that capture and processing reached the
-legacy writer, whose write errors are not propagated. Native capture policy
-and visibility limitations remain platform-specific.
+Zero destination dimensions are accepted literally; they do not mean use the capture dimensions. The helper does not
+create a missing photo or own its handle. A TCL_OK result indicates that capture and processing reached the legacy
+writer, whose write errors are not propagated. Native capture policy and visibility limitations remain
+platform-specific.
 
 Shared tile servers, individual clients
 ---------------------------------------
 
-:c:func:`Rbc_GetTile` returns a fresh client token on every successful acquisition.
-Servers are cached in interpreter associated data, keyed by display, depth and
-interned image name. The key structure is zero-initialized because the hash
-includes its padding bytes. Identical names in different interpreters do not
-share a server.
+:c:func:`Rbc_GetTile` returns a fresh client token on every successful acquisition. Servers are cached in interpreter
+associated data, keyed by display, depth and interned image name. The key structure is zero-initialized because the hash
+includes its padding bytes. Identical names in different interpreters do not share a server.
 
-The server owns the Tk image instance, cached pixmap, tiling GC, transparency
-mask and client chain. Each client stores its borrowed window, callback/data,
-origin and chain link. The caller must release its client before destroying the
-window or callback data it uses. The last client release destroys the server;
-interpreter teardown destroys remaining servers and clients. Pending tile idle
-updates are cancelled during server destruction.
+The server owns the Tk image instance, cached pixmap, tiling GC, transparency mask and client chain. Each client stores
+its borrowed window, callback/data, origin and chain link. The caller must release its client before destroying the
+window or callback data it uses. The last client release destroys the server; interpreter teardown destroys remaining
+servers and clients. Pending tile idle updates are cancelled during server destruction.
 
-``Rbc_FreeTile(NULL)`` is harmless, but the magic field is only a sanity check;
-it cannot make use-after-free or a repeated free safe. No client token remains
-valid after interpreter teardown.
+``Rbc_FreeTile(NULL)`` is harmless, but the magic field is only a sanity check; it cannot make use-after-free or a
+repeated free safe. No client token remains valid after interpreter teardown.
 
 Idle refresh and notification
 -----------------------------
 
 Tk image changes are coalesced into one :c:func:`rbcTileLifecycle.UpdateTile` idle callback using
-``TILE_NOTIFY_PENDING``. The update clears the pending flag, redraws the cache
-using a client window, then walks the client chain and calls installed callbacks.
-Resizing allocates the replacement pixmap before releasing the old one; redraw
-also refreshes the GC and photo transparency mask.
+``TILE_NOTIFY_PENDING``. The update clears the pending flag, redraws the cache using a client window, then walks the
+client chain and calls installed callbacks. Resizing allocates the replacement pixmap before releasing the old one;
+redraw also refreshes the GC and photo transparency mask.
 
-If the Tk image has been deleted, the update releases the cached pixmap and
-sets it to ``None``. It does not reset every cached field: size queries can still
-report the last dimensions. Query helpers do not force pending idle work.
-:c:func:`Rbc_GetTilePhoto` distinguishes a deleted image (true with an empty block)
-from a non-photo image (false). For a live photo its returned pixels are borrowed
-until the next image change, not until the next idle notification.
+If the Tk image has been deleted, the update releases the cached pixmap and sets it to ``None``. It does not reset every
+cached field: size queries can still report the last dimensions. Query helpers do not force pending idle work.
+:c:func:`Rbc_GetTilePhoto` distinguishes a deleted image (true with an empty block) from a non-photo image (false). For
+a live photo its returned pixels are borrowed until the next image change, not until the next idle notification.
 
-Notification snapshots preserve the server and each current client record.
-Callbacks may release themselves, remove other clients, add clients or process
-nested updates. Removed clients are skipped; added clients join a later update.
-Callback replacement takes effect when that client's turn is reached. Removing
-the last client tears down resources immediately, while record reclamation waits
-until active snapshots release them. Each nested pass owns its own snapshot.
-Interpreter deletion stops the current pass; interpreter preservation delays its
-final teardown until active calls unwind. Callback data is still caller-owned.
-Existing graph/line callbacks simply schedule redraw work.
+Notification snapshots preserve the server and each current client record. Callbacks may release themselves, remove
+other clients, add clients or process nested updates. Removed clients are skipped; added clients join a later update.
+Callback replacement takes effect when that client's turn is reached. Removing the last client tears down resources
+immediately, while record reclamation waits until active snapshots release them. Each nested pass owns its own snapshot.
+Interpreter deletion stops the current pass; interpreter preservation delays its final teardown until active calls
+unwind. Callback data is still caller-owned. Existing graph/line callbacks simply schedule redraw work.
 
 Origin and renderer boundaries
 ------------------------------
 
-:c:func:`Rbc_SetTileOrigin` translates through the Tk window hierarchy to align the
-pattern with the toplevel; :c:func:`Rbc_SetTSOrigin` installs the supplied origin
-directly. Both store client coordinates and update the server GC. Since the GC
-is shared, consumers must establish the intended origin for drawing rather than
-assume it is permanent per-client state.
+:c:func:`Rbc_SetTileOrigin` translates through the Tk window hierarchy to align the pattern with the toplevel;
+:c:func:`Rbc_SetTSOrigin` installs the supplied origin directly. Both store client coordinates and update the server
+GC. Since the GC is shared, consumers must establish the intended origin for drawing rather than assume it is permanent
+per-client state.
 
-Native tile drawing remains platform-specific: Windows uses DC/pattern/mask
-operations, while X11 uses tiled GCs and temporary clipping masks. Renderer
-consumers choose the appropriate drawing/export route. Export code borrowing a
-photo block must honor pitch, channel offsets and alpha rather than assuming a
-packed native pixmap has equivalent storage. See :doc:`rendering` and
-:doc:`exports` for those boundaries.
+Native tile drawing remains platform-specific: Windows uses DC/pattern/mask operations, while X11 uses tiled GCs and
+temporary clipping masks. Renderer consumers choose the appropriate drawing/export route. Export code borrowing a photo
+block must honor pitch, channel offsets and alpha rather than assuming a packed native pixmap has equivalent
+storage. See :doc:`rendering` and :doc:`exports` for those boundaries.
 
 Cleanup and regression coverage
 -------------------------------
 
-Server destruction releases the retained transparency mask with the same
-platform-specific allocator pairing used during redraw. The last client release
-also cancels pending idle updates. Clients must never free server-owned resources
+Server destruction releases the retained transparency mask with the same platform-specific allocator pairing used during
+redraw. The last client release also cancels pending idle updates. Clients must never free server-owned resources
 themselves.
 
-Run ``make test-tile`` (with a Tk display) for the private C harness. It covers
-self/other/final-client deletion, callback replacement, client addition, nested
-idle notification, interpreter deletion, mask release and pending-idle teardown.
-The normal suite skips this harness unless ``RBC_TILE_TEST_LIB`` is supplied;
-it runs in a separate process and adds no production Tcl command or public stub.
-The void photo-write wrapper described above still lacks status propagation.
+Run ``make test-tile`` (with a Tk display) for the private C harness. It covers self/other/final-client deletion,
+callback replacement, client addition, nested idle notification, interpreter deletion, mask release and pending-idle
+teardown. The normal suite skips this harness unless ``RBC_TILE_TEST_LIB`` is supplied; it runs in a separate process
+and adds no production Tcl command or public stub. The void photo-write wrapper described above still lacks status
+propagation.
 
-See :doc:`image-tile-reference` for the maintained C contracts and
-:doc:`image-resampling` for resizing and filtering. Bitmap
-transforms are covered in :doc:`image-transforms` and color processing in
-:doc:`image-colors`. See :doc:`image-compatibility` for temporary-image and private Tk adapters.
+See :doc:`image-tile-reference` for the maintained C contracts and :doc:`image-resampling` for resizing and
+filtering. Bitmap transforms are covered in :doc:`image-transforms` and color processing in :doc:`image-colors`. See
+:doc:`image-compatibility` for temporary-image and private Tk adapters.
 
 Registry and refresh implementation
 -----------------------------------
 
-Despite the TILE_THREAD_KEY macro name, the registry belongs to interpreter
-associated data. TileInterpData owns the table; it is not process-global or
-thread-local sharing. A server is registered only after image acquisition and
-initial redraw succeed. The first client is appended after that registration.
-Failure to acquire the Tk image removes the newly reserved hash entry.
+Despite the TILE_THREAD_KEY macro name, the registry belongs to interpreter associated data. TileInterpData owns the
+table; it is not process-global or thread-local sharing. A server is registered only after image acquisition and initial
+redraw succeed. The first client is appended after that registration. Failure to acquire the Tk image removes the newly
+reserved hash entry.
 
-There are two distinct release phases. :c:func:`rbcTileLifecycle.DestroyClient` removes membership and
-invalidates the token immediately, and :c:func:`rbcTileLifecycle.DestroyTile` releases image/native
-resources immediately. :c:func:`rbcTileLifecycle.FreeTileRecord` later reclaims only record storage once
-notification snapshots release their preserves. Neither preserve extends the
-lifetime of a window, image resource, callback data or client chain link.
+There are two distinct release phases. :c:func:`rbcTileLifecycle.DestroyClient` removes membership and invalidates the
+token immediately, and :c:func:`rbcTileLifecycle.DestroyTile` releases image/native resources
+immediately. :c:func:`rbcTileLifecycle.FreeTileRecord` later reclaims only record storage once notification snapshots
+release their preserves. Neither preserve extends the lifetime of a window, image resource, callback data or client
+chain link.
 
-:c:func:`rbcTileLifecycle.UpdateTile` snapshots membership after refreshing the cache. It deliberately
-does not snapshot callback pointers, so replacing another client's callback
-changes that client's delivery in the same pass. It also does not save the
-interpreter result around callbacks. Clients which evaluate Tcl must apply
-their own result-preservation policy where needed.
+:c:func:`rbcTileLifecycle.UpdateTile` snapshots membership after refreshing the cache. It deliberately does not snapshot
+callback pointers, so replacing another client's callback changes that client's delivery in the same pass. It also does
+not save the interpreter result around callbacks. Clients which evaluate Tcl must apply their own result-preservation
+policy where needed.
 
-The refresh path has a different callback boundary from notification delivery.
-Tk_GetImage and Tk_RedrawImage can invoke an image provider. Initial redraw
-occurs before any client is attached; subsequent redraw uses the first client's
-borrowed window before membership is snapshotted. The client-notification
-preserves do not by themselves make arbitrary provider reentrancy safe. This
-is a separate lifetime boundary to review when extending supported image types.
+The refresh path has a different callback boundary from notification delivery. Tk_GetImage and Tk_RedrawImage can
+invoke an image provider. Initial redraw occurs before any client is attached; subsequent redraw uses the first client's
+borrowed window before membership is snapshotted. The client-notification preserves do not by themselves make arbitrary
+provider reentrancy safe. This is a separate lifetime boundary to review when extending supported image types.
 
-Redraw replaces a size-dependent pixmap before releasing its predecessor, then
-refreshes the tiled GC, dimensions and optional photo mask. A deleted image's
-idle update only clears the pixmap; it does not reset the cached dimensions,
-mask or GC at that point. Final server destruction releases those resources.
-Consumers must use the deleted-image-aware helpers rather than infer liveness
-from cached dimensions alone.
+Redraw replaces a size-dependent pixmap before releasing its predecessor, then refreshes the tiled GC, dimensions and
+optional photo mask. A deleted image's idle update only clears the pixmap; it does not reset the cached dimensions, mask
+or GC at that point. Final server destruction releases those resources. Consumers must use the deleted-image-aware
+helpers rather than infer liveness from cached dimensions alone.
 
 Native shape drawing
 --------------------
 
-Tile draw calls consume the existing native cache. They do not run pending
-image updates, retain the client window or produce an error status. The caller
-must provide a live client and drawable with compatible depth/display and a
-usable pixmap. Windows repetition additionally requires positive tile width
-and height. A deleted image with stale cached dimensions is not a valid tile
-source merely because its size query is nonzero.
+Tile draw calls consume the existing native cache. They do not run pending image updates, retain the client window or
+produce an error status. The caller must provide a live client and drawable with compatible depth/display and a usable
+pixmap. Windows repetition additionally requires positive tile width and height. A deleted image with stale cached
+dimensions is not a valid tile source merely because its size query is nonzero.
 
-Rectangle helpers consistently ignore None drawables and nonpositive sizes;
-batch helpers also ignore NULL arrays and nonpositive counts. Polygon callers
-must provide nonempty arrays: Windows computes bounds from the first point,
-and X11's masked path does likewise. These are XPoint/XRectangle interfaces,
-so geometry has already crossed the native short-coordinate boundary.
+Rectangle helpers consistently ignore None drawables and nonpositive sizes; batch helpers also ignore NULL arrays and
+nonpositive counts. Polygon callers must provide nonempty arrays: Windows computes bounds from the first point, and
+X11's masked path does likewise. These are XPoint/XRectangle interfaces, so geometry has already crossed the native
+short-coordinate boundary.
 
 .. list-table:: Platform drawing strategy
    :header-rows: 1
@@ -241,36 +199,28 @@ so geometry has already crossed the native short-coordinate boundary.
      - XFillRectangle with the server's tiled GC.
    * - Rectangle batch
      - One source/destination DC setup for the whole batch.
-     - Opaque requests are chunked to the server request limit; masked
-       rectangles are handled separately.
+     - Opaque requests are chunked to the server request limit; masked rectangles are handled separately.
    * - Polygon
      - Polygon region clips repetitions over the inclusive bounding box.
-     - XFillPolygon uses Complex and CoordModeOrigin; transparency adds a
-       polygon-sized one-bit clip mask.
+     - XFillPolygon uses Complex and CoordModeOrigin; transparency adds a polygon-sized one-bit clip mask.
 
-Windows :c:func:`rbcWindowsTiles.TileRegion` aligns the first repetition at or before
-the destination origin, then crops color copies along the boundary. Opaque copies use
-SRCCOPY. Masked copies use SRCAND followed by SRCPAINT, with destination text/background
-colors set for monochrome expansion. Source and mask DCs are borrowed by this inner
-helper; the enclosing shape function owns acquisition, selection and release. It
-restores the old source bitmap before deleting the memory DC.
+Windows :c:func:`rbcWindowsTiles.TileRegion` aligns the first repetition at or before the destination origin, then crops
+color copies along the boundary. Opaque copies use SRCCOPY. Masked copies use SRCAND followed by SRCPAINT, with
+destination text/background colors set for monochrome expansion. Source and mask DCs are borrowed by this inner helper;
+the enclosing shape function owns acquisition, selection and release. It restores the old source bitmap before deleting
+the memory DC.
 
-Windows masked copies use the same source coordinates for the mask and color
-passes, including cropped first rows and columns. The private tile harness
-checks resulting pixels against the tile origin for both positive and negative
+Windows masked copies use the same source coordinates for the mask and color passes, including cropped first rows and
+columns. The private tile harness checks resulting pixels against the tile origin for both positive and negative
 origins, including untouched pixels outside the requested rectangle.
 
-X11 RectangleMask translates the client origin into rectangle-local coordinates and
-fills an owned one-bit pixmap with FillOpaqueStippled.
-:c:func:`rbcTileMasks.PolygonMask` translates copied points into bounding-box
-coordinates, clears its bitmap, then uses FillStippled for the polygon interior. Both
-release temporary GCs and return pixmaps which the drawing caller must free.
-Transparency is represented by binary masks here, not continuous-alpha compositing.
+X11 RectangleMask translates the client origin into rectangle-local coordinates and fills an owned one-bit pixmap with
+FillOpaqueStippled. :c:func:`rbcTileMasks.PolygonMask` translates copied points into bounding-box coordinates, clears
+its bitmap, then uses FillStippled for the polygon interior. Both release temporary GCs and return pixmaps which the
+drawing caller must free. Transparency is represented by binary masks here, not continuous-alpha compositing.
 
-Masked X11 drawing temporarily installs that mask and its destination origin on
-the shared tile GC, then explicitly resets the clip to None and origin to zero.
-It does not save a caller's previous server-GC clip. Likewise, origin setters
-change shared GC state, while Windows repetition reads the individual client's
-stored origin. Consumers must establish the intended drawing state rather than
-assume a prior client's origin or clip is isolated. The outer renderer remains
-responsible for its own clipping policy.
+Masked X11 drawing temporarily installs that mask and its destination origin on the shared tile GC, then explicitly
+resets the clip to None and origin to zero. It does not save a caller's previous server-GC clip. Likewise, origin
+setters change shared GC state, while Windows repetition reads the individual client's stored origin. Consumers must
+establish the intended drawing state rather than assume a prior client's origin or clip is isolated. The outer renderer
+remains responsible for its own clipping policy.

@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1343,8 +1344,8 @@
              
   <section id="postscript-token-c-reference">
 <h1>PostScript token C reference<a class="headerlink" href="#postscript-token-c-reference" title="Link to this heading"></a></h1>
-<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcPs.h</span></code> and implemented in
-<code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code>. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for ownership and prolog requirements.</p>
+<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcPs.h</span></code> and implemented in <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code>. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for
+ownership and prolog requirements.</p>
 <section id="persistent-graph-postscript-configuration">
 <h2>Persistent graph PostScript configuration<a class="headerlink" href="#persistent-graph-postscript-configuration" title="Link to this heading"></a></h2>
 <dl class="c struct">
@@ -2008,9 +2009,8 @@
 </section>
 <section id="raster-payloads-and-capture">
 <h2>Raster payloads and capture<a class="headerlink" href="#raster-payloads-and-capture" title="Link to this heading"></a></h2>
-<p>The bitmap entry below describes the X11 implementation. The Windows source
-has a separate contract for its DIB acquisition and failure path; see the
-platform comparison in <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a>.</p>
+<p>The bitmap entry below describes the X11 implementation. The Windows source has a separate contract for its DIB
+acquisition and failure path; see the platform comparison in <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a>.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__ps__raster__encoding"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">PostScript</span> <span class="pre">raster</span> <span class="pre">and</span> <span class="pre">bitmap</span> <span class="pre">encoding</span></span></dt>
@@ -2172,8 +2172,8 @@ platform comparison in <a class="reference internal" href="postscript-output.htm
 </section>
 <section id="font-mapping-and-text-placement">
 <h2>Font mapping and text placement<a class="headerlink" href="#font-mapping-and-text-placement" title="Link to this heading"></a></h2>
-<p>The X11 property helpers below supplement the shared font-selection path;
-Windows goes directly to the final fallback when family recognition fails.</p>
+<p>The X11 property helpers below supplement the shared font-selection path; Windows goes directly to the final fallback
+when family recognition fails.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__ps__text__mapping"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">PostScript</span> <span class="pre">font</span> <span class="pre">mapping</span> <span class="pre">and</span> <span class="pre">text</span> <span class="pre">placement</span></span></dt>
@@ -2291,9 +2291,8 @@ Windows goes directly to the final fallback when family recognition fails.</p>
 </section>
 <section id="graph-options-and-document-assembly">
 <h2>Graph options and document assembly<a class="headerlink" href="#graph-options-and-document-assembly" title="Link to this heading"></a></h2>
-<p>These contracts describe the shared graph-facing command layer in
-<code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>. The parameter lists distinguish full command vectors from option slices and
-borrowed output buffers from owned component state. Windows binary preview
+<p>These contracts describe the shared graph-facing command layer in <code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>. The parameter lists distinguish full
+command vectors from option slices and borrowed output buffers from owned component state. Windows binary preview
 packaging has its source-level contract on <a class="reference internal" href="#c.rbcWindowsPostscript.CreateWindowsEPS" title="rbcWindowsPostscript.CreateWindowsEPS"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateWindowsEPS</span></code></a> and its
 platform behavior described in <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a>.</p>
 <dl>
@@ -2568,9 +2567,8 @@ platform behavior described in <a class="reference internal" href="postscript-ou
 </section>
 <section id="windows-binary-preview-packaging">
 <h2>Windows binary preview packaging<a class="headerlink" href="#windows-binary-preview-packaging" title="Link to this heading"></a></h2>
-<p>The Windows-only helper is extracted in the separate platform project. It
-shares the graph command’s lifetime protection but owns its temporary native
-resources. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for the EPSI/WMF distinction.</p>
+<p>The Windows-only helper is extracted in the separate platform project. It shares the graph command’s lifetime protection
+but owns its temporary native resources. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for the EPSI/WMF distinction.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__graph__postscript__windows"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">EPS</span> <span class="pre">preview</span> <span class="pre">packaging</span></span></dt>
@@ -2600,8 +2598,8 @@ resources. See <a class="reference internal" href="postscript-output.html"><span
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.PostScriptOpSpec">
 <span class="target" id="struct_post_script_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostScriptOpSpec</span></span></span><a class="headerlink" href="#c.PostScriptOpSpec" title="Link to this definition"></a><br /></dt>

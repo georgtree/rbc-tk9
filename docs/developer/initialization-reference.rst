@@ -1,8 +1,8 @@
 Package initialization C reference
 ==================================
 
-These are installed interfaces. The two stubs helpers are linked into consumers,
-not invoked through a table slot. See :doc:`initialization` for loading order.
+These are installed interfaces. The two stubs helpers are linked into consumers, not invoked through a table slot. See
+:doc:`initialization` for loading order.
 
 .. doxygenfunction:: Rbc_Init
 
@@ -13,9 +13,8 @@ not invoked through a table slot. See :doc:`initialization` for loading order.
 Private registration helpers
 ----------------------------
 
-These records and callbacks belong to the loader implementation, not the
-installed C API. The consumer-side stubs object is documented alongside them
-because it receives the table published by package initialization.
+These records and callbacks belong to the loader implementation, not the installed C API. The consumer-side stubs object
+is documented alongside them because it receives the table published by package initialization.
 
 .. c:namespace:: rbcInitialization
 
@@ -27,8 +26,8 @@ because it receives the table published by package initialization.
 Windows loader wrappers
 -----------------------
 
-These entry points do not initialize Tcl packages. Their platform-selected
-contracts come from the separate Windows Doxygen input.
+These entry points do not initialize Tcl packages. Their platform-selected contracts come from the separate Windows
+Doxygen input.
 
 .. c:namespace:: rbcWindowsInitialization
 

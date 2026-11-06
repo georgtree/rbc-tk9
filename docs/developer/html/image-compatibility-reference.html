@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1263,9 +1264,8 @@
              
   <section id="image-compatibility-c-reference">
 <h1>Image compatibility C reference<a class="headerlink" href="#image-compatibility-c-reference" title="Link to this heading"></a></h1>
-<p>These functions are defined by RBC in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> and declared privately in
-<code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code>, including those whose names start with <code class="docutils literal notranslate"><span class="pre">Tk_</span></code>. See
-<a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for lifetime and private-layout requirements.</p>
+<p>These functions are defined by RBC in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> and declared privately in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code>, including those whose
+names start with <code class="docutils literal notranslate"><span class="pre">Tk_</span></code>. See <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for lifetime and private-layout requirements.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Tk_ImageIsDeleted">
 <span class="target" id="rbc_image_8h_1ab4b36422d3155c8ea296fc46b98b947e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageIsDeleted</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageIsDeleted" title="Link to this definition"></a><br /></dt>
@@ -1383,8 +1383,8 @@
 
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.TkImageMasterStruct">
 <span class="target" id="struct_tk_image_master_struct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TkImageMasterStruct</span></span></span><a class="headerlink" href="#c.TkImageMasterStruct" title="Link to this definition"></a><br /></dt>

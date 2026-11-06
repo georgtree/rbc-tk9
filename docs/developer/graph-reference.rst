@@ -1,10 +1,9 @@
 Graph lifecycle C reference
 ===========================
 
-These are private interfaces. Shared contracts live at their header declarations;
-static lifecycle helpers are documented next to their definitions. This section
-covers lifecycle callbacks, option transactions, command routing and screen
-composition helpers.
+These are private interfaces. Shared contracts live at their header declarations; static lifecycle helpers are
+documented next to their definitions. This section covers lifecycle callbacks, option transactions, command routing and
+screen composition helpers.
 
 Widget ownership and layout records
 -----------------------------------
@@ -77,8 +76,8 @@ Construction and redraw support
 Windows metafile packaging
 --------------------------
 
-These private functions use the Windows extraction project. Their scope below
-is documentation-only and does not change the compiled symbols.
+These private functions use the Windows extraction project. Their scope below is documentation-only and does not change
+the compiled symbols.
 
 .. c:namespace-push:: rbcWindowsSnapshot
 
@@ -91,8 +90,8 @@ is documentation-only and does not change the compiled symbols.
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: GraphBarModeTransaction
    :members:

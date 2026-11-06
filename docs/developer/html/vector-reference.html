@@ -540,6 +540,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1247,11 +1248,10 @@
              
   <section id="vector-client-c-reference">
 <h1>Vector client C reference<a class="headerlink" href="#vector-client-c-reference" title="Link to this heading"></a></h1>
-<p>The opaque types and observer declarations below come from the installed
-<code class="docutils literal notranslate"><span class="pre">rbcVector.h</span></code>. Observer functions are not entries in the public stubs table;
-external stub users must not assume they are available through that table.
-The final section contains private RBC helpers. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for storage,
-read-only state and notification reentry and client-data lifetime.</p>
+<p>The opaque types and observer declarations below come from the installed <code class="docutils literal notranslate"><span class="pre">rbcVector.h</span></code>. Observer functions are not
+entries in the public stubs table; external stub users must not assume they are available through that table. The final
+section contains private RBC helpers. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for storage, read-only state and notification reentry and
+client-data lifetime.</p>
 <section id="types">
 <h2>Types<a class="headerlink" href="#types" title="Link to this heading"></a></h2>
 <dl class="c type">
@@ -1342,22 +1342,19 @@ read-only state and notification reentry and client-data lifetime.</p>
 <td><p>Borrowed owning interpreter; see <a class="reference internal" href="calling-conventions.html#rbc_calling_conventions_1rbc_interp_argument"><span class="std std-ref">interpreter arguments</span></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">clientData</span></code></p></td>
-<td><p>Caller-owned registration data, never freed or preserved by RBC. The
-observer’s owner must keep it valid through nested callbacks.</p></td>
+<td><p>Caller-owned registration data, never freed or preserved by RBC. The observer’s owner must keep it valid through
+nested callbacks.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">notify</span></code></p></td>
-<td><p>UPDATE announces changed values; DESTROY announces teardown. During
-DESTROY, discard the token and borrowed vector views. Remaining tokens
-are freed by RBC after delivery.</p></td>
+<td><p>UPDATE announces changed values; DESTROY announces teardown. During DESTROY, discard the token and borrowed
+vector views. Remaining tokens are freed by RBC after delivery.</p></td>
 </tr>
 </tbody>
 </table>
-<p>Use <a class="reference internal" href="#c.Rbc_SetVectorChangedProc" title="Rbc_SetVectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetVectorChangedProc()</span></code></a> to install or disable the callback, and
-<a class="reference internal" href="#c.Rbc_FreeVectorId" title="Rbc_FreeVectorId"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeVectorId()</span></code></a> to detach an observer. A token observes an identity;
-it is not a preservation reference. For ranged updates, the private
+<p>Use <a class="reference internal" href="#c.Rbc_SetVectorChangedProc" title="Rbc_SetVectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetVectorChangedProc()</span></code></a> to install or disable the callback, and <a class="reference internal" href="#c.Rbc_FreeVectorId" title="Rbc_FreeVectorId"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeVectorId()</span></code></a> to detach an
+observer. A token observes an identity; it is not a preservation reference. For ranged updates, the private
 <a class="reference internal" href="#c.Rbc_VectorGetChangedRange" title="Rbc_VectorGetChangedRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorGetChangedRange()</span></code></a> reports the current callback’s snapshot.</p>
-<p>Callbacks borrow their data and must obey the lifetime and reentry restrictions
-in <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>.</p>
+<p>Callbacks borrow their data and must obey the lifetime and reentry restrictions in <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>.</p>
 </section>
 <section id="observers-and-range-access">
 <h2>Observers and range access<a class="headerlink" href="#observers-and-range-access" title="Link to this heading"></a></h2>

@@ -640,6 +640,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1347,9 +1348,8 @@
              
   <section id="vector-storage-private-c-reference">
 <h1>Vector storage private C reference<a class="headerlink" href="#vector-storage-private-c-reference" title="Link to this heading"></a></h1>
-<p>These registry, allocation, creation and destruction helpers are private to RBC.
-They are not substitutes for installed public stub entries. See
-<a class="reference internal" href="vector-storage.html"><span class="doc">Vector C API and storage primitives</span></a> for their relationships and callback restrictions.</p>
+<p>These registry, allocation, creation and destruction helpers are private to RBC. They are not substitutes for installed
+public stub entries. See <a class="reference internal" href="vector-storage.html"><span class="doc">Vector C API and storage primitives</span></a> for their relationships and callback restrictions.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__vector__storage__private"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Vector</span> <span class="pre">storage</span> <span class="pre">private</span> <span class="pre">implementation</span></span></dt>
@@ -2397,16 +2397,15 @@ Captures the owned name and flags, clears arrayName before removing the RBC trac
 
 <section id="parameter-and-ownership-conventions">
 <h2>Parameter and ownership conventions<a class="headerlink" href="#parameter-and-ownership-conventions" title="Link to this heading"></a></h2>
-<p>Allocation, storage replacement and notification helpers use explicit parameter
-directions. A borrowed record may still be mutated; an input buffer may be
-adopted if the reset contract says so. Output arguments are not implicitly
-initialized on failure. The individual contract defines each case; see
-<a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> for the common terminology.</p>
+<p>Allocation, storage replacement and notification helpers use explicit parameter directions. A borrowed record may still
+be mutated; an input buffer may be adopted if the reset contract says so. Output arguments are not implicitly
+initialized on failure. The individual contract defines each case; see <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> for the common
+terminology.</p>
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.VectorOpSpec">
 <span class="target" id="struct_vector_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VectorOpSpec</span></span></span><a class="headerlink" href="#c.VectorOpSpec" title="Link to this definition"></a><br /></dt>

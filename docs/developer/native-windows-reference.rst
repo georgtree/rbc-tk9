@@ -1,17 +1,15 @@
 Windows native backend C reference
 ==================================
 
-Windows contracts use a separate Doxygen XML project so identical backend
-function and structure names cannot merge with the X11 implementation.
-Parameter descriptions identify retained DC/batch state, caller-owned clip
-payloads, and temporary drawables. Return values that select fallback are not
-interchangeable with drawing-success reports; see :doc:`native-rendering`.
+Windows contracts use a separate Doxygen XML project so identical backend function and structure names cannot merge with
+the X11 implementation. Parameter descriptions identify retained DC/batch state, caller-owned clip payloads, and
+temporary drawables. Return values that select fallback are not interchangeable with drawing-success reports; see
+:doc:`native-rendering`.
 
-For a retained polygon batch, pair
-:c:func:`rbcNativeWindows.Rbc_NativeBeginPolygonBatch` with
+For a retained polygon batch, pair :c:func:`rbcNativeWindows.Rbc_NativeBeginPolygonBatch` with
 :c:func:`rbcNativeWindows.Rbc_NativeEndPolygonBatch`. For direct clipping,
-:c:func:`rbcNativeWindows.Rbc_NativePlatformUnclip` must unwind even partial
-setup from :c:func:`rbcNativeWindows.Rbc_NativePlatformClip`.
+:c:func:`rbcNativeWindows.Rbc_NativePlatformUnclip` must unwind even partial setup from
+:c:func:`rbcNativeWindows.Rbc_NativePlatformClip`.
 
 .. c:namespace:: rbcNativeWindows
 
@@ -36,8 +34,8 @@ setup from :c:func:`rbcNativeWindows.Rbc_NativePlatformClip`.
 Tk Windows resource boundary
 ----------------------------
 
-These compatibility services confine private Tk drawable/DC representations to
-``rbcWinDraw.c``. Components use the renderer interface rather than these helpers.
+These compatibility services confine private Tk drawable/DC representations to ``rbcWinDraw.c``. Components use the
+renderer interface rather than these helpers.
 
 .. c:namespace:: rbcWindowsResources
 
@@ -54,9 +52,8 @@ These compatibility services confine private Tk drawable/DC representations to
 Compatibility drawing primitives
 --------------------------------
 
-These entries implement the Windows Xlib-shaped drawing boundary. They consume
-mapped integer geometry and configured GCs, with the historical conversions
-and fallback policies described in :doc:`native-rendering`.
+These entries implement the Windows Xlib-shaped drawing boundary. They consume mapped integer geometry and configured
+GCs, with the historical conversions and fallback policies described in :doc:`native-rendering`.
 
 .. c:namespace:: rbcWindowsPrimitives
 
@@ -69,9 +66,8 @@ and fallback policies described in :doc:`native-rendering`.
 Bitmap capture and transforms
 -----------------------------
 
-Windows-specific image contracts are extracted without the same-named shared
-header declarations. See :doc:`images-tiles` for common image ownership and
-:doc:`native-rendering` for platform representations and limits.
+Windows-specific image contracts are extracted without the same-named shared header declarations. See
+:doc:`images-tiles` for common image ownership and :doc:`native-rendering` for platform representations and limits.
 
 .. c:namespace:: rbcWindowsImages
 
@@ -95,25 +91,22 @@ Native window handle lookup
 DC and handle ownership
 -----------------------
 
-:c:func:`rbcWindowsResources.Rbc_WinAcquireDrawableDC` returns a release record even
-when acquisition fails. Pass that record to
-:c:func:`rbcWindowsResources.Rbc_WinReleaseDrawableDC`; restoring explicitly selected
-GDI objects remains the caller's responsibility. In contrast,
-:c:func:`rbcWindowsResources.Rbc_WinCreateDrawableFromDC` wraps an already borrowed DC:
-:c:func:`rbcWindowsResources.Rbc_WinFreeDrawableFromDC` releases only the wrapper.
+:c:func:`rbcWindowsResources.Rbc_WinAcquireDrawableDC` returns a release record even when acquisition fails. Pass that
+record to :c:func:`rbcWindowsResources.Rbc_WinReleaseDrawableDC`; restoring explicitly selected GDI objects remains the
+caller's responsibility. In contrast, :c:func:`rbcWindowsResources.Rbc_WinCreateDrawableFromDC` wraps an already
+borrowed DC: :c:func:`rbcWindowsResources.Rbc_WinFreeDrawableFromDC` releases only the wrapper.
 
-:c:func:`rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap` transfers a native bitmap
-into Tk pixmap ownership. A handle returned by
-:c:func:`rbcWindowsResources.Rbc_WinGetPixmapHandle` is borrowed and must not be
-independently deleted. These ownership rules differ from the transient static
-window wrapper returned by :c:func:`rbcWindowsResources.Rbc_WinWindowFromHWND`.
+:c:func:`rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap` transfers a native bitmap into Tk pixmap ownership. A handle
+returned by :c:func:`rbcWindowsResources.Rbc_WinGetPixmapHandle` is borrowed and must not be independently
+deleted. These ownership rules differ from the transient static window wrapper returned by
+:c:func:`rbcWindowsResources.Rbc_WinWindowFromHWND`.
 
 Tiled shapes
 -------------
 
-These contracts describe the Windows DC implementation, separately from the
-same-named X11 helpers in :doc:`image-tile-reference`. Origins and mask/color
-source offsets must agree across cropped copies; see :doc:`images-tiles`.
+These contracts describe the Windows DC implementation, separately from the same-named X11 helpers in
+:doc:`image-tile-reference`. Origins and mask/color source offsets must agree across cropped copies; see
+:doc:`images-tiles`.
 
 .. c:namespace:: rbcWindowsTiles
 
@@ -126,8 +119,7 @@ source offsets must agree across cropped copies; see :doc:`images-tiles`.
 Windows header records
 ----------------------
 
-The packed file headers retain their on-disk layout. Border colors are resolved
-values, not retained Tk resources.
+The packed file headers retain their on-disk layout. Border colors are resolved values, not retained Tk resources.
 
 .. doxygenstruct:: DOSEPSHEADER
    :project: rbc-win
@@ -144,8 +136,8 @@ values, not retained Tk resources.
 Platform-specific record extensions
 -----------------------------------
 
-These views include Windows-only handles omitted from the normal-platform
-:doc:`text-font-reference` and :doc:`eps-reference` records.
+These views include Windows-only handles omitted from the normal-platform :doc:`text-font-reference` and
+:doc:`eps-reference` records.
 
 .. c:namespace-push:: rbcFontWindows
 

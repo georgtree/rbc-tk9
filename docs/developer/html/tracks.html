@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,169 +1215,135 @@
              
   <section id="track-ownership-and-layout">
 <h1>Track ownership and layout<a class="headerlink" href="#track-ownership-and-layout" title="Link to this heading"></a></h1>
-<p>A trackgraph is one graph widget with a linked list of named plot regions.
-Tracks are not child windows or independent graph instances. <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>
-owns track records, configuration, ordering and stack layout. Axis, element,
-marker, grid and legend implementations retain their ordinary module owners.</p>
+<p>A trackgraph is one graph widget with a linked list of named plot regions. Tracks are not child windows or independent
+graph instances. <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code> owns track records, configuration, ordering and stack layout. Axis, element, marker,
+grid and legend implementations retain their ordinary module owners.</p>
 <section id="records-and-dependencies">
 <h2>Records and dependencies<a class="headerlink" href="#records-and-dependencies" title="Link to this heading"></a></h2>
-<p>The graph owns the track list. Each record owns its name and axis-pointer
-array, holds references to its assigned Y axes, and owns optional local grid
-and legend components. An axis has a back-pointer to its track. Elements and
-markers refer to tracks but remain graph-managed objects; deleting a track
-through the command interface does not implicitly delete its data components.</p>
-<p>Track names are case-sensitive and lookup scans the list. <a class="reference internal" href="track-reference.html#c.OrderTracks" title="OrderTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">OrderTracks()</span></code></a> relinks
-the same records, preserving component and binding identities. A borrowed
-<code class="docutils literal notranslate"><span class="pre">RbcTrack</span> <span class="pre">*</span></code> remains valid across reordering, but not deletion or teardown.
-The <code class="docutils literal notranslate"><span class="pre">all</span></code> track binding target uses the address of the graph’s list field,
-not the current first track. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for dispatch and repicking.</p>
+<p>The graph owns the track list. Each record owns its name and axis-pointer array, holds references to its assigned Y
+axes, and owns optional local grid and legend components. An axis has a back-pointer to its track. Elements and markers
+refer to tracks but remain graph-managed objects; deleting a track through the command interface does not implicitly
+delete its data components.</p>
+<p>Track names are case-sensitive and lookup scans the list. <a class="reference internal" href="track-reference.html#c.OrderTracks" title="OrderTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">OrderTracks()</span></code></a> relinks the same records, preserving
+component and binding identities. A borrowed <code class="docutils literal notranslate"><span class="pre">RbcTrack</span> <span class="pre">*</span></code> remains valid across reordering, but not deletion or
+teardown. The <code class="docutils literal notranslate"><span class="pre">all</span></code> track binding target uses the address of the graph’s list field, not the current first track. See
+<a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for dispatch and repicking.</p>
 </section>
 <section id="configuration-and-axis-ownership">
 <h2>Configuration and axis ownership<a class="headerlink" href="#configuration-and-axis-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="track-reference.html#c.InitTrackOptions" title="InitTrackOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">InitTrackOptions()</span></code></a> reads creation defaults using the named <code class="docutils literal notranslate"><span class="pre">Track</span></code> option-database component,
-with the resource-name conversion used by older components. Temporary
-<code class="docutils literal notranslate"><span class="pre">TrackDefaults</span></code> fields retain Tcl objects rather than immediately converting
-axis names or dimensions. Explicit options replace database defaults before
-validation; the effective option list goes through <a class="reference internal" href="track-reference.html#c.ConfigureTrack" title="ConfigureTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a>.</p>
-<p><a class="reference internal" href="track-reference.html#c.ConfigureTrack" title="ConfigureTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a> stages scalar values and a replacement axis array. It rejects
-duplicate axes, incompatible classes or margins, axes owned by another track,
-and axes used by graph-wide markers. Removing an axis is rejected when an
-existing track element, local grid or track marker still uses it. New axis
-references are acquired before old ones are released, so an axis retained in
-both lists survives replacement.</p>
-<p>On success, the caller synchronizes the Y-axis display chain. <a class="reference internal" href="track-reference.html#c.SyncTrackAxes" title="SyncTrackAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">SyncTrackAxes()</span></code></a>
-rebuilds that chain in track order and axis-list order, updates on-screen flags,
-marks <code class="docutils literal notranslate"><span class="pre">RESET_WORLD</span></code> and schedules redraw. This is logical Y-axis ownership:
-inversion changes physical orientation, not the axis class.</p>
+<p><a class="reference internal" href="track-reference.html#c.InitTrackOptions" title="InitTrackOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">InitTrackOptions()</span></code></a> reads creation defaults using the named <code class="docutils literal notranslate"><span class="pre">Track</span></code> option-database component, with the
+resource-name conversion used by older components. Temporary <code class="docutils literal notranslate"><span class="pre">TrackDefaults</span></code> fields retain Tcl objects rather than
+immediately converting axis names or dimensions. Explicit options replace database defaults before validation; the
+effective option list goes through <a class="reference internal" href="track-reference.html#c.ConfigureTrack" title="ConfigureTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a>.</p>
+<p><a class="reference internal" href="track-reference.html#c.ConfigureTrack" title="ConfigureTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureTrack()</span></code></a> stages scalar values and a replacement axis array. It rejects duplicate axes, incompatible
+classes or margins, axes owned by another track, and axes used by graph-wide markers. Removing an axis is rejected when
+an existing track element, local grid or track marker still uses it. New axis references are acquired before old ones
+are released, so an axis retained in both lists survives replacement.</p>
+<p>On success, the caller synchronizes the Y-axis display chain. <a class="reference internal" href="track-reference.html#c.SyncTrackAxes" title="SyncTrackAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">SyncTrackAxes()</span></code></a> rebuilds that chain in track order
+and axis-list order, updates on-screen flags, marks <code class="docutils literal notranslate"><span class="pre">RESET_WORLD</span></code> and schedules redraw. This is logical Y-axis
+ownership: inversion changes physical orientation, not the axis class.</p>
 </section>
 <section id="sizing-and-visible-bounds">
 <h2>Sizing and visible bounds<a class="headerlink" href="#sizing-and-visible-bounds" title="Link to this heading"></a></h2>
-<p>Tracks share the graph’s other plot dimension. Normal layout divides the
-vertical range; inverted layout divides the horizontal range. Historical
-<code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">minHeight</span></code> field names mean size along this stacking direction.</p>
-<p>Fitted layout subtracts inter-track gaps from the available range. If the sum
-of minima fits, each track receives its minimum plus a weighted share of the
-remainder. If minima exceed the available space, their proportions determine
-the reduced sizes. Positive bounded weights are enforced by configuration.
-Fitted gaps shrink with the available range, up to 12 pixels.</p>
-<p>Scrolling layout uses <code class="docutils literal notranslate"><span class="pre">max(height,</span> <span class="pre">minHeight)</span></code> for each track and 12-pixel
-gaps. Its content extent may exceed the viewport. Each track stores full world
-bounds and their clamped visible bounds. Components must use world bounds for
-mapping and visible bounds for clipping; using visible height as the data
-scale would move data when scrolling. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for paired
-<a class="reference internal" href="mapping-reference.html#c.Rbc_EnterTrack" title="Rbc_EnterTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_EnterTrack()</span></code></a>/<a class="reference internal" href="mapping-reference.html#c.Rbc_LeaveTrack" title="Rbc_LeaveTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LeaveTrack()</span></code></a> scopes and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for the
-separate stack-offset and local data-axis scroll operations.</p>
-<p><a class="reference internal" href="track-reference.html#c.SetTrackSash" title="SetTrackSash"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetTrackSash()</span></code></a> in fitted mode adjusts the adjacent pair’s weights while preserving their sum.
-If the pair has no room beyond its minima, the operation does nothing. In
-scrolling layout the sash changes the first track’s requested height instead.
-Both paths invalidate layout and schedule redraw; they do not directly draw
-into the window.</p>
+<p>Tracks share the graph’s other plot dimension. Normal layout divides the vertical range; inverted layout divides the
+horizontal range. Historical <code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">minHeight</span></code> field names mean size along this stacking direction.</p>
+<p>Fitted layout subtracts inter-track gaps from the available range. If the sum of minima fits, each track receives its
+minimum plus a weighted share of the remainder. If minima exceed the available space, their proportions determine the
+reduced sizes. Positive bounded weights are enforced by configuration. Fitted gaps shrink with the available range, up
+to 12 pixels.</p>
+<p>Scrolling layout uses <code class="docutils literal notranslate"><span class="pre">max(height,</span> <span class="pre">minHeight)</span></code> for each track and 12-pixel gaps. Its content extent may exceed the
+viewport. Each track stores full world bounds and their clamped visible bounds. Components must use world bounds for
+mapping and visible bounds for clipping; using visible height as the data scale would move data when scrolling. See
+<a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for paired <a class="reference internal" href="mapping-reference.html#c.Rbc_EnterTrack" title="Rbc_EnterTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_EnterTrack()</span></code></a>/<a class="reference internal" href="mapping-reference.html#c.Rbc_LeaveTrack" title="Rbc_LeaveTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_LeaveTrack()</span></code></a> scopes and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a> for the separate
+stack-offset and local data-axis scroll operations.</p>
+<p><a class="reference internal" href="track-reference.html#c.SetTrackSash" title="SetTrackSash"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetTrackSash()</span></code></a> in fitted mode adjusts the adjacent pair’s weights while preserving their sum. If the pair has
+no room beyond its minima, the operation does nothing. In scrolling layout the sash changes the first track’s requested
+height instead. Both paths invalidate layout and schedule redraw; they do not directly draw into the window.</p>
 </section>
 <section id="local-components-and-dispatch">
 <h2>Local components and dispatch<a class="headerlink" href="#local-components-and-dispatch" title="Link to this heading"></a></h2>
-<p>A NULL local grid means inheritance from the graph grid. A local grid keeps
-its own configuration and mapped segment caches. Local legends use track
-geometry without contributing outer graph margins. Track bar mode <code class="docutils literal notranslate"><span class="pre">-1</span></code>
-means inheritance from the graph. See <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a>, <a class="reference internal" href="legends.html"><span class="doc">Legend ownership and layout</span></a> and
-<a class="reference internal" href="bars.html"><span class="doc">Bar elements</span></a> for component-specific behavior.</p>
-<p>Nested component commands adapt their argument vector for the existing grid
-or legend dispatcher. The adapter allocates an array and one retained,
-list-valued command prefix; all other entries borrow the original objects.
-Use the paired free helper, not a loop decrementing every entry. This keeps
-ordinary component command handling and diagnostics reusable.</p>
+<p>A NULL local grid means inheritance from the graph grid. A local grid keeps its own configuration and mapped segment
+caches. Local legends use track geometry without contributing outer graph margins. Track bar mode <code class="docutils literal notranslate"><span class="pre">-1</span></code> means
+inheritance from the graph. See <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a>, <a class="reference internal" href="legends.html"><span class="doc">Legend ownership and layout</span></a> and <a class="reference internal" href="bars.html"><span class="doc">Bar elements</span></a> for component-specific behavior.</p>
+<p>Nested component commands adapt their argument vector for the existing grid or legend dispatcher. The adapter allocates
+an array and one retained, list-valued command prefix; all other entries borrow the original objects. Use the paired
+free helper, not a loop decrementing every entry. This keeps ordinary component command handling and diagnostics
+reusable.</p>
 </section>
 <section id="deletion-and-teardown">
 <h2>Deletion and teardown<a class="headerlink" href="#deletion-and-teardown" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="track-reference.html#c.DeleteTracks" title="DeleteTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">DeleteTracks()</span></code></a> validates every requested name and dependency before removing
-anything. Duplicate names are harmless. Tracks with elements or markers must
-first have those components moved or deleted. Each removed track releases its
-bindings, local grid and legend, axis references, pointer array and name.
-The remaining axis chain is then synchronized for redraw.</p>
-<p>Graph teardown follows a different entry point: after dependent components are
-disposed of, <a class="reference internal" href="track-reference.html#c.Rbc_DestroyTracks" title="Rbc_DestroyTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a> releases the entire list before axes are
-destroyed. It does not revalidate user-facing dependencies or schedule redraw.
-Keep binding tables, the Tk window and other component cleanup resources alive
-until their owners have been released; see <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>.</p>
+<p><a class="reference internal" href="track-reference.html#c.DeleteTracks" title="DeleteTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">DeleteTracks()</span></code></a> validates every requested name and dependency before removing anything. Duplicate names are
+harmless. Tracks with elements or markers must first have those components moved or deleted. Each removed track releases
+its bindings, local grid and legend, axis references, pointer array and name. The remaining axis chain is then
+synchronized for redraw.</p>
+<p>Graph teardown follows a different entry point: after dependent components are disposed of, <a class="reference internal" href="track-reference.html#c.Rbc_DestroyTracks" title="Rbc_DestroyTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a>
+releases the entire list before axes are destroyed. It does not revalidate user-facing dependencies or schedule redraw.
+Keep binding tables, the Tk window and other component cleanup resources alive until their owners have been released;
+see <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Changes to ownership should cover failed configuration without partial commits,
-axis retention across replacement, complete and invalid permutations, duplicate
-delete requests, dependency rejection, and graph teardown. Layout changes need
-normal and inverted orientations, undersized fitted regions, scrolling,
-resizing and resized export. Reordering must also repick a stationary pointer
-after layout, without requiring a new motion event.</p>
+<p>Changes to ownership should cover failed configuration without partial commits, axis retention across replacement,
+complete and invalid permutations, duplicate delete requests, dependency rejection, and graph teardown. Layout changes
+need normal and inverted orientations, undersized fitted regions, scrolling, resizing and resized export. Reordering
+must also repick a stationary pointer after layout, without requiring a new motion event.</p>
 </section>
 <section id="axis-chain-synchronization-and-option-queries">
 <h2>Axis-chain synchronization and option queries<a class="headerlink" href="#axis-chain-synchronization-and-option-queries" title="Link to this heading"></a></h2>
-<p>Committing a track change and updating the displayed axis chain are separate
-steps. <a class="reference internal" href="track-reference.html#c.SyncTrackAxes" title="SyncTrackAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">SyncTrackAxes()</span></code></a> removes old chain links and clears their on-screen flags,
-then rebuilds the Y-axis chain from track order and each track’s configured axis
-order. Axis objects and retained references survive this relinking. The helper
-requests a world reset and deferred redraw; it does not perform layout itself.</p>
-<p><a class="reference internal" href="track-reference.html#c.TrackOptionIndex" title="TrackOptionIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOptionIndex()</span></code></a> resolves names against shared specifications.
-<a class="reference internal" href="track-reference.html#c.TrackOptionInfo" title="TrackOptionInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOptionInfo()</span></code></a> builds the five-field description using current values
-from <a class="reference internal" href="track-reference.html#c.TrackOption" title="TrackOption"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOption()</span></code></a>, which reads live track fields. Consequently sash-adjusted heights and
-weights appear in later queries rather than stale creation-time Tcl objects.
-Axis queries construct names in configured order, and a negative bar mode is
-reported as inherit. These result objects do not own the referenced axes.</p>
-<p><a class="reference internal" href="track-reference.html#c.FreeTrack" title="FreeTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeTrack()</span></code></a> is a resource destructor, not a list operation. Its caller must
-first validate dependencies and detach the record. It removes bindings and local
-grid/legend resources, clears axis-to-track ownership, releases axis references,
-and frees the axis array, name and record. Reordering instead relinks existing
-records and does not use this destructor.</p>
+<p>Committing a track change and updating the displayed axis chain are separate steps. <a class="reference internal" href="track-reference.html#c.SyncTrackAxes" title="SyncTrackAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">SyncTrackAxes()</span></code></a> removes old
+chain links and clears their on-screen flags, then rebuilds the Y-axis chain from track order and each track’s
+configured axis order. Axis objects and retained references survive this relinking. The helper requests a world reset
+and deferred redraw; it does not perform layout itself.</p>
+<p><a class="reference internal" href="track-reference.html#c.TrackOptionIndex" title="TrackOptionIndex"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOptionIndex()</span></code></a> resolves names against shared specifications. func:<cite>TrackOptionInfo</cite> builds the five-field
+:c:description using current values from <a class="reference internal" href="track-reference.html#c.TrackOption" title="TrackOption"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackOption()</span></code></a>, which reads live track fields. Consequently
+:c:sash-adjusted heights and weights appear in later queries rather than stale creation-time Tcl objects. Axis queries
+:c:construct names in configured order, and a negative bar mode is reported as inherit. These result objects do not own
+:c:the referenced axes.</p>
+<p><a class="reference internal" href="track-reference.html#c.FreeTrack" title="FreeTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeTrack()</span></code></a> is a resource destructor, not a list operation. Its caller must first validate dependencies and
+detach the record. It removes bindings and local grid/legend resources, clears axis-to-track ownership, releases axis
+references, and frees the axis array, name and record. Reordering instead relinks existing records and does not use this
+destructor.</p>
 </section>
 <section id="sash-geometry-and-scroll-fractions">
 <h2>Sash geometry and scroll fractions<a class="headerlink" href="#sash-geometry-and-scroll-fractions" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="track-reference.html#c.TrackStart" title="TrackStart"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackStart()</span></code></a> and <a class="reference internal" href="track-reference.html#c.TrackEnd" title="TrackEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackEnd()</span></code></a> supply sash calculations with
-unclipped world bounds along the physical stacking dimension: top/bottom normally and left/right when inverted. Visible clipped
-bounds would produce incorrect sizes for tracks partially outside the viewport.
-The helper parameter named y therefore represents the stacking coordinate, not
-necessarily a vertical screen position.</p>
-<p>In fitted mode, dragging redistributes the adjacent tracks’ weight sum after
-subtracting their minimum sizes. When no space above those minima remains, the
-operation is a no-op. The computed weights must stay positive and within the
-configuration limits before either is stored. In scrolling mode, dragging
-changes only the preceding track’s requested height; it does not preserve the
-pair’s combined physical size. Both paths schedule remapping rather than drawing
+<p><a class="reference internal" href="track-reference.html#c.TrackStart" title="TrackStart"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackStart()</span></code></a> and <a class="reference internal" href="track-reference.html#c.TrackEnd" title="TrackEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackEnd()</span></code></a> supply sash calculations with unclipped world bounds along the physical
+stacking dimension: top/bottom normally and left/right when inverted. Visible clipped bounds would produce incorrect
+sizes for tracks partially outside the viewport. The helper parameter named y therefore represents the stacking
+coordinate, not necessarily a vertical screen position.</p>
+<p>In fitted mode, dragging redistributes the adjacent tracks’ weight sum after subtracting their minimum sizes. When no
+space above those minima remains, the operation is a no-op. The computed weights must stay positive and within the
+configuration limits before either is stored. In scrolling mode, dragging changes only the preceding track’s requested
+height; it does not preserve the pair’s combined physical size. Both paths schedule remapping rather than drawing
 immediately, and pixel rounding can shift the resulting boundary by one pixel.</p>
-<p><a class="reference internal" href="track-reference.html#c.TrackViewOp" title="TrackViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackViewOp()</span></code></a> manages track-list scrolling, separate from every data-axis
-viewport. <a class="reference internal" href="track-reference.html#c.TrackViewFractions" title="TrackViewFractions"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackViewFractions()</span></code></a> computes fractions using the visible physical range and an extent no smaller than that range. A query
-ensures layout is current. Moveto addresses the total extent; a page advances
-90 percent of the visible range and a unit advances 20 pixels. Nonfinite
-requests or computed offsets are rejected before updating the stored offset.
-Fitted layout always stores a zero offset for successful scrolling requests.</p>
+<p><a class="reference internal" href="track-reference.html#c.TrackViewOp" title="TrackViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackViewOp()</span></code></a> manages track-list scrolling, separate from every data-axis viewport. <a class="reference internal" href="track-reference.html#c.TrackViewFractions" title="TrackViewFractions"><code class="xref c c-func docutils literal notranslate"><span class="pre">TrackViewFractions()</span></code></a>
+computes fractions using the visible physical range and an extent no smaller than that range. A query ensures layout is
+current. Moveto addresses the total extent; a page advances 90 percent of the visible range and a unit advances 20
+pixels. Nonfinite requests or computed offsets are rejected before updating the stored offset. Fitted layout always
+stores a zero offset for successful scrolling requests.</p>
 </section>
 <section id="notification-lifetime-boundary">
 <h2>Notification lifetime boundary<a class="headerlink" href="#notification-lifetime-boundary" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="track-reference.html#c.NotifyTrackScrollbar" title="NotifyTrackScrollbar"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyTrackScrollbar()</span></code></a> runs after drawing and suppresses exports. It caches
-changed fractions before evaluating a duplicated command prefix, so a callback
-that triggers another draw without changing fractions does not notify forever.
-An empty prefix is a no-op after caching. Prefix syntax has already been
-validated by configuration; command existence is checked only by evaluation.</p>
-<p>The command receives first/last fractions and runs globally with the graph and
-interpreter preserved. Errors are reported as background exceptions and the
-previous interpreter state is restored. Preservation protects storage lifetime,
-not continued widget validity: the callback may destroy the graph. No graph
-fields are read after callback evaluation in this helper. The surrounding
-notification service similarly repicks stationary pointers, checks that the
+<p><a class="reference internal" href="track-reference.html#c.NotifyTrackScrollbar" title="NotifyTrackScrollbar"><code class="xref c c-func docutils literal notranslate"><span class="pre">NotifyTrackScrollbar()</span></code></a> runs after drawing and suppresses exports. It caches changed fractions before evaluating
+a duplicated command prefix, so a callback that triggers another draw without changing fractions does not notify
+forever. An empty prefix is a no-op after caching. Prefix syntax has already been validated by configuration; command
+existence is checked only by evaluation.</p>
+<p>The command receives first/last fractions and runs globally with the graph and interpreter preserved. Errors are
+reported as background exceptions and the previous interpreter state is restored. Preservation protects storage
+lifetime, not continued widget validity: the callback may destroy the graph. No graph fields are read after callback
+evaluation in this helper. The surrounding notification service similarly repicks stationary pointers, checks that the
 widget survived binding callbacks, then invokes scrollbar notification.</p>
 </section>
 <section id="dispatch-and-notification-contracts">
 <h2>Dispatch and notification contracts<a class="headerlink" href="#dispatch-and-notification-contracts" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="track-reference.html#c.Rbc_ConfigureTrackGraph" title="Rbc_ConfigureTrackGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConfigureTrackGraph()</span></code></a> validates the widget-level track options;
-<a class="reference internal" href="track-reference.html#c.Rbc_TrackOp" title="Rbc_TrackOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_TrackOp()</span></code></a> dispatches the full widget command under its enclosing
-lifetime protection. <a class="reference internal" href="track-reference.html#c.Rbc_CreateTrackComponentArgs" title="Rbc_CreateTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateTrackComponentArgs()</span></code></a> adapts nested grid
-and legend arguments without copying every Tcl object. Its retained command
-prefix and array must be released with <a class="reference internal" href="track-reference.html#c.Rbc_FreeTrackComponentArgs" title="Rbc_FreeTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTrackComponentArgs()</span></code></a>
-before the borrowed arguments expire.</p>
-<p><a class="reference internal" href="track-reference.html#c.Rbc_FindTrack" title="Rbc_FindTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindTrack()</span></code></a> returns an unretained identity: ordering does not invalidate
-it, but deletion does. <a class="reference internal" href="scroll-reference.html#c.Rbc_NotifyTrackView" title="Rbc_NotifyTrackView"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView()</span></code></a> may execute bindings and
-scrollbar callbacks that delete the widget; its internal preservation does not
-guarantee that the graph remains usable after return.
-<a class="reference internal" href="track-reference.html#c.Rbc_DestroyTracks" title="Rbc_DestroyTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a> is teardown, after dependent elements and markers
-have gone and before axes are freed. <a class="reference internal" href="track-reference.html#c.Rbc_DrawTrackSeparators" title="Rbc_DrawTrackSeparators"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawTrackSeparators()</span></code></a> uses
-current world bounds and limits strokes to visible gaps.</p>
+<p><a class="reference internal" href="track-reference.html#c.Rbc_ConfigureTrackGraph" title="Rbc_ConfigureTrackGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ConfigureTrackGraph()</span></code></a> validates the widget-level track options; func:<cite>Rbc_TrackOp</cite> dispatches the full
+:c:widget command under its enclosing lifetime protection. <a class="reference internal" href="track-reference.html#c.Rbc_CreateTrackComponentArgs" title="Rbc_CreateTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateTrackComponentArgs()</span></code></a> adapts nested grid and
+:c:legend arguments without copying every Tcl object. Its retained command prefix and array must be released with
+:c:<a class="reference internal" href="track-reference.html#c.Rbc_FreeTrackComponentArgs" title="Rbc_FreeTrackComponentArgs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeTrackComponentArgs()</span></code></a> before the borrowed arguments expire.</p>
+<p><a class="reference internal" href="track-reference.html#c.Rbc_FindTrack" title="Rbc_FindTrack"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindTrack()</span></code></a> returns an unretained identity: ordering does not invalidate it, but deletion
+does. <a class="reference internal" href="scroll-reference.html#c.Rbc_NotifyTrackView" title="Rbc_NotifyTrackView"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NotifyTrackView()</span></code></a> may execute bindings and scrollbar callbacks that delete the widget; its internal
+preservation does not guarantee that the graph remains usable after return. <a class="reference internal" href="track-reference.html#c.Rbc_DestroyTracks" title="Rbc_DestroyTracks"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTracks()</span></code></a> is teardown,
+after dependent elements and markers have gone and before axes are freed. <a class="reference internal" href="track-reference.html#c.Rbc_DrawTrackSeparators" title="Rbc_DrawTrackSeparators"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawTrackSeparators()</span></code></a> uses current
+world bounds and limits strokes to visible gaps.</p>
 </section>
 </section>
 

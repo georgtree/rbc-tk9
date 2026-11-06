@@ -69,8 +69,8 @@ Creation, insertion and lookup
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: Rbc_Chain
    :members:

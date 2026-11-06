@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,15 +1215,14 @@
              
   <section id="axis-ownership-and-commands">
 <h1>Axis ownership and commands<a class="headerlink" href="#axis-ownership-and-commands" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code> owns the graph’s named axis registry, option transactions,
-margin membership and axis commands. This chapter covers that control layer;
-<a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> explains coordinate spaces and track viewports. The source
-contracts are in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>. The following sections cover option transactions, ranges, tick generation,
-label presentation, margin layout, scrolling and notifications.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code> owns the graph’s named axis registry, option transactions, margin membership and axis commands. This
+chapter covers that control layer; <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> explains coordinate spaces and track viewports. The source contracts
+are in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a>. The following sections cover option transactions, ranges, tick generation, label
+presentation, margin layout, scrolling and notifications.</p>
 <section id="names-references-and-margin-membership">
 <h2>Names, references and margin membership<a class="headerlink" href="#names-references-and-margin-membership" title="Link to this heading"></a></h2>
-<p>The graph owns <code class="docutils literal notranslate"><span class="pre">axes.table</span></code>. Each record owns its copied name and derived
-resources. Name lookup and reference acquisition are different operations:</p>
+<p>The graph owns <code class="docutils literal notranslate"><span class="pre">axes.table</span></code>. Each record owns its copied name and derived resources. Name lookup and reference
+acquisition are different operations:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Operation</p></th>
@@ -1247,85 +1247,67 @@ resources. Name lookup and reference acquisition are different operations:</p>
 </tr>
 </tbody>
 </table>
-<p>An unreferenced live axis stays registered. A delete-pending referenced axis
-stays allocated but is excluded from ordinary name lookup and <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">names</span></code>.
-Recreating its name revives the same record, retaining its references and
+<p>An unreferenced live axis stays registered. A delete-pending referenced axis stays allocated but is excluded from
+ordinary name lookup and <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">names</span></code>. Recreating its name revives the same record, retaining its references and
 resources. This is different from allocating a replacement record.</p>
-<p><code class="docutils literal notranslate"><span class="pre">classUid</span></code> represents logical X/Y identity, not the current screen direction.
-An untyped or unused record may acquire a class; a referenced record cannot be
-acquired with the opposite class. Inversion changes margin selection rather
-than exchanging logical data coordinates.</p>
-<p>The margin chain controls display order. <code class="docutils literal notranslate"><span class="pre">linkPtr</span></code>, <code class="docutils literal notranslate"><span class="pre">chainPtr</span></code> and
-<code class="docutils literal notranslate"><span class="pre">AXIS_ONSCREEN</span></code> describe membership independently of <code class="docutils literal notranslate"><span class="pre">refCount</span></code>. Do not
-use membership as proof of a retained reference. The four default axes receive
-one reference during initialization. Track-owned Y axes are arranged through
-track configuration; margin <code class="docutils literal notranslate"><span class="pre">use</span></code> rejects that arrangement in trackgraphs.</p>
+<p><code class="docutils literal notranslate"><span class="pre">classUid</span></code> represents logical X/Y identity, not the current screen direction. An untyped or unused record may acquire
+a class; a referenced record cannot be acquired with the opposite class. Inversion changes margin selection rather than
+exchanging logical data coordinates.</p>
+<p>The margin chain controls display order. <code class="docutils literal notranslate"><span class="pre">linkPtr</span></code>, <code class="docutils literal notranslate"><span class="pre">chainPtr</span></code> and <code class="docutils literal notranslate"><span class="pre">AXIS_ONSCREEN</span></code> describe membership
+independently of <code class="docutils literal notranslate"><span class="pre">refCount</span></code>. Do not use membership as proof of a retained reference. The four default axes receive one
+reference during initialization. Track-owned Y axes are arranged through track configuration; margin <code class="docutils literal notranslate"><span class="pre">use</span></code> rejects
+that arrangement in trackgraphs.</p>
 </section>
 <section id="configuration-boundary">
 <h2>Configuration boundary<a class="headerlink" href="#configuration-boundary" title="Link to this heading"></a></h2>
-<p>Initialization uses the named <code class="docutils literal notranslate"><span class="pre">Axis</span></code> option-database component, including
-component-name normalization. Initialization failure releases partially
-installed Tk resources. Even an empty explicit option vector must pass through
-configuration so database defaults become derived axis state.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisConfiguration.ConfigureAxisOptions" title="rbcGrAxisConfiguration.ConfigureAxisOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisConfiguration.ConfigureAxisOptions()</span></code></a> holds a Tk saved-options transaction and temporarily
-exposes the original argument vector and change mask to <a class="reference internal" href="axis-reference.html#c.rbcGrAxisConfiguration.ConfigureAxis" title="rbcGrAxisConfiguration.ConfigureAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisConfiguration.ConfigureAxis()</span></code></a>.
-The vector is borrowed, never retained after the call. Derived limits, ticks,
-loose ranges, pixels, shadows, binding tags and limit formats are prepared
-before committing any of them. Command-prefix validation does not execute
-Tcl callbacks. On recoverable failure, prepared resources are released and
-Tk-managed options are restored. Success refreshes styles and title extents,
-marks mapping dirty, requests redraw and records a pending configure
-notification; it does not synchronously notify listeners here.</p>
-<p>The atomic boundary is one axis. Multi-axis <code class="docutils literal notranslate"><span class="pre">configure</span></code> validates names
-first but applies configuration sequentially. A later failure does not undo
-an earlier successful axis. Likewise, multi-name deletion can partially
+<p>Initialization uses the named <code class="docutils literal notranslate"><span class="pre">Axis</span></code> option-database component, including component-name normalization. Initialization
+failure releases partially installed Tk resources. Even an empty explicit option vector must pass through configuration
+so database defaults become derived axis state.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisConfiguration.ConfigureAxisOptions" title="rbcGrAxisConfiguration.ConfigureAxisOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisConfiguration.ConfigureAxisOptions()</span></code></a> holds a Tk saved-options transaction and temporarily exposes the
+original argument vector and change mask to <a class="reference internal" href="axis-reference.html#c.rbcGrAxisConfiguration.ConfigureAxis" title="rbcGrAxisConfiguration.ConfigureAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisConfiguration.ConfigureAxis()</span></code></a>. The vector is borrowed,
+never retained after the call. Derived limits, ticks, loose ranges, pixels, shadows, binding tags and limit formats are
+prepared before committing any of them. Command-prefix validation does not execute Tcl callbacks. On recoverable
+failure, prepared resources are released and Tk-managed options are restored. Success refreshes styles and title
+extents, marks mapping dirty, requests redraw and records a pending configure notification; it does not synchronously
+notify listeners here.</p>
+<p>The atomic boundary is one axis. Multi-axis <code class="docutils literal notranslate"><span class="pre">configure</span></code> validates names first but applies configuration
+sequentially. A later failure does not undo an earlier successful axis. Likewise, multi-name deletion can partially
 succeed before a later lookup or track-ownership error.</p>
 </section>
 <section id="dispatch-and-bindings">
 <h2>Dispatch and bindings<a class="headerlink" href="#dispatch-and-bindings" title="Link to this heading"></a></h2>
-<p>Named-axis dispatch receives the full widget command vector. Margin dispatch
-selects the first axis in the margin chain and passes an argument suffix to its handler.
-Keep these conventions distinct when sharing command helpers.
-The full-vector handlers read the operation at index 2 and the first operand
-at index 3. Margin dispatch removes the first three entries before calling
-its selected handler. For example, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisCommands.CgetVirtualOp" title="rbcGrAxisCommands.CgetVirtualOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisCommands.CgetVirtualOp()</span></code></a>
-resolves the name at index 3, then passes the option suffix beginning at index
-4 to <a class="reference internal" href="axis-reference.html#c.rbcGrAxisCommands.CgetOp" title="rbcGrAxisCommands.CgetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisCommands.CgetOp()</span></code></a>, where the option is at index 0.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.Rbc_TrackYViewOp" title="rbcGrAxisLayoutControl.Rbc_TrackYViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.Rbc_TrackYViewOp()</span></code></a> also receives a full vector,
-with the track name at index 3. It consumes optional <code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axis</span></code> entries
-before constructing a temporary named-axis view request. These arrays and
-objects are borrowed during dispatch; changing their offsets does not change
-ownership or acquire references to the resolved axes.</p>
-<p>Bindings use graph-owned interned keys for the axis name, logical class and
-configured tags, in that order. <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">bind</span></code> can create bindings for a tag
-without an existing axis. Its tag listing is not a list of live axes.
-<code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">names</span></code> excludes pending deletion and follows hash order; margin
-<code class="docutils literal notranslate"><span class="pre">use</span></code> queries follow display-chain order. Picking queries check the binding
-context before interpreting the current item as an axis.</p>
+<p>Named-axis dispatch receives the full widget command vector. Margin dispatch selects the first axis in the margin chain
+and passes an argument suffix to its handler. Keep these conventions distinct when sharing command helpers. The
+full-vector handlers read the operation at index 2 and the first operand at index 3. Margin dispatch removes the first
+three entries before calling its selected handler. For example, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisCommands.CgetVirtualOp" title="rbcGrAxisCommands.CgetVirtualOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisCommands.CgetVirtualOp()</span></code></a> resolves the
+name at index 3, then passes the option suffix beginning at index 4 to <a class="reference internal" href="axis-reference.html#c.rbcGrAxisCommands.CgetOp" title="rbcGrAxisCommands.CgetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisCommands.CgetOp()</span></code></a>, where the
+option is at index 0.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.Rbc_TrackYViewOp" title="rbcGrAxisLayoutControl.Rbc_TrackYViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.Rbc_TrackYViewOp()</span></code></a> also receives a full vector, with the track name at index 3. It
+consumes optional <code class="docutils literal notranslate"><span class="pre">-mapy</span> <span class="pre">axis</span></code> entries before constructing a temporary named-axis view request. These arrays and
+objects are borrowed during dispatch; changing their offsets does not change ownership or acquire references to the
+resolved axes.</p>
+<p>Bindings use graph-owned interned keys for the axis name, logical class and configured tags, in that order. <code class="docutils literal notranslate"><span class="pre">axis</span>
+<span class="pre">bind</span></code> can create bindings for a tag without an existing axis. Its tag listing is not a list of live axes. <code class="docutils literal notranslate"><span class="pre">axis</span>
+<span class="pre">names</span></code> excludes pending deletion and follows hash order; margin <code class="docutils literal notranslate"><span class="pre">use</span></code> queries follow display-chain order. Picking
+queries check the binding context before interpreting the current item as an axis.</p>
 </section>
 <section id="cleanup-and-failure-recovery">
 <h2>Cleanup and failure recovery<a class="headerlink" href="#cleanup-and-failure-recovery" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.DestroyAxis" title="rbcGrAxisRegistry.DestroyAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.DestroyAxis()</span></code></a> cancels pending scrollbar notification and releases bindings,
-margin links, registry membership, Tk options and derived resources. Text
-styles own their GCs, while options own configured fonts and foreground
-colours; separately allocated shadow colours require separate release.
-Graph teardown destroys all axes regardless of reference counts, so consumers
-must already have been detached. Partial default-axis initialization is left
-for that teardown path.</p>
-<p>Margin <code class="docutils literal notranslate"><span class="pre">use</span></code> validates the complete replacement before changing chains or
-logical types. Invalid names or incompatible axes leave all margin lists
-unchanged, including axes that would have moved from another margin.</p>
-<p>Failed creation frees a new record. Failed revival instead restores pending
-deletion and the previous notification-validity flag after configuration
-rollback, preserving existing consumers. A later successful revival exposes
-the same record again; releasing its final reference while still deleted
-continues to destroy it normally.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.DestroyAxis" title="rbcGrAxisRegistry.DestroyAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.DestroyAxis()</span></code></a> cancels pending scrollbar notification and releases bindings, margin links,
+registry membership, Tk options and derived resources. Text styles own their GCs, while options own configured fonts and
+foreground colours; separately allocated shadow colours require separate release. Graph teardown destroys all axes
+regardless of reference counts, so consumers must already have been detached. Partial default-axis initialization is
+left for that teardown path.</p>
+<p>Margin <code class="docutils literal notranslate"><span class="pre">use</span></code> validates the complete replacement before changing chains or logical types. Invalid names or incompatible
+axes leave all margin lists unchanged, including axes that would have moved from another margin.</p>
+<p>Failed creation frees a new record. Failed revival instead restores pending deletion and the previous
+notification-validity flag after configuration rollback, preserving existing consumers. A later successful revival
+exposes the same record again; releasing its final reference while still deleted continues to destroy it normally.</p>
 </section>
 <section id="option-transaction-internals">
 <h2>Option transaction internals<a class="headerlink" href="#option-transaction-internals" title="Link to this heading"></a></h2>
-<p>Tk owns the retained option objects. The seven private transaction records
-hold parsed candidates separately from live derived fields. They are local
-to one configuration attempt, not persistent state on an axis.</p>
+<p>Tk owns the retained option objects. The seven private transaction records hold parsed candidates separately from live
+derived fields. They are local to one configuration attempt, not persistent state on an axis.</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Family</p></th>
@@ -1364,75 +1346,59 @@ to one configuration attempt, not persistent state on an axis.</p>
 </tr>
 </tbody>
 </table>
-<p>Preparation initializes fresh storage. Reusing an owning transaction without
-first releasing it would lose its candidates. During initial configuration,
-preparation finds explicit overrides before parsing effective database/default
-objects. This lets a valid explicit override replace an invalid unused default.
-Every explicit occurrence is then parsed in caller order. For example, an
-invalid first <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> list is not ignored merely because the same
+<p>Preparation initializes fresh storage. Reusing an owning transaction without first releasing it would lose its
+candidates. During initial configuration, preparation finds explicit overrides before parsing effective database/default
+objects. This lets a valid explicit override replace an invalid unused default. Every explicit occurrence is then
+parsed in caller order. For example, an invalid first <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> list is not ignored merely because the same
 command ends with a valid <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> list.</p>
-<p>Option classification uses the canonical option-table name, including synonyms
-such as <code class="docutils literal notranslate"><span class="pre">-bd</span></code>. These helpers assume Tk has already rejected unknown and
-ambiguous options. Prefix matching should not be reimplemented independently
-inside each transaction family.</p>
-<p>Stage helpers acquire replacement storage before freeing an earlier candidate.
-An empty candidate is still meaningful: a staged NULL tick array clears the
-explicit-tick flag and restores automatic ticks. The staged flag or mask must
-therefore be checked separately from the pointer. Commit transfers owned
-storage, clears the transferred candidate fields and releases the old live
-resource. Cleanup then remains safe after a successful commit. Scalar-only
-transactions need no resource destructor.</p>
+<p>Option classification uses the canonical option-table name, including synonyms such as <code class="docutils literal notranslate"><span class="pre">-bd</span></code>. These helpers assume Tk
+has already rejected unknown and ambiguous options. Prefix matching should not be reimplemented independently inside
+each transaction family.</p>
+<p>Stage helpers acquire replacement storage before freeing an earlier candidate. An empty candidate is still meaningful:
+a staged NULL tick array clears the explicit-tick flag and restores automatic ticks. The staged flag or mask must
+therefore be checked separately from the pointer. Commit transfers owned storage, clears the transferred candidate
+fields and releases the old live resource. Cleanup then remains safe after a successful commit. Scalar-only transactions
+need no resource destructor.</p>
 <section id="transaction-argument-contracts">
 <h3>Transaction argument contracts<a class="headerlink" href="#transaction-argument-contracts" title="Link to this heading"></a></h3>
-<p>Preparation takes fresh caller-owned storage and initializes it; stage helpers
-instead take an initialized candidate and may replace an earlier candidate.
-Commit requires successful preparation of all affected families. It transfers
-owned resources or copies scalars, then clears staging state. These are distinct
-contracts even though each helper accepts a transaction pointer. The parameter
-sections in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a> identify the required state at each boundary.</p>
-<p>Lookup outputs also differ. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.NameToAxis" title="rbcGrAxisRegistry.NameToAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.NameToAxis()</span></code></a> clears its
-output on a failed lookup. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.GetAxis" title="rbcGrAxisRegistry.GetAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.GetAxis()</span></code></a> leaves the caller’s
-output unchanged on error. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.Rbc_GetAxisFromObj" title="rbcGrAxisRegistry.Rbc_GetAxisFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.Rbc_GetAxisFromObj()</span></code></a> sets it
-to NULL for an empty name, but retains the unchanged-on-error rule for nonempty
-names. Check the status before consuming an output, and release a reference
-only when a successful lookup requested a non-NULL logical class.</p>
+<p>Preparation takes fresh caller-owned storage and initializes it; stage helpers instead take an initialized candidate and
+may replace an earlier candidate. Commit requires successful preparation of all affected families. It transfers owned
+resources or copies scalars, then clears staging state. These are distinct contracts even though each helper accepts a
+transaction pointer. The parameter sections in <a class="reference internal" href="axis-reference.html"><span class="doc">Axis control C reference</span></a> identify the required state at each boundary.</p>
+<p>Lookup outputs also differ. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.NameToAxis" title="rbcGrAxisRegistry.NameToAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.NameToAxis()</span></code></a> clears its output on a failed
+lookup. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.GetAxis" title="rbcGrAxisRegistry.GetAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.GetAxis()</span></code></a> leaves the caller’s output unchanged on
+error. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRegistry.Rbc_GetAxisFromObj" title="rbcGrAxisRegistry.Rbc_GetAxisFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRegistry.Rbc_GetAxisFromObj()</span></code></a> sets it to NULL for an empty name, but retains the
+unchanged-on-error rule for nonempty names. Check the status before consuming an output, and release a reference only
+when a successful lookup requested a non-NULL logical class.</p>
 </section>
 <section id="parsing-policies">
 <h3>Parsing policies<a class="headerlink" href="#parsing-policies" title="Link to this heading"></a></h3>
-<p>Display and scroll limits accept finite Tcl expressions; empty values select
-automatic limits. The limits transaction starts with current effective values,
-then validates the final pairs. When both endpoints are defined, minimum must
-be less than maximum. Logarithmic scaling requires every defined display or
-scroll endpoint to be positive, including when only <code class="docutils literal notranslate"><span class="pre">-logscale</span></code> changes.</p>
-<p>Explicit ticks are finite expressions in input order. The parser neither sorts
-nor deduplicates them. It rejects counts beyond <code class="docutils literal notranslate"><span class="pre">MAXTICKS</span></code> before allocation,
-checks the variable-sized array calculation for overflow and reports allocation
-failure through the interpreter. Empty lists select automatic generation.
-Widths must be nonnegative; scroll increment must be positive. Pixel conversion
-uses the widget’s screen scaling. Loose-range policies accept one or two Tcl
-booleans or the exact word <code class="docutils literal notranslate"><span class="pre">always</span></code>; a single entry applies to both ends.</p>
-<p>Limit formats are a list of at most two strings. Each string permits literal
-text, escaped percent signs and at most one floating-point conversion accepting
-a <code class="docutils literal notranslate"><span class="pre">double</span></code>. Dynamic width/precision and incompatible conversion types are
-rejected. Format length, width and precision are bounded by <code class="docutils literal notranslate"><span class="pre">TICK_LABEL_SIZE</span></code>.
-Those input bounds are not a proof that every formatted numeric result fits
-that many characters; output routines must retain their own buffer bounds.</p>
+<p>Display and scroll limits accept finite Tcl expressions; empty values select automatic limits. The limits transaction
+starts with current effective values, then validates the final pairs. When both endpoints are defined, minimum must be
+less than maximum. Logarithmic scaling requires every defined display or scroll endpoint to be positive, including when
+only <code class="docutils literal notranslate"><span class="pre">-logscale</span></code> changes.</p>
+<p>Explicit ticks are finite expressions in input order. The parser neither sorts nor deduplicates them. It rejects counts
+beyond <code class="docutils literal notranslate"><span class="pre">MAXTICKS</span></code> before allocation, checks the variable-sized array calculation for overflow and reports allocation
+failure through the interpreter. Empty lists select automatic generation. Widths must be nonnegative; scroll increment
+must be positive. Pixel conversion uses the widget’s screen scaling. Loose-range policies accept one or two Tcl booleans
+or the exact word <code class="docutils literal notranslate"><span class="pre">always</span></code>; a single entry applies to both ends.</p>
+<p>Limit formats are a list of at most two strings. Each string permits literal text, escaped percent signs and at most one
+floating-point conversion accepting a <code class="docutils literal notranslate"><span class="pre">double</span></code>. Dynamic width/precision and incompatible conversion types are
+rejected. Format length, width and precision are bounded by <code class="docutils literal notranslate"><span class="pre">TICK_LABEL_SIZE</span></code>. Those input bounds are not a proof
+that every formatted numeric result fits that many characters; output routines must retain their own buffer bounds.</p>
 </section>
 <section id="expression-evaluation-boundary">
 <h3>Expression evaluation boundary<a class="headerlink" href="#expression-evaluation-boundary" title="Link to this heading"></a></h3>
-<p>Limit and explicit-tick parsers use <code class="docutils literal notranslate"><span class="pre">Tcl_ExprDoubleObj</span></code>. Unlike command-prefix
-validation, this can execute substitutions, variable traces and Tcl commands.
-The transaction rolls back RBC candidate resources and Tk option changes; it
-cannot undo arbitrary Tcl side effects. The low-level parsers do not themselves
-retain graph/axis lifetime or validate it after evaluation. Treat them as Tcl
-evaluation boundaries when auditing reentrancy, rather than assuming that all
-configuration parsing is callback-free.</p>
+<p>Limit and explicit-tick parsers use <code class="docutils literal notranslate"><span class="pre">Tcl_ExprDoubleObj</span></code>. Unlike command-prefix validation, this can execute
+substitutions, variable traces and Tcl commands. The transaction rolls back RBC candidate resources and Tk option
+changes; it cannot undo arbitrary Tcl side effects. The low-level parsers do not themselves retain graph/axis lifetime
+or validate it after evaluation. Treat them as Tcl evaluation boundaries when auditing reentrancy, rather than assuming
+that all configuration parsing is callback-free.</p>
 </section>
 </section>
 <section id="ranges-and-tick-generation">
 <h2>Ranges and tick generation<a class="headerlink" href="#ranges-and-tick-generation" title="Link to this heading"></a></h2>
-<p>Range calculation precedes tick-array allocation, label layout and mapping.
-The range fields are not interchangeable:</p>
+<p>Range calculation precedes tick-array allocation, label layout and mapping. The range fields are not interchangeable:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>State</p></th>
@@ -1460,236 +1426,184 @@ The range fields are not interchangeable:</p>
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.Rbc_ResetAxes" title="rbcGrAxisRanges.Rbc_ResetAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.Rbc_ResetAxes()</span></code></a> prepares bar frequencies and stacks before collecting
-extents. It excludes hidden and plot-hidden elements, but visits all registered
-axes, including pending deletions retained by consumers. Polar grid axes with
-no contributing data receive a symmetric fallback; Smith grid axes always
-include the intrinsic unit-circle bounds in their accumulated nonlogarithmic
-range. Explicit requested limits are applied later and can still restrict the
-displayed region.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.FixAxisRange" title="rbcGrAxisRanges.FixAxisRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.FixAxisRange()</span></code></a> supplies missing bounds, expands degenerate data and applies
-requested endpoints. Automatic window shifting applies only when neither
-endpoint was requested. Reset then constrains the scaling inputs by configured
-scroll limits, selects linear or logarithmic scaling, and requests later layout
-and mapping. It does not construct labels or paint the graph.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.Rbc_ResetAxes" title="rbcGrAxisRanges.Rbc_ResetAxes"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.Rbc_ResetAxes()</span></code></a> prepares bar frequencies and stacks before collecting extents. It excludes
+hidden and plot-hidden elements, but visits all registered axes, including pending deletions retained by
+consumers. Polar grid axes with no contributing data receive a symmetric fallback; Smith grid axes always include the
+intrinsic unit-circle bounds in their accumulated nonlogarithmic range. Explicit requested limits are applied later and
+can still restrict the displayed region.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.FixAxisRange" title="rbcGrAxisRanges.FixAxisRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.FixAxisRange()</span></code></a> supplies missing bounds, expands degenerate data and applies requested
+endpoints. Automatic window shifting applies only when neither endpoint was requested. Reset then constrains the scaling
+inputs by configured scroll limits, selects linear or logarithmic scaling, and requests later layout and mapping. It
+does not construct labels or paint the graph.</p>
 <section id="linear-sweep-policy">
 <h3>Linear sweep policy<a class="headerlink" href="#linear-sweep-policy" title="Link to this heading"></a></h3>
-<p>The automatic interval uses decimal 1/2/5/10 multiples, targeting approximately
-four intervals. A requested positive interval is tried first, but historical
-behavior reduces an overly large interval by halves. An interval producing
-more than <code class="docutils literal notranslate"><span class="pre">MAXTICKS</span></code> or nonfinite sweep arithmetic is rejected internally
-and replaced by the automatic interval. If neither produces a usable sweep,
-the range is retained with no generated major ticks.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.GetLinearSweep" title="rbcGrAxisRanges.GetLinearSweep"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.GetLinearSweep()</span></code></a> computes enclosing endpoints in units of the step. It
-validates the count while still represented as a double, before converting to
-<code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>. This avoids overflowing the raw endpoint difference or converting
-an unbounded count to an integer. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.RoundToStep" title="rbcGrAxisRanges.RoundToStep"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.RoundToStep()</span></code></a> similarly avoids integer
-rounding and retains the input when quotient/product arithmetic is unusable.</p>
-<p>Loose policy applies separately to each endpoint. <code class="docutils literal notranslate"><span class="pre">tight</span></code> keeps the resolved
-endpoint; ordinary <code class="docutils literal notranslate"><span class="pre">loose</span></code> uses an enclosing tick unless that endpoint was
-explicitly requested; <code class="docutils literal notranslate"><span class="pre">always</span></code> uses the enclosing tick even for an explicit
-request. The tick sweep can extend beyond the mapping range, so later geometry
-must filter ticks against the range.</p>
+<p>The automatic interval uses decimal 1/2/5/10 multiples, targeting approximately four intervals. A requested positive
+interval is tried first, but historical behavior reduces an overly large interval by halves. An interval producing more
+than <code class="docutils literal notranslate"><span class="pre">MAXTICKS</span></code> or nonfinite sweep arithmetic is rejected internally and replaced by the automatic interval. If
+neither produces a usable sweep, the range is retained with no generated major ticks.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.GetLinearSweep" title="rbcGrAxisRanges.GetLinearSweep"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.GetLinearSweep()</span></code></a> computes enclosing endpoints in units of the step. It validates the count while
+still represented as a double, before converting to <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>. This avoids overflowing the raw endpoint difference or
+converting an unbounded count to an integer. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.RoundToStep" title="rbcGrAxisRanges.RoundToStep"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.RoundToStep()</span></code></a> similarly avoids integer rounding and
+retains the input when quotient/product arithmetic is unusable.</p>
+<p>Loose policy applies separately to each endpoint. <code class="docutils literal notranslate"><span class="pre">tight</span></code> keeps the resolved endpoint; ordinary <code class="docutils literal notranslate"><span class="pre">loose</span></code> uses an
+enclosing tick unless that endpoint was explicitly requested; <code class="docutils literal notranslate"><span class="pre">always</span></code> uses the enclosing tick even for an explicit
+request. The tick sweep can extend beyond the mapping range, so later geometry must filter ticks against the range.</p>
 </section>
 <section id="logarithmic-sweep-policy">
 <h3>Logarithmic sweep policy<a class="headerlink" href="#logarithmic-sweep-policy" title="Link to this heading"></a></h3>
-<p>Logarithmic mapping stores exponent coordinates. A span covering at most ten
-enclosing decades uses a major step of one decade. Wider spans select a nice
-interval in exponent space. Requested linear <code class="docutils literal notranslate"><span class="pre">-stepsize</span></code> is not consulted
-by this scaling routine.</p>
-<p>Narrow logarithmic minor ticks use the eight offsets <code class="docutils literal notranslate"><span class="pre">log10(2)</span></code> through
-<code class="docutils literal notranslate"><span class="pre">log10(9)</span></code>. Their sweep has <code class="docutils literal notranslate"><span class="pre">step</span> <span class="pre">==</span> <span class="pre">0</span></code> as a special selector; it does not
-mean repeated coincident ticks. Wider logarithmic sweeps instead use four
-fractions at 0.2 increments between major ticks.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.LogAxisValue" title="rbcGrAxisRanges.LogAxisValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.LogAxisValue()</span></code></a> converts back only within the interval bounded by <code class="docutils literal notranslate"><span class="pre">DBL_MIN</span></code>
-and <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> and returns <code class="docutils literal notranslate"><span class="pre">NAN</span></code> outside it. Here <code class="docutils literal notranslate"><span class="pre">DBL_MIN</span></code> means the
-smallest positive <em>normal</em> double, not the smallest subnormal value. Exact
-endpoint handling avoids power-function rounding across these bounds.</p>
+<p>Logarithmic mapping stores exponent coordinates. A span covering at most ten enclosing decades uses a major step of one
+decade. Wider spans select a nice interval in exponent space. Requested linear <code class="docutils literal notranslate"><span class="pre">-stepsize</span></code> is not consulted by this
+scaling routine.</p>
+<p>Narrow logarithmic minor ticks use the eight offsets <code class="docutils literal notranslate"><span class="pre">log10(2)</span></code> through <code class="docutils literal notranslate"><span class="pre">log10(9)</span></code>. Their sweep has <code class="docutils literal notranslate"><span class="pre">step</span> <span class="pre">==</span> <span class="pre">0</span></code> as
+a special selector; it does not mean repeated coincident ticks. Wider logarithmic sweeps instead use four fractions at
+0.2 increments between major ticks.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.LogAxisValue" title="rbcGrAxisRanges.LogAxisValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.LogAxisValue()</span></code></a> converts back only within the interval bounded by <code class="docutils literal notranslate"><span class="pre">DBL_MIN</span></code> and <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code> and
+returns <code class="docutils literal notranslate"><span class="pre">NAN</span></code> outside it. Here <code class="docutils literal notranslate"><span class="pre">DBL_MIN</span></code> means the smallest positive <em>normal</em> double, not the smallest subnormal
+value. Exact endpoint handling avoids power-function rounding across these bounds.</p>
 </section>
 <section id="explicit-arrays-and-ownership">
 <h3>Explicit arrays and ownership<a class="headerlink" href="#explicit-arrays-and-ownership" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.SweepTicks" title="rbcGrAxisRanges.SweepTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.SweepTicks()</span></code></a> replaces generated arrays but preserves arrays selected by
-<code class="docutils literal notranslate"><span class="pre">AXIS_CONFIG_MAJOR</span></code> or <code class="docutils literal notranslate"><span class="pre">AXIS_CONFIG_MINOR</span></code>. Explicit major ticks disable
-automatic minor generation; an explicit minor list remains available. With
-explicit majors, minor fractions are placed between adjacent major entries,
-including descending pairs. Equal endpoints, missing following endpoints,
-fractions outside the open interval and rounded positions outside it are
-rejected. No minor is extrapolated after the final explicit major.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.GenerateTicks" title="rbcGrAxisRanges.GenerateTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.GenerateTicks()</span></code></a> returns an owned allocation even for an empty sweep.
-Invalid internal sweeps degrade to empty arrays rather than a layout error.
-Allocation itself uses the fatal Tcl allocator. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.Rbc_AllocAxisMajorTicks" title="rbcGrAxisRanges.Rbc_AllocAxisMajorTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.Rbc_AllocAxisMajorTicks()</span></code></a>
-always returns an independent array: it copies an existing cache or generates
-from the sweep when no cache exists, notably for hidden Polar axes. Its copy
-path uses attempted allocation and can return NULL. Callers must both check
-that result and free successful results; they must not assume every cache is
-an explicitly supplied list.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.SweepTicks" title="rbcGrAxisRanges.SweepTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.SweepTicks()</span></code></a> replaces generated arrays but preserves arrays selected by <code class="docutils literal notranslate"><span class="pre">AXIS_CONFIG_MAJOR</span></code> or
+<code class="docutils literal notranslate"><span class="pre">AXIS_CONFIG_MINOR</span></code>. Explicit major ticks disable automatic minor generation; an explicit minor list remains
+available. With explicit majors, minor fractions are placed between adjacent major entries, including descending
+pairs. Equal endpoints, missing following endpoints, fractions outside the open interval and rounded positions outside
+it are rejected. No minor is extrapolated after the final explicit major.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.GenerateTicks" title="rbcGrAxisRanges.GenerateTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.GenerateTicks()</span></code></a> returns an owned allocation even for an empty sweep. Invalid internal sweeps
+degrade to empty arrays rather than a layout error. Allocation itself uses the fatal Tcl
+allocator. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.Rbc_AllocAxisMajorTicks" title="rbcGrAxisRanges.Rbc_AllocAxisMajorTicks"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.Rbc_AllocAxisMajorTicks()</span></code></a> always returns an independent array: it copies an existing
+cache or generates from the sweep when no cache exists, notably for hidden Polar axes. Its copy path uses attempted
+allocation and can return NULL. Callers must both check that result and free successful results; they must not assume
+every cache is an explicitly supplied list.</p>
 </section>
 <section id="numerical-mapping-boundary">
 <h3>Numerical mapping boundary<a class="headerlink" href="#numerical-mapping-boundary" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.SetAxisRange" title="rbcGrAxisRanges.SetAxisRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.SetAxisRange()</span></code></a> caches the endpoint difference and reciprocal. Very small
-absolute spans receive a unit cached range without changing the endpoints.
-Overflow-sized spans are handled by half-scaled normalization/interpolation.
-These helpers do not establish a universal finite-result guarantee:
-extrapolation and extreme inputs can still be nonfinite. Mapping consumers
-must retain their checks before integer conversion or rendering.</p>
-<p>Horizontal and vertical helpers use the full owning-track world rectangle,
-not just its visible clipped portion. Descending reversal and downward screen
-Y are applied after normalization. The low-level forward coordinate helpers
-expect logarithmic conversion to have happened already; inverse helpers
-convert exponents back to data values. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for clipping and
-viewport responsibilities.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisRanges.SetAxisRange" title="rbcGrAxisRanges.SetAxisRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisRanges.SetAxisRange()</span></code></a> caches the endpoint difference and reciprocal. Very small absolute spans receive
+a unit cached range without changing the endpoints. Overflow-sized spans are handled by half-scaled
+normalization/interpolation. These helpers do not establish a universal finite-result guarantee: extrapolation and
+extreme inputs can still be nonfinite. Mapping consumers must retain their checks before integer conversion or
+rendering.</p>
+<p>Horizontal and vertical helpers use the full owning-track world rectangle, not just its visible clipped
+portion. Descending reversal and downward screen Y are applied after normalization. The low-level forward coordinate
+helpers expect logarithmic conversion to have happened already; inverse helpers convert exponents back to data
+values. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for clipping and viewport responsibilities.</p>
 </section>
 </section>
 <section id="labels-geometry-and-presentation">
 <h2>Labels, geometry and presentation<a class="headerlink" href="#labels-geometry-and-presentation" title="Link to this heading"></a></h2>
-<p>Axis presentation has separate measurement and mapping phases. Measurement
-rebuilds the filtered label chain and records text dimensions and perpendicular
-axis thickness. Mapping computes final anchors and cached segments for the
-current plot rectangle. Drawing and export consume those caches; they do not
-invoke the formatter again.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.NewTickLabel" title="rbcGrAxisPresentation.NewTickLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.NewTickLabel()</span></code></a> stores a copied string in the label allocation and initializes
-its anchor to <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code>. Measurement fills its dimensions, but only mapping
-replaces the anchor with a drawable position. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.AxisLayoutUsable" title="rbcGrAxisPresentation.AxisLayoutUsable"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.AxisLayoutUsable()</span></code></a> prevents
-screen drawing, export and picking when either plot range is at most one
-pixel, because mapping was skipped and the cached positions may be stale or
-uninitialized. This is particularly important during resizing with large or
-rotated labels.</p>
+<p>Axis presentation has separate measurement and mapping phases. Measurement rebuilds the filtered label chain and records
+text dimensions and perpendicular axis thickness. Mapping computes final anchors and cached segments for the current
+plot rectangle. Drawing and export consume those caches; they do not invoke the formatter again.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.NewTickLabel" title="rbcGrAxisPresentation.NewTickLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.NewTickLabel()</span></code></a> stores a copied string in the label allocation and initializes its anchor
+to <code class="docutils literal notranslate"><span class="pre">DBL_MAX</span></code>. Measurement fills its dimensions, but only mapping replaces the anchor with a drawable
+position. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.AxisLayoutUsable" title="rbcGrAxisPresentation.AxisLayoutUsable"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.AxisLayoutUsable()</span></code></a> prevents screen drawing, export and picking when either plot
+range is at most one pixel, because mapping was skipped and the cached positions may be stale or uninitialized. This is
+particularly important during resizing with large or rotated labels.</p>
 <section id="formatter-callback-boundary">
 <h3>Formatter callback boundary<a class="headerlink" href="#formatter-callback-boundary" title="Link to this heading"></a></h3>
-<p>The formatter receives the widget path and the legacy default numeric label.
-The command prefix is duplicated before appending arguments. The callback’s
-result is copied into an owned label; the caller’s interpreter state is
-restored. Callback errors are reported as background exceptions and normally
-fall back to the default label.</p>
-<p>A callback may also delete the axis, destroy the widget or replace layout
-resources. After evaluation, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_AllocAxisTickLabel" title="rbcGrAxisPresentation.Rbc_AllocAxisTickLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_AllocAxisTickLabel()</span></code></a> checks graph validity
-without dereferencing the old axis pointer. Invalidation releases the newly
-allocated label and returns NULL. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.GetAxisGeometry" title="rbcGrAxisPresentation.GetAxisGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.GetAxisGeometry()</span></code></a> must stop immediately;
-its callers must check callback validity before resuming their own traversal.
-A callback error and callback invalidation are therefore different outcomes.
-Neither a numeric fallback nor preserved graph storage proves an old axis or
-label-chain pointer is still valid.</p>
+<p>The formatter receives the widget path and the legacy default numeric label. The command prefix is duplicated before
+appending arguments. The callback’s result is copied into an owned label; the caller’s interpreter state is
+restored. Callback errors are reported as background exceptions and normally fall back to the default label.</p>
+<p>A callback may also delete the axis, destroy the widget or replace layout resources. After evaluation,
+<a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_AllocAxisTickLabel" title="rbcGrAxisPresentation.Rbc_AllocAxisTickLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_AllocAxisTickLabel()</span></code></a> checks graph validity without dereferencing the old axis
+pointer. Invalidation releases the newly allocated label and returns
+NULL. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.GetAxisGeometry" title="rbcGrAxisPresentation.GetAxisGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.GetAxisGeometry()</span></code></a> must stop immediately; its callers must check callback validity
+before resuming their own traversal. A callback error and callback invalidation are therefore different outcomes.
+Neither a numeric fallback nor preserved graph storage proves an old axis or label-chain pointer is still valid.</p>
 </section>
 <section id="geometry-and-picking">
 <h3>Geometry and picking<a class="headerlink" href="#geometry-and-picking" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.GetAxisGeometry" title="rbcGrAxisPresentation.GetAxisGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.GetAxisGeometry()</span></code></a> measures multiline text and rotated bounds, includes tick,
-baseline and title spacing, and stores the orientation-dependent thickness.
-Wide accumulators and clamped conversions protect the stored integer sizes.
-<a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.GetMarginGeometry" title="rbcGrAxisPresentation.GetMarginGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.GetMarginGeometry()</span></code></a> aggregates visible axes and alternate-title requirements.
-For a trackgraph’s local Y margin it reserves the maximum per-track sum;
-multiple axes within one track still occupy separate bands.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.AxisOffsets" title="rbcGrAxisPresentation.AxisOffsets"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.AxisOffsets()</span></code></a> chooses title/tick anchors and absolute perpendicular positions
-for the selected margin. Negative tick lengths preserve inward-tick behavior
-by exchanging the baseline and major-tick positions. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.MapAxis" title="rbcGrAxisPresentation.MapAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.MapAxis()</span></code></a> allocates
-segments for the baseline and in-range major/minor ticks and positions the
-already measured labels. Count overflow or segment allocation failure leaves
-no segment array and is not reported as a Tcl command error.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_GetAxisSegments" title="rbcGrAxisPresentation.Rbc_GetAxisSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_GetAxisSegments()</span></code></a> is a separate grid interface. It borrows cached ticks
-when available and generates temporary ticks otherwise, including for axes
-without visible rectangular decorations. It returns a caller-owned segment
-array or NULL/zero, and always releases its temporary tick arrays. Grid
-spanning uses the current plot viewport; callers requesting local track grids
-must establish that viewport first.</p>
-<p>Picking is containment, not a distance minimization despite the name
-<a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_NearestAxis" title="rbcGrAxisPresentation.Rbc_NearestAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_NearestAxis()</span></code></a>. It visits axes in registry order and tests tick-label
-polygons, title polygons and the axis line region, recording the matching
-<code class="docutils literal notranslate"><span class="pre">detail</span></code>. It applies the visible scrolling-band checks used by presentation.
-A returned axis is borrowed. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_GetFirstAxis" title="rbcGrAxisPresentation.Rbc_GetFirstAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_GetFirstAxis()</span></code></a> is simpler still: it returns
-the first chain entry without filtering hidden or pending-deletion records.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.GetAxisGeometry" title="rbcGrAxisPresentation.GetAxisGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.GetAxisGeometry()</span></code></a> measures multiline text and rotated bounds, includes tick, baseline and
+title spacing, and stores the orientation-dependent thickness. Wide accumulators and clamped conversions protect the
+stored integer sizes. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.GetMarginGeometry" title="rbcGrAxisPresentation.GetMarginGeometry"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.GetMarginGeometry()</span></code></a> aggregates visible axes and alternate-title
+requirements. For a trackgraph’s local Y margin it reserves the maximum per-track sum; multiple axes within one track
+still occupy separate bands.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.AxisOffsets" title="rbcGrAxisPresentation.AxisOffsets"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.AxisOffsets()</span></code></a> chooses title/tick anchors and absolute perpendicular positions for the
+selected margin. Negative tick lengths preserve inward-tick behavior by exchanging the baseline and major-tick
+positions. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.MapAxis" title="rbcGrAxisPresentation.MapAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.MapAxis()</span></code></a> allocates segments for the baseline and in-range major/minor ticks
+and positions the already measured labels. Count overflow or segment allocation failure leaves no segment array and is
+not reported as a Tcl command error.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_GetAxisSegments" title="rbcGrAxisPresentation.Rbc_GetAxisSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_GetAxisSegments()</span></code></a> is a separate grid interface. It borrows cached ticks when available
+and generates temporary ticks otherwise, including for axes without visible rectangular decorations. It returns a
+caller-owned segment array or NULL/zero, and always releases its temporary tick arrays. Grid spanning uses the current
+plot viewport; callers requesting local track grids must establish that viewport first.</p>
+<p>Picking is containment, not a distance minimization despite the name <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_NearestAxis" title="rbcGrAxisPresentation.Rbc_NearestAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_NearestAxis()</span></code></a>. It
+visits axes in registry order and tests tick-label polygons, title polygons and the axis line region, recording the
+matching <code class="docutils literal notranslate"><span class="pre">detail</span></code>. It applies the visible scrolling-band checks used by presentation. A returned axis is
+borrowed. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_GetFirstAxis" title="rbcGrAxisPresentation.Rbc_GetFirstAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_GetFirstAxis()</span></code></a> is simpler still: it returns the first chain entry without
+filtering hidden or pending-deletion records.</p>
 </section>
 <section id="screen-and-document-output">
 <h3>Screen and document output<a class="headerlink" href="#screen-and-document-output" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.DrawAxis" title="rbcGrAxisPresentation.DrawAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.DrawAxis()</span></code></a> uses the renderer interface for borders, native text and line
-segments, retaining the native segment fallback when no drawable context is
-available. It also computes scrollbar fractions and queues notification;
-it does not invoke the scroll command synchronously. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.AxisExport" title="rbcGrAxisPresentation.AxisExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.AxisExport()</span></code></a> emits
-cached title, labels and segments through the shared export renderer, without
-scrollbar work. Current screen strokes use projecting caps while exported
-strokes use butt caps; the optional screen axis border is not exported.</p>
-<p>Local axes map against their full track world rectangle. When track scrolling
-is enabled, screen output draws into a temporary pixmap and copies back only
-the visible band, including the axis margin. Export applies a corresponding
-clip scope. This keeps partially scrolled text and wide strokes away from
-fixed shared axes without changing their logical positions.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.DrawAxis" title="rbcGrAxisPresentation.DrawAxis"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.DrawAxis()</span></code></a> uses the renderer interface for borders, native text and line segments,
+retaining the native segment fallback when no drawable context is available. It also computes scrollbar fractions and
+queues notification; it does not invoke the scroll command synchronously. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.AxisExport" title="rbcGrAxisPresentation.AxisExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.AxisExport()</span></code></a>
+emits cached title, labels and segments through the shared export renderer, without scrollbar work. Current screen
+strokes use projecting caps while exported strokes use butt caps; the optional screen axis border is not exported.</p>
+<p>Local axes map against their full track world rectangle. When track scrolling is enabled, screen output draws into a
+temporary pixmap and copies back only the visible band, including the axis margin. Export applies a corresponding clip
+scope. This keeps partially scrolled text and wide strokes away from fixed shared axes without changing their logical
+positions.</p>
 </section>
 <section id="limit-annotations-and-remaining-differences">
 <h3>Limit annotations and remaining differences<a class="headerlink" href="#limit-annotations-and-remaining-differences" title="Link to this heading"></a></h3>
-<p>Limit annotations are a separate registry-wide pass selected by
-<code class="docutils literal notranslate"><span class="pre">nFormats</span></code>, not by the ordinary visible-axis chain. One format applies to
-both ends; two formats select them independently. Empty format strings omit
-an endpoint. Both screen and export format <code class="docutils literal notranslate"><span class="pre">axisRange</span></code> directly, so
-logarithmic annotations currently show exponent values rather than the raw
-data-space results returned by the limits command.</p>
-<p>Screen and export use inversion-aware orientation, swap formatted endpoint
-labels for descending axes, and measure spacing with the limits text style.
-Each format stays associated with its numeric endpoint when positions swap;
-an omitted endpoint remains omitted. Tick-font changes do not alter spacing
-between limit annotations when the limits font is unchanged.</p>
+<p>Limit annotations are a separate registry-wide pass selected by <code class="docutils literal notranslate"><span class="pre">nFormats</span></code>, not by the ordinary visible-axis
+chain. One format applies to both ends; two formats select them independently. Empty format strings omit an
+endpoint. Both screen and export format <code class="docutils literal notranslate"><span class="pre">axisRange</span></code> directly, so logarithmic annotations currently show exponent
+values rather than the raw data-space results returned by the limits command.</p>
+<p>Screen and export use inversion-aware orientation, swap formatted endpoint labels for descending axes, and measure
+spacing with the limits text style. Each format stays associated with its numeric endpoint when positions swap; an
+omitted endpoint remains omitted. Tick-font changes do not alter spacing between limit annotations when the limits font
+is unchanged.</p>
 </section>
 </section>
 <section id="margin-layout-and-aspect">
 <h2>Margin layout and aspect<a class="headerlink" href="#margin-layout-and-aspect" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.ComputeMargins" title="rbcGrAxisLayoutControl.ComputeMargins"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.ComputeMargins()</span></code></a> measures axes first, checking formatter validity after each
-margin. It then reserves graph-title space, maps the legend against the
-estimated cavity and adds space for a margin-hosted legend. A legend in the
-plot, at explicit coordinates or in another window does not enlarge margins.
-Aspect correction follows, then adjoining space for alternate axis titles.
-Positive explicit margin sizes override those calculated requirements last.
-Consequently an explicit margin can override room previously reserved by
-aspect or decoration calculations.</p>
-<p>Polar automatic aspect follows the axes selected by the grid. It uses their
-prepared mapping ranges and excludes logarithmic or nonfinite ranges. In the
-ordinary orientation the target mapped-width/mapped-height ratio is the X/Y
-range ratio; inversion reverses it. This equalizes physical distance per data
-unit. Plot padding is removed for this calculation and restored afterward.
-An explicit fixed aspect instead constrains the outer plot cavity ratio.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.Rbc_LayoutMargins" title="rbcGrAxisLayoutControl.Rbc_LayoutMargins"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.Rbc_LayoutMargins()</span></code></a> adds widget/plot insets, stores plot bounds and derives
-mapping offsets, ranges and reciprocal scales after plot padding. Wide
-intermediates and clamped integer storage avoid wrapping dimensions. Its
-one-pixel minimum permits safe arithmetic during resizing; presentation still
-requires the stricter <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.AxisLayoutUsable" title="rbcGrAxisPresentation.AxisLayoutUsable"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.AxisLayoutUsable()</span></code></a> check. Layout does not itself map
-axis segments or certify that every requested decoration fits.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.ComputeMargins" title="rbcGrAxisLayoutControl.ComputeMargins"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.ComputeMargins()</span></code></a> measures axes first, checking formatter validity after each margin. It
+then reserves graph-title space, maps the legend against the estimated cavity and adds space for a margin-hosted
+legend. A legend in the plot, at explicit coordinates or in another window does not enlarge margins. Aspect correction
+follows, then adjoining space for alternate axis titles. Positive explicit margin sizes override those calculated
+requirements last. Consequently an explicit margin can override room previously reserved by aspect or decoration
+calculations.</p>
+<p>Polar automatic aspect follows the axes selected by the grid. It uses their prepared mapping ranges and excludes
+logarithmic or nonfinite ranges. In the ordinary orientation the target mapped-width/mapped-height ratio is the X/Y
+range ratio; inversion reverses it. This equalizes physical distance per data unit. Plot padding is removed for this
+calculation and restored afterward. An explicit fixed aspect instead constrains the outer plot cavity ratio.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.Rbc_LayoutMargins" title="rbcGrAxisLayoutControl.Rbc_LayoutMargins"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.Rbc_LayoutMargins()</span></code></a> adds widget/plot insets, stores plot bounds and derives mapping
+offsets, ranges and reciprocal scales after plot padding. Wide intermediates and clamped integer storage avoid wrapping
+dimensions. Its one-pixel minimum permits safe arithmetic during resizing; presentation still requires the stricter
+<a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.AxisLayoutUsable" title="rbcGrAxisPresentation.AxisLayoutUsable"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.AxisLayoutUsable()</span></code></a> check. Layout does not itself map axis segments or certify that every
+requested decoration fits.</p>
 </section>
 <section id="queries-and-freshness">
 <h2>Queries and freshness<a class="headerlink" href="#queries-and-freshness" title="Link to this heading"></a></h2>
-<p>Limits and transform handlers synchronize attached vectors and reset pending
-axis ranges. They do not perform complete margin layout. <code class="docutils literal notranslate"><span class="pre">limits</span></code> returns a
-two-value minimum/maximum pair in data coordinates, converting logarithmic
-mapping bounds back from exponents. Forward transform accepts a Tcl expression
-and returns an integer coordinate truncated toward zero after finite/range
-checks. Inverse transform accepts an integer coordinate and returns a double.
-Both choose direction using logical axis class and inversion.</p>
-<p>Forward-transform expression evaluation can execute Tcl commands or traces.
-The current handler does not revalidate its borrowed axis afterward. This is
-an additional evaluation boundary to include in a runtime reentrancy audit;
-ordinary numeric validation alone is not a lifetime guarantee.</p>
+<p>Limits and transform handlers synchronize attached vectors and reset pending axis ranges. They do not perform complete
+margin layout. <code class="docutils literal notranslate"><span class="pre">limits</span></code> returns a two-value minimum/maximum pair in data coordinates, converting logarithmic mapping
+bounds back from exponents. Forward transform accepts a Tcl expression and returns an integer coordinate truncated
+toward zero after finite/range checks. Inverse transform accepts an integer coordinate and returns a double. Both
+choose direction using logical axis class and inversion.</p>
+<p>Forward-transform expression evaluation can execute Tcl commands or traces. The current handler does not revalidate its
+borrowed axis afterward. This is an additional evaluation boundary to include in a runtime reentrancy audit; ordinary
+numeric validation alone is not a lifetime guarantee.</p>
 </section>
 <section id="scrolling-state-and-local-views">
 <h2>Scrolling state and local views<a class="headerlink" href="#scrolling-state-and-local-views" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.GetAxisScrollState" title="rbcGrAxisLayoutControl.GetAxisScrollState"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.GetAxisScrollState()</span></code></a> derives its world from accumulated data bounds, falling
-back to current view endpoints for missing sentinels and then applying explicit
-scroll bounds. It requires a finite increasing world. The current view is
-intersected with that world; a wholly outside view collapses to the nearest
-boundary, and a zero-width view remains valid. Logarithmic scrolling performs
-this arithmetic in exponent coordinates.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.ViewOp" title="rbcGrAxisLayoutControl.ViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.ViewOp()</span></code></a> converts normalized data endpoints into screen-oriented fractions.
-Queries clamp the pair to 0..1. Mutations use the shared scroll-request parser:
-<code class="docutils literal notranslate"><span class="pre">moveto</span></code> sets the offset, pages move by 90 percent of the current view, and
-units use the configured scroll increment. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.AdjustViewport" title="rbcGrAxisLayoutControl.AdjustViewport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.AdjustViewport()</span></code></a> applies the
-canvas-style offset bounds. Reconstructed limits must be finite and increasing
-before they become requested axis limits. An empty view accepts movement as a
-no-op.</p>
-<p>For ordinary axes the current implementation selects <code class="docutils literal notranslate"><span class="pre">hScale</span></code> or <code class="docutils literal notranslate"><span class="pre">vScale</span></code>
-using its forward/reverse branch. Track-owned axes instead divide by their
-full world extent in the physical axis direction. These are the actual current
-formulas; the ordinary branch should not be assumed to use physical direction
-independently of descending state. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.ViewOp" title="rbcGrAxisLayoutControl.ViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.ViewOp()</span></code></a> itself does not refresh layout.</p>
-<p>Track-local <code class="docutils literal notranslate"><span class="pre">yview</span></code> validates optional axis membership, performs graph layout
-and delegates to the same view handler. A query uses the selected or first
-member. A mutation visits all members unless <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> selects one. It saves
-requested limits before mutation; if a later member fails, it restores all
-of those limits and the old graph flags, retaining a newly scheduled redraw
-flag because its idle callback may already exist. This is a requested-limit
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.GetAxisScrollState" title="rbcGrAxisLayoutControl.GetAxisScrollState"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.GetAxisScrollState()</span></code></a> derives its world from accumulated data bounds, falling back to
+current view endpoints for missing sentinels and then applying explicit scroll bounds. It requires a finite increasing
+world. The current view is intersected with that world; a wholly outside view collapses to the nearest boundary, and a
+zero-width view remains valid. Logarithmic scrolling performs this arithmetic in exponent coordinates.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.ViewOp" title="rbcGrAxisLayoutControl.ViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.ViewOp()</span></code></a> converts normalized data endpoints into screen-oriented fractions. Queries
+clamp the pair to 0..1. Mutations use the shared scroll-request parser: <code class="docutils literal notranslate"><span class="pre">moveto</span></code> sets the offset, pages move by 90
+percent of the current view, and units use the configured scroll
+increment. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.AdjustViewport" title="rbcGrAxisLayoutControl.AdjustViewport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.AdjustViewport()</span></code></a> applies the canvas-style offset bounds. Reconstructed limits
+must be finite and increasing before they become requested axis limits. An empty view accepts movement as a no-op.</p>
+<p>For ordinary axes the current implementation selects <code class="docutils literal notranslate"><span class="pre">hScale</span></code> or <code class="docutils literal notranslate"><span class="pre">vScale</span></code> using its forward/reverse
+branch. Track-owned axes instead divide by their full world extent in the physical axis direction. These are the actual
+current formulas; the ordinary branch should not be assumed to use physical direction independently of descending
+state. <a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.ViewOp" title="rbcGrAxisLayoutControl.ViewOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.ViewOp()</span></code></a> itself does not refresh layout.</p>
+<p>Track-local <code class="docutils literal notranslate"><span class="pre">yview</span></code> validates optional axis membership, performs graph layout and delegates to the same view
+handler. A query uses the selected or first member. A mutation visits all members unless <code class="docutils literal notranslate"><span class="pre">-mapy</span></code> selects one. It saves
+requested limits before mutation; if a later member fails, it restores all of those limits and the old graph flags,
+retaining a newly scheduled redraw flag because its idle callback may already exist. This is a requested-limit
 transaction, not rollback of arbitrary layout or Tcl side effects.</p>
 </section>
 <section id="notifications-and-delivery">
@@ -1713,20 +1627,16 @@ transaction, not rollback of arbitrary layout or Tcl side effects.</p>
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.UpdateAxisScrollbar" title="rbcGrAxisLayoutControl.UpdateAxisScrollbar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.UpdateAxisScrollbar()</span></code></a> suppresses temporary export updates and coalesces
-repeated screen updates. At idle, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.NotifyAxisScrollbar" title="rbcGrAxisLayoutControl.NotifyAxisScrollbar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.NotifyAxisScrollbar()</span></code></a> clears the pending
-flag, checks eligibility and copies all command arguments before Tcl
-execution. It preserves graph/interpreter storage and interpreter state and
-does not access the axis after evaluation. Errors are background exceptions;
-axis destruction cancels outstanding idle callbacks.</p>
-<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges" title="rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges()</span></code></a> uses a separate notification baseline because a query
-can reset ranges before the next display. It skips deleted/unconfigured axes,
-collects names in registry order and updates baselines before submitting
-<code class="docutils literal notranslate"><span class="pre">RbcAxisChanged</span></code> and <code class="docutils literal notranslate"><span class="pre">RbcAxisLimitsChanged</span></code>. Configuration changes contribute
-to the first event; changed limits contribute to both. The display caller must
-exclude temporary export mappings: this function does not contain its own
-export guard. Its event lists own their copied names and are released after
-submission.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.UpdateAxisScrollbar" title="rbcGrAxisLayoutControl.UpdateAxisScrollbar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.UpdateAxisScrollbar()</span></code></a> suppresses temporary export updates and coalesces repeated screen
+updates. At idle, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.NotifyAxisScrollbar" title="rbcGrAxisLayoutControl.NotifyAxisScrollbar"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.NotifyAxisScrollbar()</span></code></a> clears the pending flag, checks eligibility and
+copies all command arguments before Tcl execution. It preserves graph/interpreter storage and interpreter state and does
+not access the axis after evaluation. Errors are background exceptions; axis destruction cancels outstanding idle
+callbacks.</p>
+<p><a class="reference internal" href="axis-reference.html#c.rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges" title="rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisLayoutControl.Rbc_NotifyAxisChanges()</span></code></a> uses a separate notification baseline because a query can reset
+ranges before the next display. It skips deleted/unconfigured axes, collects names in registry order and updates
+baselines before submitting <code class="docutils literal notranslate"><span class="pre">RbcAxisChanged</span></code> and <code class="docutils literal notranslate"><span class="pre">RbcAxisLimitsChanged</span></code>. Configuration changes contribute to the
+first event; changed limits contribute to both. The display caller must exclude temporary export mappings: this function
+does not contain its own export guard. Its event lists own their copied names and are released after submission.</p>
 </section>
 </section>
 

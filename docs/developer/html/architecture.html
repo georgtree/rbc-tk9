@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1228,33 +1229,28 @@ stubs. Renderer interfaces are private; adding a renderer declaration does not a
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Commands and configuration</p></td>
-<td><p>Parse Tcl requests, own option transactions and component resources,
-schedule mapping and redraw.</p></td>
+<td><p>Parse Tcl requests, own option transactions and component resources, schedule mapping and redraw.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Mapping</p></td>
-<td><p>Convert data through axes and track viewports into display geometry;
-retain source indices needed for picking.</p></td>
+<td><p>Convert data through axes and track viewports into display geometry; retain source indices needed for picking.</p></td>
 </tr>
 <tr class="row-even"><td><p>Components</p></td>
-<td><p>Choose painter order, batches and fallback paths; supply mapped geometry
-and borrowed resources.</p></td>
+<td><p>Choose painter order, batches and fallback paths; supply mapped geometry and borrowed resources.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Renderer interface</p></td>
 <td><p>Dispatch supported operations, manage context lifetime and clip nesting.</p></td>
 </tr>
 <tr class="row-even"><td><p>Backends</p></td>
-<td><p>Convert geometry to native requests or document primitives, preserving
-backend rounding, batching and resource rules.</p></td>
+<td><p>Convert geometry to native requests or document primitives, preserving backend rounding, batching and resource
+rules.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Export orchestration</p></td>
-<td><p>Set up documents, remap for requested size, restore screen geometry,
-finalize and deliver output.</p></td>
+<td><p>Set up documents, remap for requested size, restore screen geometry, finalize and deliver output.</p></td>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGraph.c</span></code> manages the common widget. Track services live in
-<code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>; polar work lives in <code class="docutils literal notranslate"><span class="pre">rbcGrPolar.c</span></code>. Components such as
-<code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code> use this infrastructure.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGraph.c</span></code> manages the common widget. Track services live in <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>; polar work lives in
+<code class="docutils literal notranslate"><span class="pre">rbcGrPolar.c</span></code>. Components such as <code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code> use this infrastructure.</p>
 <p>See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for pixel copies, tile clients and idle notifications.
 See <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a> for borrowed text layouts and document-local font caches.
 See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for document lifecycle, geometry restoration and delivery.
@@ -1304,9 +1300,8 @@ lifetime. Generic event dispatch does not interpret component layouts; graph and
 </section>
 <section id="core-record-index">
 <h2>Core record index<a class="headerlink" href="#core-record-index" title="Link to this heading"></a></h2>
-<p>The shared headers define ownership and storage contracts, not just function
-signatures. These records are private C interfaces; their layouts are not a
-public extension ABI. A pointer member does not automatically retain its target.</p>
+<p>The shared headers define ownership and storage contracts, not just function signatures. These records are private C
+interfaces; their layouts are not a public extension ABI. A pointer member does not automatically retain its target.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 30.0%" />
@@ -1319,8 +1314,7 @@ public extension ABI. A pointer member does not automatically retain its target.
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><code class="xref c c-type docutils literal notranslate"><span class="pre">Graph</span></code></a> / <a class="reference internal" href="graph-reference.html#c.GraphStruct" title="GraphStruct"><code class="xref c c-struct docutils literal notranslate"><span class="pre">GraphStruct</span></code></a></p></td>
-<td><p>Widget owner, component registries, export options and layout caches;
-<a class="reference internal" href="graph-reference.html"><span class="doc">Graph lifecycle C reference</span></a>.</p></td>
+<td><p>Widget owner, component registries, export options and layout caches; <a class="reference internal" href="graph-reference.html"><span class="doc">Graph lifecycle C reference</span></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="graph-reference.html#c.Component" title="Component"><code class="xref c c-struct docutils literal notranslate"><span class="pre">Component</span></code></a> and <a class="reference internal" href="graph-reference.html#c.Margin" title="Margin"><code class="xref c c-type docutils literal notranslate"><span class="pre">Margin</span></code></a></p></td>
 <td><p>Registry/display order and axis-margin layout; <a class="reference internal" href="graph-reference.html"><span class="doc">Graph lifecycle C reference</span></a>.</p></td>

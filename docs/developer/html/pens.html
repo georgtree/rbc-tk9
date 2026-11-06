@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,120 +1215,92 @@
              
   <section id="pens-and-style-palettes">
 <h1>Pens and style palettes<a class="headerlink" href="#pens-and-style-palettes" title="Link to this heading"></a></h1>
-<p>Named pens are graph-owned reusable drawing resources. <code class="docutils literal notranslate"><span class="pre">rbcGrPen.c</span></code> manages
-their registry, commands, reference counts and option lifecycle. Concrete line
-and bar implementations provide their drawing attributes and derived resources.
-Strip and polar elements use the line-pen implementation. Shared <code class="docutils literal notranslate"><span class="pre">Pen</span></code> state
-and declarations live in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code>; palette services are in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code>
-and <code class="docutils literal notranslate"><span class="pre">rbcGrElem.h</span></code>. See <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a> for selected contracts.</p>
+<p>Named pens are graph-owned reusable drawing resources. <code class="docutils literal notranslate"><span class="pre">rbcGrPen.c</span></code> manages their registry, commands, reference counts
+and option lifecycle. Concrete line and bar implementations provide their drawing attributes and derived resources.
+Strip and polar elements use the line-pen implementation. Shared <code class="docutils literal notranslate"><span class="pre">Pen</span></code> state and declarations live in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code>;
+palette services are in <code class="docutils literal notranslate"><span class="pre">rbcGrElem.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcGrElem.h</span></code>. See <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a> for selected contracts.</p>
 <section id="named-and-embedded-pens">
 <h2>Named and embedded pens<a class="headerlink" href="#named-and-embedded-pens" title="Link to this heading"></a></h2>
-<p>A named pen belongs to the graph’s pen table. Successful <a class="reference internal" href="pen-reference.html#c.Rbc_GetPen" title="Rbc_GetPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPen()</span></code></a> lookup
-checks its type and increments its reference count. Each acquisition must be
-paired with <a class="reference internal" href="pen-reference.html#c.Rbc_FreePen" title="Rbc_FreePen"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreePen()</span></code></a>. Lookup maps strip and polar requirements to the
-line class; a bar pen is not interchangeable with a line pen.</p>
-<p>Elements also have a built-in pen and may select named normal or active pens.
-Do not apply named-pen reference operations indiscriminately to an embedded
-pen. Likewise, an alias to a pen pointer does not itself acquire another
-reference. Element pen transactions stage references before committing them;
-failed preparation must release the staged acquisitions.</p>
-<p>Deletion is deferred while a named pen is referenced. The delete command sets
-<code class="docutils literal notranslate"><span class="pre">PEN_DELETE_PENDING</span></code> and destroys the record immediately only when its count
-is zero. Existing users can keep using the retained record, while ordinary
-name lookup no longer returns it. Releasing the last reference destroys a
-pending pen; releasing the last reference to a live named pen leaves the
-registry’s pen available for later use.</p>
-<p>Creation with the name of an in-use delete-pending pen can revive that record
-when the requested concrete type matches. It is not necessarily a new C entity.
-Changing its type is rejected while that old record remains. Code must not
-assume that command-level deletion immediately invalidates every pen pointer,
-or that recreating the name necessarily creates independent drawing state.</p>
+<p>A named pen belongs to the graph’s pen table. Successful <a class="reference internal" href="pen-reference.html#c.Rbc_GetPen" title="Rbc_GetPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPen()</span></code></a> lookup checks its type and increments its
+reference count. Each acquisition must be paired with <a class="reference internal" href="pen-reference.html#c.Rbc_FreePen" title="Rbc_FreePen"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreePen()</span></code></a>. Lookup maps strip and polar requirements to
+the line class; a bar pen is not interchangeable with a line pen.</p>
+<p>Elements also have a built-in pen and may select named normal or active pens. Do not apply named-pen reference
+operations indiscriminately to an embedded pen. Likewise, an alias to a pen pointer does not itself acquire another
+reference. Element pen transactions stage references before committing them; failed preparation must release the staged
+acquisitions.</p>
+<p>Deletion is deferred while a named pen is referenced. The delete command sets <code class="docutils literal notranslate"><span class="pre">PEN_DELETE_PENDING</span></code> and destroys the
+record immediately only when its count is zero. Existing users can keep using the retained record, while ordinary name
+lookup no longer returns it. Releasing the last reference destroys a pending pen; releasing the last reference to a live
+named pen leaves the registry’s pen available for later use.</p>
+<p>Creation with the name of an in-use delete-pending pen can revive that record when the requested concrete type
+matches. It is not necessarily a new C entity. Changing its type is rejected while that old record remains. Code must
+not assume that command-level deletion immediately invalidates every pen pointer, or that recreating the name
+necessarily creates independent drawing state.</p>
 </section>
 <section id="configuration-and-redraw">
 <h2>Configuration and redraw<a class="headerlink" href="#configuration-and-redraw" title="Link to this heading"></a></h2>
-<p>Pen initialization uses the named <code class="docutils literal notranslate"><span class="pre">Pen</span></code> option-database component and the
-shared resource-name convention. Explicit configuration uses <code class="docutils literal notranslate"><span class="pre">Tk_SetOptions</span></code>
-followed by the concrete pen configurator. If that configurator fails, saved
-Tk options are restored. Derived resources must be prepared transactionally
-before replacing the active resources; see <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a>.</p>
-<p>The pen configure command requests backing-store and margin redraw when a
-successfully configured pen has references. A command naming multiple pens
-configures them in sequence; a later failure does not roll back earlier pens.
-The per-pen option transaction must not be described as a transaction over the
-entire multi-pen command.</p>
+<p>Pen initialization uses the named <code class="docutils literal notranslate"><span class="pre">Pen</span></code> option-database component and the shared resource-name convention. Explicit
+configuration uses <code class="docutils literal notranslate"><span class="pre">Tk_SetOptions</span></code> followed by the concrete pen configurator. If that configurator fails, saved Tk
+options are restored. Derived resources must be prepared transactionally before replacing the active resources; see
+<a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a>.</p>
+<p>The pen configure command requests backing-store and margin redraw when a successfully configured pen has references. A
+command naming multiple pens configures them in sequence; a later failure does not roll back earlier pens. The per-pen
+option transaction must not be described as a transaction over the entire multi-pen command.</p>
 </section>
 <section id="palette-ownership">
 <h2>Palette ownership<a class="headerlink" href="#palette-ownership" title="Link to this heading"></a></h2>
-<p>An element palette is a chain of style entries. The first entry represents the
-normal style and borrows the element’s normal pen. Additional entries acquire
-named-pen references and carry weight ranges. The palette’s first entry must
+<p>An element palette is a chain of style entries. The first entry represents the normal style and borrows the element’s
+normal pen. Additional entries acquire named-pen references and carry weight ranges. The palette’s first entry must
 remain present for style selection, even with no additional styles.</p>
-<p><a class="reference internal" href="pen-reference.html#c.Rbc_FreePalette" title="Rbc_FreePalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreePalette()</span></code></a> releases the counted references and removes entries after
-the first. Despite its name, it does not destroy the chain or release that
-first borrowed pen. The private <a class="reference internal" href="pen-reference.html#c.DestroyPalette" title="DestroyPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">DestroyPalette()</span></code></a> helper performs the full
-chain destruction after releasing those entries. Confusing these two operations
-can either leak a chain or release a reference the palette never owned.</p>
-<p>Palette parsing builds a candidate chain before replacing the live one.
-An entry that fails to parse is freed before it has been attached; earlier
-candidate entries and their references are then released. Styles transactions
-apply the same prepare/commit/cleanup ordering as other element resources.
-See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for the shared transaction model.</p>
+<p><a class="reference internal" href="pen-reference.html#c.Rbc_FreePalette" title="Rbc_FreePalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreePalette()</span></code></a> releases the counted references and removes entries after the first. Despite its name, it does
+not destroy the chain or release that first borrowed pen. The private <a class="reference internal" href="pen-reference.html#c.DestroyPalette" title="DestroyPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">DestroyPalette()</span></code></a> helper performs the full
+chain destruction after releasing those entries. Confusing these two operations can either leak a chain or release a
+reference the palette never owned.</p>
+<p>Palette parsing builds a candidate chain before replacing the live one. An entry that fails to parse is freed before it
+has been attached; earlier candidate entries and their references are then released. Styles transactions apply the same
+prepare/commit/cleanup ordering as other element resources. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for the shared transaction model.</p>
 </section>
 <section id="selecting-a-style">
 <h2>Selecting a style<a class="headerlink" href="#selecting-a-style" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="pen-reference.html#c.Rbc_StyleMap" title="Rbc_StyleMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_StyleMap()</span></code></a> allocates one pointer per effective data point and initializes
-all entries to the normal style. It considers weights only up to the smaller
-of the weight length and the point count. Missing weights and unmatched values
-therefore leave the normal style selected.</p>
-<p>For each weighted point, the palette is searched from last to first. The first
-matching range wins, so later entries take precedence where ranges overlap.
-Membership uses a normalized range comparison with <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> tolerance
-near endpoints, rather than a strict half-open interval. Nonpositive range
-widths are skipped. Preserve this ordering and tolerance when changing palette
-selection; adjacent boundaries and overlapping styles depend on them.</p>
-<p>The returned array owns only the pointer storage. Its entries borrow palette
-styles and acquire no new pen references. Callers free the array with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>
-and must not retain it after the underlying palette entries are replaced.
-Even the zero-point case returns an allocation so callers can release it
-unconditionally. Size overflow follows the allocator’s fatal-error convention.</p>
+<p><a class="reference internal" href="pen-reference.html#c.Rbc_StyleMap" title="Rbc_StyleMap"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_StyleMap()</span></code></a> allocates one pointer per effective data point and initializes all entries to the normal
+style. It considers weights only up to the smaller of the weight length and the point count. Missing weights and
+unmatched values therefore leave the normal style selected.</p>
+<p>For each weighted point, the palette is searched from last to first. The first matching range wins, so later entries
+take precedence where ranges overlap. Membership uses a normalized range comparison with <code class="docutils literal notranslate"><span class="pre">DBL_EPSILON</span></code> tolerance near
+endpoints, rather than a strict half-open interval. Nonpositive range widths are skipped. Preserve this ordering and
+tolerance when changing palette selection; adjacent boundaries and overlapping styles depend on them.</p>
+<p>The returned array owns only the pointer storage. Its entries borrow palette styles and acquire no new pen
+references. Callers free the array with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code> and must not retain it after the underlying palette entries are
+replaced. Even the zero-point case returns an allocation so callers can release it unconditionally. Size overflow
+follows the allocator’s fatal-error convention.</p>
 </section>
 <section id="resource-teardown">
 <h2>Resource teardown<a class="headerlink" href="#resource-teardown" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="pen-reference.html#c.Rbc_ReleasePenTkResources" title="Rbc_ReleasePenTkResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ReleasePenTkResources()</span></code></a> releases derived resources through the concrete
-pen destructor before freeing Tk-managed colors, fonts, borders or bitmaps.
-It retains pen records and the registry, and guards against repeated resource
-release. This pass needs a live Tk window and covers registered named pens;
-embedded pens belong to element cleanup.</p>
-<p><a class="reference internal" href="pen-reference.html#c.Rbc_DestroyPens" title="Rbc_DestroyPens"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyPens()</span></code></a> finally destroys the remaining records and hash table.
-It does not wait for reference counts, so element references must already have
-been released. See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for graph teardown ordering.</p>
-<p>Useful regression cases include several elements sharing one pen, deletion
-while referenced, compatible revival, rejected type changes, failed style
-replacement, overlapping ranges, exact range boundaries and empty data. These
-exercise ownership and selection behavior that a simple rendered sample cannot
-fully demonstrate.</p>
+<p><a class="reference internal" href="pen-reference.html#c.Rbc_ReleasePenTkResources" title="Rbc_ReleasePenTkResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ReleasePenTkResources()</span></code></a> releases derived resources through the concrete pen destructor before freeing
+Tk-managed colors, fonts, borders or bitmaps. It retains pen records and the registry, and guards against repeated
+resource release. This pass needs a live Tk window and covers registered named pens; embedded pens belong to element
+cleanup.</p>
+<p><a class="reference internal" href="pen-reference.html#c.Rbc_DestroyPens" title="Rbc_DestroyPens"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyPens()</span></code></a> finally destroys the remaining records and hash table. It does not wait for reference counts,
+so element references must already have been released. See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for graph teardown ordering.</p>
+<p>Useful regression cases include several elements sharing one pen, deletion while referenced, compatible revival,
+rejected type changes, failed style replacement, overlapping ranges, exact range boundaries and empty data. These
+exercise ownership and selection behavior that a simple rendered sample cannot fully demonstrate.</p>
 </section>
 <section id="creation-and-command-boundaries">
 <h2>Creation and command boundaries<a class="headerlink" href="#creation-and-command-boundaries" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="pen-reference.html#c.rbcGrPen.Rbc_CreatePen" title="rbcGrPen.Rbc_CreatePen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrPen.Rbc_CreatePen()</span></code></a> returns a graph-owned pointer without acquiring a counted
-reference. It scans explicit option pairs for <code class="docutils literal notranslate"><span class="pre">-type</span></code> before selecting the
-concrete constructor; the accepted preliminary prefixes have three through
-five bytes, and the last recognized occurrence determines construction.
-Explicit <code class="docutils literal notranslate"><span class="pre">bar</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code> and <code class="docutils literal notranslate"><span class="pre">strip</span></code> types are accepted by this scan;
-strip uses line storage. A supplied polar or strip default class is likewise
+<p><a class="reference internal" href="pen-reference.html#c.rbcGrPen.Rbc_CreatePen" title="rbcGrPen.Rbc_CreatePen"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrPen.Rbc_CreatePen()</span></code></a> returns a graph-owned pointer without acquiring a counted reference. It scans explicit
+option pairs for <code class="docutils literal notranslate"><span class="pre">-type</span></code> before selecting the concrete constructor; the accepted preliminary prefixes have three
+through five bytes, and the last recognized occurrence determines construction. Explicit <code class="docutils literal notranslate"><span class="pre">bar</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code> and
+<code class="docutils literal notranslate"><span class="pre">strip</span></code> types are accepted by this scan; strip uses line storage. A supplied polar or strip default class is likewise
 normalized to line. Subsequent Tk configuration still validates the options.</p>
-<p>A new record is registered before initialization. <a class="reference internal" href="pen-reference.html#c.rbcGrPen.InitPenOptions" title="rbcGrPen.InitPenOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrPen.InitPenOptions()</span></code></a> creates
-its option table and initializes the named Pen component, freeing partially
-initialized Tk resources if initialization fails. Explicit options pass through
-<a class="reference internal" href="pen-reference.html#c.rbcGrPen.ConfigurePenOptions" title="rbcGrPen.ConfigurePenOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrPen.ConfigurePenOptions()</span></code></a>; with no explicit options the concrete configurator
-still runs to build derived resources from defaults. Failure destroys a newly
-created record and removes its registry entry.</p>
-<p>A compatible delete-pending record remains hidden during revival configuration.
-Only successful configuration clears its pending flag. Failure keeps the old
-record pending and its existing users retain their references and drawing
-state. A later valid create can retry revival; releasing the last reference
-instead destroys the pending record normally. This visibility commit is separate
-from the Tk option transaction, which restores the record’s option values.</p>
+<p>A new record is registered before initialization. <a class="reference internal" href="pen-reference.html#c.rbcGrPen.InitPenOptions" title="rbcGrPen.InitPenOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrPen.InitPenOptions()</span></code></a> creates its option table and
+initializes the named Pen component, freeing partially initialized Tk resources if initialization fails. Explicit
+options pass through <a class="reference internal" href="pen-reference.html#c.rbcGrPen.ConfigurePenOptions" title="rbcGrPen.ConfigurePenOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrPen.ConfigurePenOptions()</span></code></a>; with no explicit options the concrete configurator still
+runs to build derived resources from defaults. Failure destroys a newly created record and removes its registry entry.</p>
+<p>A compatible delete-pending record remains hidden during revival configuration. Only successful configuration clears
+its pending flag. Failure keeps the old record pending and its existing users retain their references and drawing
+state. A later valid create can retry revival; releasing the last reference instead destroys the pending record
+normally. This visibility commit is separate from the Tk option transaction, which restores the record’s option values.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 24.0%" />
@@ -1367,46 +1340,36 @@ from the Tk option transaction, which restores the record’s option values.</p>
 </tr>
 </tbody>
 </table>
-<p>Configure identifies the start of options by the first argument beginning with
-a dash. Querying multiple names does not assemble multiple results: the first
-query returns immediately. Deleting the same name twice fails at the second
-lookup, since pending names are hidden. Neither lookup nor listing acquires a
-reference that could keep a pen alive after command processing.</p>
-<p>The dispatcher checks subcommand and argument-count bounds. It does not add an
-independent graph/pen preservation boundary around concrete configuration.
-Callers and concrete configurators remain responsible for callback lifetimes;
+<p>Configure identifies the start of options by the first argument beginning with a dash. Querying multiple names does not
+assemble multiple results: the first query returns immediately. Deleting the same name twice fails at the second lookup,
+since pending names are hidden. Neither lookup nor listing acquires a reference that could keep a pen alive after
+command processing.</p>
+<p>The dispatcher checks subcommand and argument-count bounds. It does not add an independent graph/pen preservation
+boundary around concrete configuration. Callers and concrete configurators remain responsible for callback lifetimes;
 ordinary option rollback must not be used as evidence of callback safety.</p>
 </section>
 <section id="candidate-palettes-and-default-ranges">
 <h2>Candidate palettes and default ranges<a class="headerlink" href="#candidate-palettes-and-default-ranges" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="pen-reference.html#c.ParseStylesObj" title="ParseStylesObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseStylesObj()</span></code></a> clears its output pointer before doing any work. It always
-constructs the reserved normal-style entry, including for NULL or empty style
-lists, and borrows the element’s current normal pen there. Additional entries
-use the concrete record size supplied by the caller, which must accommodate
-<a class="reference internal" href="pen-reference.html#c.PenStyle" title="PenStyle"><code class="xref c c-type docutils literal notranslate"><span class="pre">PenStyle</span></code></a>. The first additional entry defaults to range 0 through 1, the
-second to 1 through 2, and so on.</p>
-<p><a class="reference internal" href="pen-reference.html#c.GetPenStyleFromObj" title="GetPenStyleFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPenStyleFromObj()</span></code></a> accepts exactly one or three list elements. The three-item
-form converts both endpoints before acquiring a named pen, so invalid numeric
-input cannot leak that reference. It uses Tcl numeric conversion rather than
-expression evaluation. A one-item specification retains the initialized default
-range; three items replace it using <code class="docutils literal notranslate"><span class="pre">SetWeight</span></code>. Endpoint ordering is not
-rejected: <code class="docutils literal notranslate"><span class="pre">SetRange</span></code> uses DBL_EPSILON when max is not greater than min. This
-compatibility behavior differs from rejecting reversed ranges or treating them
-as empty. Keep it distinct from the style mapper’s check for a stored
-nonpositive range.</p>
-<p>Palette pen compatibility is checked against the element’s class. The
-<code class="docutils literal notranslate"><span class="pre">penType</span></code> argument retained by <a class="reference internal" href="pen-reference.html#c.StageElemStyles" title="StageElemStyles"><code class="xref c c-func docutils literal notranslate"><span class="pre">StageElemStyles()</span></code></a> is currently unused; it
-does not override that class check. Stage helpers acquire/parse a successor
-before releasing the earlier candidate. This matters for repeated options and
-for delete-pending pens whose last reference could otherwise disappear.</p>
-<p><a class="reference internal" href="pen-reference.html#c.StageElemPen" title="StageElemPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">StageElemPen()</span></code></a> similarly records NULL as an explicitly staged choice: normal
-NULL selects the built-in pen at commit, whereas active NULL disables the
-active pen. An unsuccessful lookup retains the previous candidate. The outer
+<p><a class="reference internal" href="pen-reference.html#c.ParseStylesObj" title="ParseStylesObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseStylesObj()</span></code></a> clears its output pointer before doing any work. It always constructs the reserved normal-style
+entry, including for NULL or empty style lists, and borrows the element’s current normal pen there. Additional entries
+use the concrete record size supplied by the caller, which must accommodate <a class="reference internal" href="pen-reference.html#c.PenStyle" title="PenStyle"><code class="xref c c-type docutils literal notranslate"><span class="pre">PenStyle</span></code></a>. The first additional
+entry defaults to range 0 through 1, the second to 1 through 2, and so on.</p>
+<p><a class="reference internal" href="pen-reference.html#c.GetPenStyleFromObj" title="GetPenStyleFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPenStyleFromObj()</span></code></a> accepts exactly one or three list elements. The three-item form converts both endpoints
+before acquiring a named pen, so invalid numeric input cannot leak that reference. It uses Tcl numeric conversion rather
+than expression evaluation. A one-item specification retains the initialized default range; three items replace it using
+<code class="docutils literal notranslate"><span class="pre">SetWeight</span></code>. Endpoint ordering is not rejected: <code class="docutils literal notranslate"><span class="pre">SetRange</span></code> uses DBL_EPSILON when max is not greater than min. This
+compatibility behavior differs from rejecting reversed ranges or treating them as empty. Keep it distinct from the style
+mapper’s check for a stored nonpositive range.</p>
+<p>Palette pen compatibility is checked against the element’s class. The <code class="docutils literal notranslate"><span class="pre">penType</span></code> argument retained by
+<a class="reference internal" href="pen-reference.html#c.StageElemStyles" title="StageElemStyles"><code class="xref c c-func docutils literal notranslate"><span class="pre">StageElemStyles()</span></code></a> is currently unused; it does not override that class check. Stage helpers acquire/parse a
+successor before releasing the earlier candidate. This matters for repeated options and for delete-pending pens whose
+last reference could otherwise disappear.</p>
+<p><a class="reference internal" href="pen-reference.html#c.StageElemPen" title="StageElemPen"><code class="xref c c-func docutils literal notranslate"><span class="pre">StageElemPen()</span></code></a> similarly records NULL as an explicitly staged choice: normal NULL selects the built-in pen at
+commit, whereas active NULL disables the active pen. An unsuccessful lookup retains the previous candidate. The outer
 transaction decides whether to continue, commit, or release all staged values.</p>
-<p>An unattached palette entry that fails parsing is freed separately. Entries
-already attached are cleaned through <a class="reference internal" href="pen-reference.html#c.DestroyPalette" title="DestroyPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">DestroyPalette()</span></code></a>, which releases counted
-style pens and destroys the chain without releasing the borrowed first pen.
-Neither staging nor cleanup implicitly replaces the live element palette.</p>
+<p>An unattached palette entry that fails parsing is freed separately. Entries already attached are cleaned through
+<a class="reference internal" href="pen-reference.html#c.DestroyPalette" title="DestroyPalette"><code class="xref c c-func docutils literal notranslate"><span class="pre">DestroyPalette()</span></code></a>, which releases counted style pens and destroys the chain without releasing the borrowed first
+pen. Neither staging nor cleanup implicitly replaces the live element palette.</p>
 </section>
 </section>
 

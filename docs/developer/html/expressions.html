@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,13 +1215,11 @@
              
   <section id="vector-expression-evaluation">
 <h1>Vector expression evaluation<a class="headerlink" href="#vector-expression-evaluation" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcVecMath.c</span></code> evaluates numeric expressions using unregistered vector
-objects. <code class="docutils literal notranslate"><span class="pre">rbcVector.c</span></code> selects list output or named-result creation, while
-<code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code> owns assignment to an existing vector. These paths share parsing
-but have different result ownership and notification responsibilities.
-See <a class="reference internal" href="expression-reference.html"><span class="doc">Vector expression C reference</span></a> and <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>. Parser state, temporary
-storage, function adapters and scalar-conversion invariants are described
-in <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcVecMath.c</span></code> evaluates numeric expressions using unregistered vector objects. <code class="docutils literal notranslate"><span class="pre">rbcVector.c</span></code> selects list output or
+named-result creation, while <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code> owns assignment to an existing vector. These paths share parsing but have
+different result ownership and notification responsibilities. See <a class="reference internal" href="expression-reference.html"><span class="doc">Vector expression C reference</span></a> and
+<a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a>. Parser state, temporary storage, function adapters and scalar-conversion invariants are described in
+<a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a>.</p>
 <section id="entry-points-and-result-ownership">
 <h2>Entry points and result ownership<a class="headerlink" href="#entry-points-and-result-ownership" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
@@ -1235,105 +1234,83 @@ in <a class="reference internal" href="expression-engine.html"><span class="doc"
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">expr</span> <span class="pre">expression</span></code></p></td>
-<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> with a NULL destination evaluates a temporary, converts
-its values to a Tcl list and frees the temporary.</p></td>
+<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> with a NULL destination evaluates a temporary, converts its values to a Tcl list and
+frees the temporary.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rbc::vector</span> <span class="pre">expr</span> <span class="pre">-name</span> <span class="pre">name</span> <span class="pre">expression</span></code></p></td>
-<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_VectorEvaluate" title="Rbc_VectorEvaluate"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a> returns an owned temporary. The command creates a
-vector of that type, transfers storage and returns its qualified name.</p></td>
+<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_VectorEvaluate" title="Rbc_VectorEvaluate"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a> returns an owned temporary. The command creates a vector of that type, transfers
+storage and returns its qualified name.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vectorName</span> <span class="pre">expr</span> <span class="pre">expression</span></code></p></td>
-<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> evaluates a temporary and copies into the existing
-destination. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ExprOp" title="rbcVectorCommands.ExprOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ExprOp</span></code></a> then flushes its cache when enabled and notifies
-clients.</p></td>
+<td><p><a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> evaluates a temporary and copies into the existing destination. <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.ExprOp" title="rbcVectorCommands.ExprOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ExprOp</span></code></a> then flushes its cache when enabled and notifies clients.</p></td>
 </tr>
 </tbody>
 </table>
-<p>A scalar is a vector of length one inside the evaluator. List output still
-uses a list for one value; complex values are two-element real/imaginary pairs.
-There is no registered command or array for an expression temporary.
-<a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorFree" title="Rbc_VectorFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorFree()</span></code></a> releases temporaries on all exit paths. An internal caller
-of <a class="reference internal" href="expression-reference.html#c.Rbc_VectorEvaluate" title="Rbc_VectorEvaluate"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a> owns the returned record until it frees it or
-explicitly transfers its storage.</p>
+<p>A scalar is a vector of length one inside the evaluator. List output still uses a list for one value; complex values are
+two-element real/imaginary pairs. There is no registered command or array for an expression temporary.
+<a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_VectorFree" title="Rbc_VectorFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorFree()</span></code></a> releases temporaries on all exit paths. An internal caller of <a class="reference internal" href="expression-reference.html#c.Rbc_VectorEvaluate" title="Rbc_VectorEvaluate"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VectorEvaluate()</span></code></a> owns
+the returned record until it frees it or explicitly transfers its storage.</p>
 </section>
 <section id="parsing-and-input-snapshots">
 <h2>Parsing and input snapshots<a class="headerlink" href="#parsing-and-input-snapshots" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ParseInfo</span></code> tracks the input buffer, scan position and current token.
-<a class="reference internal" href="expression-engine-reference.html#c.NextValue" title="NextValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextValue()</span></code></a> performs precedence-based evaluation; <a class="reference internal" href="expression-engine-reference.html#c.NextToken" title="NextToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextToken()</span></code></a> handles
-numeric literals, vector references, operators and Tcl substitutions.
-<a class="reference internal" href="expression-engine-reference.html#c.EvaluateExpression" title="EvaluateExpression"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvaluateExpression()</span></code></a> checks that the entire expression was consumed and
-rejects non-finite components in the final result.</p>
-<p>Vector references are copied into expression storage when encountered. A
-selected vector range is copied through the same duplication helper. Later
-arithmetic can modify that temporary without writing back to the source.
-This is not a snapshot of every input taken at expression entry: Tcl code
-executed between references can change what a later reference reads.</p>
-<p>Variable, bracketed-command and quoted substitutions can invoke Tcl code.
-The parser also temporarily replaces delimiters while looking up math
-functions. Its C string argument therefore remains writable and valid for the
-whole evaluation; a string literal is not a suitable direct C argument.
-Callers keep the interpreter and its vector state alive during evaluation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ParseInfo</span></code> tracks the input buffer, scan position and current token. <a class="reference internal" href="expression-engine-reference.html#c.NextValue" title="NextValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextValue()</span></code></a> performs precedence-based
+evaluation; <a class="reference internal" href="expression-engine-reference.html#c.NextToken" title="NextToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">NextToken()</span></code></a> handles numeric literals, vector references, operators and Tcl substitutions.
+<a class="reference internal" href="expression-engine-reference.html#c.EvaluateExpression" title="EvaluateExpression"><code class="xref c c-func docutils literal notranslate"><span class="pre">EvaluateExpression()</span></code></a> checks that the entire expression was consumed and rejects non-finite components in the
+final result.</p>
+<p>Vector references are copied into expression storage when encountered. A selected vector range is copied through the
+same duplication helper. Later arithmetic can modify that temporary without writing back to the source. This is not a
+snapshot of every input taken at expression entry: Tcl code executed between references can change what a later
+reference reads.</p>
+<p>Variable, bracketed-command and quoted substitutions can invoke Tcl code. The parser also temporarily replaces
+delimiters while looking up math functions. Its C string argument therefore remains writable and valid for the whole
+evaluation; a string literal is not a suitable direct C argument. Callers keep the interpreter and its vector state
+alive during evaluation.</p>
 </section>
 <section id="real-and-complex-temporaries">
 <h2>Real and complex temporaries<a class="headerlink" href="#real-and-complex-temporaries" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="expression-engine-reference.html#c.SetExpressionVectorType" title="SetExpressionVectorType"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetExpressionVectorType()</span></code></a> is restricted to unnamed, unmapped temporaries.
-It releases old storage when changing type. <a class="reference internal" href="expression-engine-reference.html#c.CopyExpressionVector" title="CopyExpressionVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyExpressionVector()</span></code></a> sets the
-temporary’s type before duplication; promotion to complex allocates complex
-storage and copies real components with zero imaginary parts.</p>
-<p>Ordinary elementwise binary arithmetic broadcasts a length-one operand;
-otherwise operand lengths must match. Individual operators impose further
-constraints, such as real-only operations. Temporary promotion is an evaluator
-implementation detail, not permission to change a named vector’s type.</p>
+<p><a class="reference internal" href="expression-engine-reference.html#c.SetExpressionVectorType" title="SetExpressionVectorType"><code class="xref c c-func docutils literal notranslate"><span class="pre">SetExpressionVectorType()</span></code></a> is restricted to unnamed, unmapped temporaries. It releases old storage when changing
+type. <a class="reference internal" href="expression-engine-reference.html#c.CopyExpressionVector" title="CopyExpressionVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">CopyExpressionVector()</span></code></a> sets the temporary’s type before duplication; promotion to complex allocates
+complex storage and copies real components with zero imaginary parts.</p>
+<p>Ordinary elementwise binary arithmetic broadcasts a length-one operand; otherwise operand lengths must match. Individual
+operators impose further constraints, such as real-only operations. Temporary promotion is an evaluator implementation
+detail, not permission to change a named vector’s type.</p>
 </section>
 <section id="assignment-and-named-creation">
 <h2>Assignment and named creation<a class="headerlink" href="#assignment-and-named-creation" title="Link to this heading"></a></h2>
-<p>For an existing destination, <a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> checks writability before any
-expression evaluation. It attaches a temporary observer to detect destruction
-while substitutions or map callbacks execute. On successful evaluation it
-checks that the original destination survived and is still writable, then
-copies the result. Recreating the same command name does not restore the old
-object’s identity. The observer is detached unless destruction already
-released it.</p>
-<p>Matching types are copied. A real result can be copied into a complex target
-with zero imaginary components. A complex result is rejected for a real target,
-even if every imaginary component is zero. The evaluator itself does not flush
-mapped-array values or send update notifications; the Tcl instance operation
-does that after successful copying. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for immediate callbacks
-and changed-range ownership.</p>
-<p>For named creation, the command resolves the requested namespace and checks
-for an existing vector or command before evaluation. It checks collisions
-again afterward because callbacks may have created that name. A <code class="docutils literal notranslate"><span class="pre">#auto</span></code> tail
-uses the normal automatic-name allocator. Creation does not map an array, so
-it cannot invoke a user variable trace while installing the result.</p>
-<p>The newly created empty record receives the temporary’s data pointer, length,
-capacity and release policy. The temporary’s storage pointer and sizes are
-cleared before freeing it. This avoids conversion through a Tcl list and
-avoids a second full numeric-buffer copy at the commit step; evaluating the
-expression can still allocate and copy intermediate buffers.</p>
+<p>For an existing destination, <a class="reference internal" href="expression-reference.html#c.Rbc_ExprVector" title="Rbc_ExprVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExprVector()</span></code></a> checks writability before any expression evaluation. It attaches a
+temporary observer to detect destruction while substitutions or map callbacks execute. On successful evaluation it
+checks that the original destination survived and is still writable, then copies the result. Recreating the same command
+name does not restore the old object’s identity. The observer is detached unless destruction already released it.</p>
+<p>Matching types are copied. A real result can be copied into a complex target with zero imaginary components. A complex
+result is rejected for a real target, even if every imaginary component is zero. The evaluator itself does not flush
+mapped-array values or send update notifications; the Tcl instance operation does that after successful copying. See
+<a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> for immediate callbacks and changed-range ownership.</p>
+<p>For named creation, the command resolves the requested namespace and checks for an existing vector or command before
+evaluation. It checks collisions again afterward because callbacks may have created that name. A <code class="docutils literal notranslate"><span class="pre">#auto</span></code> tail uses the
+normal automatic-name allocator. Creation does not map an array, so it cannot invoke a user variable trace while
+installing the result.</p>
+<p>The newly created empty record receives the temporary’s data pointer, length, capacity and release policy. The
+temporary’s storage pointer and sizes are cleared before freeing it. This avoids conversion through a Tcl list and
+avoids a second full numeric-buffer copy at the commit step; evaluating the expression can still allocate and copy
+intermediate buffers.</p>
 </section>
 <section id="map-callback-boundary">
 <h2>Map callback boundary<a class="headerlink" href="#map-callback-boundary" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">map(commandPrefix,</span> <span class="pre">expression)</span></code> parses and retains one Tcl command prefix,
-then evaluates the numeric argument before calling the prefix once per value.
-The comma and closing parenthesis are required. Prefix substitutions run once
-in the caller’s frame. Each invocation appends one argument: a real number or
-a single Tcl list containing the complex pair.</p>
-<p><a class="reference internal" href="expression-engine-reference.html#c.MapVector" title="MapVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapVector()</span></code></a> retains its own references to the prefix words, so recursive Tcl
-evaluation cannot invalidate the argument array by changing the prefix object’s
-internal representation. It builds results in separate temporary storage.
-Each return value must be a finite number or a pair of finite numbers. A pair
-promotes the result to complex even when its imaginary component is zero;
-all-scalar returns produce a real result even for complex input. Empty input
-makes no callbacks and leaves an empty real result.</p>
-<p>A Tcl error keeps its details and gains the zero-based element index in the
-error stack. Other non-OK completion codes become <code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">VECTOR</span> <span class="pre">MAP</span> <span class="pre">COMPLETION</span></code>
-errors; invalid numeric results use <code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">VECTOR</span> <span class="pre">MAP</span> <span class="pre">VALUE</span></code>. Processing stops
-at the first error and releases the partial temporary.</p>
-<p>Failure does not commit the partial map result to a named destination, but
-callbacks may themselves modify or destroy vectors, change variables or perform
-other work. Those side effects cannot be rolled back by the expression engine.
-The destination observer detects destruction and a second writable check detects
-locking; neither is a general transaction or an interpreter-lifetime guard.</p>
+<p><code class="docutils literal notranslate"><span class="pre">map(commandPrefix,</span> <span class="pre">expression)</span></code> parses and retains one Tcl command prefix, then evaluates the numeric argument before
+calling the prefix once per value. The comma and closing parenthesis are required. Prefix substitutions run once in the
+caller’s frame. Each invocation appends one argument: a real number or a single Tcl list containing the complex pair.</p>
+<p><a class="reference internal" href="expression-engine-reference.html#c.MapVector" title="MapVector"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapVector()</span></code></a> retains its own references to the prefix words, so recursive Tcl evaluation cannot invalidate the
+argument array by changing the prefix object’s internal representation. It builds results in separate temporary storage.
+Each return value must be a finite number or a pair of finite numbers. A pair promotes the result to complex even when
+its imaginary component is zero; all-scalar returns produce a real result even for complex input. Empty input makes no
+callbacks and leaves an empty real result.</p>
+<p>A Tcl error keeps its details and gains the zero-based element index in the error stack. Other non-OK completion codes
+become <code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">VECTOR</span> <span class="pre">MAP</span> <span class="pre">COMPLETION</span></code> errors; invalid numeric results use <code class="docutils literal notranslate"><span class="pre">RBC</span> <span class="pre">VECTOR</span> <span class="pre">MAP</span> <span class="pre">VALUE</span></code>. Processing stops at
+the first error and releases the partial temporary.</p>
+<p>Failure does not commit the partial map result to a named destination, but callbacks may themselves modify or destroy
+vectors, change variables or perform other work. Those side effects cannot be rolled back by the expression engine. The
+destination observer detects destruction and a second writable check detects locking; neither is a general transaction
+or an interpreter-lifetime guard.</p>
 </section>
 </section>
 

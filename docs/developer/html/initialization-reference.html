@@ -528,6 +528,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1235,8 +1236,8 @@
              
   <section id="package-initialization-c-reference">
 <h1>Package initialization C reference<a class="headerlink" href="#package-initialization-c-reference" title="Link to this heading"></a></h1>
-<p>These are installed interfaces. The two stubs helpers are linked into consumers,
-not invoked through a table slot. See <a class="reference internal" href="initialization.html"><span class="doc">Package loading and stubs</span></a> for loading order.</p>
+<p>These are installed interfaces. The two stubs helpers are linked into consumers, not invoked through a table slot. See
+<a class="reference internal" href="initialization.html"><span class="doc">Package loading and stubs</span></a> for loading order.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_Init">
 <span class="target" id="rbc_8h_1ab7e074a0b82f33f2eab992987c1f984a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Init</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Init" title="Link to this definition"></a><br /></dt>
@@ -1297,9 +1298,8 @@ Has the same pointer ownership and failure behavior as Rbc_InitStubs, but does n
 
 <section id="private-registration-helpers">
 <h2>Private registration helpers<a class="headerlink" href="#private-registration-helpers" title="Link to this heading"></a></h2>
-<p>These records and callbacks belong to the loader implementation, not the
-installed C API. The consumer-side stubs object is documented alongside them
-because it receives the table published by package initialization.</p>
+<p>These records and callbacks belong to the loader implementation, not the installed C API. The consumer-side stubs object
+is documented alongside them because it receives the table published by package initialization.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__initialization__private"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Package</span> <span class="pre">initialization</span> <span class="pre">helpers</span></span></dt>
@@ -1420,8 +1420,8 @@ Borrow interp, package and version; pass exact unchanged to Tcl_PkgRequireEx. Pa
 </section>
 <section id="windows-loader-wrappers">
 <h2>Windows loader wrappers<a class="headerlink" href="#windows-loader-wrappers" title="Link to this heading"></a></h2>
-<p>These entry points do not initialize Tcl packages. Their platform-selected
-contracts come from the separate Windows Doxygen input.</p>
+<p>These entry points do not initialize Tcl packages. Their platform-selected contracts come from the separate Windows
+Doxygen input.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__initialization__windows"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">DLL</span> <span class="pre">entry</span> <span class="pre">wrappers</span></span></dt>

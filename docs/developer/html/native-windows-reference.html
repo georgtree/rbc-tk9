@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1416,16 +1417,14 @@
              
   <section id="windows-native-backend-c-reference">
 <h1>Windows native backend C reference<a class="headerlink" href="#windows-native-backend-c-reference" title="Link to this heading"></a></h1>
-<p>Windows contracts use a separate Doxygen XML project so identical backend
-function and structure names cannot merge with the X11 implementation.
-Parameter descriptions identify retained DC/batch state, caller-owned clip
-payloads, and temporary drawables. Return values that select fallback are not
-interchangeable with drawing-success reports; see <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
-<p>For a retained polygon batch, pair
-<a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeBeginPolygonBatch" title="rbcNativeWindows.Rbc_NativeBeginPolygonBatch"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeBeginPolygonBatch()</span></code></a> with
+<p>Windows contracts use a separate Doxygen XML project so identical backend function and structure names cannot merge with
+the X11 implementation. Parameter descriptions identify retained DC/batch state, caller-owned clip payloads, and
+temporary drawables. Return values that select fallback are not interchangeable with drawing-success reports; see
+<a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
+<p>For a retained polygon batch, pair <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeBeginPolygonBatch" title="rbcNativeWindows.Rbc_NativeBeginPolygonBatch"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeBeginPolygonBatch()</span></code></a> with
 <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativeEndPolygonBatch" title="rbcNativeWindows.Rbc_NativeEndPolygonBatch"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativeEndPolygonBatch()</span></code></a>. For direct clipping,
-<a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePlatformUnclip" title="rbcNativeWindows.Rbc_NativePlatformUnclip"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativePlatformUnclip()</span></code></a> must unwind even partial
-setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePlatformClip" title="rbcNativeWindows.Rbc_NativePlatformClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativePlatformClip()</span></code></a>.</p>
+<a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePlatformUnclip" title="rbcNativeWindows.Rbc_NativePlatformUnclip"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativePlatformUnclip()</span></code></a> must unwind even partial setup from
+<a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePlatformClip" title="rbcNativeWindows.Rbc_NativePlatformClip"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcNativeWindows.Rbc_NativePlatformClip()</span></code></a>.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__native__windows__drawing"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">native</span> <span class="pre">backend</span></span></dt>
@@ -2053,8 +2052,8 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 
 <section id="tk-windows-resource-boundary">
 <h2>Tk Windows resource boundary<a class="headerlink" href="#tk-windows-resource-boundary" title="Link to this heading"></a></h2>
-<p>These compatibility services confine private Tk drawable/DC representations to
-<code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code>. Components use the renderer interface rather than these helpers.</p>
+<p>These compatibility services confine private Tk drawable/DC representations to <code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code>. Components use the
+renderer interface rather than these helpers.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__windows__drawing__resources"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">drawing</span> <span class="pre">resource</span> <span class="pre">helpers</span></span></dt>
@@ -2370,9 +2369,8 @@ setup from <a class="reference internal" href="#c.rbcNativeWindows.Rbc_NativePla
 </section>
 <section id="compatibility-drawing-primitives">
 <h2>Compatibility drawing primitives<a class="headerlink" href="#compatibility-drawing-primitives" title="Link to this heading"></a></h2>
-<p>These entries implement the Windows Xlib-shaped drawing boundary. They consume
-mapped integer geometry and configured GCs, with the historical conversions
-and fallback policies described in <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
+<p>These entries implement the Windows Xlib-shaped drawing boundary. They consume mapped integer geometry and configured
+GCs, with the historical conversions and fallback policies described in <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__windows__drawing__primitives"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">compatibility</span> <span class="pre">primitives</span></span></dt>
@@ -2531,9 +2529,8 @@ and fallback policies described in <a class="reference internal" href="native-re
 </section>
 <section id="bitmap-capture-and-transforms">
 <h2>Bitmap capture and transforms<a class="headerlink" href="#bitmap-capture-and-transforms" title="Link to this heading"></a></h2>
-<p>Windows-specific image contracts are extracted without the same-named shared
-header declarations. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for common image ownership and
-<a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> for platform representations and limits.</p>
+<p>Windows-specific image contracts are extracted without the same-named shared header declarations. See
+<a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for common image ownership and <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a> for platform representations and limits.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__windows__bitmap__images"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">bitmap</span> <span class="pre">and</span> <span class="pre">capture</span> <span class="pre">services</span></span></dt>
@@ -2721,23 +2718,20 @@ header declarations. See <a class="reference internal" href="images-tiles.html">
 </section>
 <section id="dc-and-handle-ownership">
 <h2>DC and handle ownership<a class="headerlink" href="#dc-and-handle-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinAcquireDrawableDC" title="rbcWindowsResources.Rbc_WinAcquireDrawableDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinAcquireDrawableDC()</span></code></a> returns a release record even
-when acquisition fails. Pass that record to
-<a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinReleaseDrawableDC" title="rbcWindowsResources.Rbc_WinReleaseDrawableDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinReleaseDrawableDC()</span></code></a>; restoring explicitly selected
-GDI objects remains the caller’s responsibility. In contrast,
-<a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinCreateDrawableFromDC" title="rbcWindowsResources.Rbc_WinCreateDrawableFromDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinCreateDrawableFromDC()</span></code></a> wraps an already borrowed DC:
-<a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinFreeDrawableFromDC" title="rbcWindowsResources.Rbc_WinFreeDrawableFromDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinFreeDrawableFromDC()</span></code></a> releases only the wrapper.</p>
-<p><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap" title="rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap()</span></code></a> transfers a native bitmap
-into Tk pixmap ownership. A handle returned by
-<a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinGetPixmapHandle" title="rbcWindowsResources.Rbc_WinGetPixmapHandle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinGetPixmapHandle()</span></code></a> is borrowed and must not be
-independently deleted. These ownership rules differ from the transient static
-window wrapper returned by <a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinWindowFromHWND" title="rbcWindowsResources.Rbc_WinWindowFromHWND"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinWindowFromHWND()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinAcquireDrawableDC" title="rbcWindowsResources.Rbc_WinAcquireDrawableDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinAcquireDrawableDC()</span></code></a> returns a release record even when acquisition fails. Pass that
+record to <a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinReleaseDrawableDC" title="rbcWindowsResources.Rbc_WinReleaseDrawableDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinReleaseDrawableDC()</span></code></a>; restoring explicitly selected GDI objects remains the
+caller’s responsibility. In contrast, <a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinCreateDrawableFromDC" title="rbcWindowsResources.Rbc_WinCreateDrawableFromDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinCreateDrawableFromDC()</span></code></a> wraps an already
+borrowed DC: <a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinFreeDrawableFromDC" title="rbcWindowsResources.Rbc_WinFreeDrawableFromDC"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinFreeDrawableFromDC()</span></code></a> releases only the wrapper.</p>
+<p><a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap" title="rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinCreatePixmapFromBitmap()</span></code></a> transfers a native bitmap into Tk pixmap ownership. A handle
+returned by <a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinGetPixmapHandle" title="rbcWindowsResources.Rbc_WinGetPixmapHandle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinGetPixmapHandle()</span></code></a> is borrowed and must not be independently
+deleted. These ownership rules differ from the transient static window wrapper returned by
+<a class="reference internal" href="#c.rbcWindowsResources.Rbc_WinWindowFromHWND" title="rbcWindowsResources.Rbc_WinWindowFromHWND"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsResources.Rbc_WinWindowFromHWND()</span></code></a>.</p>
 </section>
 <section id="tiled-shapes">
 <h2>Tiled shapes<a class="headerlink" href="#tiled-shapes" title="Link to this heading"></a></h2>
-<p>These contracts describe the Windows DC implementation, separately from the
-same-named X11 helpers in <a class="reference internal" href="image-tile-reference.html"><span class="doc">Image and tile C reference</span></a>. Origins and mask/color
-source offsets must agree across cropped copies; see <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a>.</p>
+<p>These contracts describe the Windows DC implementation, separately from the same-named X11 helpers in
+<a class="reference internal" href="image-tile-reference.html"><span class="doc">Image and tile C reference</span></a>. Origins and mask/color source offsets must agree across cropped copies; see
+<a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a>.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__tile__windows__drawing"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Windows</span> <span class="pre">tiled</span> <span class="pre">shape</span> <span class="pre">drawing</span></span></dt>
@@ -2826,8 +2820,7 @@ source offsets must agree across cropped copies; see <a class="reference interna
 </section>
 <section id="windows-header-records">
 <h2>Windows header records<a class="headerlink" href="#windows-header-records" title="Link to this heading"></a></h2>
-<p>The packed file headers retain their on-disk layout. Border colors are resolved
-values, not retained Tk resources.</p>
+<p>The packed file headers retain their on-disk layout. Border colors are resolved values, not retained Tk resources.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.DOSEPSHEADER">
 <span class="target" id="struct_d_o_s_e_p_s_h_e_a_d_e_r"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DOSEPSHEADER</span></span></span><a class="headerlink" href="#c.DOSEPSHEADER" title="Link to this definition"></a><br /></dt>
@@ -2974,8 +2967,8 @@ values, not retained Tk resources.</p>
 </section>
 <section id="platform-specific-record-extensions">
 <h2>Platform-specific record extensions<a class="headerlink" href="#platform-specific-record-extensions" title="Link to this heading"></a></h2>
-<p>These views include Windows-only handles omitted from the normal-platform
-<a class="reference internal" href="text-font-reference.html"><span class="doc">Text and font C reference</span></a> and <a class="reference internal" href="eps-reference.html"><span class="doc">EPS canvas C reference</span></a> records.</p>
+<p>These views include Windows-only handles omitted from the normal-platform <a class="reference internal" href="text-font-reference.html"><span class="doc">Text and font C reference</span></a> and
+<a class="reference internal" href="eps-reference.html"><span class="doc">EPS canvas C reference</span></a> records.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.rbcFontWindows.FontSource">
 <span class="target" id="struct_font_source"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FontSource</span></span></span><a class="headerlink" href="#c.rbcFontWindows.FontSource" title="Link to this definition"></a><br /></dt>

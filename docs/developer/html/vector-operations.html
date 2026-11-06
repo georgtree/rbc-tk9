@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,73 +1215,58 @@
              
   <section id="vector-indexed-edits-and-rearrangement">
 <h1>Vector indexed edits and rearrangement<a class="headerlink" href="#vector-indexed-edits-and-rearrangement" title="Link to this heading"></a></h1>
-<p>This chapter covers the remaining legacy instance-command mutation paths in
-<code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. It complements <a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a>, which describes the
-staged set/append paths, binary input and coordinated sorting. Contracts for
-the handlers below are collected in <a class="reference internal" href="vector-edit-reference.html"><span class="doc">Vector edit C reference</span></a>. Numerical
-queries and generators are covered in <a class="reference internal" href="vector-numerics.html"><span class="doc">Vector queries and numerical generators</span></a>.</p>
+<p>This chapter covers the remaining legacy instance-command mutation paths in <code class="docutils literal notranslate"><span class="pre">rbcVecCmd.c</span></code>. It complements
+<a class="reference internal" href="vector-commands.html"><span class="doc">Vector instance commands and binary input</span></a>, which describes the staged set/append paths, binary input and coordinated sorting. Contracts for
+the handlers below are collected in <a class="reference internal" href="vector-edit-reference.html"><span class="doc">Vector edit C reference</span></a>. Numerical queries and generators are covered in
+<a class="reference internal" href="vector-numerics.html"><span class="doc">Vector queries and numerical generators</span></a>.</p>
 <section id="mutation-boundaries">
 <h2>Mutation boundaries<a class="headerlink" href="#mutation-boundaries" title="Link to this heading"></a></h2>
-<p>The instance dispatcher retains the receiver record and interpreter while a
-handler runs. Output handlers additionally retain destination identities, and
-<code class="docutils literal notranslate"><span class="pre">merge</span></code> retains each resolved source through subsequent range evaluation.
-Retaining a record does not retain its numeric storage after destruction.
-Handlers therefore check lifetime, writability and relevant bounds after
-expressions that can execute Tcl.</p>
-<p>Prepared data is filled before <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.FinishCommandWrite" title="rbcVectorCommands.FinishCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code></a> installs it and releases
-old storage. A custom free procedure therefore sees complete data. Ordinary
-indexed writes keep their existing fast path; resizing generators and append
-paths reuse capacity when possible. Population and normalization stage a full
-result; splitting snapshots its shared source once. Duplication copies directly
-into prepared output storage without callbacks before the copy completes.</p>
-<p>New real outputs receive their automatic array mapping only after data is
-complete. Existing mappings and command identities are retained. Cache flushing
-precedes notification, and both stages skip destroyed identities and preserve
-the command result. A callback that destroys and recreates a name cannot redirect
-an in-progress write into the replacement.</p>
-<p>Callback side effects are not rolled back. Multi-output splitting prechecks
-existing destinations before creating missing names, but is not a transaction: a custom release callback can prevent a later commit. Earlier
-committed outputs are still published. Notifications and mapping traces run after
-the write loop, so they cannot invalidate a destination still awaiting a write.</p>
+<p>The instance dispatcher retains the receiver record and interpreter while a handler runs. Output handlers additionally
+retain destination identities, and <code class="docutils literal notranslate"><span class="pre">merge</span></code> retains each resolved source through subsequent range evaluation.
+Retaining a record does not retain its numeric storage after destruction. Handlers therefore check lifetime,
+writability and relevant bounds after expressions that can execute Tcl.</p>
+<p>Prepared data is filled before <a class="reference internal" href="vector-command-reference.html#c.rbcVectorCommands.FinishCommandWrite" title="rbcVectorCommands.FinishCommandWrite"><code class="xref c c-func docutils literal notranslate"><span class="pre">FinishCommandWrite</span></code></a> installs it and
+releases old storage. A custom free procedure therefore sees complete data. Ordinary indexed writes keep their existing
+fast path; resizing generators and append paths reuse capacity when possible. Population and normalization stage a full
+result; splitting snapshots its shared source once. Duplication copies directly into prepared output storage without
+callbacks before the copy completes.</p>
+<p>New real outputs receive their automatic array mapping only after data is complete. Existing mappings and command
+identities are retained. Cache flushing precedes notification, and both stages skip destroyed identities and preserve
+the command result. A callback that destroys and recreates a name cannot redirect an in-progress write into the
+replacement.</p>
+<p>Callback side effects are not rolled back. Multi-output splitting prechecks existing destinations before creating
+missing names, but is not a transaction: a custom release callback can prevent a later commit. Earlier committed outputs
+are still published. Notifications and mapping traces run after the write loop, so they cannot invalidate a destination
+still awaiting a write.</p>
 </section>
 <section id="indexed-access-and-deletion">
 <h2>Indexed access and deletion<a class="headerlink" href="#indexed-access-and-deletion" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="vector-edit-reference.html#c.IndexOp" title="IndexOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">IndexOp()</span></code></a> uses the shared inclusive selection parser. Reading returns a Tcl
-list, even for one selected value. Writing converts one real or complex value
-and replicates it through the selection, returning the original Tcl input
-object. The append index may extend storage by one element but cannot be read.
-The handler checks lifetime, writable state and saved indices after value
-conversion. An append follows the current end if a callback changed length;
+<p><a class="reference internal" href="vector-edit-reference.html#c.IndexOp" title="IndexOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">IndexOp()</span></code></a> uses the shared inclusive selection parser. Reading returns a Tcl list, even for one selected
+value. Writing converts one real or complex value and replicates it through the selection, returning the original Tcl
+input object. The append index may extend storage by one element but cannot be read. The handler checks lifetime,
+writable state and saved indices after value conversion. An append follows the current end if a callback changed length;
 an ordinary index that is no longer valid produces an error.</p>
-<p>For an existing real-value write, the handler reports the exact changed range;
-recognized appends also report a range. Other writes report a full update.
-This distinction lets graph clients maintain extrema and decimation caches
+<p>For an existing real-value write, the handler reports the exact changed range; recognized appends also report a
+range. Other writes report a full update. This distinction lets graph clients maintain extrema and decimation caches
 without treating every single-value update as a complete replacement.</p>
-<p><a class="reference internal" href="vector-edit-reference.html#c.DeleteOp" title="DeleteOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">DeleteOp()</span></code></a> with explicit indices allocates one bitmap bit per original value,
-marks all selected ranges, then compacts surviving entries in place. Overlapping
-ranges therefore remove a value once. Capacity is retained, length is reduced,
-and clients receive a full update because later indices have shifted.
-Argument errors before compaction leave values untouched in ordinary execution.
-If an index-expression callback changes length, the operation rejects the stale
-bitmap before marking or compacting values. Destroyed/read-only receivers and
-out-of-range selections are also rejected.</p>
-<p>With no indices, <code class="docutils literal notranslate"><span class="pre">delete</span></code> destroys the vector. The dispatcher still applies
-its receiver-writable check to this legacy command. This differs from destroying
-a vector through the top-level ownership command and should not be mistaken for
-a new lifecycle-locking policy.</p>
+<p><a class="reference internal" href="vector-edit-reference.html#c.DeleteOp" title="DeleteOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">DeleteOp()</span></code></a> with explicit indices allocates one bitmap bit per original value, marks all selected ranges, then
+compacts surviving entries in place. Overlapping ranges therefore remove a value once. Capacity is retained, length is
+reduced, and clients receive a full update because later indices have shifted. Argument errors before compaction leave
+values untouched in ordinary execution. If an index-expression callback changes length, the operation rejects the stale
+bitmap before marking or compacting values. Destroyed/read-only receivers and out-of-range selections are also rejected.</p>
+<p>With no indices, <code class="docutils literal notranslate"><span class="pre">delete</span></code> destroys the vector. The dispatcher still applies its receiver-writable check to this legacy
+command. This differs from destroying a vector through the top-level ownership command and should not be mistaken for a
+new lifecycle-locking policy.</p>
 </section>
 <section id="length-and-offset">
 <h2>Length and offset<a class="headerlink" href="#length-and-offset" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="vector-edit-reference.html#c.LengthOp" title="LengthOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">LengthOp()</span></code></a> parses a nonnegative Tcl-sized integer, prepares storage while
-retaining the existing allocation when its capacity matches the requested size
-class, and zero-fills new entries before commit. Substantial shrinking releases
-excess capacity, and length zero releases storage. It returns the requested length, including when a post-commit callback
-destroys the vector. Notification does not overwrite that result.</p>
-<p><a class="reference internal" href="vector-edit-reference.html#c.OffsetOp" title="OffsetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">OffsetOp()</span></code></a> changes external numeric indexing without moving values. Both query
-and setter return the current offset. The setter does not flush mapped array
-entries or notify clients, although it is classified as a receiver mutation
-for the read-only check. Offsets are metadata, not an address displacement of
-the stored array.</p>
+<p><a class="reference internal" href="vector-edit-reference.html#c.LengthOp" title="LengthOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">LengthOp()</span></code></a> parses a nonnegative Tcl-sized integer, prepares storage while retaining the existing allocation when
+its capacity matches the requested size class, and zero-fills new entries before commit. Substantial shrinking releases
+excess capacity, and length zero releases storage. It returns the requested length, including when a post-commit
+callback destroys the vector. Notification does not overwrite that result.</p>
+<p><a class="reference internal" href="vector-edit-reference.html#c.OffsetOp" title="OffsetOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">OffsetOp()</span></code></a> changes external numeric indexing without moving values. Both query and setter return the current
+offset. The setter does not flush mapped array entries or notify clients, although it is classified as a receiver
+mutation for the read-only check. Offsets are metadata, not an address displacement of the stored array.</p>
 </section>
 <section id="copying-interleaving-and-splitting">
 <h2>Copying, interleaving and splitting<a class="headerlink" href="#copying-interleaving-and-splitting" title="Link to this heading"></a></h2>
@@ -1316,104 +1302,80 @@ the stored array.</p>
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="vector-edit-reference.html#c.DupOp" title="DupOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">DupOp()</span></code></a> skips a destination that is the receiver itself. Other destinations
-inherit the source numeric type when created, and existing types must be
-compatible. The command table permits one destination. No callback occurs
-between output resolution and completing the copy; the source therefore needs
-no extra snapshot. Outputs use the current namespace, matching creation semantics
-rather than falling back to a same-named global vector.</p>
-<p><a class="reference internal" href="vector-edit-reference.html#c.MergeOp" title="MergeOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">MergeOp()</span></code></a> saves the selected first index of each source, requires matching
-types and selected lengths, and stages values in source-argument order. For
-sources <code class="docutils literal notranslate"><span class="pre">{a0</span> <span class="pre">a1}</span></code> and <code class="docutils literal notranslate"><span class="pre">{b0</span> <span class="pre">b1}</span></code>, the result is <code class="docutils literal notranslate"><span class="pre">{a0</span> <span class="pre">b0</span> <span class="pre">a1</span> <span class="pre">b1}</span></code>. Ordinary
-self-merge works because staging precedes destination replacement. Each resolved
-source record is retained, and all saved ranges are validated again after the
-last source lookup. A callback destroying or shrinking an earlier source causes
-an error before destination data is modified.</p>
-<p><a class="reference internal" href="vector-edit-reference.html#c.SplitOp" title="SplitOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplitOp()</span></code></a> requires divisibility of source length by the number of destinations.
-Destination zero receives source positions 0, K, 2K, and so on for K destinations;
-the next receives 1, K+1, 2K+1. Existing destination values are retained and the
-subsequence is appended. The full source is snapshotted before destination
-resolution, including when the source is itself an output. Duplicate destination
-names append their subsequences in argument order. Each destination is checked
-again immediately before writing; cache flushing and notification follow the
-write loop.</p>
-<p>For real destinations, these creation paths normally request a same-named array
-mapping unless the name contains an opening parenthesis. Mapping is deferred
-until the new output is complete. Existing destinations retain their mappings.
-Complex destinations are created without that automatic array mapping. These
-rules are separate from the registry’s support for literal vector names
-containing parentheses.</p>
+<p><a class="reference internal" href="vector-edit-reference.html#c.DupOp" title="DupOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">DupOp()</span></code></a> skips a destination that is the receiver itself. Other destinations inherit the source numeric type when
+created, and existing types must be compatible. The command table permits one destination. No callback occurs between
+output resolution and completing the copy; the source therefore needs no extra snapshot. Outputs use the current
+namespace, matching creation semantics rather than falling back to a same-named global vector.</p>
+<p><a class="reference internal" href="vector-edit-reference.html#c.MergeOp" title="MergeOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">MergeOp()</span></code></a> saves the selected first index of each source, requires matching types and selected lengths, and
+stages values in source-argument order. For sources <code class="docutils literal notranslate"><span class="pre">{a0</span> <span class="pre">a1}</span></code> and <code class="docutils literal notranslate"><span class="pre">{b0</span> <span class="pre">b1}</span></code>, the result is <code class="docutils literal notranslate"><span class="pre">{a0</span> <span class="pre">b0</span> <span class="pre">a1</span>
+<span class="pre">b1}</span></code>. Ordinary self-merge works because staging precedes destination replacement. Each resolved source record is
+retained, and all saved ranges are validated again after the last source lookup. A callback destroying or shrinking an
+earlier source causes an error before destination data is modified.</p>
+<p><a class="reference internal" href="vector-edit-reference.html#c.SplitOp" title="SplitOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">SplitOp()</span></code></a> requires divisibility of source length by the number of destinations. Destination zero receives
+source positions 0, K, 2K, and so on for K destinations; the next receives 1, K+1, 2K+1. Existing destination values are
+retained and the subsequence is appended. The full source is snapshotted before destination resolution, including when
+the source is itself an output. Duplicate destination names append their subsequences in argument order. Each
+destination is checked again immediately before writing; cache flushing and notification follow the write loop.</p>
+<p>For real destinations, these creation paths normally request a same-named array mapping unless the name contains an
+opening parenthesis. Mapping is deferred until the new output is complete. Existing destinations retain their mappings.
+Complex destinations are created without that automatic array mapping. These rules are separate from the registry’s
+support for literal vector names containing parentheses.</p>
 </section>
 <section id="population-and-source-aliasing">
 <h2>Population and source aliasing<a class="headerlink" href="#population-and-source-aliasing" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="vector-edit-reference.html#c.PopulateOp" title="PopulateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">PopulateOp()</span></code></a> takes an integer density D of at least one, meaning D inserted
-values between neighboring samples. For N greater than zero, the output has
-<code class="docutils literal notranslate"><span class="pre">(N-1)*(D+1)+1</span></code> values. Empty input gives empty output; one input value stays
-one value. Count arithmetic is checked before allocation.</p>
-<p>Each interval contributes its first endpoint and D intermediate values; the
-last source endpoint is written once at the end. Complex values interpolate
-real and imaginary components separately. The result is computed into owned
-storage before resolving its output. This handles source/output aliasing and
-ensures that storage-release and array-mapping callbacks see a complete result.</p>
+<p><a class="reference internal" href="vector-edit-reference.html#c.PopulateOp" title="PopulateOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">PopulateOp()</span></code></a> takes an integer density D of at least one, meaning D inserted values between neighboring
+samples. For N greater than zero, the output has <code class="docutils literal notranslate"><span class="pre">(N-1)*(D+1)+1</span></code> values. Empty input gives empty output; one input
+value stays one value. Count arithmetic is checked before allocation.</p>
+<p>Each interval contributes its first endpoint and D intermediate values; the last source endpoint is written once at the
+end. Complex values interpolate real and imaginary components separately. The result is computed into owned storage
+before resolving its output. This handles source/output aliasing and ensures that storage-release and array-mapping
+callbacks see a complete result.</p>
 </section>
 <section id="paired-vector-simplification">
 <h2>Paired-vector simplification<a class="headerlink" href="#paired-vector-simplification" title="Link to this heading"></a></h2>
-<p>The standalone <code class="docutils literal notranslate"><span class="pre">rbc::vector::simplify</span></code> command and the vector ensemble
-<code class="docutils literal notranslate"><span class="pre">simplify</span></code> operation share <a class="reference internal" href="vector-storage-private-reference.html#c.VectorSimplifyObjCmd" title="VectorSimplifyObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorSimplifyObjCmd()</span></code></a>. The ensemble adapter
-only shifts arguments. This algorithm operates on whole existing real vectors
-in data coordinates; it is separate from screen-space line decimation and the
-mapped-polyline helper described in <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a>.</p>
-<p>Both inputs must have equal lengths and finite coordinates. Tolerance must be
-finite and nonnegative. Both destinations must exist, be real and writable, and
-be distinct from each other. Either destination may also be either input because
-all computation completes before destination storage changes. No command creates
-output vectors, interprets range suffixes, or changes vector type here.</p>
+<p>The standalone <code class="docutils literal notranslate"><span class="pre">rbc::vector::simplify</span></code> command and the vector ensemble <code class="docutils literal notranslate"><span class="pre">simplify</span></code> operation share
+<a class="reference internal" href="vector-storage-private-reference.html#c.VectorSimplifyObjCmd" title="VectorSimplifyObjCmd"><code class="xref c c-func docutils literal notranslate"><span class="pre">VectorSimplifyObjCmd()</span></code></a>. The ensemble adapter only shifts arguments. This algorithm operates on whole existing
+real vectors in data coordinates; it is separate from screen-space line decimation and the mapped-polyline helper
+described in <a class="reference internal" href="geometry.html"><span class="doc">Geometry, clipping and simplification</span></a>.</p>
+<p>Both inputs must have equal lengths and finite coordinates. Tolerance must be finite and nonnegative. Both destinations
+must exist, be real and writable, and be distinct from each other. Either destination may also be either input because
+all computation completes before destination storage changes. No command creates output vectors, interprets range
+suffixes, or changes vector type here.</p>
 <section id="distance-and-subdivision">
 <h3>Distance and subdivision<a class="headerlink" href="#distance-and-subdivision" title="Link to this heading"></a></h3>
-<p>The algorithm measures distance to the closed segment between the current
-endpoints, not the infinite supporting line. This retains backtracking features
-that a supporting-line test could discard. Coincident endpoints reduce to
-point distance. Differences and projection are scaled before arithmetic; a
-half-coordinate fallback avoids overflowing subtraction on platforms where
-long double has the same range as double. A true distance beyond the available
-range can still be infinite, which exceeds any accepted finite tolerance.</p>
-<p>Subdivision uses an explicit stack of high indices. The first point is retained;
-for each interval, the earliest point whose distance is the greatest value
-strictly above tolerance becomes the next split. Otherwise the high endpoint is
-emitted, and traversal continues with the pending interval. Equality with the
-tolerance does not force retention. This preserves input order and endpoints
-without recursion. Empty input returns zero points, and a singleton returns one.</p>
-<p>The two output arrays and the index stack reserve space proportional to input
-length, with at least one allocation slot for empty input. Allocation arithmetic
-is checked before allocation. Worst-case repeated interval scans remain quadratic;
-the explicit stack avoids recursive call-depth growth but does not change that
-complexity. The tolerance is geometric, not an amplitude or frequency error bound.</p>
+<p>The algorithm measures distance to the closed segment between the current endpoints, not the infinite supporting
+line. This retains backtracking features that a supporting-line test could discard. Coincident endpoints reduce to point
+distance. Differences and projection are scaled before arithmetic; a half-coordinate fallback avoids overflowing
+subtraction on platforms where long double has the same range as double. A true distance beyond the available range can
+still be infinite, which exceeds any accepted finite tolerance.</p>
+<p>Subdivision uses an explicit stack of high indices. The first point is retained; for each interval, the earliest point
+whose distance is the greatest value strictly above tolerance becomes the next split. Otherwise the high endpoint is
+emitted, and traversal continues with the pending interval. Equality with the tolerance does not force retention. This
+preserves input order and endpoints without recursion. Empty input returns zero points, and a singleton returns one.</p>
+<p>The two output arrays and the index stack reserve space proportional to input length, with at least one allocation slot
+for empty input. Allocation arithmetic is checked before allocation. Worst-case repeated interval scans remain
+quadratic; the explicit stack avoids recursive call-depth growth but does not change that complexity. The tolerance is
+geometric, not an amplitude or frequency error bound.</p>
 </section>
 <section id="commit-and-observer-lifetime">
 <h3>Commit and observer lifetime<a class="headerlink" href="#commit-and-observer-lifetime" title="Link to this heading"></a></h3>
-<p>All lookup, coordinate validation, computation and temporary observer-ID
-allocation precede mutation. Failures in those steps free temporary buffers and
-IDs, leaving both destinations unchanged. Commit installs both numeric arrays,
-lengths, capacities and full-vector selections, and invalidates extrema before
-calling any old custom storage releaser or mapped-array trace. Existing vector
-identity, external index offset and bindings remain intact.</p>
-<p>Old storage is released according to each destination’s prior ownership policy.
-This happens after both outputs are visible, so a release callback cannot observe
-only half of the initial commit. Subsequent callback mutations are permitted and
-are not undone. The returned count describes the computed simplification, not a
-promise that callbacks left both vectors at that length.</p>
-<p>Temporary observer IDs use <a class="reference internal" href="vector-storage-private-reference.html#c.SimplifyDeleted" title="SimplifyDeleted"><code class="xref c c-func docutils literal notranslate"><span class="pre">SimplifyDeleted()</span></code></a> to clear their local slots when a
-destination is destroyed. <a class="reference internal" href="vector-storage-private-reference.html#c.SimplifyFlush" title="SimplifyFlush"><code class="xref c c-func docutils literal notranslate"><span class="pre">SimplifyFlush()</span></code></a> snapshots the mapped-array name and
-re-fetches the server through the surviving ID after trace-producing operations.
-It does not find a replacement vector by name. Surviving destinations then
-receive full update notifications, and surviving temporary IDs are released.
-This protocol concerns destination identity; it is not a general transaction
-covering all user trace or custom-release side effects.</p>
-<p>Regression coverage should distinguish zero tolerance, coincident endpoints,
-backtracking, very large finite coordinates, empty/singleton inputs, aliases
-between inputs and outputs, protected destinations, and deletion or mutation of
-either destination during post-commit callbacks. Internal contracts are included
-in <a class="reference internal" href="vector-storage-private-reference.html"><span class="doc">Vector storage private C reference</span></a>.</p>
+<p>All lookup, coordinate validation, computation and temporary observer-ID allocation precede mutation. Failures in those
+steps free temporary buffers and IDs, leaving both destinations unchanged. Commit installs both numeric arrays, lengths,
+capacities and full-vector selections, and invalidates extrema before calling any old custom storage releaser or
+mapped-array trace. Existing vector identity, external index offset and bindings remain intact.</p>
+<p>Old storage is released according to each destination’s prior ownership policy. This happens after both outputs are
+visible, so a release callback cannot observe only half of the initial commit. Subsequent callback mutations are
+permitted and are not undone. The returned count describes the computed simplification, not a promise that callbacks
+left both vectors at that length.</p>
+<p>Temporary observer IDs use <a class="reference internal" href="vector-storage-private-reference.html#c.SimplifyDeleted" title="SimplifyDeleted"><code class="xref c c-func docutils literal notranslate"><span class="pre">SimplifyDeleted()</span></code></a> to clear their local slots when a destination is
+destroyed. <a class="reference internal" href="vector-storage-private-reference.html#c.SimplifyFlush" title="SimplifyFlush"><code class="xref c c-func docutils literal notranslate"><span class="pre">SimplifyFlush()</span></code></a> snapshots the mapped-array name and re-fetches the server through the surviving ID
+after trace-producing operations. It does not find a replacement vector by name. Surviving destinations then receive
+full update notifications, and surviving temporary IDs are released. This protocol concerns destination identity; it is
+not a general transaction covering all user trace or custom-release side effects.</p>
+<p>Regression coverage should distinguish zero tolerance, coincident endpoints, backtracking, very large finite
+coordinates, empty/singleton inputs, aliases between inputs and outputs, protected destinations, and deletion or
+mutation of either destination during post-commit callbacks. Internal contracts are included in
+<a class="reference internal" href="vector-storage-private-reference.html"><span class="doc">Vector storage private C reference</span></a>.</p>
 </section>
 </section>
 </section>

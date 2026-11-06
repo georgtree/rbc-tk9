@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,30 +1215,24 @@
              
   <section id="eps-canvas-item-implementation">
 <h1>EPS canvas item implementation<a class="headerlink" href="#eps-canvas-item-implementation" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcCanvEps.c</span></code> registers a Tk <code class="docutils literal notranslate"><span class="pre">eps</span></code> canvas item. It is independent of graph
-markers and graph renderer dispatch. Tk owns the item record and invokes its
-creation, configuration, drawing, hit-testing, transformation, PostScript and
-destruction callbacks through a Tk_ItemType. The item uses legacy Tk_ConfigSpec
-and Tk_ConfigureWidget, not the component Tk_OptionTable transaction machinery.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcCanvEps.c</span></code> registers a Tk <code class="docutils literal notranslate"><span class="pre">eps</span></code> canvas item. It is independent of graph markers and graph renderer dispatch. Tk
+owns the item record and invokes its creation, configuration, drawing, hit-testing, transformation, PostScript and
+destruction callbacks through a Tk_ItemType. The item uses legacy Tk_ConfigSpec and Tk_ConfigureWidget, not the
+component Tk_OptionTable transaction machinery.</p>
 <section id="parsing-and-retained-content">
 <h2>Parsing and retained content<a class="headerlink" href="#parsing-and-retained-content" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="eps-reference.html#c.OpenEpsFile" title="OpenEpsFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">OpenEpsFile()</span></code></a> owns a binary stdio FILE and calls <a class="reference internal" href="eps-reference.html#c.ReadPostScript" title="ReadPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadPostScript()</span></code></a>. Windows recognizes
-the DOS EPS header and records PostScript/preview section offsets and lengths.
-The parser seeks to the PostScript section and bounds reads by its nonzero
-length. Ordinary EPS input reads to EOF. Failed open/seek/header parsing returns
-a Tcl diagnostic; <a class="reference internal" href="eps-reference.html#c.OpenEpsFile" title="OpenEpsFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">OpenEpsFile()</span></code></a> closes its stream on parse failure.</p>
-<p><a class="reference internal" href="eps-reference.html#c.ReadPostScript" title="ReadPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadPostScript()</span></code></a> requires a <code class="docutils literal notranslate"><span class="pre">%!PS</span></code> signature and a numeric integer BoundingBox
-in the header. Bounds and extents must fit int, with positive width and height.
-This is a limited metadata parser: it does not implement general PostScript,
-trailer <code class="docutils literal notranslate"><span class="pre">(atend)</span></code> bounding-box resolution or arbitrary DSC processing.
-<a class="reference internal" href="eps-reference.html#c.ReadPsLine" title="ReadPsLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadPsLine()</span></code></a> has a fixed buffer and may split long physical lines. <a class="reference internal" href="eps-reference.html#c.AppendPsLine" title="AppendPsLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">AppendPsLine()</span></code></a>
-adds a newline when a retained chunk lacks one; retained content is therefore
-not guaranteed byte-identical to the source file.</p>
-<p>The parser keeps a title, optional EPSI preview and body text in item-owned
-storage. It retains the first body line already consumed while scanning the
-header. The original file need not stay open for drawing or PostScript output.
-Recording TIFF/WMF header fields must not be confused with complete support for
-rendering those preview formats.</p>
+<p><a class="reference internal" href="eps-reference.html#c.OpenEpsFile" title="OpenEpsFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">OpenEpsFile()</span></code></a> owns a binary stdio FILE and calls <a class="reference internal" href="eps-reference.html#c.ReadPostScript" title="ReadPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadPostScript()</span></code></a>. Windows recognizes the DOS EPS header
+and records PostScript/preview section offsets and lengths. The parser seeks to the PostScript section and bounds reads
+by its nonzero length. Ordinary EPS input reads to EOF. Failed open/seek/header parsing returns a Tcl diagnostic;
+<a class="reference internal" href="eps-reference.html#c.OpenEpsFile" title="OpenEpsFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">OpenEpsFile()</span></code></a> closes its stream on parse failure.</p>
+<p><a class="reference internal" href="eps-reference.html#c.ReadPostScript" title="ReadPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadPostScript()</span></code></a> requires a <code class="docutils literal notranslate"><span class="pre">%!PS</span></code> signature and a numeric integer BoundingBox in the header. Bounds and
+extents must fit int, with positive width and height. This is a limited metadata parser: it does not implement general
+PostScript, trailer <code class="docutils literal notranslate"><span class="pre">(atend)</span></code> bounding-box resolution or arbitrary DSC processing. <a class="reference internal" href="eps-reference.html#c.ReadPsLine" title="ReadPsLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadPsLine()</span></code></a> has a fixed
+buffer and may split long physical lines. <a class="reference internal" href="eps-reference.html#c.AppendPsLine" title="AppendPsLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">AppendPsLine()</span></code></a> adds a newline when a retained chunk lacks one;
+retained content is therefore not guaranteed byte-identical to the source file.</p>
+<p>The parser keeps a title, optional EPSI preview and body text in item-owned storage. It retains the first body line
+already consumed while scanning the header. The original file need not stay open for drawing or PostScript output.
+Recording TIFF/WMF header fields must not be confused with complete support for rendering those preview formats.</p>
 </section>
 <section id="preview-ownership-and-configuration">
 <h2>Preview ownership and configuration<a class="headerlink" href="#preview-ownership-and-configuration" title="Link to this heading"></a></h2>
@@ -1280,109 +1275,83 @@ rendering those preview formats.</p>
 </tr>
 </tbody>
 </table>
-<p>ConfigureEps detects image, file and quick options with prefix matching after
-Tk_ConfigureWidget succeeds. It drops old resources and replaces them in steps;
-a later error is not a rollback to the previous complete preview. A supplied
-image must be a photo. Its pixels are copied rather than continuously used as
-a live source. Width/height zero derive dimensions from the preview or EPS
-bounding box. Changing quick mode invalidates cached scaled dimensions.</p>
-<p>DisplayEps rescales the saved pixels when dimensions change: nearest-style
-resize for quick mode, box resampling otherwise. It publishes the result into
-tmpImage and frees the intermediate pixels. With no visible preview it draws a
-placeholder, optionally followed by a fitting title and relief border. All
-screen work uses Tk/native services, without a graph renderer context.</p>
-<p><a class="reference internal" href="eps-reference.html#c.ImageChangedProc" title="ImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ImageChangedProc()</span></code></a> does not refresh the saved color snapshot on ordinary source
-photo writes. Its deletion branch clears the source name and schedules canvas redraw, but
-retains the deleted instance until image reconfiguration or item teardown.
-Tk’s deletion loop still accesses the instance after the callback returns, so
-Tk_FreeImage must not run inside that callback. Keeping the token in the item
-allows its ordinary cleanup paths to release it exactly once. Teardown also
-detaches tmpImage before its deletion can notify other clients.</p>
+<p>ConfigureEps detects image, file and quick options with prefix matching after Tk_ConfigureWidget succeeds. It drops old
+resources and replaces them in steps; a later error is not a rollback to the previous complete preview. A supplied image
+must be a photo. Its pixels are copied rather than continuously used as a live source. Width/height zero derive
+dimensions from the preview or EPS bounding box. Changing quick mode invalidates cached scaled dimensions.</p>
+<p>DisplayEps rescales the saved pixels when dimensions change: nearest-style resize for quick mode, box resampling
+otherwise. It publishes the result into tmpImage and frees the intermediate pixels. With no visible preview it draws a
+placeholder, optionally followed by a fitting title and relief border. All screen work uses Tk/native services, without
+a graph renderer context.</p>
+<p><a class="reference internal" href="eps-reference.html#c.ImageChangedProc" title="ImageChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">ImageChangedProc()</span></code></a> does not refresh the saved color snapshot on ordinary source photo writes. Its deletion
+branch clears the source name and schedules canvas redraw, but retains the deleted instance until image reconfiguration
+or item teardown. Tk’s deletion loop still accesses the instance after the callback returns, so Tk_FreeImage must not
+run inside that callback. Keeping the token in the item allows its ordinary cleanup paths to release it exactly
+once. Teardown also detaches tmpImage before its deletion can notify other clients.</p>
 </section>
 <section id="coordinates-and-export">
 <h2>Coordinates and export<a class="headerlink" href="#coordinates-and-export" title="Link to this heading"></a></h2>
-<p>The item stores one canvas anchor plus width and height. <a class="reference internal" href="eps-reference.html#c.ComputeEpsBbox" title="ComputeEpsBbox"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComputeEpsBbox()</span></code></a> rounds
-the anchor and applies Tk anchoring; the redraw bbox uses exclusive right/bottom
-edges. Point and area picking use this rectangle, not alpha pixels or EPS paths.
-Translate changes the anchor. <a class="reference internal" href="eps-reference.html#c.ScaleEps" title="ScaleEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">ScaleEps()</span></code></a> scales only the anchor about the supplied
-origin: it does not scale width or height. Resizing the preview requires those
-options to change.</p>
-<p><a class="reference internal" href="eps-reference.html#c.EpsToPostScript" title="EpsToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">EpsToPostScript()</span></code></a> is a canvas callback with a no-op prepass. With an EPS file, it
-loads <code class="docutils literal notranslate"><span class="pre">rbcCanvEps.pro</span></code>, establishes translation, scale and clipping, and embeds
-the retained body between BeginEPSF/EndEPSF guards. With no file it serializes
-the cached temporary photo if present; it does not force a new preview render.
-There is no corresponding canvas SVG/PDF callback here. See
-<a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for shared PsToken services and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for the
+<p>The item stores one canvas anchor plus width and height. <a class="reference internal" href="eps-reference.html#c.ComputeEpsBbox" title="ComputeEpsBbox"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComputeEpsBbox()</span></code></a> rounds the anchor and applies Tk
+anchoring; the redraw bbox uses exclusive right/bottom edges. Point and area picking use this rectangle, not alpha
+pixels or EPS paths. Translate changes the anchor. <a class="reference internal" href="eps-reference.html#c.ScaleEps" title="ScaleEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">ScaleEps()</span></code></a> scales only the anchor about the supplied origin:
+it does not scale width or height. Resizing the preview requires those options to change.</p>
+<p><a class="reference internal" href="eps-reference.html#c.EpsToPostScript" title="EpsToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">EpsToPostScript()</span></code></a> is a canvas callback with a no-op prepass. With an EPS file, it loads <code class="docutils literal notranslate"><span class="pre">rbcCanvEps.pro</span></code>,
+establishes translation, scale and clipping, and embeds the retained body between BeginEPSF/EndEPSF guards. With no file
+it serializes the cached temporary photo if present; it does not force a new preview render. There is no corresponding
+canvas SVG/PDF callback here. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> for shared PsToken services and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for the
 separate graph export pipeline.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Keep parsing, display and export expectations separate. Existing
-<code class="docutils literal notranslate"><span class="pre">RBC.eps.file.A.test</span></code>, <code class="docutils literal notranslate"><span class="pre">RBC.eps.image.A.test</span></code> and the other <code class="docutils literal notranslate"><span class="pre">RBC.eps.*</span></code>
-files cover canvas options and lifecycle cases. Review malformed headers,
-file/image replacement, quick-mode cache invalidation, source-image deletion,
-anchor picking and PostScript body preservation when changing these paths.
-Use <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for temporary-photo acquisition and release.</p>
-<p>The optional <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code> harness counts source-instance releases
-on deletion followed by reconfiguration or teardown, without relying on process
-memory measurements. It runs separately from the ordinary suite.</p>
+<p>Keep parsing, display and export expectations separate. Existing <code class="docutils literal notranslate"><span class="pre">RBC.eps.file.A.test</span></code>, <code class="docutils literal notranslate"><span class="pre">RBC.eps.image.A.test</span></code> and
+the other <code class="docutils literal notranslate"><span class="pre">RBC.eps.*</span></code> files cover canvas options and lifecycle cases. Review malformed headers, file/image
+replacement, quick-mode cache invalidation, source-image deletion, anchor picking and PostScript body preservation when
+changing these paths. Use <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for temporary-photo acquisition and release.</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code> harness counts source-instance releases on deletion followed by reconfiguration or
+teardown, without relying on process memory measurements. It runs separately from the ordinary suite.</p>
 </section>
 <section id="preview-byte-decoding-details">
 <h2>Preview-byte decoding details<a class="headerlink" href="#preview-byte-decoding-details" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="eps-reference.html#c.GetHexValue" title="GetHexValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetHexValue()</span></code></a> reads from the parser’s current cursor, requesting a new bounded
-chunk when necessary. Each new preview chunk must begin with <code class="docutils literal notranslate"><span class="pre">%</span></code>. Whitespace
-is skipped before each byte pair, but the two hexadecimal digits must occur in
-the same chunk. A matching <code class="docutils literal notranslate"><span class="pre">%%EndPreview</span></code> prefix returns <code class="docutils literal notranslate"><span class="pre">TCL_RETURN</span></code>;
-malformed text or premature EOF returns <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>. Only <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> supplies
-a decoded byte. These statuses are internal parser control, not Tcl script
-return codes propagated to the canvas command.</p>
-<p><a class="reference internal" href="eps-reference.html#c.ReadEPSI" title="ReadEPSI"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadEPSI()</span></code></a> accepts dimensions from 1 through <code class="docutils literal notranslate"><span class="pre">SHRT_MAX</span></code> and depths of 1 or
-8 bits. The declared number of preview lines is parsed but not enforced.
-Decoding consumes the bytes needed for the dimensions; it does not separately
-require an end marker after the final pixel. A premature marker or malformed
-byte abandons the preview and frees its image. The stream is not rewound and
-preview failure does not itself become a Tcl error.</p>
-<p>The two legacy decode branches have different pixel conventions. Eight-bit
-samples are inverted to grayscale, assigned opaque alpha and written from the
-bottom row upward. One-bit rows are written from the top down, consume the
-high bit first and discard unused bits at each row boundary. A zero bit becomes
-opaque white; a set bit leaves the zero-initialized RGBA pixel, including zero
-alpha. This describes the current implementation, rather than a general
-bitmap conversion contract. Changes to preview appearance must test both depths,
-row orientation, padding and alpha explicitly.</p>
-<p>The conditional TIFF reader is unfinished: it calls <code class="docutils literal notranslate"><span class="pre">TIFFReadRGBAImage</span></code> but
-leaves component reordering as a placeholder. It is not called by the ordinary
-EPSI parsing path. Recording TIFF section offsets in a DOS EPS header does not
-provide a working TIFF preview pipeline.</p>
+<p><a class="reference internal" href="eps-reference.html#c.GetHexValue" title="GetHexValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetHexValue()</span></code></a> reads from the parser’s current cursor, requesting a new bounded chunk when necessary. Each new
+preview chunk must begin with <code class="docutils literal notranslate"><span class="pre">%</span></code>. Whitespace is skipped before each byte pair, but the two hexadecimal digits must
+occur in the same chunk. A matching <code class="docutils literal notranslate"><span class="pre">%%EndPreview</span></code> prefix returns <code class="docutils literal notranslate"><span class="pre">TCL_RETURN</span></code>; malformed text or premature EOF
+returns <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>. Only <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> supplies a decoded byte. These statuses are internal parser control, not Tcl
+script return codes propagated to the canvas command.</p>
+<p><a class="reference internal" href="eps-reference.html#c.ReadEPSI" title="ReadEPSI"><code class="xref c c-func docutils literal notranslate"><span class="pre">ReadEPSI()</span></code></a> accepts dimensions from 1 through <code class="docutils literal notranslate"><span class="pre">SHRT_MAX</span></code> and depths of 1 or 8 bits. The declared number of
+preview lines is parsed but not enforced. Decoding consumes the bytes needed for the dimensions; it does not separately
+require an end marker after the final pixel. A premature marker or malformed byte abandons the preview and frees its
+image. The stream is not rewound and preview failure does not itself become a Tcl error.</p>
+<p>The two legacy decode branches have different pixel conventions. Eight-bit samples are inverted to grayscale, assigned
+opaque alpha and written from the bottom row upward. One-bit rows are written from the top down, consume the high bit
+first and discard unused bits at each row boundary. A zero bit becomes opaque white; a set bit leaves the
+zero-initialized RGBA pixel, including zero alpha. This describes the current implementation, rather than a general
+bitmap conversion contract. Changes to preview appearance must test both depths, row orientation, padding and alpha
+explicitly.</p>
+<p>The conditional TIFF reader is unfinished: it calls <code class="docutils literal notranslate"><span class="pre">TIFFReadRGBAImage</span></code> but leaves component reordering as a
+placeholder. It is not called by the ordinary EPSI parsing path. Recording TIFF section offsets in a DOS EPS header does
+not provide a working TIFF preview pipeline.</p>
 </section>
 <section id="small-callback-and-geometry-contracts">
 <h2>Small callback and geometry contracts<a class="headerlink" href="#small-callback-and-geometry-contracts" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="eps-reference.html#c.EpsOptionSpecified" title="EpsOptionSpecified"><code class="xref c c-func docutils literal notranslate"><span class="pre">EpsOptionSpecified()</span></code></a> is a post-configuration detector, not an option parser.
-It scans option-value pairs and accepts option-name prefixes only after Tk’s
-configuration call succeeds. It does not independently enforce unique prefixes
-or reject malformed argument lists.</p>
-<p>The supplied-image change callback ignores ordinary pixel updates because
-rendering uses the retained snapshot. On image deletion it clears the source
-name and requests redraw while retaining the Tk instance until ordinary cleanup.
-Neither that callback nor translation recreates the snapshot.</p>
-<p>Point and area hit tests intentionally use different boundary comparisons.
-Point distance is zero on every rectangle edge. An area touching only an edge
-is classified as outside; a query enclosing the full item is inside; remaining
-intersections overlap. Both use the cached rectangle regardless of transparency.
-Translation changes the anchor and recomputes that rectangle without resizing
-or resampling pixels. Tk’s canvas operation owns the surrounding redraw work.</p>
+<p><a class="reference internal" href="eps-reference.html#c.EpsOptionSpecified" title="EpsOptionSpecified"><code class="xref c c-func docutils literal notranslate"><span class="pre">EpsOptionSpecified()</span></code></a> is a post-configuration detector, not an option parser. It scans option-value pairs and
+accepts option-name prefixes only after Tk’s configuration call succeeds. It does not independently enforce unique
+prefixes or reject malformed argument lists.</p>
+<p>The supplied-image change callback ignores ordinary pixel updates because rendering uses the retained snapshot. On image
+deletion it clears the source name and requests redraw while retaining the Tk instance until ordinary cleanup. Neither
+that callback nor translation recreates the snapshot.</p>
+<p>Point and area hit tests intentionally use different boundary comparisons. Point distance is zero on every rectangle
+edge. An area touching only an edge is classified as outside; a query enclosing the full item is inside; remaining
+intersections overlap. Both use the cached rectangle regardless of transparency. Translation changes the anchor and
+recomputes that rectangle without resizing or resampling pixels. Tk’s canvas operation owns the surrounding redraw work.</p>
 </section>
 <section id="canvas-callback-argument-contracts">
 <h2>Canvas callback argument contracts<a class="headerlink" href="#canvas-callback-argument-contracts" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="eps-reference.html#c.Rbc_InitEpsCanvasItem" title="Rbc_InitEpsCanvasItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitEpsCanvasItem()</span></code></a> registers the static item type; it does not create
-an item. <a class="reference internal" href="eps-reference.html#c.CreateEps" title="CreateEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateEps()</span></code></a> initializes a canvas-owned record whose Tk header
-already exists. <a class="reference internal" href="eps-reference.html#c.ConfigureEps" title="ConfigureEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureEps()</span></code></a> applies legacy options incrementally,
-whereas <a class="reference internal" href="eps-reference.html#c.EpsCoords" title="EpsCoords"><code class="xref c c-func docutils literal notranslate"><span class="pre">EpsCoords()</span></code></a> parses both new coordinates before updating the
-anchor and bbox.</p>
-<p><a class="reference internal" href="eps-reference.html#c.DisplayEps" title="DisplayEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">DisplayEps()</span></code></a> may rebuild preview caches but borrows the canvas drawable.
-Its redisplay-rectangle arguments are not used by the implementation.
-<a class="reference internal" href="eps-reference.html#c.DeleteEps" title="DeleteEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">DeleteEps()</span></code></a> releases initialized resources through their matching APIs;
-the canvas retains ownership of the item record itself.</p>
+<p><a class="reference internal" href="eps-reference.html#c.Rbc_InitEpsCanvasItem" title="Rbc_InitEpsCanvasItem"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitEpsCanvasItem()</span></code></a> registers the static item type; it does not create an item. <a class="reference internal" href="eps-reference.html#c.CreateEps" title="CreateEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateEps()</span></code></a>
+initializes a canvas-owned record whose Tk header already exists. <a class="reference internal" href="eps-reference.html#c.ConfigureEps" title="ConfigureEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">ConfigureEps()</span></code></a> applies legacy options
+incrementally, whereas <a class="reference internal" href="eps-reference.html#c.EpsCoords" title="EpsCoords"><code class="xref c c-func docutils literal notranslate"><span class="pre">EpsCoords()</span></code></a> parses both new coordinates before updating the anchor and bbox.</p>
+<p><a class="reference internal" href="eps-reference.html#c.DisplayEps" title="DisplayEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">DisplayEps()</span></code></a> may rebuild preview caches but borrows the canvas drawable. Its redisplay-rectangle arguments are
+not used by the implementation. <a class="reference internal" href="eps-reference.html#c.DeleteEps" title="DeleteEps"><code class="xref c c-func docutils literal notranslate"><span class="pre">DeleteEps()</span></code></a> releases initialized resources through their matching APIs; the
+canvas retains ownership of the item record itself.</p>
 </section>
 </section>
 

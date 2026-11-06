@@ -1,8 +1,8 @@
 Image color processing C reference
 ==================================
 
-These private services are declared in ``rbcImage.h`` and implemented in
-``rbcImage.c``. See :doc:`image-colors` for algorithms and current limitations.
+These private services are declared in ``rbcImage.h`` and implemented in ``rbcImage.c``. See :doc:`image-colors` for
+algorithms and current limitations.
 
 .. doxygenfunction:: Rbc_ColorImageToGreyscale
 
@@ -13,8 +13,8 @@ These private services are declared in ``rbcImage.h`` and implemented in
 Palette-reduction implementation
 --------------------------------
 
-These structures and helpers implement the cumulative-moment partitioner in
-``rbcImage.c``. See :doc:`image-colors` for the stage ordering and invariants.
+These structures and helpers implement the cumulative-moment partitioner in ``rbcImage.c``. See :doc:`image-colors` for
+the stage ordering and invariants.
 
 .. c:namespace:: rbcImageQuantization
 
@@ -26,8 +26,8 @@ These structures and helpers implement the cumulative-moment partitioner in
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: TrueColorMasks
    :members:

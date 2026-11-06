@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1275,9 +1276,8 @@
              
   <section id="image-transform-c-reference">
 <h1>Image transform C reference<a class="headerlink" href="#image-transform-c-reference" title="Link to this heading"></a></h1>
-<p>These private declarations are in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code>. Color rotation is implemented
-in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>; bitmap transforms have Windows and X11 implementations in
-<code class="docutils literal notranslate"><span class="pre">rbcWinImage.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcUnixImage.c</span></code>. See <a class="reference internal" href="image-transforms.html"><span class="doc">Color-image rotation and bitmap transforms</span></a>.</p>
+<p>These private declarations are in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code>. Color rotation is implemented in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>; bitmap transforms
+have Windows and X11 implementations in <code class="docutils literal notranslate"><span class="pre">rbcWinImage.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcUnixImage.c</span></code>. See <a class="reference internal" href="image-transforms.html"><span class="doc">Color-image rotation and bitmap transforms</span></a>.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_RotateColorImage">
 <span class="target" id="rbc_image_8h_1a51e3083e4fc7879c596b9ffb74d1863a"></span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_RotateColorImage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">src</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">angle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_RotateColorImage" title="Link to this definition"></a><br /></dt>
@@ -1358,8 +1358,8 @@ in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span
 
 <section id="color-rotation-implementation">
 <h2>Color rotation implementation<a class="headerlink" href="#color-rotation-implementation" title="Link to this heading"></a></h2>
-<p>These CPU-side helpers implement exact quadrant copies and the residual
-three-shear path. Native bitmap transforms use separate implementations.</p>
+<p>These CPU-side helpers implement exact quadrant copies and the residual three-shear path. Native bitmap transforms use
+separate implementations.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__image__rotation__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Color-image</span> <span class="pre">rotation</span> <span class="pre">internals</span></span></dt>
@@ -1672,8 +1672,8 @@ three-shear path. Native bitmap transforms use separate implementations.</p>
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.ColorImage">
 <span class="target" id="struct_color_image"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ColorImage</span></span></span><a class="headerlink" href="#c.ColorImage" title="Link to this definition"></a><br /></dt>

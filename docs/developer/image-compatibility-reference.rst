@@ -1,9 +1,8 @@
 Image compatibility C reference
 ===============================
 
-These functions are defined by RBC in ``rbcImage.c`` and declared privately in
-``rbcImage.h``, including those whose names start with ``Tk_``. See
-:doc:`image-compatibility` for lifetime and private-layout requirements.
+These functions are defined by RBC in ``rbcImage.c`` and declared privately in ``rbcImage.h``, including those whose
+names start with ``Tk_``. See :doc:`image-compatibility` for lifetime and private-layout requirements.
 
 .. doxygenfunction:: Tk_ImageIsDeleted
 
@@ -24,8 +23,8 @@ These functions are defined by RBC in ``rbcImage.c`` and declared privately in
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: TkImageMasterStruct
    :members:

@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1265,8 +1266,7 @@
              
   <section id="crosshair-c-reference">
 <h1>Crosshair C reference<a class="headerlink" href="#crosshair-c-reference" title="Link to this heading"></a></h1>
-<p>These private helpers borrow graph state. See <a class="reference internal" href="crosshairs.html"><span class="doc">Crosshair state and presentation</span></a> before changing
-erase/update/present ordering.</p>
+<p>These private helpers borrow graph state. See <a class="reference internal" href="crosshairs.html"><span class="doc">Crosshair state and presentation</span></a> before changing erase/update/present ordering.</p>
 <section id="lifecycle-and-background-changes">
 <h2>Lifecycle and background changes<a class="headerlink" href="#lifecycle-and-background-changes" title="Link to this heading"></a></h2>
 <dl class="c function">
@@ -1581,8 +1581,8 @@ Updates segments, adds requested visible hairs, copies the frame to the window, 
 </section>
 <section id="windows-position-only-transition">
 <h2>Windows position-only transition<a class="headerlink" href="#windows-position-only-transition" title="Link to this heading"></a></h2>
-<p>This function is extracted from the Windows branch separately. Its documented
-scope does not change the compiled symbol or the shared crosshair interfaces.</p>
+<p>This function is extracted from the Windows branch separately. Its documented scope does not change the compiled symbol
+or the shared crosshair interfaces.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.rbcWindowsCrosshairs.MoveCrosshairs">
 <span class="target" id="group__crosshair__internals_1ga92a5abfe4ca56b60880389e6642dd0b2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MoveCrosshairs</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Crosshairs</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">chPtr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">hotSpotPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.rbcWindowsCrosshairs.MoveCrosshairs" title="Link to this definition"></a><br /></dt>
@@ -1603,8 +1603,8 @@ scope does not change the compiled symbol or the shared crosshair interfaces.</p
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.CrosshairsOpSpec">
 <span class="target" id="struct_crosshairs_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CrosshairsOpSpec</span></span></span><a class="headerlink" href="#c.CrosshairsOpSpec" title="Link to this definition"></a><br /></dt>

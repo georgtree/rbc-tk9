@@ -887,6 +887,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -2293,9 +2294,8 @@ Zeros its slots and staged mask. Safe after commit, which has transferred owners
 </section>
 <section id="type-dispatch-signatures">
 <h2>Type dispatch signatures<a class="headerlink" href="#type-dispatch-signatures" title="Link to this heading"></a></h2>
-<p>Callbacks borrow graph and element records; dispatch does not itself retain
-components or protect against arbitrary Tcl callback reentry. The concrete
-operation’s contract supplies any additional restrictions.</p>
+<p>Callbacks borrow graph and element records; dispatch does not itself retain components or protect against arbitrary Tcl
+callback reentry. The concrete operation’s contract supplies any additional restrictions.</p>
 <dl class="c type">
 <dt class="sig sig-object c" id="c.ElementDrawProc">
 <span class="target" id="rbc_gr_elem_8h_1add3f21b32fd4eae05d4b36d0589f071a"></span><span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ElementDrawProc</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="graph-reference.html#c.Graph" title="Graph"><span class="n"><span class="pre">Graph</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">graphPtr</span></span>, <span class="n"><span class="pre">Drawable</span></span><span class="w"> </span><span class="n"><span class="pre">drawable</span></span>, <a class="reference internal" href="#c.Element" title="Element"><span class="n"><span class="pre">Element</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">elemPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.ElementDrawProc" title="Link to this definition"></a><br /></dt>
@@ -2593,9 +2593,8 @@ operation’s contract supplies any additional restrictions.</p>
 </section>
 <section id="configuration-transaction-internals">
 <h2>Configuration transaction internals<a class="headerlink" href="#configuration-transaction-internals" title="Link to this heading"></a></h2>
-<p>These helpers separate candidate preparation from live-field commit and from
-retained Tcl option representations. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for their differing
-failure and cleanup rules.</p>
+<p>These helpers separate candidate preparation from live-field commit and from retained Tcl option representations. See
+<a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for their differing failure and cleanup rules.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__element__transaction__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Element</span> <span class="pre">transaction</span> <span class="pre">internals</span></span></dt>
@@ -3032,8 +3031,8 @@ failure and cleanup rules.</p>
 </section>
 <section id="data-observation-and-value-presentation">
 <h2>Data observation and value presentation<a class="headerlink" href="#data-observation-and-value-presentation" title="Link to this heading"></a></h2>
-<p>The documentation-only scope distinguishes private names such as GetIndex from
-similarly named helpers in other C files. It does not change C symbols.</p>
+<p>The documentation-only scope distinguishes private names such as GetIndex from similarly named helpers in other C
+files. It does not change C symbols.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__element__data__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Element</span> <span class="pre">data</span> <span class="pre">and</span> <span class="pre">value-label</span> <span class="pre">internals</span></span></dt>
@@ -3343,8 +3342,8 @@ Refresh pending named-vector inputs before synchronous layout/export.</p>
 </section>
 <section id="lifecycle-and-display-dispatch">
 <h2>Lifecycle and display dispatch<a class="headerlink" href="#lifecycle-and-display-dispatch" title="Link to this heading"></a></h2>
-<p>These contracts cover registry ownership, option rollback, staged teardown and
-normal/active rendering. The namespace below is documentation-only.</p>
+<p>These contracts cover registry ownership, option rollback, staged teardown and normal/active rendering. The namespace
+below is documentation-only.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__element__lifecycle__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Element</span> <span class="pre">lifecycle</span> <span class="pre">and</span> <span class="pre">display</span> <span class="pre">dispatch</span></span></dt>
@@ -3602,9 +3601,9 @@ normal/active rendering. The namespace below is documentation-only.</p>
 </section>
 <section id="commands-and-binding-tags">
 <h2>Commands and binding tags<a class="headerlink" href="#commands-and-binding-tags" title="Link to this heading"></a></h2>
-<p>These handlers share the typed element dispatch table. Their contracts distinguish
-query order, per-element transactions, sequential mutations and Tcl trace safety.
-The scope below separates generic handler names from other modules’ private names.</p>
+<p>These handlers share the typed element dispatch table. Their contracts distinguish query order, per-element
+transactions, sequential mutations and Tcl trace safety. The scope below separates generic handler names from other
+modules’ private names.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__element__command__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Element</span> <span class="pre">commands</span> <span class="pre">and</span> <span class="pre">binding</span> <span class="pre">tags</span></span></dt>
@@ -3966,9 +3965,8 @@ The scope below separates generic handler names from other modules’ private na
 </section>
 <section id="line-geometry-and-resource-lifecycle">
 <h2>Line geometry and resource lifecycle<a class="headerlink" href="#line-geometry-and-resource-lifecycle" title="Link to this heading"></a></h2>
-<p>These contracts cover line, strip and polar mapping storage and pen resources.
-See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for the reset and teardown boundaries. The scope is
-documentation-only.</p>
+<p>These contracts cover line, strip and polar mapping storage and pen resources. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for the reset and
+teardown boundaries. The scope is documentation-only.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__line__geometry__lifecycle"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">geometry</span> <span class="pre">and</span> <span class="pre">resource</span> <span class="pre">lifecycle</span></span></dt>
@@ -4244,9 +4242,8 @@ documentation-only.</p>
 </section>
 <section id="line-mapping-pipeline">
 <h2>Line mapping pipeline<a class="headerlink" href="#line-mapping-pipeline" title="Link to this heading"></a></h2>
-<p>These private contracts describe continuous runs, symbol selection, clipping,
-palette slices and the top-level mapping pass. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for ordering.
-The C namespace below only disambiguates documentation names.</p>
+<p>These private contracts describe continuous runs, symbol selection, clipping, palette slices and the top-level mapping
+pass. See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for ordering. The C namespace below only disambiguates documentation names.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__line__mapping__pipeline"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">mapping</span> <span class="pre">pipeline</span></span></dt>
@@ -4518,9 +4515,8 @@ Requires a nonempty map with break flags. Copies each run, applies the selected 
 </section>
 <section id="line-picking-and-stroke-dispatch">
 <h2>Line picking and stroke dispatch<a class="headerlink" href="#line-picking-and-stroke-dispatch" title="Link to this heading"></a></h2>
-<p>See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for the distinction between point and trace metrics,
-snapshot metadata collection, and orientation-aware source-range pruning.
-This namespace only disambiguates private documentation symbols.</p>
+<p>See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for the distinction between point and trace metrics, snapshot metadata collection, and
+orientation-aware source-range pruning. This namespace only disambiguates private documentation symbols.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__line__picking__rendering"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">picking</span> <span class="pre">and</span> <span class="pre">stroke</span> <span class="pre">dispatch</span></span></dt>
@@ -4841,8 +4837,8 @@ This namespace only disambiguates private documentation symbols.</p>
 </section>
 <section id="line-symbol-and-output-dispatch">
 <h2>Line symbol and output dispatch<a class="headerlink" href="#line-symbol-and-output-dispatch" title="Link to this heading"></a></h2>
-<p>See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for sampling, renderer fallback and label lifetime rules.
-These are private adapters; the namespace below is documentation-only.</p>
+<p>See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for sampling, renderer fallback and label lifetime rules. These are private adapters; the namespace
+below is documentation-only.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__line__output__dispatch"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">symbol</span> <span class="pre">and</span> <span class="pre">output</span> <span class="pre">dispatch</span></span></dt>
@@ -5235,8 +5231,8 @@ These are private adapters; the namespace below is documentation-only.</p>
 </section>
 <section id="line-configuration-and-smoothing">
 <h2>Line configuration and smoothing<a class="headerlink" href="#line-configuration-and-smoothing" title="Link to this heading"></a></h2>
-<p>See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for staged configuration, resampling boundaries and the
-reference-impedance validation boundary. This namespace disambiguates private names only.</p>
+<p>See <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for staged configuration, resampling boundaries and the reference-impedance validation
+boundary. This namespace disambiguates private names only.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__line__configuration__smoothing"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">configuration</span> <span class="pre">and</span> <span class="pre">smoothing</span></span></dt>
@@ -5590,8 +5586,8 @@ Requires nonempty finite mapped geometry with parallel source indices and no int
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.ElementOpSpec">
 <span class="target" id="struct_element_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ElementOpSpec</span></span></span><a class="headerlink" href="#c.ElementOpSpec" title="Link to this definition"></a><br /></dt>

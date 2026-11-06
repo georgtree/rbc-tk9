@@ -1,8 +1,7 @@
 Shared drawing and window C reference
 =====================================
 
-See :doc:`window-services` for ownership, failure and platform boundaries.
-These are private implementation interfaces.
+See :doc:`window-services` for ownership, failure and platform boundaries. These are private implementation interfaces.
 
 .. doxygenfunction:: Rbc_GetPrivateGC
 
@@ -34,8 +33,7 @@ Window lookup and table cleanup internals
 
 .. c:namespace-pop::
 
-The Windows handle lookup is extracted separately in
-:doc:`native-windows-reference`.
+The Windows handle lookup is extracted separately in :doc:`native-windows-reference`.
 
 Native stroke setup
 -------------------

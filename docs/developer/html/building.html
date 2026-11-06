@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1223,8 +1224,8 @@
 <span class="w">    </span>mingw-w64-ucrt-x86_64-python-breathe
 </pre></div>
 </div>
-<p>Graphviz is optional and is not used by this manual. No compiler, Tk
-display, installed RBC package, or Cairo library is needed for extraction.</p>
+<p>Graphviz is optional and is not used by this manual. No compiler, Tk display, installed RBC package, or Cairo library is
+needed for extraction.</p>
 </section>
 <section id="targets">
 <h2>Targets<a class="headerlink" href="#targets" title="Link to this heading"></a></h2>
@@ -1233,74 +1234,61 @@ display, installed RBC package, or Cairo library is needed for extraction.</p>
 make<span class="w"> </span>check-doc-dev
 </pre></div>
 </div>
-<p>Both publish HTML in <code class="docutils literal notranslate"><span class="pre">docs/developer/html</span></code> in the source tree, including
-when invoked from an out-of-tree build. This is available to GitHub Pages
-when it publishes the repository’s <code class="docutils literal notranslate"><span class="pre">docs</span></code> directory.
-The check target also fails on Doxygen or Sphinx warnings. Neither depends on
-<code class="docutils literal notranslate"><span class="pre">binaries</span></code> or changes the existing <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span></code> pipeline.
-<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code> removes the default developer documentation build directory.</p>
+<p>Both publish HTML in <code class="docutils literal notranslate"><span class="pre">docs/developer/html</span></code> in the source tree, including when invoked from an out-of-tree build. This
+is available to GitHub Pages when it publishes the repository’s <code class="docutils literal notranslate"><span class="pre">docs</span></code> directory. The check target also fails on
+Doxygen or Sphinx warnings. Neither depends on <code class="docutils literal notranslate"><span class="pre">binaries</span></code> or changes the existing <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span></code> pipeline. <code class="docutils literal notranslate"><span class="pre">make</span>
+<span class="pre">clean</span></code> removes the default developer documentation build directory.</p>
 <p>These commands also work without configuring:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>tclsh<span class="w"> </span>docs/developer/build.tcl
 tclsh<span class="w"> </span>docs/developer/build.tcl<span class="w"> </span>--strict<span class="w"> </span>--build-dir<span class="w"> </span><span class="s2">"_build/developer"</span>
 </pre></div>
 </div>
-<p>From a Visual Studio developer prompt in <code class="docutils literal notranslate"><span class="pre">win</span></code>, the corresponding targets
-are <code class="docutils literal notranslate"><span class="pre">nmake</span> <span class="pre">-f</span> <span class="pre">makefile.vc</span> <span class="pre">doc-dev</span></code> and <code class="docutils literal notranslate"><span class="pre">check-doc-dev</span></code>. That makefile still
-requires its normal Tcl/Tk build setup.</p>
-<p>Override <code class="docutils literal notranslate"><span class="pre">DOC_DEV_PYTHON</span></code>, <code class="docutils literal notranslate"><span class="pre">DOXYGEN</span></code>, <code class="docutils literal notranslate"><span class="pre">DOC_DEV_BUILD</span></code> or <code class="docutils literal notranslate"><span class="pre">DOC_DEV_HTML</span></code> to select
-executable paths and output location:</p>
+<p>From a Visual Studio developer prompt in <code class="docutils literal notranslate"><span class="pre">win</span></code>, the corresponding targets are <code class="docutils literal notranslate"><span class="pre">nmake</span> <span class="pre">-f</span> <span class="pre">makefile.vc</span> <span class="pre">doc-dev</span></code> and
+<code class="docutils literal notranslate"><span class="pre">check-doc-dev</span></code>. That makefile still requires its normal Tcl/Tk build setup.</p>
+<p>Override <code class="docutils literal notranslate"><span class="pre">DOC_DEV_PYTHON</span></code>, <code class="docutils literal notranslate"><span class="pre">DOXYGEN</span></code>, <code class="docutils literal notranslate"><span class="pre">DOC_DEV_BUILD</span></code> or <code class="docutils literal notranslate"><span class="pre">DOC_DEV_HTML</span></code> to select executable paths and output
+location:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>check-doc-dev<span class="w"> </span><span class="nv">DOC_DEV_PYTHON</span><span class="o">=</span>/ucrt64/bin/python<span class="w"> </span><span class="nv">DOXYGEN</span><span class="o">=</span>/ucrt64/bin/doxygen
 </pre></div>
 </div>
-<p>The runner uses only Tcl core commands. Python remains required by Sphinx and
-Breathe, and for Sphinx’s small <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> configuration. The runner invokes
-Sphinx through the executable selected by <code class="docutils literal notranslate"><span class="pre">--python</span></code> (default: <code class="docutils literal notranslate"><span class="pre">python</span></code>); install
-Breathe, Sphinx and sphinx-rtd-theme for that interpreter. Do not mix MSYS, UCRT64 and a separate Windows
-Python installation accidentally. Paths containing spaces are supported.
-Each executable override names one executable, not a command with extra flags.</p>
+<p>The runner uses only Tcl core commands. Python remains required by Sphinx and Breathe, and for Sphinx’s small
+<code class="docutils literal notranslate"><span class="pre">conf.py</span></code> configuration. The runner invokes Sphinx through the executable selected by <code class="docutils literal notranslate"><span class="pre">--python</span></code> (default:
+<code class="docutils literal notranslate"><span class="pre">python</span></code>); install Breathe, Sphinx and sphinx-rtd-theme for that interpreter. Do not mix MSYS, UCRT64 and a separate
+Windows Python installation accidentally. Paths containing spaces are supported. Each executable override names one
+executable, not a command with extra flags.</p>
 </section>
 <section id="generated-files-and-validation">
 <h2>Generated files and validation<a class="headerlink" href="#generated-files-and-validation" title="Link to this heading"></a></h2>
-<p>Maintained sources live in <code class="docutils literal notranslate"><span class="pre">docs/developer</span></code>. Doxygen configuration, XML,
-warning logs and Sphinx caches live under the build directory. HTML is published
-separately under <code class="docutils literal notranslate"><span class="pre">docs/developer/html</span></code>. Commit that directory to publish the
-manual with GitHub Pages. It is retained by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code>. Use
-<code class="docutils literal notranslate"><span class="pre">--html-dir</span> <span class="pre">PATH</span></code> for a different HTML destination. XML is regenerated
-and all pages rebuilt on each invocation.</p>
-<p><code class="docutils literal notranslate"><span class="pre">Doxyfile.in</span></code> explicitly lists the two renderer headers and the common graph
-header/source pair, the public/private vector headers, and the binding
-header/source pair. Extraction does not follow includes into Tk or SDK headers.
-Reference pages select maintained contracts; undocumented functions are not a
-coverage target yet. Platform and Cairo backend implementations are not combined
-into misleading duplicate entries. Future chapters must select inputs deliberately.</p>
-<p>Static graph callbacks belong to a Doxygen group, so Breathe can render them
-without globally enabling implementation-file lookup (which can duplicate
-header declarations on older Breathe versions). The Doxygen preprocessor removes
-only the legacy <code class="docutils literal notranslate"><span class="pre">register</span></code> qualifier for Sphinx’s C signature parser; the C
-source and compiler input are unchanged.</p>
-<p>Strict checking validates included comments and references, not whole-project
-coverage. Undocumented-member warnings are disabled during this incremental
-migration; <code class="docutils literal notranslate"><span class="pre">EXTRACT_ALL</span></code> remains disabled. Extend the input list and reference
-pages as each module is documented.</p>
-<p>Developer HTML is not yet installed or included in binary distribution archives.
-Existing user documentation installation is unchanged.</p>
-<p>Windows backend extraction runs as a second Doxygen project using the same
-settings template but a Windows-only source input. Its XML and warnings are
-stored in <code class="docutils literal notranslate"><span class="pre">doxygen-win/xml</span></code> and <code class="docutils literal notranslate"><span class="pre">doxygen-win-warnings.log</span></code> below the build
-directory. Breathe selects this project explicitly for the Windows reference.
-Both extraction passes run on either build host; neither compiles code or
-requires Windows SDK headers. Separate projects prevent identical X11/Windows
-function names and private structure layouts from being merged. Strict mode
-checks both warning logs and restores both XML environment variables on exit.</p>
+<p>Maintained sources live in <code class="docutils literal notranslate"><span class="pre">docs/developer</span></code>. Doxygen configuration, XML, warning logs and Sphinx caches live under the
+build directory. HTML is published separately under <code class="docutils literal notranslate"><span class="pre">docs/developer/html</span></code>. Commit that directory to publish the manual
+with GitHub Pages. It is retained by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code>. Use <code class="docutils literal notranslate"><span class="pre">--html-dir</span> <span class="pre">PATH</span></code> for a different HTML destination. XML is
+regenerated and all pages rebuilt on each invocation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Doxyfile.in</span></code> explicitly lists the two renderer headers and the common graph header/source pair, the public/private
+vector headers, and the binding header/source pair. Extraction does not follow includes into Tk or SDK headers.
+Reference pages select maintained contracts; undocumented functions are not a coverage target yet. Platform and Cairo
+backend implementations are not combined into misleading duplicate entries. Future chapters must select inputs
+deliberately.</p>
+<p>Static graph callbacks belong to a Doxygen group, so Breathe can render them without globally enabling
+implementation-file lookup (which can duplicate header declarations on older Breathe versions). The Doxygen preprocessor
+removes only the legacy <code class="docutils literal notranslate"><span class="pre">register</span></code> qualifier for Sphinx’s C signature parser; the C source and compiler input are
+unchanged.</p>
+<p>Strict checking validates included comments and references, not whole-project coverage. Undocumented-member warnings are
+disabled during this incremental migration; <code class="docutils literal notranslate"><span class="pre">EXTRACT_ALL</span></code> remains disabled. Extend the input list and reference pages
+as each module is documented.</p>
+<p>Developer HTML is not yet installed or included in binary distribution archives. Existing user documentation
+installation is unchanged.</p>
+<p>Windows backend extraction runs as a second Doxygen project using the same settings template but a Windows-only source
+input. Its XML and warnings are stored in <code class="docutils literal notranslate"><span class="pre">doxygen-win/xml</span></code> and <code class="docutils literal notranslate"><span class="pre">doxygen-win-warnings.log</span></code> below the build
+directory. Breathe selects this project explicitly for the Windows reference. Both extraction passes run on either
+build host; neither compiles code or requires Windows SDK headers. Separate projects prevent identical X11/Windows
+function names and private structure layouts from being merged. Strict mode checks both warning logs and restores both
+XML environment variables on exit.</p>
 </section>
 <section id="doxygen-callback-declaration-compatibility">
 <h2>Doxygen callback declaration compatibility<a class="headerlink" href="#doxygen-callback-declaration-compatibility" title="Link to this heading"></a></h2>
-<p>Some Doxygen versions place a function-pointer member’s closing parenthesis in
-its XML type instead of its argument string. Breathe then emits invalid C such
-as <code class="docutils literal notranslate"><span class="pre">void(*)</span> <span class="pre">text</span> <span class="pre">(...)</span></code>. The Tcl build driver normalizes that generated XML
-before Sphinx runs, producing <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">(*text)(...)</span></code> while retaining member
-contracts and link targets. Source declarations and already-compatible XML are
-unchanged; no warning suppression or dependency upgrade is required.</p>
+<p>Some Doxygen versions place a function-pointer member’s closing parenthesis in its XML type instead of its argument
+string. Breathe then emits invalid C such as <code class="docutils literal notranslate"><span class="pre">void(*)</span> <span class="pre">text</span> <span class="pre">(...)</span></code>. The Tcl build driver normalizes that generated XML
+before Sphinx runs, producing <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">(*text)(...)</span></code> while retaining member contracts and link targets. Source
+declarations and already-compatible XML are unchanged; no warning suppression or dependency upgrade is required.</p>
 <p>The helper’s regression checks run without Tk, RBC or documentation tools:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tclsh</span><span class="w"> </span><span class="n">tests</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">RBC</span><span class="p">.</span><span class="n">build</span><span class="p">.</span><span class="n">doxygenCompat</span><span class="p">.</span><span class="n">A</span><span class="p">.</span><span class="n">test</span>
 </pre></div>
@@ -1308,66 +1296,51 @@ unchanged; no warning suppression or dependency upgrade is required.</p>
 </section>
 <section id="theme-and-publishing">
 <h2>Theme and publishing<a class="headerlink" href="#theme-and-publishing" title="Link to this heading"></a></h2>
-<p>Both manuals use <code class="docutils literal notranslate"><span class="pre">sphinx_rtd_theme</span></code> with expandable navigation and RTD’s default
-content width. Shared styles live in
-<code class="docutils literal notranslate"><span class="pre">docs/theme/rbc.css</span></code> and <code class="docutils literal notranslate"><span class="pre">docs/theme/rbc-layout.css</span></code>. Edit these sources,
-not the generated <code class="docutils literal notranslate"><span class="pre">_static</span></code> copies. Tables wrap within the content column;
-field lists use bounded columns and stack labels above descriptions on narrow
-screens. These rules do not change C declaration signature layout. Images
-retain their natural sizes unless they need to shrink to fit, and expandable
-examples retain their highlighted controls.</p>
-<p>The developer-only <code class="docutils literal notranslate"><span class="pre">docs/theme/rbc-developer.css</span></code> also bounds deep sidebar
-indentation and wraps long C identifiers.</p>
-<p>Both builders copy the maintained stylesheets before Sphinx computes asset
-hashes and verify the resulting copies. Missing sources or mismatched output
-copies fail the build rather than publishing stale styles.</p>
-<p>Keep <code class="docutils literal notranslate"><span class="pre">docs/.nojekyll</span></code> at the GitHub Pages publishing root. The developer
-build also emits <code class="docutils literal notranslate"><span class="pre">docs/developer/html/.nojekyll</span></code> so its output can be hosted
-independently. Publish each complete HTML output tree, including <code class="docutils literal notranslate"><span class="pre">_static</span></code>
-CSS, JavaScript and fonts. The theme requires no Read the Docs hosting service.
-Existing page names and C reference targets are unchanged by the theme.</p>
+<p>Both manuals use <code class="docutils literal notranslate"><span class="pre">sphinx_rtd_theme</span></code> with expandable navigation and RTD’s default content width. Shared styles live in
+<code class="docutils literal notranslate"><span class="pre">docs/theme/rbc.css</span></code> and <code class="docutils literal notranslate"><span class="pre">docs/theme/rbc-layout.css</span></code>. Edit these sources, not the generated <code class="docutils literal notranslate"><span class="pre">_static</span></code>
+copies. Tables wrap within the content column; field lists use bounded columns and stack labels above descriptions on
+narrow screens. These rules do not change C declaration signature layout. Images retain their natural sizes unless they
+need to shrink to fit, and expandable examples retain their highlighted controls.</p>
+<p>The developer-only <code class="docutils literal notranslate"><span class="pre">docs/theme/rbc-developer.css</span></code> also bounds deep sidebar indentation and wraps long C identifiers.</p>
+<p>Both builders copy the maintained stylesheets before Sphinx computes asset hashes and verify the resulting
+copies. Missing sources or mismatched output copies fail the build rather than publishing stale styles.</p>
+<p>Keep <code class="docutils literal notranslate"><span class="pre">docs/.nojekyll</span></code> at the GitHub Pages publishing root. The developer build also emits
+<code class="docutils literal notranslate"><span class="pre">docs/developer/html/.nojekyll</span></code> so its output can be hosted independently. Publish each complete HTML output tree,
+including <code class="docutils literal notranslate"><span class="pre">_static</span></code> CSS, JavaScript and fonts. The theme requires no Read the Docs hosting service. Existing page
+names and C reference targets are unchanged by the theme.</p>
 <p>After a full MSYS2 update (<code class="docutils literal notranslate"><span class="pre">pacman</span> <span class="pre">-Syu</span></code>), verify the selected interpreter:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">python</span><span class="w"> </span><span class="o">-</span><span class="n">m</span><span class="w"> </span><span class="n">sphinx</span><span class="w"> </span><span class="o">--</span><span class="n">version</span>
 <span class="n">python</span><span class="w"> </span><span class="o">-</span><span class="n">c</span><span class="w"> </span><span class="s">"import sphinx_rtd_theme, breathe; print(sphinx_rtd_theme.__file__)"</span>
 </pre></div>
 </div>
-<p>Use UCRT64 packages together; do not install the theme into a different Python
-from the one selected by <code class="docutils literal notranslate"><span class="pre">DOC_DEV_PYTHON</span></code>. For non-MSYS2 environments, install
-<code class="docutils literal notranslate"><span class="pre">sphinx</span></code>, <code class="docutils literal notranslate"><span class="pre">breathe</span></code> and <code class="docutils literal notranslate"><span class="pre">sphinx-rtd-theme</span></code> into the Python environment used
-by the documentation builder.</p>
+<p>Use UCRT64 packages together; do not install the theme into a different Python from the one selected by
+<code class="docutils literal notranslate"><span class="pre">DOC_DEV_PYTHON</span></code>. For non-MSYS2 environments, install <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>, <code class="docutils literal notranslate"><span class="pre">breathe</span></code> and <code class="docutils literal notranslate"><span class="pre">sphinx-rtd-theme</span></code> into the Python
+environment used by the documentation builder.</p>
 </section>
 <section id="sidebar-hierarchy">
 <h2>Sidebar hierarchy<a class="headerlink" href="#sidebar-hierarchy" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">index.rst</span></code> is the single source of navigation grouping. Subsystem and
-component headings contain ordinary toctrees pointing directly to substantive
-chapters and reference pages. Add or move a chapter there; no navigation-only
-landing page is needed. Existing substantive chapter URLs and C anchors remain
-unchanged. Obsolete generated <code class="docutils literal notranslate"><span class="pre">manual-*.html</span></code> landing pages can be removed
-from an existing output directory; fresh output contains none.</p>
-<p>The local Sphinx extension <code class="docutils literal notranslate"><span class="pre">rbc_navigation.py</span></code> builds the sidebar from these
-headings. Group labels link to their section on the main contents page; RTD’s
-expand/collapse buttons expose their children without changing pages.
-<code class="docutils literal notranslate"><span class="pre">collapse_navigation</span> <span class="pre">=</span> <span class="pre">False</span></code> and <code class="docutils literal notranslate"><span class="pre">navigation_depth</span> <span class="pre">=</span> <span class="pre">-1</span></code> retain the full
-group hierarchy. Only declarations belonging to the current reference page
-appear in the sidebar. In-page toctrees omit declarations everywhere, including
-on the main contents page. Function/structure documentation and cross-reference
-anchors are unaffected.</p>
-<p>Keep <code class="docutils literal notranslate"><span class="pre">toc_object_entries</span> <span class="pre">=</span> <span class="pre">True</span></code>. Do not install the earlier
-<code class="docutils literal notranslate"><span class="pre">omit_c_objects_from_navigation</span></code> or <code class="docutils literal notranslate"><span class="pre">contextual_sidebar</span></code> hooks alongside
-this extension: the former removes declarations needed on reference pages and
-the latter replaces the grouped sidebar. Breathe can populate declaration TOC
-entries independently of Sphinx’s setting; filtering is deliberately performed
-on resolved navigation trees, not on the C definitions or shared inventory.</p>
-<p>The build runner remains Tcl. The Python module is a Sphinx extension, using
-Sphinx’s toctree resolver to retain reference sections and relative links. The
-optional regression test requires Sphinx and the RTD theme, but not Doxygen,
+<p><code class="docutils literal notranslate"><span class="pre">index.rst</span></code> is the single source of navigation grouping. Subsystem and component headings contain ordinary toctrees
+pointing directly to substantive chapters and reference pages. Add or move a chapter there; no navigation-only landing
+page is needed. Existing substantive chapter URLs and C anchors remain unchanged. Obsolete generated <code class="docutils literal notranslate"><span class="pre">manual-*.html</span></code>
+landing pages can be removed from an existing output directory; fresh output contains none.</p>
+<p>The local Sphinx extension <code class="docutils literal notranslate"><span class="pre">rbc_navigation.py</span></code> builds the sidebar from these headings. Group labels link to their
+section on the main contents page; RTD’s expand/collapse buttons expose their children without changing pages.
+<code class="docutils literal notranslate"><span class="pre">collapse_navigation</span> <span class="pre">=</span> <span class="pre">False</span></code> and <code class="docutils literal notranslate"><span class="pre">navigation_depth</span> <span class="pre">=</span> <span class="pre">-1</span></code> retain the full group hierarchy. Only declarations
+belonging to the current reference page appear in the sidebar. In-page toctrees omit declarations everywhere, including
+on the main contents page. Function/structure documentation and cross-reference anchors are unaffected.</p>
+<p>Keep <code class="docutils literal notranslate"><span class="pre">toc_object_entries</span> <span class="pre">=</span> <span class="pre">True</span></code>. Do not install the earlier <code class="docutils literal notranslate"><span class="pre">omit_c_objects_from_navigation</span></code> or
+<code class="docutils literal notranslate"><span class="pre">contextual_sidebar</span></code> hooks alongside this extension: the former removes declarations needed on reference pages and the
+latter replaces the grouped sidebar. Breathe can populate declaration TOC entries independently of Sphinx’s setting;
+filtering is deliberately performed on resolved navigation trees, not on the C definitions or shared inventory.</p>
+<p>The build runner remains Tcl. The Python module is a Sphinx extension, using Sphinx’s toctree resolver to retain
+reference sections and relative links. The optional regression test requires Sphinx and the RTD theme, but not Doxygen,
 Breathe, Tk or RBC:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tclsh</span><span class="w"> </span><span class="n">tests</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">RBC</span><span class="p">.</span><span class="n">build</span><span class="p">.</span><span class="n">docNavigation</span><span class="p">.</span><span class="n">A</span><span class="p">.</span><span class="n">test</span>
 </pre></div>
 </div>
-<p>It checks main-page grouping and declaration suppression, full inactive groups,
-current-page functions/structures/members, and preserved declaration anchors.
-Use <code class="docutils literal notranslate"><span class="pre">RBC_DOC_PYTHON</span></code> to select another Python executable for this test.</p>
+<p>It checks main-page grouping and declaration suppression, full inactive groups, current-page
+functions/structures/members, and preserved declaration anchors. Use <code class="docutils literal notranslate"><span class="pre">RBC_DOC_PYTHON</span></code> to select another Python
+executable for this test.</p>
 </section>
 </section>
 

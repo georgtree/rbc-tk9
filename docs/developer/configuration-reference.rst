@@ -1,9 +1,8 @@
 Component configuration C reference
 ====================================
 
-These are private helpers implemented in ``rbcConfig.c`` and declared in
-``rbcInt.h``. They introduce no public stubs. See :doc:`configuration` for
-transaction ordering, resource identity and cleanup responsibilities.
+These are private helpers implemented in ``rbcConfig.c`` and declared in ``rbcInt.h``. They introduce no public
+stubs. See :doc:`configuration` for transaction ordering, resource identity and cleanup responsibilities.
 
 Resource initialization
 -----------------------
@@ -34,8 +33,8 @@ Relative child lookup
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: ColorPair
    :members:

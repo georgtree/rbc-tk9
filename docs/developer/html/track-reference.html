@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1272,9 +1273,8 @@
              
   <section id="track-ownership-c-reference">
 <h1>Track ownership C reference<a class="headerlink" href="#track-ownership-c-reference" title="Link to this heading"></a></h1>
-<p>Track records and private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.h</span></code>. Static
-configuration helpers live in <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>. See <a class="reference internal" href="tracks.html"><span class="doc">Track ownership and layout</span></a> for the
-lifecycle, <a class="reference internal" href="mapping-reference.html"><span class="doc">Coordinate mapping C reference</span></a> for viewport scopes and
+<p>Track records and private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcGrTrack.h</span></code>. Static configuration helpers live in
+<code class="docutils literal notranslate"><span class="pre">rbcGrTrack.c</span></code>. See <a class="reference internal" href="tracks.html"><span class="doc">Track ownership and layout</span></a> for the lifecycle, <a class="reference internal" href="mapping-reference.html"><span class="doc">Coordinate mapping C reference</span></a> for viewport scopes and
 <a class="reference internal" href="scroll-reference.html"><span class="doc">Scrolling C reference</span></a> for scroll notification.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_FindTrack">
@@ -1630,8 +1630,8 @@ lifecycle, <a class="reference internal" href="mapping-reference.html"><span cla
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.TrackDefaults">
 <span class="target" id="struct_track_defaults"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrackDefaults</span></span></span><a class="headerlink" href="#c.TrackDefaults" title="Link to this definition"></a><br /></dt>

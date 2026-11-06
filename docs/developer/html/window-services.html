@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,15 +1215,13 @@
              
   <section id="shared-drawing-and-window-services">
 <h1>Shared drawing and window services<a class="headerlink" href="#shared-drawing-and-window-services" title="Link to this heading"></a></h1>
-<p>These are private Tk support services, not another graph renderer. They are
-used by graph components, image code and standalone canvas/window operations.
-All handles belong to the owning Tk thread; none of these functions supplies
+<p>These are private Tk support services, not another graph renderer. They are used by graph components, image code and
+standalone canvas/window operations. All handles belong to the owning Tk thread; none of these functions supplies
 locking, reference-counted widget lifetime or automatic callback protection.</p>
 <section id="graphics-context-ownership">
 <h2>Graphics-context ownership<a class="headerlink" href="#graphics-context-ownership" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">rbcDraw.c</span></code> creates private GCs directly through XCreateGC. Unlike Tk_GetGC,
-these do not share a cache entry with other widgets. Use them for mutable dash
-state or other settings that cannot be represented by the Tk cache key.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcDraw.c</span></code> creates private GCs directly through XCreateGC. Unlike Tk_GetGC, these do not share a cache entry with
+other widgets. Use them for mutable dash state or other settings that cannot be represented by the Tk cache key.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 35.0%" />
@@ -1250,113 +1249,91 @@ state or other settings that cannot be represented by the Tk cache key.</p>
 </tr>
 </tbody>
 </table>
-<p>An unrealized Tk window is not forced into existence merely to obtain a GC.
-Rbc_GetPrivateGC uses the screen root when depths agree, or a temporary 1x1
-pixmap at the window depth otherwise. The pixmap is released before returning
-and the GC remains caller-owned. The drawable form requires the caller to
-supply a compatible drawable. Neither destructor accepts arbitrary ownership
-or makes repeated release safe.</p>
-<p>Rbc_SetDashes reads a bounded, zero-terminated byte sequence and changes the
-GC dash offset/pattern. It does not choose the line style. Do not use this as
-permission to mutate a borrowed shared GC.</p>
+<p>An unrealized Tk window is not forced into existence merely to obtain a GC. Rbc_GetPrivateGC uses the screen root when
+depths agree, or a temporary 1x1 pixmap at the window depth otherwise. The pixmap is released before returning and the
+GC remains caller-owned. The drawable form requires the caller to supply a compatible drawable. Neither destructor
+accepts arbitrary ownership or makes repeated release safe.</p>
+<p>Rbc_SetDashes reads a bounded, zero-terminated byte sequence and changes the GC dash offset/pattern. It does not choose
+the line style. Do not use this as permission to mutate a borrowed shared GC.</p>
 </section>
 <section id="request-sizing-and-relief">
 <h2>Request sizing and relief<a class="headerlink" href="#request-sizing-and-relief" title="Link to this heading"></a></h2>
-<p>Rbc_MaxRequestSize reports an element count, not bytes. It reserves four
-32-bit protocol words, converts the remaining limit to bytes and divides by
-the caller’s element size. It prefers the extended X request limit when
-available, falls back to the ordinary limit, returns zero for unusable inputs
-and saturates the result at INT_MAX. A caller still needs to account for its
-actual request format and split batches. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
-<p>Rbc_Draw3DRectangle preserves RBC’s historical raised/sunken outer-edge
-appearance, then delegates the inset to Tk_Draw3DRectangle. Its X11 and Windows
-edge GCs differ. It borrows all drawing resources and establishes no clipping
-region. Graph paths should enter through their renderer service where one
-exists; standalone canvas callers do not acquire a graph context merely to
-use this utility. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the module boundary.</p>
+<p>Rbc_MaxRequestSize reports an element count, not bytes. It reserves four 32-bit protocol words, converts the remaining
+limit to bytes and divides by the caller’s element size. It prefers the extended X request limit when available, falls
+back to the ordinary limit, returns zero for unusable inputs and saturates the result at INT_MAX. A caller still needs
+to account for its actual request format and split batches. See <a class="reference internal" href="native-rendering.html"><span class="doc">Native renderer internals</span></a>.</p>
+<p>Rbc_Draw3DRectangle preserves RBC’s historical raised/sunken outer-edge appearance, then delegates the inset to
+Tk_Draw3DRectangle. Its X11 and Windows edge GCs differ. It borrows all drawing resources and establishes no clipping
+region. Graph paths should enter through their renderer service where one exists; standalone canvas callers do not
+acquire a graph context merely to use this utility. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for the module boundary.</p>
 </section>
 <section id="native-identifiers">
 <h2>Native identifiers<a class="headerlink" href="#native-identifiers" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">rbcWindow.c</span></code> distinguishes a Tk client from its window-manager wrapper.
-<a class="reference internal" href="window-service-reference.html#c.Rbc_GetRealWindowId" title="Rbc_GetRealWindowId"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetRealWindowId()</span></code></a> can realize the client and returns the parent for a
-toplevel. On Windows its result is a raw HWND cast to Window, not Tk’s drawable wrapper.
-Passing that value to an API expecting a Tk drawable is incorrect. The winop snapshot
-path deliberately uses Tk_WindowId for Tk path arguments.</p>
-<p>On X11 the helper queries the tree and releases the returned child array.
-If the parent lookup fails or returns None, the helper keeps the realized
-client window as its fallback. Windows retains its platform-specific wrapper
-lookup; the X11 fallback does not change the Windows handle representation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcWindow.c</span></code> distinguishes a Tk client from its window-manager wrapper. <a class="reference internal" href="window-service-reference.html#c.Rbc_GetRealWindowId" title="Rbc_GetRealWindowId"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetRealWindowId()</span></code></a> can realize
+the client and returns the parent for a toplevel. On Windows its result is a raw HWND cast to Window, not Tk’s drawable
+wrapper. Passing that value to an API expecting a Tk drawable is incorrect. The winop snapshot path deliberately uses
+Tk_WindowId for Tk path arguments.</p>
+<p>On X11 the helper queries the tree and releases the returned child array. If the parent lookup fails or returns None,
+the helper keeps the realized client window as its fallback. Windows retains its platform-specific wrapper lookup; the
+X11 fallback does not change the Windows handle representation.</p>
 </section>
 <section id="window-instance-associations">
 <h2>Window instance associations<a class="headerlink" href="#window-instance-associations" title="Link to this heading"></a></h2>
-<p>The same module stores window-to-payload associations in an interpreter-owned
-Tcl hash table using one-word Tk_Window keys. It replaces older reliance on
-private Tk instance fields. Setting a value creates the table lazily. Getting
-a value borrows it; replacing or deleting an entry never destroys its payload.
-Interpreter cleanup releases the table storage only.</p>
-<p>The owner must delete its association while the Tk window is still valid.
-There is no automatic per-window destroy handler in this service. A missing
-entry or an absent table returns NULL from lookup. Deletion is a no-op in both
-cases and does not allocate a table. A live Tk window is still required; these
-guards do not make a stale Tk_Window valid.</p>
+<p>The same module stores window-to-payload associations in an interpreter-owned Tcl hash table using one-word Tk_Window
+keys. It replaces older reliance on private Tk instance fields. Setting a value creates the table lazily. Getting a
+value borrows it; replacing or deleting an entry never destroys its payload. Interpreter cleanup releases the table
+storage only.</p>
+<p>The owner must delete its association while the Tk window is still valid. There is no automatic per-window destroy
+handler in this service. A missing entry or an absent table returns NULL from lookup. Deletion is a no-op in both cases
+and does not allocate a table. A live Tk window is still required; these guards do not make a stale Tk_Window valid.</p>
 </section>
 <section id="identifier-and-table-lifetime-details">
 <h2>Identifier and table lifetime details<a class="headerlink" href="#identifier-and-table-lifetime-details" title="Link to this heading"></a></h2>
-<p>Neither platform recursively searches for a decoration window. The helpers
-select the immediate parent only for Tk toplevels. Realizing a native client
-is distinct from explicitly mapping it; these calls do not request mapping or
-wait for a window manager to finish reparenting it. A returned ID is therefore
-a current native identity, not a retained resource or a stable wrapper promise.</p>
-<p>On X11, <a class="reference internal" href="window-service-reference.html#c.rbcWindowHelpers.rbcGetParent" title="rbcWindowHelpers.rbcGetParent"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowHelpers.rbcGetParent()</span></code></a> owns only the child-array allocation
-returned by XQueryTree. It frees that array before returning the parent ID.
-<a class="reference internal" href="window-service-reference.html#c.rbcWindowHelpers.GetWindowId" title="rbcWindowHelpers.GetWindowId"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowHelpers.GetWindowId()</span></code></a> retains the realized client when the parent query
-fails. On Windows, <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsHandles.GetWindowHandle" title="rbcWindowsHandles.GetWindowHandle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsHandles.GetWindowHandle()</span></code></a> uses Tk_GetHWND and
-GetParent directly; a NULL parent is not replaced by the client. The shared Window
-return type does not erase this platform difference. Callers needing Tk drawing
-operations must use Tk’s own drawable token, not reinterpret a returned HWND as one.</p>
-<p>Association storage is attached to the interpreter obtained from the supplied
-Tk window. It is not a global path-name registry: keys are Tk_Window pointer
-identities, and another interpreter has its own table. A NULL stored payload is
-allowed but indistinguishable from a missing entry through the lookup API.
-Replacing a payload neither calls its destructor nor informs its former owner.</p>
+<p>Neither platform recursively searches for a decoration window. The helpers select the immediate parent only for Tk
+toplevels. Realizing a native client is distinct from explicitly mapping it; these calls do not request mapping or wait
+for a window manager to finish reparenting it. A returned ID is therefore a current native identity, not a retained
+resource or a stable wrapper promise.</p>
+<p>On X11, <a class="reference internal" href="window-service-reference.html#c.rbcWindowHelpers.rbcGetParent" title="rbcWindowHelpers.rbcGetParent"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowHelpers.rbcGetParent()</span></code></a> owns only the child-array allocation returned by XQueryTree. It frees
+that array before returning the parent ID. <a class="reference internal" href="window-service-reference.html#c.rbcWindowHelpers.GetWindowId" title="rbcWindowHelpers.GetWindowId"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowHelpers.GetWindowId()</span></code></a> retains the realized client when the
+parent query fails. On Windows, <a class="reference internal" href="native-windows-reference.html#c.rbcWindowsHandles.GetWindowHandle" title="rbcWindowsHandles.GetWindowHandle"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsHandles.GetWindowHandle()</span></code></a> uses Tk_GetHWND and GetParent directly; a
+NULL parent is not replaced by the client. The shared Window return type does not erase this platform
+difference. Callers needing Tk drawing operations must use Tk’s own drawable token, not reinterpret a returned HWND as
+one.</p>
+<p>Association storage is attached to the interpreter obtained from the supplied Tk window. It is not a global path-name
+registry: keys are Tk_Window pointer identities, and another interpreter has its own table. A NULL stored payload is
+allowed but indistinguishable from a missing entry through the lookup API. Replacing a payload neither calls its
+destructor nor informs its former owner.</p>
 <p>Deleting the final entry leaves the empty table attached to the interpreter.
-<a class="reference internal" href="window-service-reference.html#c.rbcWindowHelpers.AssocDataCleanup" title="rbcWindowHelpers.AssocDataCleanup"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowHelpers.AssocDataCleanup()</span></code></a> eventually deletes hash entries and the
-table allocation; it does not visit, release or notify payloads. Owners must remove
-associations while their Tk windows are still live, before pointer identities can become
-stale or be reused. There is no reference acquisition, weak-reference mechanism or
-automatic per-window cleanup in this layer. These requirements also apply when lookup
-happens during component teardown or callbacks.</p>
+<a class="reference internal" href="window-service-reference.html#c.rbcWindowHelpers.AssocDataCleanup" title="rbcWindowHelpers.AssocDataCleanup"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowHelpers.AssocDataCleanup()</span></code></a> eventually deletes hash entries and the table allocation; it does not visit,
+release or notify payloads. Owners must remove associations while their Tk windows are still live, before pointer
+identities can become stale or be reused. There is no reference acquisition, weak-reference mechanism or automatic
+per-window cleanup in this layer. These requirements also apply when lookup happens during component teardown or
+callbacks.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Keep GC acquisition/release pairs explicit, preserve depth selection for
-unrealized windows, and review both platform branches when changing native
-identifiers. Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code> after declaration changes. Window
-capture regressions belong in the existing <code class="docutils literal notranslate"><span class="pre">RBC.winop.snap*.test</span></code> files;
-renderer changes also need the appropriate component drawing tests.</p>
-<p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code> exercises lookup/deletion before the first setter,
-payload replacement, repeated deletion and the X11 parent-query fallback. The
-private harness injects parent-query failure only on X11; other tests also run
-on Windows. Ordinary suite runs skip it unless RBC_RESOURCE_TEST_LIB is set.</p>
+<p>Keep GC acquisition/release pairs explicit, preserve depth selection for unrealized windows, and review both platform
+branches when changing native identifiers. Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code> after declaration changes. Window capture
+regressions belong in the existing <code class="docutils literal notranslate"><span class="pre">RBC.winop.snap*.test</span></code> files; renderer changes also need the appropriate component
+drawing tests.</p>
+<p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code> exercises lookup/deletion before the first setter, payload replacement, repeated deletion and
+the X11 parent-query fallback. The private harness injects parent-query failure only on X11; other tests also run on
+Windows. Ordinary suite runs skip it unless RBC_RESOURCE_TEST_LIB is set.</p>
 </section>
 <section id="resource-and-stroke-argument-boundaries">
 <h2>Resource and stroke argument boundaries<a class="headerlink" href="#resource-and-stroke-argument-boundaries" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGC" title="Rbc_GetPrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGC()</span></code></a> and <a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGCFromDrawable" title="Rbc_GetPrivateGCFromDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGCFromDrawable()</span></code></a> create
-uncached, caller-owned GCs. Their value masks select which XGCValues fields
-must be initialized. Release these GCs with <a class="reference internal" href="window-service-reference.html#c.Rbc_FreePrivateGC" title="Rbc_FreePrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreePrivateGC()</span></code></a>;
-a cached Tk GC is a different ownership contract.</p>
-<p><a class="reference internal" href="window-service-reference.html#c.Rbc_NativeLineWidth" title="Rbc_NativeLineWidth"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NativeLineWidth()</span></code></a> maps widths at most one to the native zero-width
-representation. <a class="reference internal" href="window-service-reference.html#c.Rbc_SetDashes" title="Rbc_SetDashes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a> changes dash bytes and offset on a
-caller-mutable GC without choosing its line style.
-<a class="reference internal" href="window-service-reference.html#c.Rbc_MaxRequestSize" title="Rbc_MaxRequestSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MaxRequestSize()</span></code></a> returns a record count, using a byte size per record,
-not a byte allocation size. <a class="reference internal" href="window-service-reference.html#c.Rbc_Draw3DRectangle" title="Rbc_Draw3DRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Draw3DRectangle()</span></code></a> takes drawable pixel
-coordinates and preserves the native relief border policy.</p>
+<p><a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGC" title="Rbc_GetPrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGC()</span></code></a> and <a class="reference internal" href="window-service-reference.html#c.Rbc_GetPrivateGCFromDrawable" title="Rbc_GetPrivateGCFromDrawable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPrivateGCFromDrawable()</span></code></a> create uncached, caller-owned GCs. Their value
+masks select which XGCValues fields must be initialized. Release these GCs with <a class="reference internal" href="window-service-reference.html#c.Rbc_FreePrivateGC" title="Rbc_FreePrivateGC"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreePrivateGC()</span></code></a>; a cached Tk
+GC is a different ownership contract.</p>
+<p><a class="reference internal" href="window-service-reference.html#c.Rbc_NativeLineWidth" title="Rbc_NativeLineWidth"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_NativeLineWidth()</span></code></a> maps widths at most one to the native zero-width representation. <a class="reference internal" href="window-service-reference.html#c.Rbc_SetDashes" title="Rbc_SetDashes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a>
+changes dash bytes and offset on a caller-mutable GC without choosing its line style. <a class="reference internal" href="window-service-reference.html#c.Rbc_MaxRequestSize" title="Rbc_MaxRequestSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MaxRequestSize()</span></code></a>
+returns a record count, using a byte size per record, not a byte allocation size. <a class="reference internal" href="window-service-reference.html#c.Rbc_Draw3DRectangle" title="Rbc_Draw3DRectangle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Draw3DRectangle()</span></code></a> takes
+drawable pixel coordinates and preserves the native relief border policy.</p>
 </section>
 <section id="dash-storage-boundary">
 <h2>Dash storage boundary<a class="headerlink" href="#dash-storage-boundary" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="window-service-reference.html#c.GetDashCount" title="GetDashCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetDashCount()</span></code></a> reads at most RBC_MAX_DASH_VALUES bytes and stops at the
-first zero. <a class="reference internal" href="window-service-reference.html#c.Rbc_SetDashes" title="Rbc_SetDashes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a> uses that count with the descriptor offset;
-this scan does not parse or validate a Tcl dash expression.</p>
+<p><a class="reference internal" href="window-service-reference.html#c.GetDashCount" title="GetDashCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetDashCount()</span></code></a> reads at most RBC_MAX_DASH_VALUES bytes and stops at the first zero. <a class="reference internal" href="window-service-reference.html#c.Rbc_SetDashes" title="Rbc_SetDashes"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SetDashes()</span></code></a> uses
+that count with the descriptor offset; this scan does not parse or validate a Tcl dash expression.</p>
 </section>
 </section>
 

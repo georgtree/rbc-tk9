@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,61 +1215,46 @@
              
   <section id="image-resizing-and-resampling">
 <h1>Image resizing and resampling<a class="headerlink" href="#image-resizing-and-resampling" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> provides CPU-side resizing over owned, row-major RGBA images.
-These operations do not use a renderer or native drawable. Tk photo wrappers
-snapshot pixels into this representation before processing. See
-<a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for allocation, channel offsets and photo-write ownership.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> provides CPU-side resizing over owned, row-major RGBA images. These operations do not use a renderer or
+native drawable. Tk photo wrappers snapshot pixels into this representation before processing. See <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a>
+for allocation, channel offsets and photo-write ownership.</p>
 <section id="three-coordinate-contracts">
 <h2>Three coordinate contracts<a class="headerlink" href="#three-coordinate-contracts" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorImage" title="Rbc_ResizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a> scales a source region to a requested output size.
-Its origin is clamped into the source, then negative or excessive width/height
-values extend to the remaining edge. This is an origin-and-span policy, not
-geometric rectangle intersection: a negative origin becomes zero without
-subtracting its displacement from a positive span.</p>
-<p>For each destination position, nearest-neighbour mapping selects the truncated
-ratio of destination position to destination size, multiplied by the effective
-source span, then adds the source origin. It copies the entire pixel, including
-alpha. No averaging or antialiasing is performed.</p>
-<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a> instead takes a region in a <em>virtual destination</em>.
-The full source is imagined at <code class="docutils literal notranslate"><span class="pre">destWidth</span></code> by <code class="docutils literal notranslate"><span class="pre">destHeight</span></code>, while only the
-requested region is allocated. Its origin and each output position map back
-through that virtual scale. Positions beyond either edge clamp to the first
-or last source pixel; they do not create transparent padding. This avoids
-allocating a potentially much larger scaled image merely to display a crop.</p>
-<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResampleColorImage" title="Rbc_ResampleColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage()</span></code></a> filters the complete source to a new size. Source
-region extraction, when needed, happens before this call. It allocates an
-intermediate image of destination width by source height, filters horizontally,
-then filters vertically into the final image and releases the intermediate.
-All three functions leave the borrowed source intact and return independent
-storage released with <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorImage" title="Rbc_ResizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a> scales a source region to a requested output size. Its origin is clamped into the
+source, then negative or excessive width/height values extend to the remaining edge. This is an origin-and-span policy,
+not geometric rectangle intersection: a negative origin becomes zero without subtracting its displacement from a
+positive span.</p>
+<p>For each destination position, nearest-neighbour mapping selects the truncated ratio of destination position to
+destination size, multiplied by the effective source span, then adds the source origin. It copies the entire pixel,
+including alpha. No averaging or antialiasing is performed.</p>
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a> instead takes a region in a <em>virtual destination</em>. The full source is imagined at
+<code class="docutils literal notranslate"><span class="pre">destWidth</span></code> by <code class="docutils literal notranslate"><span class="pre">destHeight</span></code>, while only the requested region is allocated. Its origin and each output position map
+back through that virtual scale. Positions beyond either edge clamp to the first or last source pixel; they do not
+create transparent padding. This avoids allocating a potentially much larger scaled image merely to display a crop.</p>
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResampleColorImage" title="Rbc_ResampleColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage()</span></code></a> filters the complete source to a new size. Source region extraction, when needed,
+happens before this call. It allocates an intermediate image of destination width by source height, filters
+horizontally, then filters vertically into the final image and releases the intermediate. All three functions leave the
+borrowed source intact and return independent storage released with <a class="reference internal" href="image-tile-reference.html#c.Rbc_FreeColorImage" title="Rbc_FreeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeColorImage()</span></code></a>.</p>
 </section>
 <section id="filters-and-sampling-weights">
 <h2>Filters and sampling weights<a class="headerlink" href="#filters-and-sampling-weights" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="resampling-reference.html#c.Rbc_GetResampleFilterFromObj" title="Rbc_GetResampleFilterFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetResampleFilterFromObj()</span></code></a> resolves names and unambiguous abbreviations
-against the static filter table. Returned records are borrowed and must not
-be modified or freed. <code class="docutils literal notranslate"><span class="pre">none</span></code> resolves successfully to NULL; it directs
-command-level policy rather than representing an identity filter that may be
-passed to the filtering kernel.</p>
-<p>The table includes box, triangle, bell, B-spline, Catmull-Rom, Mitchell,
-Lanczos, sinc, Gaussian and other historical filters with individual support
-radii. Horizontal and vertical passes can use different non-NULL filters.</p>
-<p><a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> builds one contribution record per destination coordinate,
-reused across all rows or columns in that pass. Downsampling broadens the
-support radius by the inverse scale; upsampling uses native filter support.
-Source support bounds are clipped to the image. Contributions are normalized
-by their sum (with a zero-sum fallback factor of one), then converted to
-fixed-point weights with 14 fractional bits.</p>
-<p>The loops accumulate red, green, blue and alpha independently in 64-bit
-integers. Each pass rounds and clamps its output to byte range. The intermediate
-image therefore introduces quantization before the second pass; this is not
-a single floating-point two-dimensional convolution. Signed filter lobes can
-produce overshoot that is clipped at this boundary.</p>
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_GetResampleFilterFromObj" title="Rbc_GetResampleFilterFromObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetResampleFilterFromObj()</span></code></a> resolves names and unambiguous abbreviations against the static filter
+table. Returned records are borrowed and must not be modified or freed. <code class="docutils literal notranslate"><span class="pre">none</span></code> resolves successfully to NULL; it
+directs command-level policy rather than representing an identity filter that may be passed to the filtering kernel.</p>
+<p>The table includes box, triangle, bell, B-spline, Catmull-Rom, Mitchell, Lanczos, sinc, Gaussian and other historical
+filters with individual support radii. Horizontal and vertical passes can use different non-NULL filters.</p>
+<p><a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> builds one contribution record per destination coordinate, reused across all
+rows or columns in that pass. Downsampling broadens the support radius by the inverse scale; upsampling uses native
+filter support. Source support bounds are clipped to the image. Contributions are normalized by their sum (with a
+zero-sum fallback factor of one), then converted to fixed-point weights with 14 fractional bits.</p>
+<p>The loops accumulate red, green, blue and alpha independently in 64-bit integers. Each pass rounds and clamps its output
+to byte range. The intermediate image therefore introduces quantization before the second pass; this is not a single
+floating-point two-dimensional convolution. Signed filter lobes can produce overshoot that is clipped at this boundary.</p>
 </section>
 <section id="kernel-table-and-support">
 <h2>Kernel table and support<a class="headerlink" href="#kernel-table-and-support" title="Link to this heading"></a></h2>
-<p>Support is a table policy, not always an intrinsic cutoff in the function.
-All values below are source-pixel distances before downsampling broadens them.
-The aliases are distinct table entries even when they share a procedure.</p>
+<p>Support is a table policy, not always an intrinsic cutoff in the function. All values below are source-pixel distances
+before downsampling broadens them. The aliases are distinct table entries even when they share a procedure.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 18.0%" />
@@ -1344,104 +1330,84 @@ The aliases are distinct table entries even when they share a procedure.</p>
 </tr>
 </tbody>
 </table>
-<p>None of these kernel functions reads image storage or normalizes its output.
-The caller samples the support and normalizes the resulting contribution
-record. <code class="docutils literal notranslate"><span class="pre">rbcBoxFilterPtr</span></code> borrows the box table entry; neither that pointer
-nor a lookup result transfers ownership of the static record.</p>
+<p>None of these kernel functions reads image storage or normalizes its output. The caller samples the support and
+normalizes the resulting contribution record. <code class="docutils literal notranslate"><span class="pre">rbcBoxFilterPtr</span></code> borrows the box table entry; neither that pointer nor
+a lookup result transfers ownership of the static record.</p>
 </section>
 <section id="contribution-layout-and-rounding">
 <h2>Contribution layout and rounding<a class="headerlink" href="#contribution-layout-and-rounding" title="Link to this heading"></a></h2>
 <p>Each Sample stores a source start index, count and variable-length ResampleWeight
-array. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> returns the byte stride, which must be used to advance
-between records; ordinary Sample pointer arithmetic would be incorrect.
-<a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetSampleRecordSize" title="rbcImageResampling.GetSampleRecordSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetSampleRecordSize()</span></code></a> accounts for the first inline weight and checks extra
-storage before multiplication. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetFilterSize" title="rbcImageResampling.GetFilterSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetFilterSize()</span></code></a> caps capacity by source length
-before narrowing to int, and <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetFilterBounds" title="rbcImageResampling.GetFilterBounds"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetFilterBounds()</span></code></a> clips each inclusive interval
-before converting its endpoints.</p>
-<p>For scale = destination/source and destination coordinate x, center = x/scale.
-The kernel argument is i + 0.5 - center for enlargement, and that expression
-times scale for reduction. Bounds use center +/- radius + 0.5, followed by
-clipping and integer truncation. This historical phase convention is not a
-promise that filtering at unchanged dimensions copies source pixels exactly.
-Clipped edge contributions are normalized over retained source samples;
-there is no mirrored or wrapped padding.</p>
-<p>Weights initially occupy the float member of a union and are summed in double.
-After normalization, each is replaced by its integer representation using
-<code class="docutils literal notranslate"><span class="pre">(int)(weight</span> <span class="pre">*</span> <span class="pre">16384</span> <span class="pre">+</span> <span class="pre">0.5)</span></code>. The same +0.5 applies to negative weights, so
-conversion is not symmetric rounding about zero. Quantized weights are not
-adjusted again to make their integer sum exactly 16384. A zero floating sum
-uses a normalization factor of one rather than selecting a fallback pixel.</p>
-<p>The horizontal pass requires source and destination heights to match; the
-vertical pass requires widths to match. They do not validate these internal
-shape invariants or support aliased storage. <a class="reference internal" href="resampling-reference.html#c.Rbc_ResampleColorImage" title="Rbc_ResampleColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage()</span></code></a> constructs
-the intermediate and final images to satisfy them. Custom C filters must
-return finite weights whose normalized fixed-point values are representable;
-the kernel does not validate arbitrary callback results. Changing phase,
+array. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.ComputeWeights" title="rbcImageResampling.ComputeWeights"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.ComputeWeights()</span></code></a> returns the byte stride, which must be used to advance between
+records; ordinary Sample pointer arithmetic would be incorrect. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetSampleRecordSize" title="rbcImageResampling.GetSampleRecordSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetSampleRecordSize()</span></code></a>
+accounts for the first inline weight and checks extra storage before
+multiplication. <a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetFilterSize" title="rbcImageResampling.GetFilterSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetFilterSize()</span></code></a> caps capacity by source length before narrowing to int, and
+<a class="reference internal" href="resampling-reference.html#c.rbcImageResampling.GetFilterBounds" title="rbcImageResampling.GetFilterBounds"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageResampling.GetFilterBounds()</span></code></a> clips each inclusive interval before converting its endpoints.</p>
+<p>For scale = destination/source and destination coordinate x, center = x/scale. The kernel argument is i + 0.5 - center
+for enlargement, and that expression times scale for reduction. Bounds use center +/- radius + 0.5, followed by clipping
+and integer truncation. This historical phase convention is not a promise that filtering at unchanged dimensions copies
+source pixels exactly. Clipped edge contributions are normalized over retained source samples; there is no mirrored or
+wrapped padding.</p>
+<p>Weights initially occupy the float member of a union and are summed in double. After normalization, each is replaced by
+its integer representation using <code class="docutils literal notranslate"><span class="pre">(int)(weight</span> <span class="pre">*</span> <span class="pre">16384</span> <span class="pre">+</span> <span class="pre">0.5)</span></code>. The same +0.5 applies to negative weights, so
+conversion is not symmetric rounding about zero. Quantized weights are not adjusted again to make their integer sum
+exactly 16384. A zero floating sum uses a normalization factor of one rather than selecting a fallback pixel.</p>
+<p>The horizontal pass requires source and destination heights to match; the vertical pass requires widths to match. They
+do not validate these internal shape invariants or support aliased storage. <a class="reference internal" href="resampling-reference.html#c.Rbc_ResampleColorImage" title="Rbc_ResampleColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResampleColorImage()</span></code></a> constructs
+the intermediate and final images to satisfy them. Custom C filters must return finite weights whose normalized
+fixed-point values are representable; the kernel does not validate arbitrary callback results. Changing phase,
 normalization or rounding requires explicit compatibility tests.</p>
 </section>
 <section id="alpha-and-color-space">
 <h2>Alpha and color space<a class="headerlink" href="#alpha-and-color-space" title="Link to this heading"></a></h2>
-<p>Filtering operates on straight RGBA bytes. It does not premultiply RGB by alpha
-before averaging, and it does not linearize color through gamma conversion.
-RGB values in transparent pixels can consequently affect edge colors. Do not
-confuse this CPU resampler with Cairo’s separate premultiplied upload path;
-see <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a>. Changing either convention would be a visible
-behavior change requiring its own tests.</p>
+<p>Filtering operates on straight RGBA bytes. It does not premultiply RGB by alpha before averaging, and it does not
+linearize color through gamma conversion. RGB values in transparent pixels can consequently affect edge colors. Do not
+confuse this CPU resampler with Cairo’s separate premultiplied upload path; see <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a>. Changing either
+convention would be a visible behavior change requiring its own tests.</p>
 </section>
 <section id="dimensions-and-failure-policy">
 <h2>Dimensions and failure policy<a class="headerlink" href="#dimensions-and-failure-policy" title="Link to this heading"></a></h2>
-<p>The C helpers require valid image records and valid filter records. Negative
-output dimensions panic rather than return a Tcl error; zero output dimensions
-are supported. The virtual-region helper permits an empty result before
-checking the virtual dimensions, but requires positive virtual dimensions for
-a nonempty region. Empty source regions leave zero-initialized pixels.</p>
-<p>Allocation and contribution-record size checks prevent representational
-overflow, but these functions are not recoverable, command-facing validation
-interfaces. Filter support must be finite and nonnegative, with a valid
-function pointer. Tcl commands must validate user input before entering them.</p>
+<p>The C helpers require valid image records and valid filter records. Negative output dimensions panic rather than return
+a Tcl error; zero output dimensions are supported. The virtual-region helper permits an empty result before checking the
+virtual dimensions, but requires positive virtual dimensions for a nonempty region. Empty source regions leave
+zero-initialized pixels.</p>
+<p>Allocation and contribution-record size checks prevent representational overflow, but these functions are not
+recoverable, command-facing validation interfaces. Filter support must be finite and nonnegative, with a valid function
+pointer. Tcl commands must validate user input before entering them.</p>
 </section>
 <section id="photo-wrappers-and-command-policy">
 <h2>Photo wrappers and command policy<a class="headerlink" href="#photo-wrappers-and-command-policy" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizePhoto" title="Rbc_ResizePhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizePhoto()</span></code></a> and <a class="reference internal" href="resampling-reference.html#c.Rbc_ResamplePhoto" title="Rbc_ResamplePhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResamplePhoto()</span></code></a> use the destination photo’s current
-dimensions as the target size. Both copy the source region first, so identical
-source and destination handles are permitted. Temporary RBC images are released
-after the final write. The underlying void photo-write wrapper does not expose
-Tk write failure as a C return status.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">winop</span></code> command in <code class="docutils literal notranslate"><span class="pre">rbcWinop.c</span></code> adds policy not present in the kernels:
-its resample operation rejects source dimensions at most one, handles unset or
-matching destination sizes through a direct copy, and selects nearest-neighbour
-resizing for <code class="docutils literal notranslate"><span class="pre">none</span></code>. Do not infer those restrictions from the lower-level C
-interfaces, which can process single-pixel dimensions.</p>
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizePhoto" title="Rbc_ResizePhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizePhoto()</span></code></a> and <a class="reference internal" href="resampling-reference.html#c.Rbc_ResamplePhoto" title="Rbc_ResamplePhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResamplePhoto()</span></code></a> use the destination photo’s current dimensions as the target
+size. Both copy the source region first, so identical source and destination handles are permitted. Temporary RBC images
+are released after the final write. The underlying void photo-write wrapper does not expose Tk write failure as a C
+return status.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">winop</span></code> command in <code class="docutils literal notranslate"><span class="pre">rbcWinop.c</span></code> adds policy not present in the kernels: its resample operation rejects source
+dimensions at most one, handles unset or matching destination sizes through a direct copy, and selects nearest-neighbour
+resizing for <code class="docutils literal notranslate"><span class="pre">none</span></code>. Do not infer those restrictions from the lower-level C interfaces, which can process single-pixel
+dimensions.</p>
 </section>
 <section id="nearest-neighbour-implementation">
 <h2>Nearest-neighbour implementation<a class="headerlink" href="#nearest-neighbour-implementation" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorImage" title="Rbc_ResizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a> allocates its requested result before checking whether the
-effective source region is empty. A nonempty resize precomputes separate int
-maps for output columns and rows, copies full Pix32 values, then frees both
-maps. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapNearestCoordinate" title="rbcImageStorage.MapNearestCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapNearestCoordinate()</span></code></a> truncates position*span/destinationSpan and adds the
-clamped source origin, with a final upper-edge cap. Source-region clipping uses
-subtraction from a clamped origin rather than potentially overflowing endpoint
-addition.</p>
-<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a> allocates only the requested region. Its maps add the
-region origin and output position in double before virtual scaling, avoiding
-signed-int coordinate addition. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapVirtualCoordinate" title="rbcImageStorage.MapVirtualCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapVirtualCoordinate()</span></code></a> clamps values beyond the
-virtual extent to source edges before integer conversion. Empty output returns
-before virtual-size validation; nonempty output requires positive virtual sizes.
-An empty source leaves the allocated result transparent and zeroed.</p>
-<p>The photo resize wrapper takes the destination’s existing dimensions, copies
-the source region, resizes that owned snapshot, and only then writes the photo.
-It frees both temporaries even when source and destination handles are equal.
-This snapshot ordering is what permits same-photo operation; the raw mapping
-loops themselves write into independently allocated images.</p>
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorImage" title="Rbc_ResizeColorImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorImage()</span></code></a> allocates its requested result before checking whether the effective source region is
+empty. A nonempty resize precomputes separate int maps for output columns and rows, copies full Pix32 values, then frees
+both maps. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapNearestCoordinate" title="rbcImageStorage.MapNearestCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapNearestCoordinate()</span></code></a> truncates position*span/destinationSpan and adds the clamped
+source origin, with a final upper-edge cap. Source-region clipping uses subtraction from a clamped origin rather than
+potentially overflowing endpoint addition.</p>
+<p><a class="reference internal" href="resampling-reference.html#c.Rbc_ResizeColorSubimage" title="Rbc_ResizeColorSubimage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ResizeColorSubimage()</span></code></a> allocates only the requested region. Its maps add the region origin and output
+position in double before virtual scaling, avoiding signed-int coordinate
+addition. <a class="reference internal" href="image-tile-reference.html#c.rbcImageStorage.MapVirtualCoordinate" title="rbcImageStorage.MapVirtualCoordinate"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcImageStorage.MapVirtualCoordinate()</span></code></a> clamps values beyond the virtual extent to source edges before
+integer conversion. Empty output returns before virtual-size validation; nonempty output requires positive virtual
+sizes. An empty source leaves the allocated result transparent and zeroed.</p>
+<p>The photo resize wrapper takes the destination’s existing dimensions, copies the source region, resizes that owned
+snapshot, and only then writes the photo. It frees both temporaries even when source and destination handles are equal.
+This snapshot ordering is what permits same-photo operation; the raw mapping loops themselves write into independently
+allocated images.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Check rectangular and single-pixel images, zero-sized results, source-region
-origins outside bounds, negative spans, and virtual crops beyond image edges.
-For filtered output, exercise reduction and enlargement with different filters
-on each axis, constant colors, transparent colored edges and high-contrast
-patterns. Same-photo source/destination calls need separate coverage from
-independent images. Verify ownership and dimensions as well as appearance.</p>
+<p>Check rectangular and single-pixel images, zero-sized results, source-region origins outside bounds, negative spans, and
+virtual crops beyond image edges. For filtered output, exercise reduction and enlargement with different filters on
+each axis, constant colors, transparent colored edges and high-contrast patterns. Same-photo source/destination calls
+need separate coverage from independent images. Verify ownership and dimensions as well as appearance.</p>
 </section>
 </section>
 

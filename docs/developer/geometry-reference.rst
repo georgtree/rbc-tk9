@@ -17,9 +17,8 @@ These declarations remain in ``rbcInt.h``. See :doc:`geometry` for conventions.
 
 .. doxygenfunction:: Rbc_SimplifyLine
 
-Parameter directions follow :doc:`calling-conventions`. Inputs remain borrowed;
-output buffers belong to the caller. Counts, distances and booleans have distinct
-completion conventions, summarized in :doc:`geometry`.
+Parameter directions follow :doc:`calling-conventions`. Inputs remain borrowed; output buffers belong to the
+caller. Counts, distances and booleans have distinct completion conventions, summarized in :doc:`geometry`.
 
 Implementation helpers
 ----------------------
@@ -30,8 +29,8 @@ Implementation helpers
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: Dim2D
    :members:

@@ -580,6 +580,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1287,15 +1288,13 @@
              
   <section id="expression-engine-internal-c-reference">
 <h1>Expression engine internal C reference<a class="headerlink" href="#expression-engine-internal-c-reference" title="Link to this heading"></a></h1>
-<p>These helpers are private to <code class="docutils literal notranslate"><span class="pre">rbcVecMath.c</span></code>. They operate on evaluator-owned
-temporaries and must not be used as named-vector mutation APIs. See
-<a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> for parser state, adapter families and current
-limitations; <a class="reference internal" href="expression-reference.html"><span class="doc">Vector expression C reference</span></a> covers the shared entry points.</p>
-<p>Parameter directions and Tcl ownership use <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>.
-Parser cursors point into caller-owned expression storage; returned prefix
-objects and evaluator temporaries have distinct release requirements. A helper
-may modify temporary state before returning an error. See the cursor and
-failure-state descriptions in <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a>.</p>
+<p>These helpers are private to <code class="docutils literal notranslate"><span class="pre">rbcVecMath.c</span></code>. They operate on evaluator-owned temporaries and must not be used as
+named-vector mutation APIs. See <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> for parser state, adapter families and current limitations;
+<a class="reference internal" href="expression-reference.html"><span class="doc">Vector expression C reference</span></a> covers the shared entry points.</p>
+<p>Parameter directions and Tcl ownership use <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Parser cursors point into caller-owned
+expression storage; returned prefix objects and evaluator temporaries have distinct release requirements. A helper may
+modify temporary state before returning an error. See the cursor and failure-state descriptions in
+<a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a>.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__expression__engine"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Expression</span> <span class="pre">engine</span> <span class="pre">internals</span></span></dt>
@@ -2177,8 +2176,8 @@ Real input delegates to ComponentFunc. Complex input allocates real capacity and
 
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.ComplexComponentFunction">
 <span class="target" id="struct_complex_component_function"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ComplexComponentFunction</span></span></span><a class="headerlink" href="#c.ComplexComponentFunction" title="Link to this definition"></a><br /></dt>

@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,27 +1215,21 @@
              
   <section id="line-decimation-and-source-identity">
 <h1>Line decimation and source identity<a class="headerlink" href="#line-decimation-and-source-identity" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code> reduces dense screen traces while retaining original source
-indices. It does not rewrite attached vectors. Pixel-density decimation,
-geometric reduction and symbol thinning are separate operations; changing one
-must not silently change the contracts of the others.
-See <a class="reference internal" href="decimation-reference.html"><span class="doc">Line decimation C reference</span></a> for selected static helper contracts.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code> reduces dense screen traces while retaining original source indices. It does not rewrite attached
+vectors. Pixel-density decimation, geometric reduction and symbol thinning are separate operations; changing one must
+not silently change the contracts of the others. See <a class="reference internal" href="decimation-reference.html"><span class="doc">Line decimation C reference</span></a> for selected static helper contracts.</p>
 <section id="eligibility-and-density">
 <h2>Eligibility and density<a class="headerlink" href="#eligibility-and-density" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="decimation-reference.html#c.CanPixelDecimateLine" title="CanPixelDecimateLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">CanPixelDecimateLine()</span></code></a> enables the optimization only for automatic decimation
-on ordinary XY line or strip elements, with unsmoothed geometry, fewer than two
-palette pens and no tile/stipple area fill. Polar elements and document exports
-retain the full mapping path. These checks protect geometry and style semantics.</p>
-<p><a class="reference internal" href="decimation-reference.html#c.LineNeedsPixelDecimation" title="LineNeedsPixelDecimation"><code class="xref c c-func docutils literal notranslate"><span class="pre">LineNeedsPixelDecimation()</span></code></a> separately tests the complete paired source count
-against the current plot span in the physical data-X direction. This is screen
-X normally and screen Y for inverted axes. Current thresholds are eight samples
-per pixel for native rendering and four for Cairo. Invalid or subpixel spans
-skip reduction. These constants are performance policy, not numerical accuracy
-parameters or public API guarantees.</p>
-<p>The count is deliberately the full source count rather than only visible
-samples: the fast path avoids mapping the full array. Track mapping supplies
-the owning track’s axes and plot scope, so its extent and inverted orientation
-feed the same decisions. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a>.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.CanPixelDecimateLine" title="CanPixelDecimateLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">CanPixelDecimateLine()</span></code></a> enables the optimization only for automatic decimation on ordinary XY line or strip
+elements, with unsmoothed geometry, fewer than two palette pens and no tile/stipple area fill. Polar elements and
+document exports retain the full mapping path. These checks protect geometry and style semantics.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.LineNeedsPixelDecimation" title="LineNeedsPixelDecimation"><code class="xref c c-func docutils literal notranslate"><span class="pre">LineNeedsPixelDecimation()</span></code></a> separately tests the complete paired source count against the current plot span in
+the physical data-X direction. This is screen X normally and screen Y for inverted axes. Current thresholds are eight
+samples per pixel for native rendering and four for Cairo. Invalid or subpixel spans skip reduction. These constants are
+performance policy, not numerical accuracy parameters or public API guarantees.</p>
+<p>The count is deliberately the full source count rather than only visible samples: the fast path avoids mapping the full
+array. Track mapping supplies the owning track’s axes and plot scope, so its extent and inverted orientation feed the
+same decisions. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> and <a class="reference internal" href="scrolling.html"><span class="doc">Scrolling and viewport policy</span></a>.</p>
 </section>
 <section id="mapping-paths-and-fallback">
 <h2>Mapping paths and fallback<a class="headerlink" href="#mapping-paths-and-fallback" title="Link to this heading"></a></h2>
@@ -1250,158 +1245,125 @@ feed the same decisions. See <a class="reference internal" href="mapping.html"><
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Cached pre-map reduction</p></td>
-<td><p>Locates visible source ranges using monotonic X and block summaries;
-maps selected representatives into new point/index arrays.</p></td>
+<td><p>Locates visible source ranges using monotonic X and block summaries; maps selected representatives into new
+point/index arrays.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Scanning pre-map reduction</p></td>
-<td><p>Scans source data when the cached path is unsupported, retaining run
-boundaries and selecting representatives before full mapping.</p></td>
+<td><p>Scans source data when the cached path is unsupported, retaining run boundaries and selecting representatives
+before full mapping.</p></td>
 </tr>
 <tr class="row-even"><td><p>Full mapping and pixel reduction</p></td>
-<td><p>Maps source points first, then reduces eligible monotonic mapped runs.
-Failure or no benefit retains the existing mapped arrays.</p></td>
+<td><p>Maps source points first, then reduces eligible monotonic mapped runs. Failure or no benefit retains the
+existing mapped arrays.</p></td>
 </tr>
 </tbody>
 </table>
-<p>Pre-map reduction is more restrictive than general pixel reduction. Normal symbols,
-value labels and error-bar arrays require full point/style mapping. An all-active
-selection with symbols or labels also prevents the pre-map path; explicit active indices
-can be mapped separately. The single-pen fast path avoids allocating a source-sized
-style map, but still attaches strip segments to the pen through
-<a class="reference internal" href="element-reference.html#c.rbcGrLineMapping.MergePens" title="rbcGrLineMapping.MergePens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineMapping.MergePens()</span></code></a>.</p>
-<p>Each pixel bucket retains first, minimum, maximum and last representatives in
-original source order, removing duplicate representatives. Inverted axes change
-the bucket direction, not source ordering. Run boundaries must survive reduction
-so invalid samples or separate traces are not bridged. Arbitrary nonmonotonic
-paths cannot be aggregated as if they were a monotonic waveform: returning to
-the same column can represent different geometry.</p>
-<p>The mapping record owns its temporary arrays, including source indices and any
-break-before flags. Trace/strip mapping consumes that geometry, and the temporary
-arrays are then freed. Persistent caches own summaries but borrow source arrays;
-they do not keep a vector’s old allocation alive.</p>
+<p>Pre-map reduction is more restrictive than general pixel reduction. Normal symbols, value labels and error-bar arrays
+require full point/style mapping. An all-active selection with symbols or labels also prevents the pre-map path;
+explicit active indices can be mapped separately. The single-pen fast path avoids allocating a source-sized style map,
+but still attaches strip segments to the pen through <a class="reference internal" href="element-reference.html#c.rbcGrLineMapping.MergePens" title="rbcGrLineMapping.MergePens"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineMapping.MergePens()</span></code></a>.</p>
+<p>Each pixel bucket retains first, minimum, maximum and last representatives in original source order, removing duplicate
+representatives. Inverted axes change the bucket direction, not source ordering. Run boundaries must survive reduction
+so invalid samples or separate traces are not bridged. Arbitrary nonmonotonic paths cannot be aggregated as if they were
+a monotonic waveform: returning to the same column can represent different geometry.</p>
+<p>The mapping record owns its temporary arrays, including source indices and any break-before flags. Trace/strip mapping
+consumes that geometry, and the temporary arrays are then freed. Persistent caches own summaries but borrow source
+arrays; they do not keep a vector’s old allocation alive.</p>
 </section>
 <section id="persistent-cache-maintenance">
 <h2>Persistent cache maintenance<a class="headerlink" href="#persistent-cache-maintenance" title="Link to this heading"></a></h2>
-<p>The cache summarizes blocks of 64 source samples. For a supported continuous
-monotonic-X run, binary searches locate source intervals for physical pixel
-buckets. Whole-block extrema and scans of boundary fragments find representatives
+<p>The cache summarizes blocks of 64 source samples. For a supported continuous monotonic-X run, binary searches locate
+source intervals for physical pixel buckets. Whole-block extrema and scans of boundary fragments find representatives
 without rescanning every source value on each axis remap.</p>
-<p>Exact changed Y ranges rebuild only affected blocks. A change wholly beyond
-the paired X/Y point count cannot affect the plotted trace. Unknown/full Y
-changes invalidate the cache. X changes invalidate ordering rather than trying
-to repair it incrementally. Pen or state changes can retain the data-domain
-cache even when geometry must be remapped.</p>
-<p>A tail append may retain the cached prefix even after vector storage moves,
-but only when change metadata proves that prefix unchanged. Shrinkage,
-replacement, edits within the prefix or unsupported new ordering cause
-invalidation. Cache refresh failure is a request to discard/rebuild the cache,
-not a Tcl command error. Non-finite values, unsupported ordering or logarithmic
-domain discontinuities fall back to scanning/full mapping.</p>
-<p>Changed-range notifications are therefore part of correctness, not merely a
-speed hint. C producers must report changes after modifying vector storage;
-otherwise consumers cannot know that cached summaries are stale.
-See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> and <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>.</p>
+<p>Exact changed Y ranges rebuild only affected blocks. A change wholly beyond the paired X/Y point count cannot affect the
+plotted trace. Unknown/full Y changes invalidate the cache. X changes invalidate ordering rather than trying to repair
+it incrementally. Pen or state changes can retain the data-domain cache even when geometry must be remapped.</p>
+<p>A tail append may retain the cached prefix even after vector storage moves, but only when change metadata proves that
+prefix unchanged. Shrinkage, replacement, edits within the prefix or unsupported new ordering cause invalidation. Cache
+refresh failure is a request to discard/rebuild the cache, not a Tcl command error. Non-finite values, unsupported
+ordering or logarithmic domain discontinuities fall back to scanning/full mapping.</p>
+<p>Changed-range notifications are therefore part of correctness, not merely a speed hint. C producers must report changes
+after modifying vector storage; otherwise consumers cannot know that cached summaries are stale. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> and
+<a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a>.</p>
 </section>
 <section id="picking-symbols-and-exports">
 <h2>Picking, symbols and exports<a class="headerlink" href="#picking-symbols-and-exports" title="Link to this heading"></a></h2>
-<p>Closest-point searching uses the full mapped source-point array when available,
-or maps original samples on demand when the pre-map path omitted that array.
-A point omitted from the display trace therefore remains selectable with its
-original index and value. A valid monotonic cache can narrow candidates only
-when mapped data X contributes to the distance metric: both-direction queries,
-screen-X queries in normal graphs, and screen-Y queries in inverted graphs.
-The other directional query must retain the full source range. Candidate samples are mapped
-and checked against plot extents before distance comparison. This does not make
-interpolated segment picking identical to nearest-sample picking.</p>
-<p>Symbols and error geometry have their own source-based mapping requirements.
-Geometric reduction through <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> is applied separately after pixel
-reduction; reduced-symbol selection is another explicit policy. See
-<a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a> for smoothing, which disables automatic pixel decimation at the
-semantic eligibility check.</p>
-<p>Document output sets <code class="docutils literal notranslate"><span class="pre">GRAPH_EXPORT</span></code> and remaps without pixel decimation.
-Thus SVG, PDF and PostScript do not inherit screen-density loss from the display
-cache. Other explicitly configured processing, such as geometric reduction,
-remains separate. Export restoration remaps the screen afterward; see
-<a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>.</p>
+<p>Closest-point searching uses the full mapped source-point array when available, or maps original samples on demand when
+the pre-map path omitted that array. A point omitted from the display trace therefore remains selectable with its
+original index and value. A valid monotonic cache can narrow candidates only when mapped data X contributes to the
+distance metric: both-direction queries, screen-X queries in normal graphs, and screen-Y queries in inverted graphs.
+The other directional query must retain the full source range. Candidate samples are mapped and checked against plot
+extents before distance comparison. This does not make interpolated segment picking identical to nearest-sample picking.</p>
+<p>Symbols and error geometry have their own source-based mapping requirements. Geometric reduction through <code class="docutils literal notranslate"><span class="pre">-reduce</span></code> is
+applied separately after pixel reduction; reduced-symbol selection is another explicit policy. See <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a> for
+smoothing, which disables automatic pixel decimation at the semantic eligibility check.</p>
+<p>Document output sets <code class="docutils literal notranslate"><span class="pre">GRAPH_EXPORT</span></code> and remaps without pixel decimation. Thus SVG, PDF and PostScript do not inherit
+screen-density loss from the display cache. Other explicitly configured processing, such as geometric reduction, remains
+separate. Export restoration remaps the screen afterward; see <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>.</p>
 </section>
 <section id="cache-state-and-borrowed-storage">
 <h2>Cache state and borrowed storage<a class="headerlink" href="#cache-state-and-borrowed-storage" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.BuildLineDecimateCache" title="rbcGrLineCache.BuildLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.BuildLineDecimateCache()</span></code></a> first releases old summaries, then
-records source pointers, paired point count and built state. Built does not mean
-supported: empty input, allocation failure, nonfinite data or changes in source-X
-direction can leave a built but unsupported record. This prevents repeated construction
-attempts for the same observed source identity.
-<a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.InvalidateLineDecimateCache" title="rbcGrLineCache.InvalidateLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.InvalidateLineDecimateCache()</span></code></a> releases only owned blocks and
-clears the record; it never owns or prolongs the source arrays.</p>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.EnsureLineDecimateCache" title="rbcGrLineCache.EnsureLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.EnsureLineDecimateCache()</span></code></a> detects pointer/count changes as a
-secondary safeguard. In-place changes with unchanged identity still require
-notifications and refresh. Its logarithmic-domain checks are separate from support:
-nonpositive data can remain summarized for linear axes while a log axis temporarily
-rejects the cache.</p>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.RebuildLineDecimateYBlock" title="rbcGrLineCache.RebuildLineDecimateYBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.RebuildLineDecimateYBlock()</span></code></a> scans one block before changing its
-summary, preserving the earliest equal minimum/maximum. Global nonpositive-Y accounting
-is adjusted by removing the old block contribution and adding the new one. A refresh
-over several blocks is not an all-block transaction: failure requests invalidation,
-including when preceding blocks were already rebuilt.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.BuildLineDecimateCache" title="rbcGrLineCache.BuildLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.BuildLineDecimateCache()</span></code></a> first releases old summaries, then records source pointers, paired point
+count and built state. Built does not mean supported: empty input, allocation failure, nonfinite data or changes in
+source-X direction can leave a built but unsupported record. This prevents repeated construction attempts for the same
+observed source identity. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.InvalidateLineDecimateCache" title="rbcGrLineCache.InvalidateLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.InvalidateLineDecimateCache()</span></code></a> releases only owned blocks and clears
+the record; it never owns or prolongs the source arrays.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.EnsureLineDecimateCache" title="rbcGrLineCache.EnsureLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.EnsureLineDecimateCache()</span></code></a> detects pointer/count changes as a secondary safeguard. In-place
+changes with unchanged identity still require notifications and refresh. Its logarithmic-domain checks are separate from
+support: nonpositive data can remain summarized for linear axes while a log axis temporarily rejects the cache.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.RebuildLineDecimateYBlock" title="rbcGrLineCache.RebuildLineDecimateYBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.RebuildLineDecimateYBlock()</span></code></a> scans one block before changing its summary, preserving the earliest
+equal minimum/maximum. Global nonpositive-Y accounting is adjusted by removing the old block contribution and adding the
+new one. A refresh over several blocks is not an all-block transaction: failure requests invalidation, including when
+preceding blocks were already rebuilt.</p>
 <section id="growth-and-prefix-proof">
 <h3>Growth and prefix proof<a class="headerlink" href="#growth-and-prefix-proof" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.CanRetainLineDecimatePrefix" title="rbcGrLineCache.CanRetainLineDecimatePrefix"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.CanRetainLineDecimatePrefix()</span></code></a> trusts exact change metadata rather
-than comparing values. Without a notification it requires pointer equality; an exact
-range wholly beyond the cached prefix permits relocated storage. Full or unknown changes
-reject retention. The vector producer must report all writes correctly.</p>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.GrowLineDecimateCache" title="rbcGrLineCache.GrowLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.GrowLineDecimateCache()</span></code></a> validates newly paired samples and
-ordering before extending summaries. It rebuilds a partial old final block because
-appended samples can change its extrema. If only the longer input grew, paired count may
-be unchanged; rebinding source pointers still matters for a later append to the shorter
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.CanRetainLineDecimatePrefix" title="rbcGrLineCache.CanRetainLineDecimatePrefix"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.CanRetainLineDecimatePrefix()</span></code></a> trusts exact change metadata rather than comparing values. Without
+a notification it requires pointer equality; an exact range wholly beyond the cached prefix permits relocated
+storage. Full or unknown changes reject retention. The vector producer must report all writes correctly.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.GrowLineDecimateCache" title="rbcGrLineCache.GrowLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.GrowLineDecimateCache()</span></code></a> validates newly paired samples and ordering before extending
+summaries. It rebuilds a partial old final block because appended samples can change its extrema. If only the longer
+input grew, paired count may be unchanged; rebinding source pointers still matters for a later append to the shorter
 input. Failure asks the caller to invalidate, and does not itself consume change flags.</p>
 </section>
 <section id="bucket-and-range-contracts">
 <h3>Bucket and range contracts<a class="headerlink" href="#bucket-and-range-contracts" title="Link to this heading"></a></h3>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.GetCachedRangeExtrema" title="rbcGrLineCache.GetCachedRangeExtrema"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.GetCachedRangeExtrema()</span></code></a> takes an inclusive, nonempty source range
-and uses aligned whole blocks plus boundary scans.
-<a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.GetCachedSourceRangeForAbscissa" title="rbcGrLineCache.GetCachedSourceRangeForAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.GetCachedSourceRangeForAbscissa()</span></code></a> instead returns a half-open
-source-index interval for inclusive screen-coordinate bounds. These range conventions
-are deliberately different. Equal mapped endpoint coordinates produce either the whole
-source range or an empty range.</p>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.GetCachedPixelBucket" title="rbcGrLineCache.GetCachedPixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.GetCachedPixelBucket()</span></code></a> truncates visible coordinates toward zero
-and uses one sentinel bucket beyond each viewport bound.
-<a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.FindNextCachedPixelBucket" title="rbcGrLineCache.FindNextCachedPixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.FindNextCachedPixelBucket()</span></code></a> requires monotonic bucket ordering
-and a nonzero direction. Its result is usable only when its explicit success flag is
-true; a failed mapping can return an intermediate search bound.</p>
-<p>Representative append helpers sort first/minimum/maximum/last source indices and remove
-duplicates within that bucket. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.AppendPixelBucket" title="rbcGrLineCache.AppendPixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.AppendPixelBucket()</span></code></a> relies on
-caller capacity. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.AppendSourcePixelBucket" title="rbcGrLineCache.AppendSourcePixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.AppendSourcePixelBucket()</span></code></a> checks each write but
-can fail after partial appends, so its FALSE return is not an unchanged-output
-guarantee. Break flags mark the first representative of a later run; duplicates across
-distinct buckets are not removed by these helpers.</p>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.CanPreMapDecimateLine" title="rbcGrLineCache.CanPreMapDecimateLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.CanPreMapDecimateLine()</span></code></a> is only an eligibility check. It excludes
-normal symbols, value labels and error data because they require full center/style
-mappings. Explicit active selections can be mapped independently, whereas whole-element
-active symbols or labels require retained centers. Density and cache validity remain
-separate decisions.
-Converted source representations
-——————————–</p>
-<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.EnsureLineDecimateCache" title="rbcGrLineCache.EnsureLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.EnsureLineDecimateCache()</span></code></a> accepts only Cartesian X/Y
-sources. Geometric reduction with <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code> can send polar or
-complex elements to <a class="reference internal" href="element-reference.html#c.rbcGrLinePicking.ClosestSourcePoint" title="rbcGrLinePicking.ClosestSourcePoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLinePicking.ClosestSourcePoint()</span></code></a> even though
-automatic pixel decimation is disabled for them. These inputs require the full
-source-adapter scan: a monotonic raw angle array does not establish monotonic
-Cartesian X, and retained ordinary X/Y arrays do not represent active complex
-samples. Their lengths can also be shorter than the complex point count.</p>
-<p>The cache gate runs before inspecting those arrays. Cartesian X/Y inputs retain
-the existing cache and metric-based pruning; converted inputs still recover
-original indices and coordinates, including samples omitted from reduced symbols.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.GetCachedRangeExtrema" title="rbcGrLineCache.GetCachedRangeExtrema"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.GetCachedRangeExtrema()</span></code></a> takes an inclusive, nonempty source range and uses aligned whole blocks
+plus boundary scans. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.GetCachedSourceRangeForAbscissa" title="rbcGrLineCache.GetCachedSourceRangeForAbscissa"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.GetCachedSourceRangeForAbscissa()</span></code></a> instead returns a half-open source-index
+interval for inclusive screen-coordinate bounds. These range conventions are deliberately different. Equal mapped
+endpoint coordinates produce either the whole source range or an empty range.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.GetCachedPixelBucket" title="rbcGrLineCache.GetCachedPixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.GetCachedPixelBucket()</span></code></a> truncates visible coordinates toward zero and uses one sentinel bucket
+beyond each viewport bound. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.FindNextCachedPixelBucket" title="rbcGrLineCache.FindNextCachedPixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.FindNextCachedPixelBucket()</span></code></a> requires monotonic bucket ordering and a
+nonzero direction. Its result is usable only when its explicit success flag is true; a failed mapping can return an
+intermediate search bound.</p>
+<p>Representative append helpers sort first/minimum/maximum/last source indices and remove duplicates within that
+bucket. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.AppendPixelBucket" title="rbcGrLineCache.AppendPixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.AppendPixelBucket()</span></code></a> relies on caller
+capacity. <a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.AppendSourcePixelBucket" title="rbcGrLineCache.AppendSourcePixelBucket"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.AppendSourcePixelBucket()</span></code></a> checks each write but can fail after partial appends, so its
+FALSE return is not an unchanged-output guarantee. Break flags mark the first representative of a later run; duplicates
+across distinct buckets are not removed by these helpers.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.CanPreMapDecimateLine" title="rbcGrLineCache.CanPreMapDecimateLine"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.CanPreMapDecimateLine()</span></code></a> is only an eligibility check. It excludes normal symbols, value labels
+and error data because they require full center/style mappings. Explicit active selections can be mapped independently,
+whereas whole-element active symbols or labels require retained centers. Density and cache validity remain separate
+decisions.</p>
 </section>
+</section>
+<section id="converted-source-representations">
+<h2>Converted source representations<a class="headerlink" href="#converted-source-representations" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="decimation-reference.html#c.rbcGrLineCache.EnsureLineDecimateCache" title="rbcGrLineCache.EnsureLineDecimateCache"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineCache.EnsureLineDecimateCache()</span></code></a> accepts only Cartesian X/Y sources. Geometric reduction with
+<code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">reduced</span></code> can send polar or complex elements to <a class="reference internal" href="element-reference.html#c.rbcGrLinePicking.ClosestSourcePoint" title="rbcGrLinePicking.ClosestSourcePoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLinePicking.ClosestSourcePoint()</span></code></a> even
+though automatic pixel decimation is disabled for them. These inputs require the full source-adapter scan: a monotonic
+raw angle array does not establish monotonic Cartesian X, and retained ordinary X/Y arrays do not represent active
+complex samples. Their lengths can also be shorter than the complex point count.</p>
+<p>The cache gate runs before inspecting those arrays. Cartesian X/Y inputs retain the existing cache and metric-based
+pruning; converted inputs still recover original indices and coordinates, including samples omitted from reduced
+symbols.</p>
 </section>
 <section id="pixel-bucket-output-ownership">
 <h2>Pixel-bucket output ownership<a class="headerlink" href="#pixel-bucket-output-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="decimation-reference.html#c.BuildPixelDecimatedScreenPoints" title="BuildPixelDecimatedScreenPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">BuildPixelDecimatedScreenPoints()</span></code></a> requires the caller to select an
-eligible real Cartesian element and its track viewport. It initializes an empty
-output and attempts to return representative mapped points, original indices
-and optional discontinuity flags. TRUE includes a successfully empty result;
-FALSE requests ordinary mapping after temporary allocations are released.
-Successful arrays transfer to the caller, which releases them with ckfree.
-Do not pass an output record still owning arrays.</p>
+<p><a class="reference internal" href="decimation-reference.html#c.BuildPixelDecimatedScreenPoints" title="BuildPixelDecimatedScreenPoints"><code class="xref c c-func docutils literal notranslate"><span class="pre">BuildPixelDecimatedScreenPoints()</span></code></a> requires the caller to select an eligible real Cartesian element and its track
+viewport. It initializes an empty output and attempts to return representative mapped points, original indices and
+optional discontinuity flags. TRUE includes a successfully empty result; FALSE requests ordinary mapping after temporary
+allocations are released. Successful arrays transfer to the caller, which releases them with ckfree. Do not pass an
+output record still owning arrays.</p>
 </section>
 </section>
 

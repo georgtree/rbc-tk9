@@ -1,9 +1,8 @@
 Marker C reference
 ==================
 
-These private entry points borrow the graph. Mapping and drawing assume the
-caller has prepared the appropriate layout and retained graph lifetime.
-See :doc:`markers` for class dispatch, special window behavior and cleanup.
+These private entry points borrow the graph. Mapping and drawing assume the caller has prepared the appropriate layout
+and retained graph lifetime.  See :doc:`markers` for class dispatch, special window behavior and cleanup.
 
 Mapping and output
 ------------------
@@ -24,8 +23,8 @@ Resource and record cleanup
 Internal class interface
 ------------------------
 
-The class callbacks are local to ``rbcGrMarker.c``. Their exact signatures and
-option-table fields are included directly:
+The class callbacks are local to ``rbcGrMarker.c``. Their exact signatures and option-table fields are included
+directly:
 
 .. literalinclude:: ../../generic/rbcGrMarker.c
    :language: c
@@ -35,8 +34,8 @@ option-table fields are included directly:
 Shared implementation reference
 -------------------------------
 
-These groups cover common transactions, lifecycle, mapping helpers and
-commands. Concrete class contracts and pass batching follow below. Namespaces disambiguate private names without changing C linkage.
+These groups cover common transactions, lifecycle, mapping helpers and commands. Concrete class contracts and pass
+batching follow below. Namespaces disambiguate private names without changing C linkage.
 
 Option preparation and commit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -161,8 +160,8 @@ Pass batching and renderer dispatch
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: MarkerClass
    :members:

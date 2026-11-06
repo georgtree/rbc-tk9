@@ -850,6 +850,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1557,9 +1558,8 @@
              
   <section id="axis-control-c-reference">
 <h1>Axis control C reference<a class="headerlink" href="#axis-control-c-reference" title="Link to this heading"></a></h1>
-<p>These implementation contracts cover registry lifetime, configuration entry
-points and command dispatch in <code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code>. See <a class="reference internal" href="axes.html"><span class="doc">Axis ownership and commands</span></a> for ownership
-and error boundaries and <a class="reference internal" href="mapping-reference.html"><span class="doc">Coordinate mapping C reference</span></a> for coordinate helpers.
+<p>These implementation contracts cover registry lifetime, configuration entry points and command dispatch in
+<code class="docutils literal notranslate"><span class="pre">rbcGrAxis.c</span></code>. See <a class="reference internal" href="axes.html"><span class="doc">Axis ownership and commands</span></a> for ownership and error boundaries and <a class="reference internal" href="mapping-reference.html"><span class="doc">Coordinate mapping C reference</span></a> for coordinate helpers.
 Namespaces below disambiguate private handler names without changing linkage.</p>
 <section id="registry-and-lifetime">
 <h2>Registry and lifetime<a class="headerlink" href="#registry-and-lifetime" title="Link to this heading"></a></h2>
@@ -4061,8 +4061,8 @@ Apply local scrolling to selected track axes with limit rollback.</p>
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.AxisInfo">
 <span class="target" id="struct_axis_info"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AxisInfo</span></span></span><a class="headerlink" href="#c.AxisInfo" title="Link to this definition"></a><br /></dt>

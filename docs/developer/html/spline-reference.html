@@ -568,6 +568,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1275,8 +1276,8 @@
              
   <section id="spline-c-reference">
 <h1>Spline C reference<a class="headerlink" href="#spline-c-reference" title="Link to this heading"></a></h1>
-<p>These private geometry services use caller-owned arrays, not vector handles.
-See <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a> for parameter formats, failure behavior and graph integration.</p>
+<p>These private geometry services use caller-owned arrays, not vector handles. See <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a> for parameter formats,
+failure behavior and graph integration.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_NaturalSpline">
 <span class="target" id="rbc_int_8h_1a2467b3c7d7b23ace0f5d01100066269b"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_NaturalSpline</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">origPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nOrigPts</span></span>, <a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><span class="n"><span class="pre">Point2D</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">intpPts</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">nIntpPts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_NaturalSpline" title="Link to this definition"></a><br /></dt>
@@ -1405,9 +1406,8 @@ Validates parameters before writing, copies and extends source endpoints private
 </dl>
 </dd></dl>
 
-<p>Parameter directions follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Array capacities are
-caller obligations; counts describe used records, not byte sizes. The numerical
-entry points below do not acquire vector ownership or publish notifications.</p>
+<p>Parameter directions follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a>. Array capacities are caller obligations; counts describe used
+records, not byte sizes. The numerical entry points below do not acquire vector ownership or publish notifications.</p>
 <section id="implementation-helpers">
 <h2>Implementation helpers<a class="headerlink" href="#implementation-helpers" title="Link to this heading"></a></h2>
 <dl>
@@ -1895,8 +1895,8 @@ Reads four consecutive control points and writes X/Y coefficients to a, b, c and
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.Cubic2D">
 <span class="target" id="struct_cubic2_d"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Cubic2D</span></span></span><a class="headerlink" href="#c.Cubic2D" title="Link to this definition"></a><br /></dt>

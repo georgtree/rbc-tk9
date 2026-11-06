@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,111 +1215,87 @@
              
   <section id="grid-mapping-and-inheritance">
 <h1>Grid mapping and inheritance<a class="headerlink" href="#grid-mapping-and-inheritance" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrGrid.c</span></code> owns grid options, axis references, segment caches and dispatch
-to screen or document output. A global <a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> belongs to the graph. A track
-can own a local <a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> and always has separate X/Y segment caches for its
-plot rectangle. See <a class="reference internal" href="grid-reference.html"><span class="doc">Grid C reference</span></a> for the shared interfaces.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrGrid.c</span></code> owns grid options, axis references, segment caches and dispatch to screen or document output. A global
+<a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> belongs to the graph. A track can own a local <a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> and always has separate X/Y segment caches
+for its plot rectangle. See <a class="reference internal" href="grid-reference.html"><span class="doc">Grid C reference</span></a> for the shared interfaces.</p>
 <section id="configuration-and-axis-selection">
 <h2>Configuration and axis selection<a class="headerlink" href="#configuration-and-axis-selection" title="Link to this heading"></a></h2>
-<p>Grid configuration prepares replacement dash patterns, line width, axis
-references and representation-specific tick lists before committing active
-state. Axis lookup acquires references that must be released on failure or
-replacement. Local grids require a shared X axis and a Y axis owned by the
-same track; either mapping can be empty to disable that direction.</p>
-<p>The global grid uses the named <code class="docutils literal notranslate"><span class="pre">grid</span></code>/<a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> option-database component.
-Local-grid initialization follows a different path: it initializes a local
-record and copies the effective inherited options into it. Do not infer a
-separate named option-database child merely from the nested Tcl command.
-See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for the common option transaction rules.</p>
+<p>Grid configuration prepares replacement dash patterns, line width, axis references and representation-specific tick
+lists before committing active state. Axis lookup acquires references that must be released on failure or
+replacement. Local grids require a shared X axis and a Y axis owned by the same track; either mapping can be empty to
+disable that direction.</p>
+<p>The global grid uses the named <code class="docutils literal notranslate"><span class="pre">grid</span></code>/<a class="reference internal" href="grid-reference.html#c.Grid" title="Grid"><code class="xref c c-type docutils literal notranslate"><span class="pre">Grid</span></code></a> option-database component. Local-grid initialization follows a
+different path: it initializes a local record and copies the effective inherited options into it. Do not infer a
+separate named option-database child merely from the nested Tcl command. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for the common option
+transaction rules.</p>
 </section>
 <section id="inherited-and-local-state">
 <h2>Inherited and local state<a class="headerlink" href="#inherited-and-local-state" title="Link to this heading"></a></h2>
-<p>When <code class="docutils literal notranslate"><span class="pre">track-&gt;grid</span></code> is NULL, the track uses global grid settings. Its X axis
-comes from the global grid. If the global Y mapping is enabled and the track
-has axes, the inherited Y mapping uses the track’s first axis; otherwise that
+<p>When <code class="docutils literal notranslate"><span class="pre">track-&gt;grid</span></code> is NULL, the track uses global grid settings. Its X axis comes from the global grid. If the global
+Y mapping is enabled and the track has axes, the inherited Y mapping uses the track’s first axis; otherwise that
 direction is disabled. It does not blindly reuse another track’s Y axis.</p>
-<p><a class="reference internal" href="grid-reference.html#c.rbcGrid.Rbc_TrackGridOp" title="rbcGrid.Rbc_TrackGridOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.Rbc_TrackGridOp()</span></code></a> builds a temporary view for inherited queries. A <code class="docutils literal notranslate"><span class="pre">cget</span></code> or
-configuration query therefore does not materialize a local grid or freeze its
-defaults. The view borrows global resources and has a temporary option table
-and Y-axis name object; cleanup must not treat it as an independently owned
-live grid.</p>
-<p>The first modifying operation creates a candidate local grid from the effective
-settings. It is attached to the track only when the requested operation succeeds.
-Failure destroys the candidate. Once local state exists, subsequent operations
-use it rather than continuing to inherit changes to the global settings.</p>
-<p>Nested dispatch temporarily selects the local grid or query view through
-<code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;gridPtr</span></code> and restores the global pointer afterward. This is a
-synchronous adapter for existing grid operations, not a transfer of ownership
-or permission to retain the temporary view.</p>
+<p><a class="reference internal" href="grid-reference.html#c.rbcGrid.Rbc_TrackGridOp" title="rbcGrid.Rbc_TrackGridOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.Rbc_TrackGridOp()</span></code></a> builds a temporary view for inherited queries. A <code class="docutils literal notranslate"><span class="pre">cget</span></code> or configuration query
+therefore does not materialize a local grid or freeze its defaults. The view borrows global resources and has a
+temporary option table and Y-axis name object; cleanup must not treat it as an independently owned live grid.</p>
+<p>The first modifying operation creates a candidate local grid from the effective settings. It is attached to the track
+only when the requested operation succeeds. Failure destroys the candidate. Once local state exists, subsequent
+operations use it rather than continuing to inherit changes to the global settings.</p>
+<p>Nested dispatch temporarily selects the local grid or query view through <code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;gridPtr</span></code> and restores the global
+pointer afterward. This is a synchronous adapter for existing grid operations, not a transfer of ownership or permission
+to retain the temporary view.</p>
 </section>
 <section id="segment-mapping">
 <h2>Segment mapping<a class="headerlink" href="#segment-mapping" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="grid-reference.html#c.Rbc_MapGrid" title="Rbc_MapGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapGrid()</span></code></a> frees previous global X/Y segments and resets their counts.
-For an ordinary Cartesian graph, <a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_GetAxisSegments" title="rbcGrAxisPresentation.Rbc_GetAxisSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_GetAxisSegments()</span></code></a> generates segments
-from each selected axis’s ticks, including minor ticks when requested.
-Mapping consumes prepared axes and plot geometry; it does not compute a new
-axis range or paint anything.</p>
-<p>For trackgraphs, the mapper clears and rebuilds <code class="docutils literal notranslate"><span class="pre">track-&gt;gridX</span></code> and
-<code class="docutils literal notranslate"><span class="pre">track-&gt;gridY</span></code> using the effective local or inherited configuration. Collapsed
-visible regions are skipped. Generation runs inside a paired track viewport
-scope so segments span the owning plot region. Style ownership and geometry
-ownership are therefore distinct: an inherited style can be shared while every
-track still owns its own mapped segment arrays.</p>
-<p>For polar widgets, mapping delegates according to representation to
-<a class="reference internal" href="polar-reference.html#c.Rbc_MapPolarGrid" title="Rbc_MapPolarGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid()</span></code></a> or <a class="reference internal" href="polar-reference.html#c.Rbc_MapSmithGrid" title="Rbc_MapSmithGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid()</span></code></a>. Their specialized geometry remains
-behind the same grid output interface. Tick-list and label-format settings for
-those representations should not be mistaken for Cartesian per-track options.</p>
-<p>Hidden state is evaluated at output, not used to avoid rebuilding these caches.
-Changing visibility alone must not leave an independently visible local grid
-using stale or missing geometry. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for layout ordering.</p>
+<p><a class="reference internal" href="grid-reference.html#c.Rbc_MapGrid" title="Rbc_MapGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapGrid()</span></code></a> frees previous global X/Y segments and resets their counts. For an ordinary Cartesian graph,
+<a class="reference internal" href="axis-reference.html#c.rbcGrAxisPresentation.Rbc_GetAxisSegments" title="rbcGrAxisPresentation.Rbc_GetAxisSegments"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrAxisPresentation.Rbc_GetAxisSegments()</span></code></a> generates segments from each selected axis’s ticks, including minor
+ticks when requested. Mapping consumes prepared axes and plot geometry; it does not compute a new axis range or paint
+anything.</p>
+<p>For trackgraphs, the mapper clears and rebuilds <code class="docutils literal notranslate"><span class="pre">track-&gt;gridX</span></code> and <code class="docutils literal notranslate"><span class="pre">track-&gt;gridY</span></code> using the effective local or
+inherited configuration. Collapsed visible regions are skipped. Generation runs inside a paired track viewport scope so
+segments span the owning plot region. Style ownership and geometry ownership are therefore distinct: an inherited style
+can be shared while every track still owns its own mapped segment arrays.</p>
+<p>For polar widgets, mapping delegates according to representation to <a class="reference internal" href="polar-reference.html#c.Rbc_MapPolarGrid" title="Rbc_MapPolarGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid()</span></code></a> or
+<a class="reference internal" href="polar-reference.html#c.Rbc_MapSmithGrid" title="Rbc_MapSmithGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid()</span></code></a>. Their specialized geometry remains behind the same grid output interface. Tick-list and
+label-format settings for those representations should not be mistaken for Cartesian per-track options.</p>
+<p>Hidden state is evaluated at output, not used to avoid rebuilding these caches. Changing visibility alone must not
+leave an independently visible local grid using stale or missing geometry. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for layout ordering.</p>
 </section>
 <section id="screen-and-document-output">
 <h2>Screen and document output<a class="headerlink" href="#screen-and-document-output" title="Link to this heading"></a></h2>
-<p>Both <a class="reference internal" href="grid-reference.html#c.Rbc_DrawGrid" title="Rbc_DrawGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawGrid()</span></code></a> and <a class="reference internal" href="grid-reference.html#c.Rbc_GridExport" title="Rbc_GridExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GridExport()</span></code></a> dispatch trackgraphs before testing
-the global grid’s hidden flag. <a class="reference internal" href="grid-reference.html#c.rbcGrid.DrawTrackGrids" title="rbcGrid.DrawTrackGrids"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.DrawTrackGrids()</span></code></a> checks each track’s effective
-grid independently. This allows a local grid to remain visible while the
-global grid is hidden and other tracks still inherit that hidden state.</p>
-<p>Screen output first attempts the renderer stroke path. The native fallback
-for track grids clips complete strokes through a reusable scratch drawable,
-rather than relying on a GC clip that Windows segment emulation does not honor.
-Clipping only segment centerlines would allow thick boundary strokes to escape
-into neighboring tracks. Dash coordinates must remain consistent through this
-fallback.</p>
-<p>Export uses renderer segment output with an explicit visible-track clip.
-Both paths enter and leave the track viewport around their work. Ordinary
-non-track output uses the global segment caches and skips a hidden global grid.
-The output functions do not remap geometry or finalize export documents.
-See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for renderer ownership and <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for temporary
-export layouts and screen restoration.</p>
+<p>Both <a class="reference internal" href="grid-reference.html#c.Rbc_DrawGrid" title="Rbc_DrawGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DrawGrid()</span></code></a> and <a class="reference internal" href="grid-reference.html#c.Rbc_GridExport" title="Rbc_GridExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GridExport()</span></code></a> dispatch trackgraphs before testing the global grid’s hidden
+flag. <a class="reference internal" href="grid-reference.html#c.rbcGrid.DrawTrackGrids" title="rbcGrid.DrawTrackGrids"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.DrawTrackGrids()</span></code></a> checks each track’s effective grid independently. This allows a local grid to
+remain visible while the global grid is hidden and other tracks still inherit that hidden state.</p>
+<p>Screen output first attempts the renderer stroke path. The native fallback for track grids clips complete strokes
+through a reusable scratch drawable, rather than relying on a GC clip that Windows segment emulation does not honor.
+Clipping only segment centerlines would allow thick boundary strokes to escape into neighboring tracks. Dash coordinates
+must remain consistent through this fallback.</p>
+<p>Export uses renderer segment output with an explicit visible-track clip. Both paths enter and leave the track viewport
+around their work. Ordinary non-track output uses the global segment caches and skips a hidden global grid. The output
+functions do not remap geometry or finalize export documents. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a> for renderer ownership and
+<a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for temporary export layouts and screen restoration.</p>
 </section>
 <section id="cleanup-and-regression-checks">
 <h2>Cleanup and regression checks<a class="headerlink" href="#cleanup-and-regression-checks" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="grid-reference.html#c.Rbc_DestroyTrackGrid" title="Rbc_DestroyTrackGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTrackGrid()</span></code></a> destroys local option resources, clears the local-grid
-pointer, releases both per-track segment arrays and zeros their cache records.
-It also handles tracks with inherited configuration and no local grid.
-<a class="reference internal" href="grid-reference.html#c.Rbc_DestroyGrid" title="Rbc_DestroyGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyGrid()</span></code></a> clears the global pointer, releases every track grid, then
-releases the global record. The track list must still be valid during this pass.</p>
-<p>Grid destruction requires a live Tk window for option cleanup. Axis references,
-option tables, private graphics contexts, segment arrays and specialized tick
-arrays each have explicit cleanup. Do not free borrowed query-view resources
-using this owning destructor.</p>
-<p>Useful regression cases include querying before global reconfiguration, first
-local mutation, independent local visibility, alternate axis selection,
-inversion, thick boundary strokes and resized export followed by restored
-screen geometry. Check both screen renderers and document output: a correct
-centerline or unchanged transform alone does not prove complete stroke clipping.</p>
+<p><a class="reference internal" href="grid-reference.html#c.Rbc_DestroyTrackGrid" title="Rbc_DestroyTrackGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTrackGrid()</span></code></a> destroys local option resources, clears the local-grid pointer, releases both per-track
+segment arrays and zeros their cache records. It also handles tracks with inherited configuration and no local grid.
+<a class="reference internal" href="grid-reference.html#c.Rbc_DestroyGrid" title="Rbc_DestroyGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyGrid()</span></code></a> clears the global pointer, releases every track grid, then releases the global record. The
+track list must still be valid during this pass.</p>
+<p>Grid destruction requires a live Tk window for option cleanup. Axis references, option tables, private graphics
+contexts, segment arrays and specialized tick arrays each have explicit cleanup. Do not free borrowed query-view
+resources using this owning destructor.</p>
+<p>Useful regression cases include querying before global reconfiguration, first local mutation, independent local
+visibility, alternate axis selection, inversion, thick boundary strokes and resized export followed by restored screen
+geometry. Check both screen renderers and document output: a correct centerline or unchanged transform alone does not
+prove complete stroke clipping.</p>
 <p>See <a class="reference internal" href="polar.html"><span class="doc">Polar data and grid geometry</span></a> for polar/Smith geometry and its separation from element data conversion.</p>
 </section>
 <section id="tick-transactions-and-duplicate-options">
 <h2>Tick transactions and duplicate options<a class="headerlink" href="#tick-transactions-and-duplicate-options" title="Link to this heading"></a></h2>
-<p>Tk’s saved-options transaction restores option objects and inline option values.
-The grid additionally needs its own transaction for derived double arrays.
-Restoring a Tcl list object alone cannot restore an array that was already
-freed or replaced. The implementation helpers and staging records are included
-in <a class="reference internal" href="grid-reference.html"><span class="doc">Grid C reference</span></a>.</p>
-<p>Angular ticks have major/minor slots; Smith ticks have real/imaginary slots at
-both tiers. Each slot has an owned pointer, a count and a staged flag. The flag
-is necessary because these states have different meanings:</p>
+<p>Tk’s saved-options transaction restores option objects and inline option values. The grid additionally needs its own
+transaction for derived double arrays. Restoring a Tcl list object alone cannot restore an array that was already freed
+or replaced. The implementation helpers and staging records are included in <a class="reference internal" href="grid-reference.html"><span class="doc">Grid C reference</span></a>.</p>
+<p>Angular ticks have major/minor slots; Smith ticks have real/imaginary slots at both tiers. Each slot has an owned
+pointer, a count and a staged flag. The flag is necessary because these states have different meanings:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1346,64 +1323,51 @@ is necessary because these states have different meanings:</p>
 </tr>
 </tbody>
 </table>
-<p>Preparation first identifies options explicitly present in the caller’s original
-argument sequence. During initial configuration, defaults or option-database
-values are staged only for lists not explicitly overridden. Explicit occurrences
-are then parsed in caller order. An invalid first occurrence remains an error
-even if a later duplicate supplies a valid list. A successful duplicate frees
-only the previous staged array; active arrays remain untouched until commit.</p>
-<p>The parser preserves order and duplicates within a list. Angular values must
-be finite degrees in [0,360); Smith real ticks allow zero, while imaginary tick
-magnitudes must be strictly positive. Negative zero is canonicalized when
-accepted. These parsers validate values, not their eventual visual spacing.
-Label command options receive only list-syntax validation here: an empty list
-is accepted, command existence is not checked, and no label callback is run.</p>
-<p>After all conversion, axis and prefix checks succeed, configuration prepares
-the replacement GC and commits derived state. Commit transfers staged pointers,
-clears staging ownership and frees replaced active arrays. Cleanup can therefore
-run after either preparation failure or commit without freeing live arrays.
-The owning configure operation separately releases or restores Tk saved options
-and schedules the appropriate reset/redraw. These helpers must not be used as
-an independent Tk option rollback mechanism.</p>
-<p>The custom automatic anchor is simpler: its internal representation contains
-only a Tk anchor and a boolean. Set saves the old inline value, get constructs
-a fresh Tcl string, restore copies the saved value, and free is intentionally
-a no-op. It owns no resource requiring deferred release.</p>
+<p>Preparation first identifies options explicitly present in the caller’s original argument sequence. During initial
+configuration, defaults or option-database values are staged only for lists not explicitly overridden. Explicit
+occurrences are then parsed in caller order. An invalid first occurrence remains an error even if a later duplicate
+supplies a valid list. A successful duplicate frees only the previous staged array; active arrays remain untouched until
+commit.</p>
+<p>The parser preserves order and duplicates within a list. Angular values must be finite degrees in [0,360); Smith real
+ticks allow zero, while imaginary tick magnitudes must be strictly positive. Negative zero is canonicalized when
+accepted. These parsers validate values, not their eventual visual spacing. Label command options receive only
+list-syntax validation here: an empty list is accepted, command existence is not checked, and no label callback is run.</p>
+<p>After all conversion, axis and prefix checks succeed, configuration prepares the replacement GC and commits derived
+state. Commit transfers staged pointers, clears staging ownership and frees replaced active arrays. Cleanup can
+therefore run after either preparation failure or commit without freeing live arrays. The owning configure operation
+separately releases or restores Tk saved options and schedules the appropriate reset/redraw. These helpers must not be
+used as an independent Tk option rollback mechanism.</p>
+<p>The custom automatic anchor is simpler: its internal representation contains only a Tk anchor and a boolean. Set saves
+the old inline value, get constructs a fresh Tcl string, restore copies the saved value, and free is intentionally a
+no-op. It owns no resource requiring deferred release.</p>
 </section>
 <section id="command-transactions-and-visibility">
 <h2>Command transactions and visibility<a class="headerlink" href="#command-transactions-and-visibility" title="Link to this heading"></a></h2>
-<p>The graph grid dispatcher checks command names and arity before handlers access
-arguments. <code class="docutils literal notranslate"><span class="pre">cget</span></code> and both forms of <code class="docutils literal notranslate"><span class="pre">configure</span></code> query return Tk option values
-or metadata without configuring the grid. An update stages Tk options, exposes
-the original argument sequence to derived-state validation, then clears that
-borrowed sequence before either committing or restoring saved options. Keeping
-the sequence is necessary for duplicate tick-option validation, not permission
-to retain command arguments beyond the call.</p>
-<p>Successful polar changes request a world reset. Changing grid axis mappings also
-requests that reset when polar automatic aspect depends on those axes. Options
-marked for redraw invalidate the backing store and schedule an idle display.
-Visibility commands only change hidden state and schedule that redraw; they do
-not erase pixels directly or discard mapped segments.</p>
-<p>Track dispatch validates the adapted command before materializing local state.
-Its query classification is based on the selected handler and argument count,
-so abbreviated operation names retain query semantics. Any successful modifying
-command detaches an inherited grid, even an <code class="docutils literal notranslate"><span class="pre">on</span></code> or <code class="docutils literal notranslate"><span class="pre">off</span></code> command that leaves
-the effective hidden value unchanged. Failed first mutations destroy the candidate
-and preserve inheritance. Subsequent mutations operate on the existing local
-record with its own saved-options transaction.</p>
-<p>The temporary global-grid pointer replacement is safe only while operations stay
-synchronous and do not evaluate Tcl callbacks. Format-prefix validation checks
-list syntax here; actual label evaluation belongs to drawing. Adding event
-processing or callbacks inside grid configuration would require revisiting this
-selection and candidate-lifetime protocol.</p>
+<p>The graph grid dispatcher checks command names and arity before handlers access arguments. <code class="docutils literal notranslate"><span class="pre">cget</span></code> and both forms of
+<code class="docutils literal notranslate"><span class="pre">configure</span></code> query return Tk option values or metadata without configuring the grid. An update stages Tk options,
+exposes the original argument sequence to derived-state validation, then clears that borrowed sequence before either
+committing or restoring saved options. Keeping the sequence is necessary for duplicate tick-option validation, not
+permission to retain command arguments beyond the call.</p>
+<p>Successful polar changes request a world reset. Changing grid axis mappings also requests that reset when polar
+automatic aspect depends on those axes. Options marked for redraw invalidate the backing store and schedule an idle
+display. Visibility commands only change hidden state and schedule that redraw; they do not erase pixels directly or
+discard mapped segments.</p>
+<p>Track dispatch validates the adapted command before materializing local state. Its query classification is based on the
+selected handler and argument count, so abbreviated operation names retain query semantics. Any successful modifying
+command detaches an inherited grid, even an <code class="docutils literal notranslate"><span class="pre">on</span></code> or <code class="docutils literal notranslate"><span class="pre">off</span></code> command that leaves the effective hidden value
+unchanged. Failed first mutations destroy the candidate and preserve inheritance. Subsequent mutations operate on the
+existing local record with its own saved-options transaction.</p>
+<p>The temporary global-grid pointer replacement is safe only while operations stay synchronous and do not evaluate Tcl
+callbacks. Format-prefix validation checks list syntax here; actual label evaluation belongs to drawing. Adding event
+processing or callbacks inside grid configuration would require revisiting this selection and candidate-lifetime
+protocol.</p>
 </section>
 <section id="parameter-boundaries-for-configuration-and-drawing">
 <h2>Parameter boundaries for configuration and drawing<a class="headerlink" href="#parameter-boundaries-for-configuration-and-drawing" title="Link to this heading"></a></h2>
-<p>The graph-facing lifecycle starts with <a class="reference internal" href="grid-reference.html#c.Rbc_CreateGrid" title="Rbc_CreateGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateGrid()</span></code></a>. Its record
-owns axis references, option state and derived arrays, but a track’s inherited
-query view borrows these resources. Only owning records may be passed to
-<a class="reference internal" href="grid-reference.html#c.rbcGrid.DestroyGrid" title="rbcGrid.DestroyGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.DestroyGrid()</span></code></a>; <a class="reference internal" href="grid-reference.html#c.Rbc_DestroyTrackGrid" title="Rbc_DestroyTrackGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTrackGrid()</span></code></a> additionally releases
-the track’s separate segment caches and clears its local pointer.</p>
+<p>The graph-facing lifecycle starts with <a class="reference internal" href="grid-reference.html#c.Rbc_CreateGrid" title="Rbc_CreateGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_CreateGrid()</span></code></a>. Its record owns axis references, option state and
+derived arrays, but a track’s inherited query view borrows these resources. Only owning records may be passed to
+<a class="reference internal" href="grid-reference.html#c.rbcGrid.DestroyGrid" title="rbcGrid.DestroyGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.DestroyGrid()</span></code></a>; <a class="reference internal" href="grid-reference.html#c.Rbc_DestroyTrackGrid" title="Rbc_DestroyTrackGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DestroyTrackGrid()</span></code></a> additionally releases the track’s separate segment caches
+and clears its local pointer.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Tick-array ownership at each stage</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
@@ -1433,24 +1397,19 @@ the track’s separate segment caches and clears its local pointer.</p>
 </tr>
 </tbody>
 </table>
-<p>These output contracts deliberately differ from inline option conversion.
-<a class="reference internal" href="grid-reference.html#c.rbcGrid.SetPolarLabelAnchor" title="rbcGrid.SetPolarLabelAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.SetPolarLabelAnchor()</span></code></a> leaves the active value unchanged on
-failure and optionally saves its previous value in Tk rollback storage.
+<p>These output contracts deliberately differ from inline option conversion. <a class="reference internal" href="grid-reference.html#c.rbcGrid.SetPolarLabelAnchor" title="rbcGrid.SetPolarLabelAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.SetPolarLabelAnchor()</span></code></a> leaves
+the active value unchanged on failure and optionally saves its previous value in Tk rollback storage.
 <a class="reference internal" href="grid-reference.html#c.rbcGrid.GetPolarLabelAnchor" title="rbcGrid.GetPolarLabelAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.GetPolarLabelAnchor()</span></code></a> returns a fresh zero-reference Tcl object;
-<a class="reference internal" href="grid-reference.html#c.rbcGrid.RestorePolarLabelAnchor" title="rbcGrid.RestorePolarLabelAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.RestorePolarLabelAnchor()</span></code></a> copies an inline value and
-<a class="reference internal" href="grid-reference.html#c.rbcGrid.FreePolarLabelAnchor" title="rbcGrid.FreePolarLabelAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.FreePolarLabelAnchor()</span></code></a> owns nothing to free.</p>
-<p><a class="reference internal" href="grid-reference.html#c.rbcGrid.Rbc_TrackGridOp" title="rbcGrid.Rbc_TrackGridOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.Rbc_TrackGridOp()</span></code></a> receives the full nested command with the grid
-operation at index four. It constructs an adapted command for
-<a class="reference internal" href="grid-reference.html#c.rbcGrid.Rbc_GridOp" title="rbcGrid.Rbc_GridOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.Rbc_GridOp()</span></code></a> and its handlers, where the operation is at index
-two. The temporary original option/value slice used by
-<a class="reference internal" href="grid-reference.html#c.rbcGrid.ConfigureGrid" title="rbcGrid.ConfigureGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.ConfigureGrid()</span></code></a> is borrowed only for that configuration call.
-Neither the adapter nor the tick transaction transfers ownership of Tcl
-command arguments.</p>
-<p><a class="reference internal" href="grid-reference.html#c.rbcGrid.DrawTrackGrids" title="rbcGrid.DrawTrackGrids"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.DrawTrackGrids()</span></code></a> takes either a screen drawable or a non-NULL
-export context. In the export case the drawable is ignored; in the screen case
-the destination remains borrowed. Both paths consume prepared segment caches,
-restore temporary track viewports and end renderer contexts without finalizing
-a document. A new configuration must be mapped before relying on these caches.</p>
+<a class="reference internal" href="grid-reference.html#c.rbcGrid.RestorePolarLabelAnchor" title="rbcGrid.RestorePolarLabelAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.RestorePolarLabelAnchor()</span></code></a> copies an inline value and <a class="reference internal" href="grid-reference.html#c.rbcGrid.FreePolarLabelAnchor" title="rbcGrid.FreePolarLabelAnchor"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.FreePolarLabelAnchor()</span></code></a> owns nothing
+to free.</p>
+<p><a class="reference internal" href="grid-reference.html#c.rbcGrid.Rbc_TrackGridOp" title="rbcGrid.Rbc_TrackGridOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.Rbc_TrackGridOp()</span></code></a> receives the full nested command with the grid operation at index four. It constructs
+an adapted command for <a class="reference internal" href="grid-reference.html#c.rbcGrid.Rbc_GridOp" title="rbcGrid.Rbc_GridOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.Rbc_GridOp()</span></code></a> and its handlers, where the operation is at index two. The temporary
+original option/value slice used by <a class="reference internal" href="grid-reference.html#c.rbcGrid.ConfigureGrid" title="rbcGrid.ConfigureGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.ConfigureGrid()</span></code></a> is borrowed only for that configuration call.
+Neither the adapter nor the tick transaction transfers ownership of Tcl command arguments.</p>
+<p><a class="reference internal" href="grid-reference.html#c.rbcGrid.DrawTrackGrids" title="rbcGrid.DrawTrackGrids"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrid.DrawTrackGrids()</span></code></a> takes either a screen drawable or a non-NULL export context. In the export case the
+drawable is ignored; in the screen case the destination remains borrowed. Both paths consume prepared segment caches,
+restore temporary track viewports and end renderer contexts without finalizing a document. A new configuration must be
+mapped before relying on these caches.</p>
 </section>
 </section>
 

@@ -518,6 +518,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1225,8 +1226,8 @@
              
   <section id="fft-and-generator-c-reference">
 <h1>FFT and generator C reference<a class="headerlink" href="#fft-and-generator-c-reference" title="Link to this heading"></a></h1>
-<p>These private instance-operation handlers are not public stubs entries.
-See <a class="reference internal" href="fft.html"><span class="doc">FFT workspace and output ownership</span></a> for dispatch preconditions and commit/callback boundaries.</p>
+<p>These private instance-operation handlers are not public stubs entries. See <a class="reference internal" href="fft.html"><span class="doc">FFT workspace and output ownership</span></a> for dispatch preconditions and
+commit/callback boundaries.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_VectorFftOp">
 <span class="target" id="rbc_vector_int_8h_1abd7492f3bce3d5a12d343884fee630f4"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_VectorFftOp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">VectorObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vPtr</span></span>, <span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Size</span></span><span class="w"> </span><span class="n"><span class="pre">objc</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">objv</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_VectorFftOp" title="Link to this definition"></a><br /></dt>
@@ -1291,11 +1292,9 @@ Accepts rectangular, Hann, Hamming, Blackman and Bartlett windows of any positiv
 </dl>
 </dd></dl>
 
-<p>Argument ownership and units follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> and
-<a class="reference internal" href="fft.html"><span class="doc">FFT workspace and output ownership</span></a>. The operation handlers take full instance command arrays;
-allocation and kernel helpers take typed value counts. These internal entry
-points rely on dispatcher or caller preconditions, particularly for writable
-real generator destinations.</p>
+<p>Argument ownership and units follow <a class="reference internal" href="calling-conventions.html"><span class="doc">C calling conventions</span></a> and <a class="reference internal" href="fft.html"><span class="doc">FFT workspace and output ownership</span></a>. The operation handlers take full instance
+command arrays; allocation and kernel helpers take typed value counts. These internal entry points rely on dispatcher or
+caller preconditions, particularly for writable real generator destinations.</p>
 <section id="implementation-helpers">
 <h2>Implementation helpers<a class="headerlink" href="#implementation-helpers" title="Link to this heading"></a></h2>
 <dl>

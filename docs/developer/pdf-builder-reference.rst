@@ -1,9 +1,8 @@
 PDF builder C reference
 =======================
 
-These private services are declared in ``rbcExport.h`` and implemented in
-``rbcPdf.c``. See :doc:`pdf-builder` for the single-use lifecycle and resource
-numbering conventions. They are independent of Cairo.
+These private services are declared in ``rbcExport.h`` and implemented in ``rbcPdf.c``. See :doc:`pdf-builder` for the
+single-use lifecycle and resource numbering conventions. They are independent of Cairo.
 
 .. doxygenfunction:: Rbc_PdfBegin
 
@@ -24,8 +23,8 @@ numbering conventions. They are independent of Cairo.
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: PdfResource
    :members:

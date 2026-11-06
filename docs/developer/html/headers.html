@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,8 +1215,8 @@
              
   <section id="header-structure">
 <h1>Header structure<a class="headerlink" href="#header-structure" title="Link to this heading"></a></h1>
-<p>Ordinary headers include the prerequisites for their own declarations.
-Callers should not need an undocumented sequence of includes.</p>
+<p>Ordinary headers include the prerequisites for their own declarations. Callers should not need an undocumented sequence
+of includes.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 32.0%" />
@@ -1256,35 +1257,28 @@ Callers should not need an undocumented sequence of includes.</p>
 </tr>
 </tbody>
 </table>
-<p>Use forward declarations for pointer-only dependencies and the defining header
-for embedded records. Define each type once. Include guards make repeated
-inclusion safe; reciprocal includes do not solve dependency cycles.</p>
-<p>Only include the applicable platform configuration. <code class="docutils literal notranslate"><span class="pre">rbcWin.h</span></code> is
-Windows-only. Pixel channels use explicit members such as <code class="docutils literal notranslate"><span class="pre">pixel.rgba.red</span></code>;
-generic macros named <code class="docutils literal notranslate"><span class="pre">Red</span></code> or <code class="docutils literal notranslate"><span class="pre">Blue</span></code> would alter later SDK declarations.</p>
-<p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code> after dependency changes. Its compile-only probes
-cover standalone, repeated, forward/reverse and graph-relative inclusion,
-public-header Tk isolation, and image/default-name regressions.
-Run them on both platforms and with both Cairo configurations.
-These checks complement runtime tests; they do not establish ABI compatibility.</p>
+<p>Use forward declarations for pointer-only dependencies and the defining header for embedded records. Define each type
+once. Include guards make repeated inclusion safe; reciprocal includes do not solve dependency cycles.</p>
+<p>Only include the applicable platform configuration. <code class="docutils literal notranslate"><span class="pre">rbcWin.h</span></code> is Windows-only. Pixel channels use explicit members
+such as <code class="docutils literal notranslate"><span class="pre">pixel.rgba.red</span></code>; generic macros named <code class="docutils literal notranslate"><span class="pre">Red</span></code> or <code class="docutils literal notranslate"><span class="pre">Blue</span></code> would alter later SDK declarations.</p>
+<p>Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code> after dependency changes. Its compile-only probes cover standalone, repeated, forward/reverse
+and graph-relative inclusion, public-header Tk isolation, and image/default-name regressions. Run them on both
+platforms and with both Cairo configurations. These checks complement runtime tests; they do not establish ABI
+compatibility.</p>
 <section id="record-coverage">
 <h2>Record coverage<a class="headerlink" href="#record-coverage" title="Link to this heading"></a></h2>
-<p>The C references include member descriptions for the reviewed header records
-and their component-owned implementation records. Start with
-<a class="reference internal" href="axis-reference.html#c.Axis" title="Axis"><code class="xref c c-type docutils literal notranslate"><span class="pre">Axis</span></code></a>, <a class="reference internal" href="axis-reference.html#c.Axis2D" title="Axis2D"><code class="xref c c-type docutils literal notranslate"><span class="pre">Axis2D</span></code></a>, <a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><code class="xref c c-type docutils literal notranslate"><span class="pre">RbcTrack</span></code></a>, <a class="reference internal" href="mapping-reference.html#c.Line" title="Line"><code class="xref c c-type docutils literal notranslate"><span class="pre">Line</span></code></a>,
-<a class="reference internal" href="marker-reference.html#c.MarkerStruct" title="MarkerStruct"><code class="xref c c-type docutils literal notranslate"><span class="pre">MarkerStruct</span></code></a>, <a class="reference internal" href="text-font-reference.html#c.TextStyle" title="TextStyle"><code class="xref c c-type docutils literal notranslate"><span class="pre">TextStyle</span></code></a> and <a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_Vector_s" title="Rbc_Vector_s"><code class="xref c c-type docutils literal notranslate"><span class="pre">Rbc_Vector_s</span></code></a>.
-Shared geometry such as <a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><code class="xref c c-type docutils literal notranslate"><span class="pre">Point2D</span></code></a>, <a class="reference internal" href="geometry-reference.html#c.Region2D" title="Region2D"><code class="xref c c-type docutils literal notranslate"><span class="pre">Region2D</span></code></a> and
+<p>The C references include member descriptions for the reviewed header records and their component-owned implementation
+records. Start with <a class="reference internal" href="axis-reference.html#c.Axis" title="Axis"><code class="xref c c-type docutils literal notranslate"><span class="pre">Axis</span></code></a>, <a class="reference internal" href="axis-reference.html#c.Axis2D" title="Axis2D"><code class="xref c c-type docutils literal notranslate"><span class="pre">Axis2D</span></code></a>, <a class="reference internal" href="track-reference.html#c.RbcTrack" title="RbcTrack"><code class="xref c c-type docutils literal notranslate"><span class="pre">RbcTrack</span></code></a>, <a class="reference internal" href="mapping-reference.html#c.Line" title="Line"><code class="xref c c-type docutils literal notranslate"><span class="pre">Line</span></code></a>, <a class="reference internal" href="marker-reference.html#c.MarkerStruct" title="MarkerStruct"><code class="xref c c-type docutils literal notranslate"><span class="pre">MarkerStruct</span></code></a>,
+<a class="reference internal" href="text-font-reference.html#c.TextStyle" title="TextStyle"><code class="xref c c-type docutils literal notranslate"><span class="pre">TextStyle</span></code></a> and <a class="reference internal" href="vector-storage-private-reference.html#c.Rbc_Vector_s" title="Rbc_Vector_s"><code class="xref c c-type docutils literal notranslate"><span class="pre">Rbc_Vector_s</span></code></a>. Shared geometry such as <a class="reference internal" href="geometry-reference.html#c.Point2D" title="Point2D"><code class="xref c c-type docutils literal notranslate"><span class="pre">Point2D</span></code></a>, <a class="reference internal" href="geometry-reference.html#c.Region2D" title="Region2D"><code class="xref c c-type docutils literal notranslate"><span class="pre">Region2D</span></code></a> and
 <a class="reference internal" href="geometry-reference.html#c.Rbc_Dashes" title="Rbc_Dashes"><code class="xref c c-type docutils literal notranslate"><span class="pre">Rbc_Dashes</span></code></a> is documented in <a class="reference internal" href="geometry-reference.html"><span class="doc">Geometry C reference</span></a>.</p>
-<p>Windows-only fields and packed file headers are extracted separately in
-<a class="reference internal" href="native-windows-reference.html"><span class="doc">Windows native backend C reference</span></a>. Generated stubs are ABI dispatch tables, not
-component state; regenerate them from the declarations rather than editing
-<code class="docutils literal notranslate"><span class="pre">rbcDecls.h</span></code> to add handwritten field contracts. Function-local scratch
-records and disabled compatibility branches are not standalone API records.</p>
-<p>A field description belongs at its declaration. Use a separate declaration for
-each member when their contracts differ: Doxygen associates a trailing comment
-on a grouped declaration only with the last member. A record in XML must also
-be rendered with members in its component reference; extraction alone does not
-provide a navigable member contract in the manual.</p>
+<p>Windows-only fields and packed file headers are extracted separately in <a class="reference internal" href="native-windows-reference.html"><span class="doc">Windows native backend C reference</span></a>. Generated stubs
+are ABI dispatch tables, not component state; regenerate them from the declarations rather than editing <code class="docutils literal notranslate"><span class="pre">rbcDecls.h</span></code>
+to add handwritten field contracts. Function-local scratch records and disabled compatibility branches are not
+standalone API records.</p>
+<p>A field description belongs at its declaration. Use a separate declaration for each member when their contracts differ:
+Doxygen associates a trailing comment on a grouped declaration only with the last member. A record in XML must also be
+rendered with members in its component reference; extraction alone does not provide a navigable member contract in the
+manual.</p>
 </section>
 </section>
 

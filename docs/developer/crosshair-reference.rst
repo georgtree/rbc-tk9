@@ -1,8 +1,7 @@
 Crosshair C reference
 =====================
 
-These private helpers borrow graph state. See :doc:`crosshairs` before changing
-erase/update/present ordering.
+These private helpers borrow graph state. See :doc:`crosshairs` before changing erase/update/present ordering.
 
 Lifecycle and background changes
 --------------------------------
@@ -42,8 +41,8 @@ Implementation helpers
 Windows position-only transition
 --------------------------------
 
-This function is extracted from the Windows branch separately. Its documented
-scope does not change the compiled symbol or the shared crosshair interfaces.
+This function is extracted from the Windows branch separately. Its documented scope does not change the compiled symbol
+or the shared crosshair interfaces.
 
 .. c:namespace-push:: rbcWindowsCrosshairs
 
@@ -55,8 +54,8 @@ scope does not change the compiled symbol or the shared crosshair interfaces.
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: CrosshairsOpSpec
    :members:

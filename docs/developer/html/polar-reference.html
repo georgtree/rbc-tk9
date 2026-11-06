@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1297,8 +1298,8 @@
              
   <section id="polar-data-and-geometry-c-reference">
 <h1>Polar data and geometry C reference<a class="headerlink" href="#polar-data-and-geometry-c-reference" title="Link to this heading"></a></h1>
-<p>These helpers are private to their implementation modules. See <a class="reference internal" href="polar.html"><span class="doc">Polar data and grid geometry</span></a>
-for source ownership and the distinction between data and grid coordinates.</p>
+<p>These helpers are private to their implementation modules. See <a class="reference internal" href="polar.html"><span class="doc">Polar data and grid geometry</span></a> for source ownership and the distinction
+between data and grid coordinates.</p>
 <section id="element-data-adapters-rbcgrline-c">
 <h2>Element data adapters (rbcGrLine.c)<a class="headerlink" href="#element-data-adapters-rbcgrline-c" title="Link to this heading"></a></h2>
 <dl>
@@ -1717,9 +1718,8 @@ For t below one, the real component of normalized impedance or admittance is t/(
 </section>
 <section id="line-and-polar-data-transactions-rbcgrline-c">
 <h2>Line and polar data transactions (rbcGrLine.c)<a class="headerlink" href="#line-and-polar-data-transactions-rbcgrline-c" title="Link to this heading"></a></h2>
-<p>These helpers also cover the real parallel parameter input shared by graph line
-and polar elements. The documentation-only scope keeps private names distinct
-from similarly named helpers in other modules.</p>
+<p>These helpers also cover the real parallel parameter input shared by graph line and polar elements. The
+documentation-only scope keeps private names distinct from similarly named helpers in other modules.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__line__data__transactions"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Line</span> <span class="pre">and</span> <span class="pre">polar</span> <span class="pre">data</span> <span class="pre">transactions</span></span></dt>
@@ -2070,8 +2070,8 @@ from similarly named helpers in other modules.</p>
 </section>
 <section id="label-placement-and-presentation-rbcgrpolar-c">
 <h2>Label placement and presentation (rbcGrPolar.c)<a class="headerlink" href="#label-placement-and-presentation-rbcgrpolar-c" title="Link to this heading"></a></h2>
-<p>The formatting helpers may execute Tcl. Their contracts describe cancellation of the current
-drawing pass when callbacks mutate or destroy its graph.</p>
+<p>The formatting helpers may execute Tcl. Their contracts describe cancellation of the current drawing pass when callbacks
+mutate or destroy its graph.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__polar__labels"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Polar</span> <span class="pre">and</span> <span class="pre">Smith</span> <span class="pre">label</span> <span class="pre">internals</span></span></dt>
@@ -2460,8 +2460,8 @@ drawing pass when callbacks mutate or destroy its graph.</p>
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.PolarRadiusRange">
 <span class="target" id="struct_polar_radius_range"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolarRadiusRange</span></span></span><a class="headerlink" href="#c.PolarRadiusRange" title="Link to this definition"></a><br /></dt>

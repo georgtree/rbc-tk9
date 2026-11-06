@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,75 +1215,59 @@
              
   <section id="document-renderer-primitives">
 <h1>Document renderer primitives<a class="headerlink" href="#document-renderer-primitives" title="Link to this heading"></a></h1>
-<p>The SVG, PDF and PostScript renderers consume mapped display geometry through
-<code class="docutils literal notranslate"><span class="pre">Rbc_RenderOps</span></code>. They do not perform axis mapping, decimation, page delivery
-or graph lifetime management. <code class="docutils literal notranslate"><span class="pre">rbcRenderExport.c</span></code> selects the backend and
-prepares its style context; <code class="docutils literal notranslate"><span class="pre">rbcRenderExportInt.h</span></code> describes the shared state.
-See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>, <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> and <a class="reference internal" href="document-render-reference.html"><span class="doc">Document renderer C reference</span></a>.</p>
+<p>The SVG, PDF and PostScript renderers consume mapped display geometry through <code class="docutils literal notranslate"><span class="pre">Rbc_RenderOps</span></code>. They do not perform
+axis mapping, decimation, page delivery or graph lifetime management. <code class="docutils literal notranslate"><span class="pre">rbcRenderExport.c</span></code> selects the backend and
+prepares its style context; <code class="docutils literal notranslate"><span class="pre">rbcRenderExportInt.h</span></code> describes the shared state. See <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>, <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>
+and <a class="reference internal" href="document-render-reference.html"><span class="doc">Document renderer C reference</span></a>.</p>
 <section id="context-lifetime-and-state">
 <h2>Context lifetime and state<a class="headerlink" href="#context-lifetime-and-state" title="Link to this heading"></a></h2>
-<p>Each constructor allocates a short-lived renderer context borrowing the
-<code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code>. A PDF context requires an initialized PDF builder; a
-PostScript context requires the legacy token in <code class="docutils literal notranslate"><span class="pre">backendData</span></code>. SVG writes to
-the current export buffer. None of these constructors begins or completes a
-document. The export and graph must outlive all contexts that reference them.</p>
-<p>Stroke construction copies SVG/PDF colors and dash values, clamps width to at
-least one, and caches cap/join settings. Fill and symbol constructors make
-shallow style copies: referenced colors, bitmaps and tiles remain borrowed.
-Fill/symbol contexts also borrow the graph for display and window information.
-Changing a resource or destroying its owner during drawing is not supported
-merely because the style structure was copied.</p>
-<p>PostScript stroke/symbol setup emits state immediately. SVG/PDF generally read
-cached style when drawing. In particular, PostScript’s <code class="docutils literal notranslate"><span class="pre">DashesProc</span></code> and
-<code class="docutils literal notranslate"><span class="pre">DrawSymbolProc</span></code> are dictionary definitions shared by the document. Complete
-one configured batch before another context changes them; <code class="docutils literal notranslate"><span class="pre">gsave</span></code> does not
-isolate these definitions. This differs from PDF’s local graphics-state scopes.</p>
-<p>Use <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> rather than calling the backend destructor directly.
-It unwinds explicit clips tracked by the common dispatcher, then frees the
-context. It does not finish the document, release builder resources or balance
-a separate plot-begin scope. Plot begin/end must remain paired by the caller.</p>
+<p>Each constructor allocates a short-lived renderer context borrowing the <code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code>. A PDF context requires an
+initialized PDF builder; a PostScript context requires the legacy token in <code class="docutils literal notranslate"><span class="pre">backendData</span></code>. SVG writes to the current
+export buffer. None of these constructors begins or completes a document. The export and graph must outlive all contexts
+that reference them.</p>
+<p>Stroke construction copies SVG/PDF colors and dash values, clamps width to at least one, and caches cap/join
+settings. Fill and symbol constructors make shallow style copies: referenced colors, bitmaps and tiles remain borrowed.
+Fill/symbol contexts also borrow the graph for display and window information. Changing a resource or destroying its
+owner during drawing is not supported merely because the style structure was copied.</p>
+<p>PostScript stroke/symbol setup emits state immediately. SVG/PDF generally read cached style when drawing. In particular,
+PostScript’s <code class="docutils literal notranslate"><span class="pre">DashesProc</span></code> and <code class="docutils literal notranslate"><span class="pre">DrawSymbolProc</span></code> are dictionary definitions shared by the document. Complete one
+configured batch before another context changes them; <code class="docutils literal notranslate"><span class="pre">gsave</span></code> does not isolate these definitions. This differs from
+PDF’s local graphics-state scopes.</p>
+<p>Use <a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> rather than calling the backend destructor directly. It unwinds explicit clips tracked by
+the common dispatcher, then frees the context. It does not finish the document, release builder resources or balance a
+separate plot-begin scope. Plot begin/end must remain paired by the caller.</p>
 </section>
 <section id="geometry-and-painter-order">
 <h2>Geometry and painter order<a class="headerlink" href="#geometry-and-painter-order" title="Link to this heading"></a></h2>
-<p>Primitives receive pixels with downward-increasing Y. The enclosing PDF page
-matrix converts pixels to points and reverses Y. PostScript page setup supplies
-the equivalent coordinate system. Applying this conversion again in a component
-would misplace geometry and scale stroke widths twice.</p>
-<p>PDF paths use decimal coordinates and cubic Bezier pieces of at most 90 degrees
-for elliptical arcs. The common arc dispatcher supplies finite, normalized,
-nonzero extents. Full ellipses close; partial chords close between endpoints;
-pieslices add the center before closing. PostScript constructs a scaled unit
-circle and restores the transformation matrix while retaining the path, so
-stroke widths and dashes stay in display units.</p>
-<p>PDF independent segments are emitted one at a time, each with its own solid
-background pass followed by dashed foreground when configured. This ordering
-matters at intersections. Connected polylines retain one connected path per
-pass. PostScript splits connected paths at the legacy 1500-component limit and
-restarts at the shared endpoint. Replacing either strategy with a different
-batching policy is a rendering change, not only an optimization.</p>
+<p>Primitives receive pixels with downward-increasing Y. The enclosing PDF page matrix converts pixels to points and
+reverses Y. PostScript page setup supplies the equivalent coordinate system. Applying this conversion again in a
+component would misplace geometry and scale stroke widths twice.</p>
+<p>PDF paths use decimal coordinates and cubic Bezier pieces of at most 90 degrees for elliptical arcs. The common arc
+dispatcher supplies finite, normalized, nonzero extents. Full ellipses close; partial chords close between endpoints;
+pieslices add the center before closing. PostScript constructs a scaled unit circle and restores the transformation
+matrix while retaining the path, so stroke widths and dashes stay in display units.</p>
+<p>PDF independent segments are emitted one at a time, each with its own solid background pass followed by dashed
+foreground when configured. This ordering matters at intersections. Connected polylines retain one connected path per
+pass. PostScript splits connected paths at the legacy 1500-component limit and restarts at the shared
+endpoint. Replacing either strategy with a different batching policy is a rendering change, not only an optimization.</p>
 </section>
 <section id="fills-patterns-and-resource-ownership">
 <h2>Fills, patterns and resource ownership<a class="headerlink" href="#fills-patterns-and-resource-ownership" title="Link to this heading"></a></h2>
-<p>PDF prepares fill resources before constructing the shape path. Pattern
-construction can emit temporary paths, so reversing this order can consume the
-shape intended for painting. Polygon and arc fills use the even-odd rule;
-rectangle and geometric-symbol fills use their respective ordinary fill paths.</p>
-<p><a class="reference internal" href="document-render-reference.html#c.PdfPattern" title="PdfPattern"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfPattern()</span></code></a> temporarily redirects the export buffer to a local DString,
-builds a colored tiling pattern, restores the original buffer and registers the
-pattern with the PDF builder. The builder owns copied bytes; the renderer caches
-only its resource ID. Stipples become horizontal bitmap runs over an optional
-background. Tiles use photo pixels when available, otherwise the shared Tk image
-capture helper. Tile placement accounts for the graph’s offsets within its
+<p>PDF prepares fill resources before constructing the shape path. Pattern construction can emit temporary paths, so
+reversing this order can consume the shape intended for painting. Polygon and arc fills use the even-odd rule; rectangle
+and geometric-symbol fills use their respective ordinary fill paths.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.PdfPattern" title="PdfPattern"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfPattern()</span></code></a> temporarily redirects the export buffer to a local DString, builds a colored tiling pattern,
+restores the original buffer and registers the pattern with the PDF builder. The builder owns copied bytes; the renderer
+caches only its resource ID. Stipples become horizontal bitmap runs over an optional background. Tiles use photo pixels
+when available, otherwise the shared Tk image capture helper. Tile placement accounts for the graph’s offsets within its
 containing toplevel; pattern matrices also include page scale and Y reversal.</p>
-<p><a class="reference internal" href="reference.html#c.Rbc_RenderSetFillTile" title="Rbc_RenderSetFillTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSetFillTile()</span></code></a> borrows the new tile and invalidates the cached pattern
-ID for SVG/PDF. Existing document resources remain owned by the export. Other
-style mutation is not a general cache-invalidation API: construct another fill
-context when changing the style.</p>
-<p>PDF fill opacity below one uses a nonstroking alpha resource. Nonpositive
-opacity suppresses filling. PostScript retains its legacy foreground/background
-and stipple behavior; it does not gain alpha or image-tile support from sharing
-the interface. Its rectangle and polygon paths also retain different fallback
-rules. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> before attempting to unify them.</p>
+<p><a class="reference internal" href="reference.html#c.Rbc_RenderSetFillTile" title="Rbc_RenderSetFillTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderSetFillTile()</span></code></a> borrows the new tile and invalidates the cached pattern ID for SVG/PDF. Existing
+document resources remain owned by the export. Other style mutation is not a general cache-invalidation API: construct
+another fill context when changing the style.</p>
+<p>PDF fill opacity below one uses a nonstroking alpha resource. Nonpositive opacity suppresses filling. PostScript retains
+its legacy foreground/background and stipple behavior; it does not gain alpha or image-tile support from sharing the
+interface. Its rectangle and polygon paths also retain different fallback rules. See <a class="reference internal" href="postscript-output.html"><span class="doc">PostScript output and drawing state</span></a> before
+attempting to unify them.</p>
 </section>
 <section id="images-and-masks">
 <h2>Images and masks<a class="headerlink" href="#images-and-masks" title="Link to this heading"></a></h2>
@@ -1318,67 +1303,52 @@ rules. See <a class="reference internal" href="postscript-output.html"><span cla
 </tr>
 </tbody>
 </table>
-<p>Photo conversion respects Tk pitch, pixel size and channel offsets. A distinct
-alpha channel contributes an SMask only if at least one pixel is nonopaque.
-Resource registration copies bytes, so neither the photo block nor the capture
-must remain alive after registration. The image-use matrix corrects raster Y
-orientation independently of the enclosing page matrix.</p>
-<p>The shared non-photo capture helper renders the image over black and white.
-It estimates alpha from the largest per-channel difference, then unpremultiplies
-the black capture. It releases its pixmap, GC and second capture and returns one
-owned color image. This approximates conventional alpha compositing; it cannot
-recover arbitrary custom image drawing semantics. Deleted or zero-sized images
-are omitted, whereas pixmap/capture failures record export errors.</p>
-<p>Window export captures the current mapped window; it does not create a hidden
-widget layout or a clipping container. The component/export policy determines
-whether to request capture. PostScript deliberately omits generic non-photo
-Tk images and uses its legacy photo/window emitters for the other cases.</p>
+<p>Photo conversion respects Tk pitch, pixel size and channel offsets. A distinct alpha channel contributes an SMask only
+if at least one pixel is nonopaque. Resource registration copies bytes, so neither the photo block nor the capture must
+remain alive after registration. The image-use matrix corrects raster Y orientation independently of the enclosing page
+matrix.</p>
+<p>The shared non-photo capture helper renders the image over black and white. It estimates alpha from the largest
+per-channel difference, then unpremultiplies the black capture. It releases its pixmap, GC and second capture and
+returns one owned color image. This approximates conventional alpha compositing; it cannot recover arbitrary custom
+image drawing semantics. Deleted or zero-sized images are omitted, whereas pixmap/capture failures record export errors.</p>
+<p>Window export captures the current mapped window; it does not create a hidden widget layout or a clipping container. The
+component/export policy determines whether to request capture. PostScript deliberately omits generic non-photo Tk images
+and uses its legacy photo/window emitters for the other cases.</p>
 </section>
 <section id="text-borders-and-symbols">
 <h2>Text, borders and symbols<a class="headerlink" href="#text-borders-and-symbols" title="Link to this heading"></a></h2>
-<p>PDF text obtains an owned layout, resolves document font characters and adjusts
-zero-width Tk measurements only when the fallback glyph has a positive advance.
-It recomputes justification before anchoring and rotating the layout. Shadow is
-painted before normal/active foreground. Glyph placement combines Tk prefix
-advances with fallback corrections; this emitter is not an independent shaping
-engine. See <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a> for font selection and embedding and
+<p>PDF text obtains an owned layout, resolves document font characters and adjusts zero-width Tk measurements only when the
+fallback glyph has a positive advance. It recomputes justification before anchoring and rotating the layout. Shadow is
+painted before normal/active foreground. Glyph placement combines Tk prefix advances with fallback corrections; this
+emitter is not an independent shaping engine. See <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a> for font selection and embedding and
 <a class="reference internal" href="pdf-builder.html"><span class="doc">PDF resource builder and serialization</span></a> for finalization of reserved font resources.</p>
-<p>PDF relief borders use Tk’s lazily initialized border colors and paint solid
-rectangles plus a polygon. Groove/ridge compose two smaller reliefs. Clearing a
-PDF rectangle paints opaque white; it does not restore transparency. These
+<p>PDF relief borders use Tk’s lazily initialized border colors and paint solid rectangles plus a polygon. Groove/ridge
+compose two smaller reliefs. Clearing a PDF rectangle paints opaque white; it does not restore transparency. These
 operations do not acquire ownership of the Tk border or colors.</p>
-<p>Symbol batches preserve legacy per-shape size corrections and rounding.
-Geometric symbols fill before outlining, skinny plus/cross symbols only stroke,
-and bitmap symbols preserve aspect ratio. PDF reads bitmap/mask XImages once
-per batch and rejects mismatched mask dimensions when the mask is used. Bar
-legend samples use unscaled squares with the fill context. PostScript instead
-configures prolog macros; its validity requirements and fallback behavior must
-be reviewed separately from PDF’s checks.</p>
+<p>Symbol batches preserve legacy per-shape size corrections and rounding. Geometric symbols fill before outlining, skinny
+plus/cross symbols only stroke, and bitmap symbols preserve aspect ratio. PDF reads bitmap/mask XImages once per batch
+and rejects mismatched mask dimensions when the mask is used. Bar legend samples use unscaled squares with the fill
+context. PostScript instead configures prolog macros; its validity requirements and fallback behavior must be reviewed
+separately from PDF’s checks.</p>
 </section>
 <section id="errors-and-callback-boundaries">
 <h2>Errors and callback boundaries<a class="headerlink" href="#errors-and-callback-boundaries" title="Link to this heading"></a></h2>
-<p>Most emitters return void. A zero resource ID or false fill result is not a
-complete export status: empty/disabled content can be omitted normally, while
-other failures record an error on the export. Partial output must be discarded
-when the enclosing export fails. Temporary content buffers must be restored even
-when resource creation fails; renderer destruction alone cannot repair an
-unbalanced graphics scope or finish a partially emitted document.</p>
-<p>These functions run on the Tk interpreter’s thread and borrow live Tk resources.
-Ordinary append-only geometry does not evaluate Tcl scripts, but image display
-procedures and legacy token helpers can cross external callback boundaries.
-The non-photo raster helper checks image validity at entry but does not retain
-or revalidate all borrowed resources across arbitrary custom image display
-callbacks. Do not infer protection against such destructive reentry from the
-export command’s graph guard. This documentation patch does not change that
-behavior or the public C API.</p>
+<p>Most emitters return void. A zero resource ID or false fill result is not a complete export status: empty/disabled
+content can be omitted normally, while other failures record an error on the export. Partial output must be discarded
+when the enclosing export fails. Temporary content buffers must be restored even when resource creation fails; renderer
+destruction alone cannot repair an unbalanced graphics scope or finish a partially emitted document.</p>
+<p>These functions run on the Tk interpreter’s thread and borrow live Tk resources. Ordinary append-only geometry does not
+evaluate Tcl scripts, but image display procedures and legacy token helpers can cross external callback boundaries. The
+non-photo raster helper checks image validity at entry but does not retain or revalidate all borrowed resources across
+arbitrary custom image display callbacks. Do not infer protection against such destructive reentry from the export
+command’s graph guard. This documentation patch does not change that behavior or the public C API.</p>
 </section>
 <section id="backend-parameter-and-scope-contracts">
 <h2>Backend parameter and scope contracts<a class="headerlink" href="#backend-parameter-and-scope-contracts" title="Link to this heading"></a></h2>
-<p>The references describe mapped coordinates in display pixels, counts in geometry
-records and raster lengths in bytes. These units are not interchangeable.
-<a class="reference internal" href="document-render-reference.html#c.PdfPath" title="PdfPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfPath()</span></code></a> appends geometry without painting; <a class="reference internal" href="svg-reference.html#c.SvgArcPath" title="SvgArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgArcPath()</span></code></a> opens an
-XML path that its caller must finish; <a class="reference internal" href="document-render-reference.html#c.PostScriptArcPath" title="PostScriptArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">PostScriptArcPath()</span></code></a> leaves a path
-for a subsequent stroke or fill. None performs data-axis mapping.</p>
+<p>The references describe mapped coordinates in display pixels, counts in geometry records and raster lengths in
+bytes. These units are not interchangeable. <a class="reference internal" href="document-render-reference.html#c.PdfPath" title="PdfPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfPath()</span></code></a> appends geometry without painting; <a class="reference internal" href="svg-reference.html#c.SvgArcPath" title="SvgArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgArcPath()</span></code></a>
+opens an XML path that its caller must finish; <a class="reference internal" href="document-render-reference.html#c.PostScriptArcPath" title="PostScriptArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">PostScriptArcPath()</span></code></a> leaves a path for a subsequent stroke or
+fill. None performs data-axis mapping.</p>
 <table class="docutils align-default" id="id2">
 <caption><span class="caption-text">Format-specific state policies</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
 <colgroup>
@@ -1418,42 +1388,33 @@ for a subsequent stroke or fill. None performs data-axis mapping.</p>
 </tr>
 </tbody>
 </table>
-<p>The color row describes the low-level color helpers, not a universal rule for
-all primitives: individual polygon, rectangle and background callbacks have
-additional omission or fallback policies. Plot scopes are separate from explicit
-clip depth. Pair <a class="reference internal" href="svg-reference.html#c.SvgPlotBegin" title="SvgPlotBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPlotBegin()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.PdfPlotBegin" title="PdfPlotBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfPlotBegin()</span></code></a> or
-<a class="reference internal" href="document-render-reference.html#c.PostScriptPlotBegin" title="PostScriptPlotBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">PostScriptPlotBegin()</span></code></a> with its matching plot-end callback before ending
-the renderer context.</p>
-<p>Raster inputs stay borrowed. <a class="reference internal" href="document-render-reference.html#c.PdfPhotoResource" title="PdfPhotoResource"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfPhotoResource()</span></code></a> copies pixels into
-document resources, while <a class="reference internal" href="document-render-reference.html#c.PdfImageUse" title="PdfImageUse"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfImageUse()</span></code></a> places the resulting object ID.
-<a class="reference internal" href="svg-reference.html#c.SvgPhotoBlock" title="SvgPhotoBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a> emits an inline PNG using <a class="reference internal" href="svg-reference.html#c.SvgPngChunk" title="SvgPngChunk"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPngChunk()</span></code></a> and
-<a class="reference internal" href="svg-reference.html#c.SvgBase64" title="SvgBase64"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgBase64()</span></code></a>. Byte-count and channel-layout requirements remain the
-caller’s responsibility even where helpers check size limits. Returned resource
-IDs and handled flags do not replace the export document’s error status.</p>
+<p>The color row describes the low-level color helpers, not a universal rule for all primitives: individual polygon,
+rectangle and background callbacks have additional omission or fallback policies. Plot scopes are separate from explicit
+clip depth. Pair <a class="reference internal" href="svg-reference.html#c.SvgPlotBegin" title="SvgPlotBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPlotBegin()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.PdfPlotBegin" title="PdfPlotBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfPlotBegin()</span></code></a> or <a class="reference internal" href="document-render-reference.html#c.PostScriptPlotBegin" title="PostScriptPlotBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">PostScriptPlotBegin()</span></code></a> with its matching
+plot-end callback before ending the renderer context.</p>
+<p>Raster inputs stay borrowed. <a class="reference internal" href="document-render-reference.html#c.PdfPhotoResource" title="PdfPhotoResource"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfPhotoResource()</span></code></a> copies pixels into document resources, while
+<a class="reference internal" href="document-render-reference.html#c.PdfImageUse" title="PdfImageUse"><code class="xref c c-func docutils literal notranslate"><span class="pre">PdfImageUse()</span></code></a> places the resulting object ID. <a class="reference internal" href="svg-reference.html#c.SvgPhotoBlock" title="SvgPhotoBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a> emits an inline PNG using
+<a class="reference internal" href="svg-reference.html#c.SvgPngChunk" title="SvgPngChunk"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPngChunk()</span></code></a> and <a class="reference internal" href="svg-reference.html#c.SvgBase64" title="SvgBase64"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgBase64()</span></code></a>. Byte-count and channel-layout requirements remain the caller’s
+responsibility even where helpers check size limits. Returned resource IDs and handled flags do not replace the export
+document’s error status.</p>
 </section>
 <section id="shared-backend-setup">
 <h2>Shared backend setup<a class="headerlink" href="#shared-backend-setup" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreatePdf" title="Rbc_RenderCreatePdf"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreatePdf()</span></code></a> and
-<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreatePostscript" title="Rbc_RenderCreatePostscript"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreatePostscript()</span></code></a> allocate operation contexts without creating
-a document. The initialized export token remains borrowed. A PDF builder or
-PostScript token must be ready before the first drawing operation. These
-constructors are internal building blocks; component code normally uses the
-style-aware constructors in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>.</p>
-<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportLineStyle" title="Rbc_RenderExportLineStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportLineStyle()</span></code></a> caches cap/join settings and
-<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportDashBackground" title="Rbc_RenderExportDashBackground"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportDashBackground()</span></code></a> copies an optional color for SVG/PDF.
-The corresponding PostScript setup is immediate:
-<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptStroke" title="Rbc_RenderPostscriptStroke"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptStroke()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptSymbol" title="Rbc_RenderPostscriptSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptSymbol()</span></code></a> and
-<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptBarSymbol" title="Rbc_RenderPostscriptBarSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptBarSymbol()</span></code></a> emit attributes or procedure definitions.
-The style pointers do not transfer ownership of colors or bitmaps.</p>
-<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportRasterImage" title="Rbc_RenderExportRasterImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportRasterImage()</span></code></a> returns a caller-owned color image; NULL
-can mean ordinary omission or capture failure, so also inspect the document
-error state. <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportSymbolRound" title="Rbc_RenderExportSymbolRound"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportSymbolRound()</span></code></a> preserves legacy rounding
-halfway away from zero and requires a finite value whose adjusted result fits
-an int. Neither helper is a general input-validation boundary.</p>
-<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportEnd" title="Rbc_RenderExportEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportEnd()</span></code></a> only frees the context allocation. Call
-<a class="reference internal" href="reference.html#c.Rbc_RenderEnd" title="Rbc_RenderEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderEnd()</span></code></a> to unwind tracked clips first, and finish the separate
-plot scope before doing so. Backend resources and document buffers remain the
-export owner’s responsibility.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a>, <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreatePdf" title="Rbc_RenderCreatePdf"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreatePdf()</span></code></a> and func:<cite>Rbc_RenderCreatePostscript</cite> allocate operation
+:c:contexts without creating a document. The initialized export token remains borrowed. A PDF builder or PostScript
+:c:token must be ready before the first drawing operation. These constructors are internal building blocks; component
+:c:code normally uses the style-aware constructors in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportLineStyle" title="Rbc_RenderExportLineStyle"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportLineStyle()</span></code></a> caches cap/join settings and func:<cite>Rbc_RenderExportDashBackground</cite> copies an
+:c:optional color for SVG/PDF. The corresponding PostScript setup is immediate: func:<cite>Rbc_RenderPostscriptStroke</cite>,
+:c:<a class="reference internal" href="document-render-reference.html#c.Rbc_RenderPostscriptSymbol" title="Rbc_RenderPostscriptSymbol"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderPostscriptSymbol()</span></code></a> and func:<cite>Rbc_RenderPostscriptBarSymbol</cite> emit attributes or procedure
+:c:definitions. The style pointers do not transfer ownership of colors or bitmaps.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportRasterImage" title="Rbc_RenderExportRasterImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportRasterImage()</span></code></a> returns a caller-owned color image; NULL can mean ordinary omission or capture
+failure, so also inspect the document error state. <a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportSymbolRound" title="Rbc_RenderExportSymbolRound"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportSymbolRound()</span></code></a> preserves legacy rounding
+halfway away from zero and requires a finite value whose adjusted result fits an int. Neither helper is a general
+input-validation boundary.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderExportEnd" title="Rbc_RenderExportEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderExportEnd()</span></code></a> only frees the context allocation. Call func:<cite>Rbc_RenderEnd</cite> to unwind tracked clips
+:c:first, and finish the separate plot scope before doing so. Backend resources and document buffers remain the export
+:c:owner’s responsibility.</p>
 </section>
 </section>
 

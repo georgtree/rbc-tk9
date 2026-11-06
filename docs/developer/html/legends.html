@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,101 +1215,79 @@
              
   <section id="legend-ownership-and-layout">
 <h1>Legend ownership and layout<a class="headerlink" href="#legend-ownership-and-layout" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrLegd.c</span></code> implements the global legend, optional external legend window
-and track-local legends. They share entry measurement and drawing machinery,
-but differ in ownership, placement and event routing. <code class="docutils literal notranslate"><span class="pre">rbcGrLegd.h</span></code> exposes
-an opaque legend type and shared services. See <a class="reference internal" href="legend-reference.html"><span class="doc">Legend C reference</span></a> for
-the complete function reference.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrLegd.c</span></code> implements the global legend, optional external legend window and track-local legends. They share entry
+measurement and drawing machinery, but differ in ownership, placement and event routing. <code class="docutils literal notranslate"><span class="pre">rbcGrLegd.h</span></code> exposes an
+opaque legend type and shared services. See <a class="reference internal" href="legend-reference.html"><span class="doc">Legend C reference</span></a> for the complete function reference.</p>
 <section id="entries-and-geometry">
 <h2>Entries and geometry<a class="headerlink" href="#entries-and-geometry" title="Link to this heading"></a></h2>
-<p>A legend presents elements from the graph’s display list rather than owning
-duplicate element records. An element without a label has no entry. A local
-legend additionally filters for elements belonging to its track; the global
-legend does not apply that track filter. Plot visibility and legend membership
-are separate concerns, so do not remove an entry merely because its trace is
-not currently painted.</p>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLayout.Rbc_MapLegend" title="rbcGrLegendLayout.Rbc_MapLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLayout.Rbc_MapLegend()</span></code></a> resets its cached entry counts and dimensions before measuring
-labels, symbols, borders and padding. Hidden legends or unusable available
-sizes yield no displayed layout. An external legend can use its actual window
-dimensions instead of the supplied plot dimensions.</p>
-<p>Single-row layouts use individually measured entry widths. Multi-row layouts
-retain uniform cell sizing based on the maximum entry size. Top and bottom
-placement can select a single row when its summed widths fit. Drawing and
-picking must agree on these widths; using a uniform column index for a compact
-single row would select the wrong element.</p>
-<p>Mapping computes dimensions, while <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLayout.SetLegendOrigin" title="rbcGrLegendLayout.SetLegendOrigin"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLayout.SetLegendOrigin()</span></code></a> computes placement.
-Local legends are mapped after track rectangles are available and do not add
-graph margins. Their available size comes from the full track world rectangle,
-so partial scrolling must not reflow the legend into only the visible remnant.
-See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for full and visible track geometry.</p>
+<p>A legend presents elements from the graph’s display list rather than owning duplicate element records. An element
+without a label has no entry. A local legend additionally filters for elements belonging to its track; the global legend
+does not apply that track filter. Plot visibility and legend membership are separate concerns, so do not remove an entry
+merely because its trace is not currently painted.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLayout.Rbc_MapLegend" title="rbcGrLegendLayout.Rbc_MapLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLayout.Rbc_MapLegend()</span></code></a> resets its cached entry counts and dimensions before measuring labels,
+symbols, borders and padding. Hidden legends or unusable available sizes yield no displayed layout. An external legend
+can use its actual window dimensions instead of the supplied plot dimensions.</p>
+<p>Single-row layouts use individually measured entry widths. Multi-row layouts retain uniform cell sizing based on the
+maximum entry size. Top and bottom placement can select a single row when its summed widths fit. Drawing and picking
+must agree on these widths; using a uniform column index for a compact single row would select the wrong element.</p>
+<p>Mapping computes dimensions, while <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLayout.SetLegendOrigin" title="rbcGrLegendLayout.SetLegendOrigin"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLayout.SetLegendOrigin()</span></code></a> computes placement. Local legends are
+mapped after track rectangles are available and do not add graph margins. Their available size comes from the full track
+world rectangle, so partial scrolling must not reflow the legend into only the visible remnant. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for
+full and visible track geometry.</p>
 </section>
 <section id="drawing-and-picking">
 <h2>Drawing and picking<a class="headerlink" href="#drawing-and-picking" title="Link to this heading"></a></h2>
-<p>Normal legend drawing uses mapped entries, positions the legend and draws
-symbols through the concrete element’s symbol callback. Legend samples are
-separate from plotted element geometry. Screen drawing and export have separate
-entry points; track export wraps the local legend in a visible-track clip.
-Track dispatch also selects the requested raised or non-raised layer and skips
-collapsed visible track regions.</p>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendContains" title="rbcGrLegendBindings.LegendContains"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendContains()</span></code></a> checks hidden state, mapped entries and legend bounds. For
-local legends it first restricts the point to the visible track rectangle.
-<a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendAtPoint" title="rbcGrLegendBindings.LegendAtPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendAtPoint()</span></code></a> searches raised legends before non-raised legends, checking
-the global in-widget legend before local legends within each layer. An external
-legend is excluded from this in-widget overlap search.</p>
-<p>Binding dispatch returns the selected element as the object and the owning
-legend as context. The context matters: the same element may have an entry in
-both global and local legends. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for generic dispatch and
-callback lifetime.</p>
-<p>Local legends share <code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;trackLegendBindings</span></code> for event routing, created
-when first needed. Each local legend owns a tag table providing separate binding
-identities. Destroying one local legend removes its tag bindings but must not
-destroy the shared binding table while other local legends still use it.
-The global legend has its own binding table.</p>
+<p>Normal legend drawing uses mapped entries, positions the legend and draws symbols through the concrete element’s symbol
+callback. Legend samples are separate from plotted element geometry. Screen drawing and export have separate entry
+points; track export wraps the local legend in a visible-track clip. Track dispatch also selects the requested raised
+or non-raised layer and skips collapsed visible track regions.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendContains" title="rbcGrLegendBindings.LegendContains"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendContains()</span></code></a> checks hidden state, mapped entries and legend bounds. For local legends it
+first restricts the point to the visible track rectangle. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendAtPoint" title="rbcGrLegendBindings.LegendAtPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendAtPoint()</span></code></a> searches raised
+legends before non-raised legends, checking the global in-widget legend before local legends within each layer. An
+external legend is excluded from this in-widget overlap search.</p>
+<p>Binding dispatch returns the selected element as the object and the owning legend as context. The context matters: the
+same element may have an entry in both global and local legends. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for generic dispatch and callback
+lifetime.</p>
+<p>Local legends share <code class="docutils literal notranslate"><span class="pre">graphPtr-&gt;trackLegendBindings</span></code> for event routing, created when first needed. Each local legend
+owns a tag table providing separate binding identities. Destroying one local legend removes its tag bindings but must
+not destroy the shared binding table while other local legends still use it. The global legend has its own binding
+table.</p>
 </section>
 <section id="external-window-and-redraw">
 <h2>External window and redraw<a class="headerlink" href="#external-window-and-redraw" title="Link to this heading"></a></h2>
 <p>An external global legend has its own window, command and event handler.
-<a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.Rbc_RedrawExternalLegend" title="rbcGrLegendLifetime.Rbc_RedrawExternalLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.Rbc_RedrawExternalLegend()</span></code></a> schedules its independent idle draw when it exists
-and its resources are still valid. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.EventuallyRedrawLegend" title="rbcGrLegendLifetime.EventuallyRedrawLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.EventuallyRedrawLegend()</span></code></a> coalesces requests
-using <code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code>; scheduling is not immediate painting.</p>
-<p>The idle callback clears the pending flag, checks window existence, and for an
-external legend remaps when its actual dimensions differ from cached legend
-dimensions. It skips unmapped windows and windows too small to draw. Changes
-to graph layout alone do not substitute for this external redraw path.
-Font-change handling resets legend text styles and also requests external
-redisplay when applicable.</p>
-<p>An external legend window is owned by the legend machinery. Final destruction
-removes its event handler and instance-data association, deletes its command,
-and destroys the window after clearing stored handles. Code that changes
-external placement must account for all these associations, not just the
-<code class="docutils literal notranslate"><span class="pre">Tk_Window</span></code> pointer.</p>
+<a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.Rbc_RedrawExternalLegend" title="rbcGrLegendLifetime.Rbc_RedrawExternalLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.Rbc_RedrawExternalLegend()</span></code></a> schedules its independent idle draw when it exists and its
+resources are still valid. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.EventuallyRedrawLegend" title="rbcGrLegendLifetime.EventuallyRedrawLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.EventuallyRedrawLegend()</span></code></a> coalesces requests using
+<code class="docutils literal notranslate"><span class="pre">REDRAW_PENDING</span></code>; scheduling is not immediate painting.</p>
+<p>The idle callback clears the pending flag, checks window existence, and for an external legend remaps when its actual
+dimensions differ from cached legend dimensions. It skips unmapped windows and windows too small to draw. Changes to
+graph layout alone do not substitute for this external redraw path. Font-change handling resets legend text styles and
+also requests external redisplay when applicable.</p>
+<p>An external legend window is owned by the legend machinery. Final destruction removes its event handler and
+instance-data association, deletes its command, and destroys the window after clearing stored handles. Code that changes
+external placement must account for all these associations, not just the <code class="docutils literal notranslate"><span class="pre">Tk_Window</span></code> pointer.</p>
 </section>
 <section id="resource-teardown">
 <h2>Resource teardown<a class="headerlink" href="#resource-teardown" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources" title="rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources()</span></code></a> visits local and global legends while the graph
-window remains valid. It cancels pending idle callbacks, releases the text
-style’s graphics context and the separately allocated shadow color, then frees
-Tk option resources and the option table. Release guards prevent duplicate
-cleanup. In-widget legends stop retaining the graph’s window pointer; an
-external window has its own remaining lifetime.</p>
-<p>Final destruction frees legend records and binding state. Local destruction
-clears the track’s legend pointer and removes its tag keys. Global destruction
-also destroys the shared track-legend binding table, so local legends must be
-cleaned up before that shared routing infrastructure disappears. See
-<a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the enclosing teardown sequence.</p>
-<p>Regression coverage should include differently sized labels in one row,
-multi-row picking, entries appearing in both global and local legends,
-raised-layer overlap, partial track scrolling, external window resize and
-pending redraw cancellation during destruction. Export checks should cover
-local clips as well as restoration after a temporary resized layout.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources" title="rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.Rbc_ReleaseLegendTkResources()</span></code></a> visits local and global legends while the graph window
+remains valid. It cancels pending idle callbacks, releases the text style’s graphics context and the separately
+allocated shadow color, then frees Tk option resources and the option table. Release guards prevent duplicate
+cleanup. In-widget legends stop retaining the graph’s window pointer; an external window has its own remaining lifetime.</p>
+<p>Final destruction frees legend records and binding state. Local destruction clears the track’s legend pointer and
+removes its tag keys. Global destruction also destroys the shared track-legend binding table, so local legends must be
+cleaned up before that shared routing infrastructure disappears. See <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> for the enclosing teardown
+sequence.</p>
+<p>Regression coverage should include differently sized labels in one row, multi-row picking, entries appearing in both
+global and local legends, raised-layer overlap, partial track scrolling, external window resize and pending redraw
+cancellation during destruction. Export checks should cover local clips as well as restoration after a temporary resized
+layout.</p>
 </section>
 <section id="record-and-construction-boundaries">
 <h2>Record and construction boundaries<a class="headerlink" href="#record-and-construction-boundaries" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">LegendStruct</span></code> owns configuration and cached geometry, not a separate list
-of entry objects. Its graph and optional track pointers are borrowed. Element
-records, labels and symbol methods stay with the graph. The distinction matters
-when an element appears in both a global and local legend: there are two layout
-contexts, but only one element and one <code class="docutils literal notranslate"><span class="pre">LABEL_ACTIVE</span></code> flag.</p>
+<p><code class="docutils literal notranslate"><span class="pre">LegendStruct</span></code> owns configuration and cached geometry, not a separate list of entry objects. Its graph and optional
+track pointers are borrowed. Element records, labels and symbol methods stay with the graph. The distinction matters
+when an element appears in both a global and local legend: there are two layout contexts, but only one element and one
+<code class="docutils literal notranslate"><span class="pre">LABEL_ACTIVE</span></code> flag.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Ownership by legend kind</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <thead>
@@ -1341,55 +1320,46 @@ contexts, but only one element and one <code class="docutils literal notranslate
 </tbody>
 </table>
 <p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.Rbc_CreateLegend" title="rbcGrLegendConfiguration.Rbc_CreateLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.Rbc_CreateLegend()</span></code></a> initializes the <code class="docutils literal notranslate"><span class="pre">legend</span></code>/<code class="docutils literal notranslate"><span class="pre">Legend</span></code> option-database
-component. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend" title="rbcGrLegendConfiguration.Rbc_CreateTrackLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.Rbc_CreateTrackLegend()</span></code></a> initializes <code class="docutils literal notranslate"><span class="pre">trackLegend</span></code>/<code class="docutils literal notranslate"><span class="pre">TrackLegend</span></code>
-and lazily creates the graph-owned local binding table. Both constructors
-install their owner pointer before initializing options, so failure cleanup
-must clear it. A local creation failure retains the shared table for the graph.
-They assume no existing legend at their destination; they are not replacements.</p>
-<p>Local option specifications inherit global styling and override defaults to
-hidden, plotarea, northeast anchor and raised. These defaults keep local legends
-opt-in. A shared option table definition does not imply shared configured
+component. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.Rbc_CreateTrackLegend" title="rbcGrLegendConfiguration.Rbc_CreateTrackLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.Rbc_CreateTrackLegend()</span></code></a> initializes <code class="docutils literal notranslate"><span class="pre">trackLegend</span></code>/<code class="docutils literal notranslate"><span class="pre">TrackLegend</span></code> and
+lazily creates the graph-owned local binding table. Both constructors install their owner pointer before initializing
+options, so failure cleanup must clear it. A local creation failure retains the shared table for the graph. They assume
+no existing legend at their destination; they are not replacements.</p>
+<p>Local option specifications inherit global styling and override defaults to hidden, plotarea, northeast anchor and
+raised. These defaults keep local legends opt-in. A shared option table definition does not imply shared configured
 values: each legend has its own record and Tk option resources.</p>
 </section>
 <section id="configuration-transaction">
 <h2>Configuration transaction<a class="headerlink" href="#configuration-transaction" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendCommands.ConfigureOp" title="rbcGrLegendCommands.ConfigureOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendCommands.ConfigureOp()</span></code></a> handles both option queries and updates. Updates install
-candidate fields with <code class="docutils literal notranslate"><span class="pre">Tk_SetOptions</span></code> and retain <code class="docutils literal notranslate"><span class="pre">Tk_SavedOptions</span></code>.
-<a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.ConfigureLegend" title="rbcGrLegendConfiguration.ConfigureLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.ConfigureLegend()</span></code></a> then validates and stages derived state:</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendCommands.ConfigureOp" title="rbcGrLegendCommands.ConfigureOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendCommands.ConfigureOp()</span></code></a> handles both option queries and updates. Updates install candidate fields with
+<code class="docutils literal notranslate"><span class="pre">Tk_SetOptions</span></code> and retain <code class="docutils literal notranslate"><span class="pre">Tk_SavedOptions</span></code>. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendConfiguration.ConfigureLegend" title="rbcGrLegendConfiguration.ConfigureLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendConfiguration.ConfigureLegend()</span></code></a> then validates and
+stages derived state:</p>
 <ol class="arabic simple">
 <li><p>Check nonnegative entry/outer border widths and requested row/column counts.</p></li>
 <li><p>Parse interior and exterior padding into temporary structures.</p></li>
 <li><p>Acquire a candidate shadow color and parse the requested position.</p></li>
-<li><p>Prepare a new external window and command if required, while the existing
-external window is still intact.</p></li>
-<li><p>Commit padding/shadow and placement, reset text style as needed, and request
-graph layout and/or legend redisplay according to the option mask.</p></li>
+<li><p>Prepare a new external window and command if required, while the existing external window is still intact.</p></li>
+<li><p>Commit padding/shadow and placement, reset text style as needed, and request graph layout and/or legend redisplay
+according to the option mask.</p></li>
 </ol>
-<p>Failure frees staged resources; the command wrapper restores saved Tk fields
-and preserves the diagnostic. Success frees saved options. Keeping fallible
-validation before commit prevents restored Tcl options from describing stale
-derived resources. This is ordinary configuration rollback, not isolation from
-application side effects during Tcl evaluation or Tk window destruction.</p>
-<p>Global placement accepts nonempty keyword prefixes, an empty value selecting
-rightmargin, a dot-prefixed external window path, or <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. The two coordinate
-parts are Tcl long expressions, not merely decimal literals. Parsing them can
-execute Tcl. The temporary <code class="docutils literal notranslate"><span class="pre">LegendPosition.windowName</span></code> borrows the option
-object’s string and must not outlive it. Local placement uses exact names
-<code class="docutils literal notranslate"><span class="pre">plotarea</span></code>, <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code>, <code class="docutils literal notranslate"><span class="pre">top</span></code> and <code class="docutils literal notranslate"><span class="pre">bottom</span></code>; it rejects coordinates
+<p>Failure frees staged resources; the command wrapper restores saved Tk fields and preserves the diagnostic. Success frees
+saved options. Keeping fallible validation before commit prevents restored Tcl options from describing stale derived
+resources. This is ordinary configuration rollback, not isolation from application side effects during Tcl evaluation or
+Tk window destruction.</p>
+<p>Global placement accepts nonempty keyword prefixes, an empty value selecting rightmargin, a dot-prefixed external window
+path, or <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code>. The two coordinate parts are Tcl long expressions, not merely decimal literals. Parsing them can
+execute Tcl. The temporary <code class="docutils literal notranslate"><span class="pre">LegendPosition.windowName</span></code> borrows the option object’s string and must not outlive
+it. Local placement uses exact names <code class="docutils literal notranslate"><span class="pre">plotarea</span></code>, <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code>, <code class="docutils literal notranslate"><span class="pre">top</span></code> and <code class="docutils literal notranslate"><span class="pre">bottom</span></code>; it rejects coordinates
 and external windows.</p>
-<p>Configuration and nested track dispatch borrow their owners across operations
-that can invoke application code. They do not themselves establish a preservation
-boundary around arbitrary coordinate-expression or layout callbacks. Do not
+<p>Configuration and nested track dispatch borrow their owners across operations that can invoke application code. They do
+not themselves establish a preservation boundary around arbitrary coordinate-expression or layout callbacks. Do not
 infer callback deletion safety from successful option rollback.</p>
 </section>
 <section id="detailed-layout-rules">
 <h2>Detailed layout rules<a class="headerlink" href="#detailed-layout-rules" title="Link to this heading"></a></h2>
-<p>Measurement, drawing, export and picking traverse the display list from its
-last link backwards. All use the same label/track membership filter. A hidden
-trace can still have an entry; the legend’s own hidden flag suppresses its layout.
-Symbol space derives from font ascent, not from the largest plotted symbol.
-The cell inset includes symbol space, entry border, internal padding and the
-fixed label gap.</p>
+<p>Measurement, drawing, export and picking traverse the display list from its last link backwards. All use the same
+label/track membership filter. A hidden trace can still have an entry; the legend’s own hidden flag suppresses its
+layout. Symbol space derives from font ascent, not from the largest plotted symbol. The cell inset includes symbol
+space, entry border, internal padding and the fixed label gap.</p>
 <p>Layout chooses row/column counts as follows:</p>
 <table class="docutils align-default" id="id2">
 <caption><span class="caption-text">Requested grid dimensions</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
@@ -1416,119 +1386,97 @@ fixed label gap.</p>
 </tr>
 </tbody>
 </table>
-<p>The both-specified case does not enlarge an undersized grid to guarantee enough
-cells. Drawing still walks eligible entries; do not treat requested row/column
-product as a validated entry capacity. Single-row finalization always sets the
-column count to the number of entries and uses summed individual widths.</p>
-<p>Entries fill down a column before advancing to the next. Grid picking computes
-<code class="docutils literal notranslate"><span class="pre">column</span> <span class="pre">*</span> <span class="pre">nRows</span> <span class="pre">+</span> <span class="pre">row</span></code> with an overflow check, while single-row picking
-subtracts individual widths in traversal order. Empty final cells return no
-entry. A new layout path must preserve this order in all four consumers.</p>
-<p>Sizing checks use wide arithmetic and reject dimensions that cannot fit an
-<code class="docutils literal notranslate"><span class="pre">int</span></code>. Oversized single-row sums saturate to a sentinel so a multi-row layout
-can still be considered. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLayout.GetLegendPixelDimension" title="rbcGrLegendLayout.GetLegendPixelDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLayout.GetLegendPixelDimension()</span></code></a> checks the border/padding
-base before multiplying cell count by cell size. Rejected layouts leave the
-reset counts and dimensions empty; they do not raise a Tcl error.</p>
-<p>Positioning is separate from measurement. Global margin sites use remaining
-margin space after axis offsets; top placement also accounts for the graph
-title. Explicit negative X/Y values are relative to the graph window extent.
-Local sites use full world bounds, anchoring to an edge or the whole track.
-External placement forces origin zero and the northwest anchor. The public-to-
-other-modules accessors simply read cached fields; they do not make layout current.</p>
+<p>The both-specified case does not enlarge an undersized grid to guarantee enough cells. Drawing still walks eligible
+entries; do not treat requested row/column product as a validated entry capacity. Single-row finalization always sets
+the column count to the number of entries and uses summed individual widths.</p>
+<p>Entries fill down a column before advancing to the next. Grid picking computes <code class="docutils literal notranslate"><span class="pre">column</span> <span class="pre">*</span> <span class="pre">nRows</span> <span class="pre">+</span> <span class="pre">row</span></code> with an overflow
+check, while single-row picking subtracts individual widths in traversal order. Empty final cells return no entry. A new
+layout path must preserve this order in all four consumers.</p>
+<p>Sizing checks use wide arithmetic and reject dimensions that cannot fit an <code class="docutils literal notranslate"><span class="pre">int</span></code>. Oversized single-row sums saturate
+to a sentinel so a multi-row layout can still be considered. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLayout.GetLegendPixelDimension" title="rbcGrLegendLayout.GetLegendPixelDimension"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLayout.GetLegendPixelDimension()</span></code></a> checks
+the border/padding base before multiplying cell count by cell size. Rejected layouts leave the reset counts and
+dimensions empty; they do not raise a Tcl error.</p>
+<p>Positioning is separate from measurement. Global margin sites use remaining margin space after axis offsets; top
+placement also accounts for the graph title. Explicit negative X/Y values are relative to the graph window extent.
+Local sites use full world bounds, anchoring to an edge or the whole track. External placement forces origin zero and
+the northwest anchor. The public-to- other-modules accessors simply read cached fields; they do not make layout current.</p>
 </section>
 <section id="picking-tags-and-activation">
 <h2>Picking, tags and activation<a class="headerlink" href="#picking-tags-and-activation" title="Link to this heading"></a></h2>
-<p>There are two distinct questions: whether a legend rectangle covers a point,
-and whether that point selects an entry. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendContains" title="rbcGrLegendBindings.LegendContains"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendContains()</span></code></a> intentionally counts
-blank areas for occlusion, while <a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.PickLegendIn" title="rbcGrLegendBindings.PickLegendIn"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.PickLegendIn()</span></code></a> excludes outer border/padding
-and empty grid cells. A foreground legend’s blank area can therefore prevent
-picking an underlying legend entry. Local tests also enforce visible track bounds.</p>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendAtPoint" title="rbcGrLegendBindings.LegendAtPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendAtPoint()</span></code></a> checks the raised layer first, global before local within each
-layer, then local legends in track-list order. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.Rbc_PointInTrackLegend" title="rbcGrLegendBindings.Rbc_PointInTrackLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.Rbc_PointInTrackLegend()</span></code></a> asks
-whether the <em>topmost</em> legend is local, not whether any local rectangle exists
-under the point. External windows are outside this in-widget ordering.</p>
-<p>Binding pickers return a borrowed element and legend context. Tag enumeration
-appends element name, element class and configured bindtags in that order.
-The context selects the tag table, which makes identical tag strings independent
-between local legends. Global tags use the graph element-tag registry. Merely
-interning a tag does not mean a binding script exists, so <code class="docutils literal notranslate"><span class="pre">bind</span></code> without
-arguments lists known tags rather than only tags with scripts.</p>
-<p>Activation differs from tag identity: <code class="docutils literal notranslate"><span class="pre">activate</span></code> and <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> match
-names in the complete element table and update shared <code class="docutils literal notranslate"><span class="pre">LABEL_ACTIVE</span></code> bits.
-Local commands filter by track. With no patterns they change nothing and return
-the active names in scope. Returned names follow hash iteration, not display
-order, and can include elements with no displayed entry. Activating a local
-entry also changes the state seen by its global entry. Track graphs request
+<p>There are two distinct questions: whether a legend rectangle covers a point, and whether that point selects an
+entry. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendContains" title="rbcGrLegendBindings.LegendContains"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendContains()</span></code></a> intentionally counts blank areas for occlusion, while
+<a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.PickLegendIn" title="rbcGrLegendBindings.PickLegendIn"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.PickLegendIn()</span></code></a> excludes outer border/padding and empty grid cells. A foreground legend’s
+blank area can therefore prevent picking an underlying legend entry. Local tests also enforce visible track bounds.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.LegendAtPoint" title="rbcGrLegendBindings.LegendAtPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.LegendAtPoint()</span></code></a> checks the raised layer first, global before local within each layer, then
+local legends in track-list order. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.Rbc_PointInTrackLegend" title="rbcGrLegendBindings.Rbc_PointInTrackLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.Rbc_PointInTrackLegend()</span></code></a> asks whether the <em>topmost</em>
+legend is local, not whether any local rectangle exists under the point. External windows are outside this in-widget
+ordering.</p>
+<p>Binding pickers return a borrowed element and legend context. Tag enumeration appends element name, element class and
+configured bindtags in that order. The context selects the tag table, which makes identical tag strings independent
+between local legends. Global tags use the graph element-tag registry. Merely interning a tag does not mean a binding
+script exists, so <code class="docutils literal notranslate"><span class="pre">bind</span></code> without arguments lists known tags rather than only tags with scripts.</p>
+<p>Activation differs from tag identity: <code class="docutils literal notranslate"><span class="pre">activate</span></code> and <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> match names in the complete element table and
+update shared <code class="docutils literal notranslate"><span class="pre">LABEL_ACTIVE</span></code> bits. Local commands filter by track. With no patterns they change nothing and return
+the active names in scope. Returned names follow hash iteration, not display order, and can include elements with no
+displayed entry. Activating a local entry also changes the state seen by its global entry. Track graphs request
 redisplay of other copies, including an external global legend.</p>
-<p><code class="docutils literal notranslate"><span class="pre">get</span> <span class="pre">current</span></code> reads binding state and, for a local legend, verifies its context.
-<code class="docutils literal notranslate"><span class="pre">get</span> <span class="pre">&#64;x,y</span></code> performs coordinate picking. Despite an older source comment, this
-handler does not look up ordinary element names. Malformed coordinates return
-<code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code> with the coordinate parser’s diagnostic, including when the legend
-is hidden or has no entries. Valid coordinates with no matching entry return
-success with an empty result. Both global and local commands use this contract.</p>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.Rbc_LegendRemoveElement" title="rbcGrLegendBindings.Rbc_LegendRemoveElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.Rbc_LegendRemoveElement()</span></code></a> removes object-pointer binding/current-item state
-from the relevant tables. It does not remove interned string tags or scripts by
-name; element deletion and tag lifetime must not be conflated.</p>
+<p><code class="docutils literal notranslate"><span class="pre">get</span> <span class="pre">current</span></code> reads binding state and, for a local legend, verifies its context. <code class="docutils literal notranslate"><span class="pre">get</span> <span class="pre">&#64;x,y</span></code> performs coordinate
+picking. Despite an older source comment, this handler does not look up ordinary element names. Malformed coordinates
+return <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code> with the coordinate parser’s diagnostic, including when the legend is hidden or has no
+entries. Valid coordinates with no matching entry return success with an empty result. Both global and local commands
+use this contract.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendBindings.Rbc_LegendRemoveElement" title="rbcGrLegendBindings.Rbc_LegendRemoveElement"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendBindings.Rbc_LegendRemoveElement()</span></code></a> removes object-pointer binding/current-item state from the
+relevant tables. It does not remove interned string tags or scripts by name; element deletion and tag lifetime must not
+be conflated.</p>
 </section>
 <section id="screen-composition-and-export">
 <h2>Screen composition and export<a class="headerlink" href="#screen-composition-and-export" title="Link to this heading"></a></h2>
-<p>Screen drawing composes a temporary pixmap. An explicit legend background fills
-it directly. A transparent in-plot or local legend copies from the backing store
-when available, otherwise using the plot fill. Local background copies are
-bounded to the graph window first. Margin/external backgrounds use the graph’s
-tile with an adjusted origin or its normal fill.</p>
-<p>Each entry draws active or ordinary relief, the concrete element’s legend symbol,
-and its label. <code class="docutils literal notranslate"><span class="pre">LABEL_ACTIVE</span></code> selects text state and entry decoration; it does
-not select a different element record. The outer border uses the legend border
-or falls back to the graph border. Local legends copy only the intersection with
-the visible track. This final-copy clipping allows full-world placement without
-painting beyond the visible row.</p>
-<p>Export does not capture the temporary screen pixmap. It emits decoration,
-element symbol methods and text through the export renderer. The output box
-subtracts exterior padding from cached dimensions. With decorations disabled it
-clears that box; with decorations enabled it draws the configured border and
-optional background. Screen and document background composition are therefore
-not identical algorithms. Track export pushes a visible rectangle clip around
-the entire legend export and balances it afterwards. Backend selection remains
-in the renderer; these callbacks are not PostScript-only.</p>
-<p>Entry loops borrow graph, legend and element data while invoking concrete symbol
-callbacks. They do not make an ownership snapshot. Symbol implementations must
-respect the surrounding drawing lifetime; no arbitrary application mutation
-safety should be inferred from double buffering.</p>
+<p>Screen drawing composes a temporary pixmap. An explicit legend background fills it directly. A transparent in-plot or
+local legend copies from the backing store when available, otherwise using the plot fill. Local background copies are
+bounded to the graph window first. Margin/external backgrounds use the graph’s tile with an adjusted origin or its
+normal fill.</p>
+<p>Each entry draws active or ordinary relief, the concrete element’s legend symbol, and its label. <code class="docutils literal notranslate"><span class="pre">LABEL_ACTIVE</span></code>
+selects text state and entry decoration; it does not select a different element record. The outer border uses the legend
+border or falls back to the graph border. Local legends copy only the intersection with the visible track. This
+final-copy clipping allows full-world placement without painting beyond the visible row.</p>
+<p>Export does not capture the temporary screen pixmap. It emits decoration, element symbol methods and text through the
+export renderer. The output box subtracts exterior padding from cached dimensions. With decorations disabled it clears
+that box; with decorations enabled it draws the configured border and optional background. Screen and document
+background composition are therefore not identical algorithms. Track export pushes a visible rectangle clip around the
+entire legend export and balances it afterwards. Backend selection remains in the renderer; these callbacks are not
+PostScript-only.</p>
+<p>Entry loops borrow graph, legend and element data while invoking concrete symbol callbacks. They do not make an
+ownership snapshot. Symbol implementations must respect the surrounding drawing lifetime; no arbitrary application
+mutation safety should be inferred from double buffering.</p>
 </section>
 <section id="external-windows-and-command-routing">
 <h2>External windows and command routing<a class="headerlink" href="#external-windows-and-command-routing" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.PrepareLegendWindow" title="rbcGrLegendLifetime.PrepareLegendWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.PrepareLegendWindow()</span></code></a> creates the window, instance association, exposure/structure
-event handler and a command forwarding to <a class="reference internal" href="graph-reference.html#c.rbcGraphCommands.Rbc_GraphInstCmdProc" title="rbcGraphCommands.Rbc_GraphInstCmdProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphCommands.Rbc_GraphInstCmdProc()</span></code></a>. The external
-window command is consequently a graph dispatcher alias in behavior, not a
-separate legend-only command. Creation does not pack or map the window.</p>
-<p>Replacing an external window prepares the new one first. Closing the old one
-cancels its pending redraw, resets stored handles, removes the handler and
-instance association, deletes the command, destroys the window and moves bindings
-back to the graph before adoption of the replacement.</p>
-<p>An application-driven external <code class="docutils literal notranslate"><span class="pre">DestroyNotify</span></code> instead restores rightmargin,
-updates the retained <code class="docutils literal notranslate"><span class="pre">-position</span></code> object, moves the binding table and requests
-full graph layout/backing redraw. Deleting the external command alone is not the
-same lifecycle operation: it was created without a command-delete callback.</p>
-<p>The idle scheduler only requires a window pointer and no pending request. It
-does not require a mapped window. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.DisplayLegend" title="rbcGrLegendLifetime.DisplayLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.DisplayLegend()</span></code></a> clears the pending bit,
-checks external size, remaps if needed, then checks mapping before painting.
-Plot-area activation must rebuild the graph backing store rather than painting
-a legend directly over the window; margin/external activation can use the cheaper
-legend-only path when no graph redraw is pending.</p>
-<p>Global command dispatch validates operation/arity and calls the handler. Nested
-track legend dispatch additionally normalizes its argument vector and refreshes
-graph layout before calling shared handlers. The local-only <code class="docutils literal notranslate"><span class="pre">bbox</span></code> returns
-<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code> for the visible intersection, or an empty result when hidden,
-empty or fully clipped. It does not return four corner coordinates.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.PrepareLegendWindow" title="rbcGrLegendLifetime.PrepareLegendWindow"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.PrepareLegendWindow()</span></code></a> creates the window, instance association, exposure/structure event
+handler and a command forwarding to <a class="reference internal" href="graph-reference.html#c.rbcGraphCommands.Rbc_GraphInstCmdProc" title="rbcGraphCommands.Rbc_GraphInstCmdProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphCommands.Rbc_GraphInstCmdProc()</span></code></a>. The external window command is
+consequently a graph dispatcher alias in behavior, not a separate legend-only command. Creation does not pack or map the
+window.</p>
+<p>Replacing an external window prepares the new one first. Closing the old one cancels its pending redraw, resets stored
+handles, removes the handler and instance association, deletes the command, destroys the window and moves bindings back
+to the graph before adoption of the replacement.</p>
+<p>An application-driven external <code class="docutils literal notranslate"><span class="pre">DestroyNotify</span></code> instead restores rightmargin, updates the retained <code class="docutils literal notranslate"><span class="pre">-position</span></code>
+object, moves the binding table and requests full graph layout/backing redraw. Deleting the external command alone is
+not the same lifecycle operation: it was created without a command-delete callback.</p>
+<p>The idle scheduler only requires a window pointer and no pending request. It does not require a mapped
+window. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.DisplayLegend" title="rbcGrLegendLifetime.DisplayLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.DisplayLegend()</span></code></a> clears the pending bit, checks external size, remaps if needed, then
+checks mapping before painting. Plot-area activation must rebuild the graph backing store rather than painting a legend
+directly over the window; margin/external activation can use the cheaper legend-only path when no graph redraw is
+pending.</p>
+<p>Global command dispatch validates operation/arity and calls the handler. Nested track legend dispatch additionally
+normalizes its argument vector and refreshes graph layout before calling shared handlers. The local-only <code class="docutils literal notranslate"><span class="pre">bbox</span></code>
+returns <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">y</span> <span class="pre">width</span> <span class="pre">height</span></code> for the visible intersection, or an empty result when hidden, empty or fully clipped. It
+does not return four corner coordinates.</p>
 </section>
 <section id="parameter-and-ownership-boundaries">
 <h2>Parameter and ownership boundaries<a class="headerlink" href="#parameter-and-ownership-boundaries" title="Link to this heading"></a></h2>
-<p>The parameters distinguish three coordinate spaces: graph-window pixels for
-in-widget overlap tests, drawing-window pixels for individual entry picking,
-and full track world rectangles for local placement. Picking an external
-legend uses its own window’s coordinates. None of these helpers accepts data
-coordinates or a position relative to the legend’s cached origin.</p>
+<p>The parameters distinguish three coordinate spaces: graph-window pixels for in-widget overlap tests, drawing-window
+pixels for individual entry picking, and full track world rectangles for local placement. Picking an external legend
+uses its own window’s coordinates. None of these helpers accepts data coordinates or a position relative to the legend’s
+cached origin.</p>
 <table class="docutils align-default" id="id3">
 <caption><span class="caption-text">Output ownership and failure contracts</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
 <colgroup>
@@ -1561,29 +1509,22 @@ coordinates or a position relative to the legend’s cached origin.</p>
 </tr>
 </tbody>
 </table>
-<p>A non-NULL picking context is therefore not proof that an entry was selected.
-The returned element pointer determines whether an item was found; the context
-identifies the scope for subsequent tag collection. Neither result acquires an
+<p>A non-NULL picking context is therefore not proof that an entry was selected. The returned element pointer determines
+whether an item was found; the context identifies the scope for subsequent tag collection. Neither result acquires an
 element or legend reference.</p>
-<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_DrawTrackLegends" title="rbcGrLegendOutput.Rbc_DrawTrackLegends"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_DrawTrackLegends()</span></code></a> and
-<a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_ExportTrackLegends" title="rbcGrLegendOutput.Rbc_ExportTrackLegends"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_ExportTrackLegends()</span></code></a> compare the requested
-<code class="docutils literal notranslate"><span class="pre">raised</span></code> value directly with the stored flag. Pass zero or one, rather than
-an arbitrary nonzero value. Their drawable or export context remains borrowed.
-The direct <a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_LegendExport" title="rbcGrLegendOutput.Rbc_LegendExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_LegendExport()</span></code></a> call does not supply the
-track clip itself; that is the layer wrapper’s responsibility.</p>
-<p>The full nested argument vector passed to
-<a class="reference internal" href="legend-reference.html#c.rbcGrLegendCommands.Rbc_TrackLegendOp" title="rbcGrLegendCommands.Rbc_TrackLegendOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendCommands.Rbc_TrackLegendOp()</span></code></a> has its operation at index four.
-The adapter creates a normalized vector with the operation at index two, which
-is what the shared handlers expect. It also refreshes graph layout before
-calling them. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendCommands.Rbc_LegendOp" title="rbcGrLegendCommands.Rbc_LegendOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendCommands.Rbc_LegendOp()</span></code></a> receives an ordinary
-full widget command and performs no corresponding layout refresh.</p>
-<p>Lifecycle order remains explicit: cancel idle delivery and release Tk resources
-while the window context is valid; destroy local legend records while their
-shared binding table still exists; then destroy the global legend and shared
-local binding infrastructure. The private
-<a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.DestroyLegend" title="rbcGrLegendLifetime.DestroyLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.DestroyLegend()</span></code></a> does not clear its owner’s pointer.
-Use <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend" title="rbcGrLegendLifetime.Rbc_DestroyTrackLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.Rbc_DestroyTrackLegend()</span></code></a> or
-<a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.Rbc_DestroyLegend" title="rbcGrLegendLifetime.Rbc_DestroyLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.Rbc_DestroyLegend()</span></code></a> at those ownership boundaries.</p>
+<p><a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_DrawTrackLegends" title="rbcGrLegendOutput.Rbc_DrawTrackLegends"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_DrawTrackLegends()</span></code></a> and func:<cite>rbcGrLegendOutput.Rbc_ExportTrackLegends</cite> compare the
+:c:requested <code class="docutils literal notranslate"><span class="pre">raised</span></code> value directly with the stored flag. Pass zero or one, rather than an arbitrary nonzero
+:c:value. Their drawable or export context remains borrowed. The direct <a class="reference internal" href="legend-reference.html#c.rbcGrLegendOutput.Rbc_LegendExport" title="rbcGrLegendOutput.Rbc_LegendExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendOutput.Rbc_LegendExport()</span></code></a>
+:c:call does not supply the track clip itself; that is the layer wrapper’s responsibility.</p>
+<p>The full nested argument vector passed to <a class="reference internal" href="legend-reference.html#c.rbcGrLegendCommands.Rbc_TrackLegendOp" title="rbcGrLegendCommands.Rbc_TrackLegendOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendCommands.Rbc_TrackLegendOp()</span></code></a> has its operation at index
+four. The adapter creates a normalized vector with the operation at index two, which is what the shared handlers
+expect. It also refreshes graph layout before calling them. <a class="reference internal" href="legend-reference.html#c.rbcGrLegendCommands.Rbc_LegendOp" title="rbcGrLegendCommands.Rbc_LegendOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendCommands.Rbc_LegendOp()</span></code></a> receives an
+ordinary full widget command and performs no corresponding layout refresh.</p>
+<p>Lifecycle order remains explicit: cancel idle delivery and release Tk resources while the window context is valid;
+destroy local legend records while their shared binding table still exists; then destroy the global legend and shared
+local binding infrastructure. The private <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.DestroyLegend" title="rbcGrLegendLifetime.DestroyLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.DestroyLegend()</span></code></a> does not clear its owner’s
+pointer. Use <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.Rbc_DestroyTrackLegend" title="rbcGrLegendLifetime.Rbc_DestroyTrackLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.Rbc_DestroyTrackLegend()</span></code></a> or <a class="reference internal" href="legend-reference.html#c.rbcGrLegendLifetime.Rbc_DestroyLegend" title="rbcGrLegendLifetime.Rbc_DestroyLegend"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLegendLifetime.Rbc_DestroyLegend()</span></code></a> at
+those ownership boundaries.</p>
 </section>
 </section>
 

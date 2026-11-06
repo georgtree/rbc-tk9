@@ -11,26 +11,21 @@ stubs. Renderer interfaces are private; adding a renderer declaration does not a
    * - Layer
      - Responsibility
    * - Commands and configuration
-     - Parse Tcl requests, own option transactions and component resources,
-       schedule mapping and redraw.
+     - Parse Tcl requests, own option transactions and component resources, schedule mapping and redraw.
    * - Mapping
-     - Convert data through axes and track viewports into display geometry;
-       retain source indices needed for picking.
+     - Convert data through axes and track viewports into display geometry; retain source indices needed for picking.
    * - Components
-     - Choose painter order, batches and fallback paths; supply mapped geometry
-       and borrowed resources.
+     - Choose painter order, batches and fallback paths; supply mapped geometry and borrowed resources.
    * - Renderer interface
      - Dispatch supported operations, manage context lifetime and clip nesting.
    * - Backends
-     - Convert geometry to native requests or document primitives, preserving
-       backend rounding, batching and resource rules.
+     - Convert geometry to native requests or document primitives, preserving backend rounding, batching and resource
+       rules.
    * - Export orchestration
-     - Set up documents, remap for requested size, restore screen geometry,
-       finalize and deliver output.
+     - Set up documents, remap for requested size, restore screen geometry, finalize and deliver output.
 
-``rbcGraph.c`` manages the common widget. Track services live in
-``rbcGrTrack.c``; polar work lives in ``rbcGrPolar.c``. Components such as
-``rbcGrAxis.c``, ``rbcGrLine.c`` and ``rbcGrMarker.c`` use this infrastructure.
+``rbcGraph.c`` manages the common widget. Track services live in ``rbcGrTrack.c``; polar work lives in
+``rbcGrPolar.c``. Components such as ``rbcGrAxis.c``, ``rbcGrLine.c`` and ``rbcGrMarker.c`` use this infrastructure.
 
 See :doc:`images-tiles` for pixel copies, tile clients and idle notifications.
 See :doc:`text-fonts` for borrowed text layouts and document-local font caches.
@@ -94,9 +89,8 @@ lifetime. Generic event dispatch does not interpret component layouts; graph and
 Core record index
 -----------------
 
-The shared headers define ownership and storage contracts, not just function
-signatures. These records are private C interfaces; their layouts are not a
-public extension ABI. A pointer member does not automatically retain its target.
+The shared headers define ownership and storage contracts, not just function signatures. These records are private C
+interfaces; their layouts are not a public extension ABI. A pointer member does not automatically retain its target.
 
 .. list-table::
    :header-rows: 1
@@ -105,8 +99,7 @@ public extension ABI. A pointer member does not automatically retain its target.
    * - Record
      - Responsibility and reference
    * - :c:type:`Graph` / :c:struct:`GraphStruct`
-     - Widget owner, component registries, export options and layout caches;
-       :doc:`graph-reference`.
+     - Widget owner, component registries, export options and layout caches; :doc:`graph-reference`.
    * - :c:struct:`Component` and :c:type:`Margin`
      - Registry/display order and axis-margin layout; :doc:`graph-reference`.
    * - :c:type:`Grid` and :c:struct:`GridSegments`

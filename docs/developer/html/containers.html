@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,68 +1215,54 @@
              
   <section id="chains-and-keyed-lists">
 <h1>Chains and keyed lists<a class="headerlink" href="#chains-and-keyed-lists" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcChain.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcList.c</span></code> provide private doubly linked containers.
-They manage link/node allocations, not the application objects referenced by
-<code class="docutils literal notranslate"><span class="pre">clientData</span></code>. They do not provide reference counting, locking, mutation-safe
+<p><code class="docutils literal notranslate"><span class="pre">rbcChain.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcList.c</span></code> provide private doubly linked containers. They manage link/node allocations, not the
+application objects referenced by <code class="docutils literal notranslate"><span class="pre">clientData</span></code>. They do not provide reference counting, locking, mutation-safe
 iterators or callback lifetime protection. Their users supply those policies.</p>
 <section id="choosing-and-owning-a-container">
 <h2>Choosing and owning a container<a class="headerlink" href="#choosing-and-owning-a-container" title="Link to this heading"></a></h2>
-<p>A chain has unkeyed links and is useful for display order, client membership
-and palettes. A list adds stored keys and linear lookup; it is not a hash table
-and does not enforce key uniqueness. Both retain order and use <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>
-counts. Insertion and unlinking with known neighbors take constant time; lookup
-and indexed traversal walk the list.</p>
-<p>Create allocates the container; Init initializes caller-provided storage.
-Init is not cleanup: applying it to a populated container loses its links.
-Reset frees linked records but retains an empty container. Destroy additionally
-frees the container allocation, so it must not be used on embedded or stack
-storage. Reset/Destroy do not invoke destructors for external payloads.</p>
-<p><a class="reference internal" href="container-reference.html#c.Rbc_ChainAllocLink" title="Rbc_ChainAllocLink"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ChainAllocLink()</span></code></a> is a special case: it allocates aligned trailing storage
-in the link allocation and points <code class="docutils literal notranslate"><span class="pre">clientData</span></code> there. Freeing that link also
-frees those inline bytes. Do not free that pointer separately. If the inline
-object owns other resources, release them before deleting/resetting the link.
-A normal link’s external payload remains independently owned.</p>
+<p>A chain has unkeyed links and is useful for display order, client membership and palettes. A list adds stored keys and
+linear lookup; it is not a hash table and does not enforce key uniqueness. Both retain order and use <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code>
+counts. Insertion and unlinking with known neighbors take constant time; lookup and indexed traversal walk the list.</p>
+<p>Create allocates the container; Init initializes caller-provided storage. Init is not cleanup: applying it to a
+populated container loses its links. Reset frees linked records but retains an empty container. Destroy additionally
+frees the container allocation, so it must not be used on embedded or stack storage. Reset/Destroy do not invoke
+destructors for external payloads.</p>
+<p><a class="reference internal" href="container-reference.html#c.Rbc_ChainAllocLink" title="Rbc_ChainAllocLink"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ChainAllocLink()</span></code></a> is a special case: it allocates aligned trailing storage in the link allocation and points
+<code class="docutils literal notranslate"><span class="pre">clientData</span></code> there. Freeing that link also frees those inline bytes. Do not free that pointer separately. If the
+inline object owns other resources, release them before deleting/resetting the link. A normal link’s external payload
+remains independently owned.</p>
 </section>
 <section id="keys-and-node-creation">
 <h2>Keys and node creation<a class="headerlink" href="#keys-and-node-creation" title="Link to this heading"></a></h2>
-<p>Lists use <code class="docutils literal notranslate"><span class="pre">TCL_STRING_KEYS</span></code>, <code class="docutils literal notranslate"><span class="pre">TCL_ONE_WORD_KEYS</span></code> or an integer-array key
-length. String and array contents are copied into the variable-sized node;
-one-word keys store a pointer-sized value and compare identity, not pointed-to
-contents. Reset/delete releases copied keys with the node, but does not free
-one-word key targets. Repeated keys are allowed and lookup returns the first
-match in current order.</p>
-<p><a class="reference internal" href="container-reference.html#c.Rbc_ListCreateNode" title="Rbc_ListCreateNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListCreateNode()</span></code></a> allocates but does not insert a node. It nevertheless
-sets <code class="docutils literal notranslate"><span class="pre">listPtr</span></code> to the intended list so its key representation is known.
-This is a construction state, not ordinary detached state: calling unlink or
-delete before first insertion would incorrectly change the list count. Insert
-it, or dispose of the never-inserted allocation directly with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>.
-The Append/Prepend convenience functions perform creation and insertion together.</p>
-<p>After normal unlinking, <code class="docutils literal notranslate"><span class="pre">listPtr</span></code> is NULL. The node can then be freed with
-<a class="reference internal" href="container-reference.html#c.Rbc_ListDeleteNode" title="Rbc_ListDeleteNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListDeleteNode()</span></code></a> or relinked into a list with the same key representation.
-The <code class="docutils literal notranslate"><span class="pre">Rbc_ListGetKey</span></code> macro dereferences <code class="docutils literal notranslate"><span class="pre">listPtr</span></code> and therefore must not be
-used on an unlinked node. It is a convenience for string/one-word keys; code
-handling array keys must use the stored words with the known key type.</p>
+<p>Lists use <code class="docutils literal notranslate"><span class="pre">TCL_STRING_KEYS</span></code>, <code class="docutils literal notranslate"><span class="pre">TCL_ONE_WORD_KEYS</span></code> or an integer-array key length. String and array contents are
+copied into the variable-sized node; one-word keys store a pointer-sized value and compare identity, not pointed-to
+contents. Reset/delete releases copied keys with the node, but does not free one-word key targets. Repeated keys are
+allowed and lookup returns the first match in current order.</p>
+<p><a class="reference internal" href="container-reference.html#c.Rbc_ListCreateNode" title="Rbc_ListCreateNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListCreateNode()</span></code></a> allocates but does not insert a node. It nevertheless sets <code class="docutils literal notranslate"><span class="pre">listPtr</span></code> to the intended list
+so its key representation is known. This is a construction state, not ordinary detached state: calling unlink or delete
+before first insertion would incorrectly change the list count. Insert it, or dispose of the never-inserted allocation
+directly with <code class="docutils literal notranslate"><span class="pre">ckfree</span></code>. The Append/Prepend convenience functions perform creation and insertion together.</p>
+<p>After normal unlinking, <code class="docutils literal notranslate"><span class="pre">listPtr</span></code> is NULL. The node can then be freed with <a class="reference internal" href="container-reference.html#c.Rbc_ListDeleteNode" title="Rbc_ListDeleteNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListDeleteNode()</span></code></a> or relinked
+into a list with the same key representation. The <code class="docutils literal notranslate"><span class="pre">Rbc_ListGetKey</span></code> macro dereferences <code class="docutils literal notranslate"><span class="pre">listPtr</span></code> and therefore must
+not be used on an unlinked node. It is a convenience for string/one-word keys; code handling array keys must use the
+stored words with the known key type.</p>
 </section>
 <section id="linking-and-moving">
 <h2>Linking and moving<a class="headerlink" href="#linking-and-moving" title="Link to this heading"></a></h2>
-<p>LinkBefore/LinkAfter require a detached record and a neighbor belonging to the
-destination container. They do not unlink existing membership automatically.
-A NULL neighbor has deliberately asymmetric meaning: Before(NULL) appends,
-while After(NULL) prepends. The AppendLink/PrependLink and AppendNode/PrependNode
-macros express those conventions directly.</p>
-<p>Chain links do not store owner identity. <a class="reference internal" href="container-reference.html#c.Rbc_ChainUnlinkLink" title="Rbc_ChainUnlinkLink"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ChainUnlinkLink()</span></code></a> needs the actual
-owning chain; passing another chain can corrupt both structures. Unlink clears
-neighbor pointers without freeing the link. Delete additionally releases it.
-List nodes store their owner after insertion, so unlink needs only the node.
-A node must never be linked into two containers at once.</p>
+<p><a class="reference internal" href="container-reference.html#c.Rbc_ChainLinkBefore" title="Rbc_ChainLinkBefore"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ChainLinkBefore()</span></code></a>/<a class="reference internal" href="container-reference.html#c.Rbc_ChainLinkAfter" title="Rbc_ChainLinkAfter"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ChainLinkAfter()</span></code></a> require a detached record and a neighbor belonging to the
+destination container. They do not unlink existing membership automatically. A NULL neighbor has deliberately
+asymmetric meaning: Before(NULL) appends, while After(NULL) prepends. The AppendLink/PrependLink and
+AppendNode/PrependNode macros express those conventions directly.</p>
+<p>Chain links do not store owner identity. <a class="reference internal" href="container-reference.html#c.Rbc_ChainUnlinkLink" title="Rbc_ChainUnlinkLink"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ChainUnlinkLink()</span></code></a> needs the actual owning chain; passing another
+chain can corrupt both structures. Unlink clears neighbor pointers without freeing the link. Delete additionally
+releases it. List nodes store their owner after insertion, so unlink needs only the node. A node must never be linked
+into two containers at once.</p>
 </section>
 <section id="borrowed-pointers-and-traversal">
 <h2>Borrowed pointers and traversal<a class="headerlink" href="#borrowed-pointers-and-traversal" title="Link to this heading"></a></h2>
-<p>Access macros return borrowed links, nodes and payloads. Next/previous/value
-macros require a valid record. Length and first/last macros tolerate a NULL
-container, but this is not a general NULL-tolerance rule for all operations.
-The macros may evaluate arguments more than once; avoid arguments with side
-effects.</p>
+<p>Access macros return borrowed links, nodes and payloads. Next/previous/value macros require a valid record. Length and
+first/last macros tolerate a NULL container, but this is not a general NULL-tolerance rule for all operations. The
+macros may evaluate arguments more than once; avoid arguments with side effects.</p>
 <p>When deleting only the current chain link, save its successor first:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_ChainFirstLink</span><span class="p">(</span><span class="n">chain</span><span class="p">);</span><span class="w"> </span><span class="n">link</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"> </span><span class="n">link</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">next</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">next</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Rbc_ChainNextLink</span><span class="p">(</span><span class="n">link</span><span class="p">);</span>
@@ -1284,43 +1271,34 @@ effects.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>This pattern is insufficient if a callback can also delete the saved successor
-or destroy the container. The owner must snapshot and preserve appropriate
-objects, defer reclamation, or explicitly prohibit such mutation. Preserving a
-payload does not preserve its chain link. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> and
-<a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for notification systems that implement protection above
-these containers.</p>
+<p>This pattern is insufficient if a callback can also delete the saved successor or destroy the container. The owner must
+snapshot and preserve appropriate objects, defer reclamation, or explicitly prohibit such mutation. Preserving a payload
+does not preserve its chain link. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> and <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for notification systems that implement
+protection above these containers.</p>
 </section>
 <section id="sorting-and-positional-lookup">
 <h2>Sorting and positional lookup<a class="headerlink" href="#sorting-and-positional-lookup" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="container-reference.html#c.Rbc_ListGetNthNode" title="Rbc_ListGetNthNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListGetNthNode()</span></code></a> uses a zero-based position, traversing from the head for
-positive direction and from the tail otherwise. Invalid positions or a NULL
-list return NULL. It does not cache an index.</p>
-<p><a class="reference internal" href="container-reference.html#c.Rbc_ListSort" title="Rbc_ListSort"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListSort()</span></code></a> builds an array of node pointers, calls <code class="docutils literal notranslate"><span class="pre">qsort</span></code> and relinks
-the same allocations. Saved node addresses remain valid, but neighbor/order
-assumptions do not. Its comparator receives pointers to node pointers and must
-not mutate membership or invoke reentrant code that does so. Sorting is not
-stable for equal comparisons. Failure of the attempted scratch allocation leaves
-the list unchanged without an error result; this void helper is not a promise
+<p><a class="reference internal" href="container-reference.html#c.Rbc_ListGetNthNode" title="Rbc_ListGetNthNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListGetNthNode()</span></code></a> uses a zero-based position, traversing from the head for positive direction and from the
+tail otherwise. Invalid positions or a NULL list return NULL. It does not cache an index.</p>
+<p><a class="reference internal" href="container-reference.html#c.Rbc_ListSort" title="Rbc_ListSort"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListSort()</span></code></a> builds an array of node pointers, calls <code class="docutils literal notranslate"><span class="pre">qsort</span></code> and relinks the same allocations. Saved node
+addresses remain valid, but neighbor/order assumptions do not. Its comparator receives pointers to node pointers and
+must not mutate membership or invoke reentrant code that does so. Sorting is not stable for equal comparisons. Failure
+of the attempted scratch allocation leaves the list unchanged without an error result; this void helper is not a promise
 that sorting succeeded under allocation pressure.</p>
-<p>See <a class="reference internal" href="container-reference.html"><span class="doc">Container C reference</span></a> for selected lifecycle contracts. The historical
-<a class="reference internal" href="container-reference.html#c.Rb_ListDeleteNodeByKey" title="Rb_ListDeleteNodeByKey"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey()</span></code></a> spelling remains unchanged; it removes only the first
-matching node. These documentation changes do not rename private functions or
-alter container behavior.</p>
+<p>See <a class="reference internal" href="container-reference.html"><span class="doc">Container C reference</span></a> for selected lifecycle contracts. The historical <a class="reference internal" href="container-reference.html#c.Rb_ListDeleteNodeByKey" title="Rb_ListDeleteNodeByKey"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey()</span></code></a>
+spelling remains unchanged; it removes only the first matching node. These documentation changes do not rename private
+functions or alter container behavior.</p>
 </section>
 <section id="insertion-and-lookup-contracts">
 <h2>Insertion and lookup contracts<a class="headerlink" href="#insertion-and-lookup-contracts" title="Link to this heading"></a></h2>
-<p>The C reference includes all creation, insertion and positional-lookup entry
-points as well as the private key-search helpers. Allocation uses Tcl’s fatal
-allocation policy for container and node creation; these functions do not
-return an interpreter diagnostic under memory pressure. The attempted scratch
-allocation in sorting is a separate, nonfatal policy.</p>
-<p>A detached record supplied to an insertion helper must have NULL neighbor
-pointers. In particular, insertion into an empty container assigns its head and
-tail without clearing arbitrary old link fields. Nodes created by the allocation
-helpers and records detached by normal unlinking meet this precondition.
-Hand-built records must meet it too. Insertion is not a membership check or a
-move operation: callers must unlink existing membership first.</p>
+<p>The C reference includes all creation, insertion and positional-lookup entry points as well as the private key-search
+helpers. Allocation uses Tcl’s fatal allocation policy for container and node creation; these functions do not return an
+interpreter diagnostic under memory pressure. The attempted scratch allocation in sorting is a separate, nonfatal
+policy.</p>
+<p>A detached record supplied to an insertion helper must have NULL neighbor pointers. In particular, insertion into an
+empty container assigns its head and tail without clearing arbitrary old link fields. Nodes created by the allocation
+helpers and records detached by normal unlinking meet this precondition. Hand-built records must meet it too. Insertion
+is not a membership check or a move operation: callers must unlink existing membership first.</p>
 <p>The list’s key type determines lookup semantics:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1349,30 +1327,25 @@ move operation: callers must unlink existing membership first.</p>
 </tr>
 </tbody>
 </table>
-<p>All searches walk from the head and return the first match. Sorting or moving
-nodes can therefore change which duplicate is found without changing any key.
-Array keys are native-memory representations, not a portable byte encoding.
-Lookup returns a borrowed node; it adds no protection against deletion by a
-later callback. <a class="reference internal" href="container-reference.html#c.Rb_ListDeleteNodeByKey" title="Rb_ListDeleteNodeByKey"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey()</span></code></a> uses this same first-match rule.</p>
+<p>All searches walk from the head and return the first match. Sorting or moving nodes can therefore change which duplicate
+is found without changing any key. Array keys are native-memory representations, not a portable byte encoding. Lookup
+returns a borrowed node; it adds no protection against deletion by a later callback. <a class="reference internal" href="container-reference.html#c.Rb_ListDeleteNodeByKey" title="Rb_ListDeleteNodeByKey"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey()</span></code></a>
+uses this same first-match rule.</p>
 </section>
 <section id="private-key-lookup-contracts">
 <h2>Private key lookup contracts<a class="headerlink" href="#private-key-lookup-contracts" title="Link to this heading"></a></h2>
-<p>The list’s key representation selects the lookup helper. <a class="reference internal" href="container-reference.html#c.FindString" title="FindString"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindString()</span></code></a>
-compares NUL-terminated contents, <a class="reference internal" href="container-reference.html#c.FindOneWord" title="FindOneWord"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindOneWord()</span></code></a> compares pointer-sized
-identity (including NULL), and <a class="reference internal" href="container-reference.html#c.FindArray" title="FindArray"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindArray()</span></code></a> compares the copied bytes of
-exactly the configured number of native integers. They return borrowed nodes
-and do not retain payloads. A key representation mismatch is a caller error,
-not a conversion request.</p>
-<p><a class="reference internal" href="container-reference.html#c.FreeNode" title="FreeNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeNode()</span></code></a> only releases the detached allocation and its inline key.
-It does not unlink a node, adjust a list count, or free the client payload or
-a one-word key target. Membership changes belong to the enclosing list API.</p>
+<p>The list’s key representation selects the lookup helper. <a class="reference internal" href="container-reference.html#c.FindString" title="FindString"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindString()</span></code></a> compares NUL-terminated contents,
+<a class="reference internal" href="container-reference.html#c.FindOneWord" title="FindOneWord"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindOneWord()</span></code></a> compares pointer-sized identity (including NULL), and <a class="reference internal" href="container-reference.html#c.FindArray" title="FindArray"><code class="xref c c-func docutils literal notranslate"><span class="pre">FindArray()</span></code></a> compares the copied
+bytes of exactly the configured number of native integers. They return borrowed nodes and do not retain payloads. A key
+representation mismatch is a caller error, not a conversion request.</p>
+<p><a class="reference internal" href="container-reference.html#c.FreeNode" title="FreeNode"><code class="xref c c-func docutils literal notranslate"><span class="pre">FreeNode()</span></code></a> only releases the detached allocation and its inline key. It does not unlink a node, adjust a list
+count, or free the client payload or a one-word key target. Membership changes belong to the enclosing list API.</p>
 </section>
 <section id="parameter-contracts-and-construction-states">
 <h2>Parameter contracts and construction states<a class="headerlink" href="#parameter-contracts-and-construction-states" title="Link to this heading"></a></h2>
-<p>The parameter lists in <a class="reference internal" href="container-reference.html"><span class="doc">Container C reference</span></a> distinguish caller-owned
-container storage from link/node allocations transferred by insertion. A
-payload pointer remains borrowed unless it points into the trailing allocation
-returned by <a class="reference internal" href="container-reference.html#c.Rbc_ChainAllocLink" title="Rbc_ChainAllocLink"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ChainAllocLink()</span></code></a>.</p>
+<p>The parameter lists in <a class="reference internal" href="container-reference.html"><span class="doc">Container C reference</span></a> distinguish caller-owned container storage from link/node allocations
+transferred by insertion. A payload pointer remains borrowed unless it points into the trailing allocation returned by
+<a class="reference internal" href="container-reference.html#c.Rbc_ChainAllocLink" title="Rbc_ChainAllocLink"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ChainAllocLink()</span></code></a>.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Release the record in its current state</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
@@ -1402,9 +1375,8 @@ returned by <a class="reference internal" href="container-reference.html#c.Rbc_C
 </tr>
 </tbody>
 </table>
-<p>A NULL neighbor is a position selector, not a missing dependency: LinkAfter
-with NULL prepends and LinkBefore with NULL appends. A non-NULL neighbor must
-belong to the specified destination. Neither interface searches for or repairs
+<p>A NULL neighbor is a position selector, not a missing dependency: LinkAfter with NULL prepends and LinkBefore with NULL
+appends. A non-NULL neighbor must belong to the specified destination. Neither interface searches for or repairs
 incorrect membership, and no insertion implicitly removes an existing one.</p>
 </section>
 </section>

@@ -1,9 +1,8 @@
 Image transform C reference
 ===========================
 
-These private declarations are in ``rbcImage.h``. Color rotation is implemented
-in ``rbcImage.c``; bitmap transforms have Windows and X11 implementations in
-``rbcWinImage.c`` and ``rbcUnixImage.c``. See :doc:`image-transforms`.
+These private declarations are in ``rbcImage.h``. Color rotation is implemented in ``rbcImage.c``; bitmap transforms
+have Windows and X11 implementations in ``rbcWinImage.c`` and ``rbcUnixImage.c``. See :doc:`image-transforms`.
 
 .. doxygenfunction:: Rbc_RotateColorImage
 
@@ -16,8 +15,8 @@ in ``rbcImage.c``; bitmap transforms have Windows and X11 implementations in
 Color rotation implementation
 -----------------------------
 
-These CPU-side helpers implement exact quadrant copies and the residual
-three-shear path. Native bitmap transforms use separate implementations.
+These CPU-side helpers implement exact quadrant copies and the residual three-shear path. Native bitmap transforms use
+separate implementations.
 
 .. c:namespace:: rbcImageRotation
 
@@ -39,8 +38,8 @@ X11 image and bitmap helpers
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: ColorImage
    :members:

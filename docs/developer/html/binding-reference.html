@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1254,9 +1255,8 @@
              
   <section id="binding-and-picking-c-reference">
 <h1>Binding and picking C reference<a class="headerlink" href="#binding-and-picking-c-reference" title="Link to this heading"></a></h1>
-<p>All interfaces here are private. Objects, contexts and tag tokens are borrowed;
-the owning component supplies their lifetime. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for event
-order, picking priority, callback reentry and the distinction between objects
+<p>All interfaces here are private. Objects, contexts and tag tokens are borrowed; the owning component supplies their
+lifetime. See <a class="reference internal" href="bindings.html"><span class="doc">Binding dispatch and picking</span></a> for event order, picking priority, callback reentry and the distinction between objects
 and binding keys.</p>
 <section id="binding-table-state">
 <h2>Binding table state<a class="headerlink" href="#binding-table-state" title="Link to this heading"></a></h2>
@@ -1385,9 +1385,8 @@ and binding keys.</p>
 <p>list is a temporary one-word-key list owned by dispatch. Append keys without destroying the list or transferring ownership of the key storage. Keys must remain valid for Tk_BindEvent; this callback should not evaluate Tcl scripts. </p>
 </dd></dl>
 
-<p>The picker writes an object context alongside its returned pointer. The tag
-collector appends stable keys to the temporary list supplied by dispatch;
-neither callback acquires ownership of its arguments.</p>
+<p>The picker writes an object context alongside its returned pointer. The tag collector appends stable keys to the
+temporary list supplied by dispatch; neither callback acquires ownership of its arguments.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_CreateBindingTable">
 <span class="target" id="rbc_bind_8h_1a1f8347a0bf2c92a1de0ba4f76697e858"></span><a class="reference internal" href="#c.Rbc_BindTable" title="Rbc_BindTable"><span class="n"><span class="pre">Rbc_BindTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_CreateBindingTable</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tk_Window</span></span><span class="w"> </span><span class="n"><span class="pre">tkwin</span></span>, <span class="n"><span class="pre">ClientData</span></span><span class="w"> </span><span class="n"><span class="pre">clientData</span></span>, <a class="reference internal" href="#c.Rbc_BindPickProc" title="Rbc_BindPickProc"><span class="n"><span class="pre">Rbc_BindPickProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pickProc</span></span>, <a class="reference internal" href="#c.Rbc_BindTagProc" title="Rbc_BindTagProc"><span class="n"><span class="pre">Rbc_BindTagProc</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tagProc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_CreateBindingTable" title="Link to this definition"></a><br /></dt>

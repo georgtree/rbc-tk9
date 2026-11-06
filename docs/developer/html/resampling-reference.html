@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1254,9 +1255,8 @@
              
   <section id="image-resampling-c-reference">
 <h1>Image resampling C reference<a class="headerlink" href="#image-resampling-c-reference" title="Link to this heading"></a></h1>
-<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code> and implemented in
-<code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for coordinate conventions and
-<a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for image storage ownership.</p>
+<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code> and implemented in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for
+coordinate conventions and <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> for image storage ownership.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_GetResampleFilterFromObj">
 <span class="target" id="rbc_image_8h_1a28c2b5b3a2d168917f8af540d6627a73"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_GetResampleFilterFromObj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tcl_Interp</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">interp</span></span>, <span class="n"><span class="pre">Tcl_Obj</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterObj</span></span>, <a class="reference internal" href="image-transform-reference.html#c.ResampleFilter" title="ResampleFilter"><span class="n"><span class="pre">ResampleFilter</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">filterPtrPtr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_GetResampleFilterFromObj" title="Link to this definition"></a><br /></dt>
@@ -1375,9 +1375,8 @@
 
 <section id="filter-kernels-and-contribution-records">
 <h2>Filter kernels and contribution records<a class="headerlink" href="#filter-kernels-and-contribution-records" title="Link to this heading"></a></h2>
-<p>These helpers implement the filtered path in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See
-<a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for kernel support, coordinate conventions and
-fixed-point arithmetic.</p>
+<p>These helpers implement the filtered path in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-resampling.html"><span class="doc">Image resizing and resampling</span></a> for kernel support, coordinate
+conventions and fixed-point arithmetic.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__image__resample__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Image</span> <span class="pre">resampling</span> <span class="pre">kernels</span> <span class="pre">and</span> <span class="pre">contributions</span></span></dt>
@@ -1667,8 +1666,7 @@ fixed-point arithmetic.</p>
 </section>
 <section id="contribution-workspace-records">
 <h2>Contribution workspace records<a class="headerlink" href="#contribution-workspace-records" title="Link to this heading"></a></h2>
-<p>These image-local records are distinct from the element palette
-<a class="reference internal" href="pen-reference.html#c.Weight" title="Weight"><code class="xref c c-type docutils literal notranslate"><span class="pre">Weight</span></code></a> interval in <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a>.</p>
+<p>These image-local records are distinct from the element palette <a class="reference internal" href="pen-reference.html#c.Weight" title="Weight"><code class="xref c c-type docutils literal notranslate"><span class="pre">Weight</span></code></a> interval in <a class="reference internal" href="pen-reference.html"><span class="doc">Pen and palette C reference</span></a>.</p>
 <dl class="c union">
 <dt class="sig sig-object c" id="c.ResampleWeight">
 <span class="target" id="union_resample_weight"></span><span class="k"><span class="pre">union</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResampleWeight</span></span></span><a class="headerlink" href="#c.ResampleWeight" title="Link to this definition"></a><br /></dt>

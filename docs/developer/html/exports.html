@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,20 +1215,17 @@
              
   <section id="export-orchestration-and-document-ownership">
 <h1>Export orchestration and document ownership<a class="headerlink" href="#export-orchestration-and-document-ownership" title="Link to this heading"></a></h1>
-<p>The private export layer has two jobs: orchestrate a graph-sized operation and
-provide document state to renderer contexts. <code class="docutils literal notranslate"><span class="pre">rbcGrExport.c</span></code> owns the shared
-traversal and SVG/PDF command services; <code class="docutils literal notranslate"><span class="pre">rbcGrSvg.c</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcGrPdf.c</span></code> and
-<code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code> own format policy and document framing. Backend primitives live
-in the renderer modules described in <a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>.</p>
-<p>These operations run synchronously on the Tk thread. Neither an export token
-nor a renderer context preserves a graph or its window. The enclosing widget
-command retains lifetime protection, and layout/traversal must respect callback
+<p>The private export layer has two jobs: orchestrate a graph-sized operation and provide document state to renderer
+contexts. <code class="docutils literal notranslate"><span class="pre">rbcGrExport.c</span></code> owns the shared traversal and SVG/PDF command services; <code class="docutils literal notranslate"><span class="pre">rbcGrSvg.c</span></code>, <code class="docutils literal notranslate"><span class="pre">rbcGrPdf.c</span></code> and
+<code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code> own format policy and document framing. Backend primitives live in the renderer modules described in
+<a class="reference internal" href="rendering.html"><span class="doc">Rendering architecture and contracts</span></a>.</p>
+<p>These operations run synchronously on the Tk thread. Neither an export token nor a renderer context preserves a graph or
+its window. The enclosing widget command retains lifetime protection, and layout/traversal must respect callback
 invalidation as described in <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a>.</p>
 <section id="document-state">
 <h2>Document state<a class="headerlink" href="#document-state" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcExport.h</span></code> is caller-owned, normally stack storage.
-Initialization zeroes the record and selects its embedded <code class="docutils literal notranslate"><span class="pre">storage</span></code> DString
-as <code class="docutils literal notranslate"><span class="pre">buffer</span></code>. The interpreter and window are borrowed. The context is private
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcExport.h</span></code> is caller-owned, normally stack storage. Initialization zeroes the record and
+selects its embedded <code class="docutils literal notranslate"><span class="pre">storage</span></code> DString as <code class="docutils literal notranslate"><span class="pre">buffer</span></code>. The interpreter and window are borrowed. The context is private
 and does not extend the installed C API.</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1261,23 +1259,19 @@ it does not itself set the interpreter result.</p></td>
 </tr>
 </tbody>
 </table>
-<p>Append and formatting helpers write to the current buffer. They do not stop
-simply because an earlier export error exists. Traversal and finalization must
-check errors before publishing the document. End all borrowing renderer
-contexts before releasing document resources.</p>
+<p>Append and formatting helpers write to the current buffer. They do not stop simply because an earlier export error
+exists. Traversal and finalization must check errors before publishing the document. End all borrowing renderer contexts
+before releasing document resources.</p>
 </section>
 <section id="svg-pdf-command-transaction">
 <h2>SVG/PDF command transaction<a class="headerlink" href="#svg-pdf-command-transaction" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Rbc_GraphExportFormat</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code> supplies the component name/class,
-integer option offsets, backend, channel policy and two lifecycle callbacks.
-Its option specifications contain concrete pixel and boolean fields only.
-Initialization uses a temporary Tk option table and retains no Tk resources
-from that table. Runtime parsing stages all option values before committing;
-an invalid option leaves the previous configuration intact. Repeated valid
-options use the last value, but an invalid earlier occurrence still fails.</p>
-<p>Successful <code class="docutils literal notranslate"><span class="pre">output</span></code> options remain configured even if rendering or delivery
-subsequently fails. Geometry restoration does not reset those options.
-The shared output helper performs this sequence:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Rbc_GraphExportFormat</span></code> in <code class="docutils literal notranslate"><span class="pre">rbcGraph.h</span></code> supplies the component name/class, integer option offsets, backend, channel
+policy and two lifecycle callbacks. Its option specifications contain concrete pixel and boolean fields only.
+Initialization uses a temporary Tk option table and retains no Tk resources from that table. Runtime parsing stages all
+option values before committing; an invalid option leaves the previous configuration intact. Repeated valid options use
+the last value, but an invalid earlier occurrence still fails.</p>
+<p>Successful <code class="docutils literal notranslate"><span class="pre">output</span></code> options remain configured even if rendering or delivery subsequently fails. Geometry restoration
+does not reset those options. The shared output helper performs this sequence:</p>
 <ol class="arabic simple">
 <li><p>Save graph dimensions, initialize the document context and enter export mode.</p></li>
 <li><p>Apply positive configured dimensions, request layout/mapping and lay out.</p></li>
@@ -1290,12 +1284,10 @@ if export succeeded, a restoration failure becomes the command failure.</p></li>
 <li><p>Return or write the complete document only on success. Release the object,
 call optional <code class="docutils literal notranslate"><span class="pre">freeProc</span></code> and release shared context storage on every path.</p></li>
 </ol>
-<p><code class="docutils literal notranslate"><span class="pre">documentProc</span></code> owns document framing and format finalization, not screen
-restoration or context cleanup. <code class="docutils literal notranslate"><span class="pre">freeProc</span></code> releases backend-owned state only
-and must accept an empty context, since initial layout can fail before the
-backend is initialized. SVG finishes embedded font definitions before creating
-its string object. PDF initializes its resource writer, traverses the graph,
-then serializes the complete PDF object. Neither exporter requires Cairo.</p>
+<p><code class="docutils literal notranslate"><span class="pre">documentProc</span></code> owns document framing and format finalization, not screen restoration or context cleanup. <code class="docutils literal notranslate"><span class="pre">freeProc</span></code>
+releases backend-owned state only and must accept an empty context, since initial layout can fail before the backend is
+initialized. SVG finishes embedded font definitions before creating its string object. PDF initializes its resource
+writer, traverses the graph, then serializes the complete PDF object. Neither exporter requires Cairo.</p>
 </section>
 <section id="format-policies-and-extension-constraints">
 <h2>Format policies and extension constraints<a class="headerlink" href="#format-policies-and-extension-constraints" title="Link to this heading"></a></h2>
@@ -1343,100 +1335,79 @@ then serializes the complete PDF object. Neither exporter requires Cairo.</p>
 </tr>
 </tbody>
 </table>
-<p>The policy’s field offsets address native <code class="docutils literal notranslate"><span class="pre">int</span></code> members in Graph. They are
-trusted private metadata, not checked offsets supplied by a script. The shared
-parser supports concrete pixel and boolean specifications only; adding a
-string, synonym or resource-owning option requires extending that parser and
-its ownership model. An unsupported specification type reaches Tcl_Panic.
-Integer query objects report normalized values rather than the original input
-spelling. Initialization may write fields before failing; it belongs to graph
-construction, unlike the rollback guarantee of runtime configuration.</p>
-<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SvgDocument" title="rbcGraphExportCommands.SvgDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SvgDocument()</span></code></a> frames an XML document with pixel dimensions and an equal viewBox.
-After shared traversal succeeds, it finalizes font definitions, closes the SVG
-and copies the buffer into a new Tcl string. The closing tag is appended even
-on failure, but no partial document is returned. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.PdfDocument" title="rbcGraphExportCommands.PdfDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.PdfDocument()</span></code></a> initializes the
-PDF builder using horizontal screen pixels/millimeters to obtain points per
-pixel, traverses the graph and invokes the binary serializer only on success.
+<p>The policy’s field offsets address native <code class="docutils literal notranslate"><span class="pre">int</span></code> members in Graph. They are trusted private metadata, not checked
+offsets supplied by a script. The shared parser supports concrete pixel and boolean specifications only; adding a
+string, synonym or resource-owning option requires extending that parser and its ownership model. An unsupported
+specification type reaches Tcl_Panic. Integer query objects report normalized values rather than the original input
+spelling. Initialization may write fields before failing; it belongs to graph construction, unlike the rollback
+guarantee of runtime configuration.</p>
+<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SvgDocument" title="rbcGraphExportCommands.SvgDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SvgDocument()</span></code></a> frames an XML document with pixel dimensions and an equal viewBox. After
+shared traversal succeeds, it finalizes font definitions, closes the SVG and copies the buffer into a new Tcl
+string. The closing tag is appended even on failure, but no partial document is
+returned. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.PdfDocument" title="rbcGraphExportCommands.PdfDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.PdfDocument()</span></code></a> initializes the PDF builder using horizontal screen
+pixels/millimeters to obtain points per pixel, traverses the graph and invokes the binary serializer only on success.
 Neither adapter opens files or restores screen geometry.</p>
-<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.OutputGraphExport" title="rbcGraphExportCommands.OutputGraphExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.OutputGraphExport()</span></code></a> acquires a reference to a document returned by the callback
-and releases it after delivery or failure. A callback must return a non-NULL
-new object on success; cleanup accepts NULL on failure. Backend cleanup still
-runs when initial layout fails before the document callback is entered. A new
-format must therefore separate backend teardown from shared font and buffer
-cleanup, and must tolerate that partially initialized state.</p>
+<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.OutputGraphExport" title="rbcGraphExportCommands.OutputGraphExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.OutputGraphExport()</span></code></a> acquires a reference to a document returned by the callback and
+releases it after delivery or failure. A callback must return a non-NULL new object on success; cleanup accepts NULL on
+failure. Backend cleanup still runs when initial layout fails before the document callback is entered. A new format must
+therefore separate backend teardown from shared font and buffer cleanup, and must tolerate that partially initialized
+state.</p>
 </section>
 <section id="graph-traversal-and-geometry">
 <h2>Graph traversal and geometry<a class="headerlink" href="#graph-traversal-and-geometry" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportGraph" title="Rbc_ExportGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportGraph()</span></code></a> assumes export geometry is already mapped. It opens the
-plot output context and emits the plot background, optional track separators,
-grids and polar/Smith labels. It then validates callback state before continuing
-with under-markers, unraised local/global legends, axis limits, elements,
-raised local/global legends, over-markers and active elements. Finally it ends
-the plot region and emits margins, margin legend, title and axes.</p>
-<p>Track grids are dispatched even when the global grid is hidden; the track
-services decide effective visibility. Track components own their scopes and
-clipping. Crosshairs are screen-only. See <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a>, <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a> and
+<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportGraph" title="Rbc_ExportGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportGraph()</span></code></a> assumes export geometry is already mapped. It opens the plot output context and emits the plot
+background, optional track separators, grids and polar/Smith labels. It then validates callback state before continuing
+with under-markers, unraised local/global legends, axis limits, elements, raised local/global legends, over-markers and
+active elements. Finally it ends the plot region and emits margins, margin legend, title and axes.</p>
+<p>Track grids are dispatched even when the global grid is hidden; the track services decide effective visibility. Track
+components own their scopes and clipping. Crosshairs are screen-only. See <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a>, <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a> and
 <a class="reference internal" href="legends.html"><span class="doc">Legend ownership and layout</span></a> for component-specific output rules.</p>
-<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportBeginGraph" title="Rbc_ExportBeginGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportBeginGraph()</span></code></a> supplies requested Tk dimensions when graph dimensions
-are not yet usable and sets <code class="docutils literal notranslate"><span class="pre">GRAPH_EXPORT</span></code>. It does not save geometry or
-perform layout. <a class="reference internal" href="export-reference.html#c.Rbc_ExportEndGraph" title="Rbc_ExportEndGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph()</span></code></a> clears the flag; for a surviving window
-it adopts actual Tk dimensions, replaces graph flags with <code class="docutils literal notranslate"><span class="pre">MAP_WORLD</span></code> and
-schedules redraw. It is not a general state-stack operation and is not nestable.
-See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for immediate screen restoration in SVG/PDF versus deferred
-screen remapping in PostScript.</p>
+<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportBeginGraph" title="Rbc_ExportBeginGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportBeginGraph()</span></code></a> supplies requested Tk dimensions when graph dimensions are not yet usable and sets
+<code class="docutils literal notranslate"><span class="pre">GRAPH_EXPORT</span></code>. It does not save geometry or perform layout. <a class="reference internal" href="export-reference.html#c.Rbc_ExportEndGraph" title="Rbc_ExportEndGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph()</span></code></a> clears the flag; for a
+surviving window it adopts actual Tk dimensions, replaces graph flags with <code class="docutils literal notranslate"><span class="pre">MAP_WORLD</span></code> and schedules redraw. It is not
+a general state-stack operation and is not nestable. See <a class="reference internal" href="mapping.html"><span class="doc">Axes, mapping and track viewports</span></a> for immediate screen restoration in SVG/PDF
+versus deferred screen remapping in PostScript.</p>
 </section>
 <section id="postscript-policy-and-delivery">
 <h2>PostScript policy and delivery<a class="headerlink" href="#postscript-policy-and-delivery" title="Link to this heading"></a></h2>
-<p>PostScript retains its own option transaction and output command because it
-also handles page setup, printer mappings and optional preview formats.
-<a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a> borrows a PostScript token, redirects the export buffer
-to that token, enters export mode, prepares the page and traverses components.
-It appends the trailer on success, ends export mode and frees shared state.
-The outer command releases the PostScript token. Unlike SVG/PDF, this path does
-not perform the SVG/PDF restoration transaction. Its optional Windows metafile
-preview does explicitly lay out and draw at screen dimensions.</p>
-<p>All three formats finish document generation before opening a filename for
-writing. SVG uses UTF-8/LF channel settings; PDF uses ISO-8859-1/binary for its
-byte-valued document object. PostScript writes bytes with binary translation,
-including the optional Windows DOS EPS preview wrapper. An output without a
-filename returns the document instead.</p>
-<p>This ordering protects an existing file against rendering failure, but it is
-not atomic file replacement: opening with <code class="docutils literal notranslate"><span class="pre">w</span></code> can truncate the destination,
-and later writing or closing can fail. A prior write/channel error is preserved
-across cleanup; otherwise a close error is reported. Successful file output
-clears the interpreter result. PostScript metadata can vary between exports,
-so byte equality is not a universal test for geometry restoration.</p>
-<p>See <a class="reference internal" href="export-reference.html"><span class="doc">Export orchestration C reference</span></a> for the shared C contracts. See <a class="reference internal" href="pdf-builder.html"><span class="doc">PDF resource builder and serialization</span></a> for PDF
-resource ownership and serialization, and <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a> for font ownership.</p>
+<p>PostScript retains its own option transaction and output command because it also handles page setup, printer mappings
+and optional preview formats. <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a> borrows a PostScript token, redirects the
+export buffer to that token, enters export mode, prepares the page and traverses components. It appends the trailer on
+success, ends export mode and frees shared state. The outer command releases the PostScript token. Unlike SVG/PDF, this
+path does not perform the SVG/PDF restoration transaction. Its optional Windows metafile preview does explicitly lay out
+and draw at screen dimensions.</p>
+<p>All three formats finish document generation before opening a filename for writing. SVG uses UTF-8/LF channel settings;
+PDF uses ISO-8859-1/binary for its byte-valued document object. PostScript writes bytes with binary translation,
+including the optional Windows DOS EPS preview wrapper. An output without a filename returns the document instead.</p>
+<p>This ordering protects an existing file against rendering failure, but it is not atomic file replacement: opening with
+<code class="docutils literal notranslate"><span class="pre">w</span></code> can truncate the destination, and later writing or closing can fail. A prior write/channel error is preserved
+across cleanup; otherwise a close error is reported. Successful file output clears the interpreter result. PostScript
+metadata can vary between exports, so byte equality is not a universal test for geometry restoration.</p>
+<p>See <a class="reference internal" href="export-reference.html"><span class="doc">Export orchestration C reference</span></a> for the shared C contracts. See <a class="reference internal" href="pdf-builder.html"><span class="doc">PDF resource builder and serialization</span></a> for PDF resource ownership and
+serialization, and <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a> for font ownership.</p>
 <p>See <a class="reference internal" href="svg-output.html"><span class="doc">SVG definitions and image encoding</span></a> for SVG definitions, escaped text and inline image encoding.</p>
 </section>
 <section id="parameter-slices-and-failure-boundaries">
 <h2>Parameter slices and failure boundaries<a class="headerlink" href="#parameter-slices-and-failure-boundaries" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="export-reference.html#c.Rbc_GraphExportOp" title="Rbc_GraphExportOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GraphExportOp()</span></code></a> receives the full widget command, with the operation
-at index two. Its private parser <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SetExportOptions" title="rbcGraphExportCommands.SetExportOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SetExportOptions()</span></code></a>
-receives only the option/value slice, starting at index zero. Passing the full
-command to that parser would interpret command words as options. The parser
-stages integer values before committing; <a class="reference internal" href="export-reference.html#c.Rbc_InitGraphExportOptions" title="Rbc_InitGraphExportOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitGraphExportOptions()</span></code></a>
-instead initializes a new graph and does not promise rollback on failure.</p>
+<p><a class="reference internal" href="export-reference.html#c.Rbc_GraphExportOp" title="Rbc_GraphExportOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GraphExportOp()</span></code></a> receives the full widget command, with the operation at index two. Its private parser
+<a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SetExportOptions" title="rbcGraphExportCommands.SetExportOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SetExportOptions()</span></code></a> receives only the option/value slice, starting at index zero. Passing
+the full command to that parser would interpret command words as options. The parser stages integer values before
+committing; <a class="reference internal" href="export-reference.html#c.Rbc_InitGraphExportOptions" title="Rbc_InitGraphExportOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitGraphExportOptions()</span></code></a> instead initializes a new graph and does not promise rollback on
+failure.</p>
 <p>The document callback output is also deliberately narrower than the command
-result. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SvgDocument" title="rbcGraphExportCommands.SvgDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SvgDocument()</span></code></a> leaves its output pointer
-unchanged on failure. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.PdfDocument" title="rbcGraphExportCommands.PdfDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.PdfDocument()</span></code></a> leaves it
-unchanged when traversal fails, but writes NULL when serialization fails.
-<a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.OutputGraphExport" title="rbcGraphExportCommands.OutputGraphExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.OutputGraphExport()</span></code></a> initializes that pointer to
-NULL, takes a reference when a document is returned, and releases it after
-result delivery or failure. New callbacks must follow this ownership contract.</p>
-<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportAppend" title="Rbc_ExportAppend"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportAppend()</span></code></a> takes C strings terminated by a pointer-valued NULL
-sentinel, not a byte count. <a class="reference internal" href="export-reference.html#c.Rbc_ExportFormat" title="Rbc_ExportFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFormat()</span></code></a> takes printf arguments.
-Both append to the context’s current buffer, which may differ from its embedded
-storage; neither suppresses output because an earlier error was recorded.
-<a class="reference internal" href="export-reference.html#c.Rbc_ExportError" title="Rbc_ExportError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportError()</span></code></a> records the first static error string without setting
-the Tcl result. Final traversal or serialization must turn that failure into a
-command error before delivery.</p>
-<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.WriteExportDocument" title="rbcGraphExportCommands.WriteExportDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.WriteExportDocument()</span></code></a> only receives a complete
-document. Its success means writing and closing succeeded, not that replacement
-was atomic. Keeping the Tcl object alive through channel operations is the
-caller’s responsibility; the helper neither takes ownership of the document
-nor retains the filename after returning.</p>
+result. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.SvgDocument" title="rbcGraphExportCommands.SvgDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.SvgDocument()</span></code></a> leaves its output pointer unchanged on
+failure. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.PdfDocument" title="rbcGraphExportCommands.PdfDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.PdfDocument()</span></code></a> leaves it unchanged when traversal fails, but writes NULL when
+serialization fails. <a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.OutputGraphExport" title="rbcGraphExportCommands.OutputGraphExport"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.OutputGraphExport()</span></code></a> initializes that pointer to NULL, takes a
+reference when a document is returned, and releases it after result delivery or failure. New callbacks must follow this
+ownership contract.</p>
+<p><a class="reference internal" href="export-reference.html#c.Rbc_ExportAppend" title="Rbc_ExportAppend"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportAppend()</span></code></a> takes C strings terminated by a pointer-valued NULL sentinel, not a byte
+count. <a class="reference internal" href="export-reference.html#c.Rbc_ExportFormat" title="Rbc_ExportFormat"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportFormat()</span></code></a> takes printf arguments. Both append to the context’s current buffer, which may differ
+from its embedded storage; neither suppresses output because an earlier error was recorded. <a class="reference internal" href="export-reference.html#c.Rbc_ExportError" title="Rbc_ExportError"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportError()</span></code></a>
+records the first static error string without setting the Tcl result. Final traversal or serialization must turn that
+failure into a command error before delivery.</p>
+<p><a class="reference internal" href="export-reference.html#c.rbcGraphExportCommands.WriteExportDocument" title="rbcGraphExportCommands.WriteExportDocument"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphExportCommands.WriteExportDocument()</span></code></a> only receives a complete document. Its success means writing and
+closing succeeded, not that replacement was atomic. Keeping the Tcl object alive through channel operations is the
+caller’s responsibility; the helper neither takes ownership of the document nor retains the filename after returning.</p>
 </section>
 </section>
 

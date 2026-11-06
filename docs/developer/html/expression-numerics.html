@@ -508,6 +508,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1215,33 +1216,28 @@
              
   <section id="expression-reductions-and-scalar-kernels">
 <h1>Expression reductions and scalar kernels<a class="headerlink" href="#expression-reductions-and-scalar-kernels" title="Link to this heading"></a></h1>
-<p>The numerical functions in <code class="docutils literal notranslate"><span class="pre">rbcVecMath.c</span></code> operate beneath the adapters described
-in <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a>. They are distinct from the instance commands in
-<a class="reference internal" href="vector-numerics.html"><span class="doc">Vector queries and numerical generators</span></a>. Their contracts are collected in
-<a class="reference internal" href="expression-numerics-reference.html"><span class="doc">Expression numerical C reference</span></a>. This chapter records implemented formulas
-and limitations; it does not change numerical conventions.</p>
+<p>The numerical functions in <code class="docutils literal notranslate"><span class="pre">rbcVecMath.c</span></code> operate beneath the adapters described in <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a>. They are
+distinct from the instance commands in <a class="reference internal" href="vector-numerics.html"><span class="doc">Vector queries and numerical generators</span></a>. Their contracts are collected in
+<a class="reference internal" href="expression-numerics-reference.html"><span class="doc">Expression numerical C reference</span></a>. This chapter records implemented formulas and limitations; it does not change
+numerical conventions.</p>
 <section id="selection-finite-samples-and-ownership">
 <h2>Selection, finite samples and ownership<a class="headerlink" href="#selection-finite-samples-and-ownership" title="Link to this heading"></a></h2>
-<p>Most real reductions traverse <code class="docutils literal notranslate"><span class="pre">first..last</span></code> using <a class="reference internal" href="expression-engine-reference.html#c.First" title="First"><code class="xref c c-func docutils literal notranslate"><span class="pre">First()</span></code></a> and <a class="reference internal" href="expression-engine-reference.html#c.Next" title="Next"><code class="xref c c-func docutils literal notranslate"><span class="pre">Next()</span></code></a>, which
-skip nonfinite values. Complex reductions traverse the same interval and accept
-a sample only when both components are finite. Dropping one component alone
-would change the sample population and is not how these reducers work.</p>
-<p>Expression references are copied into temporaries whose selection covers their
-used length. That matters for helpers which do not follow the general selection
-rule: extrema and normalization scan the full length, while median/quartile
-indexing uses full length after requesting a sort index for the selection.
-Those order-statistic helpers therefore require a full-length selection. They
-must not be reused directly for an arbitrary private slice without adjustment.</p>
-<p>Reducers borrow storage and do not publish notifications. <a class="reference internal" href="expression-numerics-reference.html#c.Sort" title="Sort"><code class="xref c c-func docutils literal notranslate"><span class="pre">Sort()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Norm" title="Norm"><code class="xref c c-func docutils literal notranslate"><span class="pre">Norm()</span></code></a>
-mutate detached expression values; sorting allocates an index and temporary value
-buffer, whereas normalization rewrites the full buffer in place. Component
-kernels accept/return numeric values and own no vector or Tcl object. Random
-kernels additionally advance the shared random generator.</p>
+<p>Most real reductions traverse <code class="docutils literal notranslate"><span class="pre">first..last</span></code> using <a class="reference internal" href="expression-engine-reference.html#c.First" title="First"><code class="xref c c-func docutils literal notranslate"><span class="pre">First()</span></code></a> and <a class="reference internal" href="expression-engine-reference.html#c.Next" title="Next"><code class="xref c c-func docutils literal notranslate"><span class="pre">Next()</span></code></a>, which skip nonfinite
+values. Complex reductions traverse the same interval and accept a sample only when both components are finite. Dropping
+one component alone would change the sample population and is not how these reducers work.</p>
+<p>Expression references are copied into temporaries whose selection covers their used length. That matters for helpers
+which do not follow the general selection rule: extrema and normalization scan the full length, while median/quartile
+indexing uses full length after requesting a sort index for the selection. Those order-statistic helpers therefore
+require a full-length selection. They must not be reused directly for an arbitrary private slice without adjustment.</p>
+<p>Reducers borrow storage and do not publish notifications. <a class="reference internal" href="expression-numerics-reference.html#c.Sort" title="Sort"><code class="xref c c-func docutils literal notranslate"><span class="pre">Sort()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Norm" title="Norm"><code class="xref c c-func docutils literal notranslate"><span class="pre">Norm()</span></code></a> mutate detached expression
+values; sorting allocates an index and temporary value buffer, whereas normalization rewrites the full buffer in
+place. Component kernels accept/return numeric values and own no vector or Tcl object. Random kernels additionally
+advance the shared random generator.</p>
 </section>
 <section id="implemented-reduction-formulas">
 <h2>Implemented reduction formulas<a class="headerlink" href="#implemented-reduction-formulas" title="Link to this heading"></a></h2>
-<p>Let <span class="math notranslate nohighlight">\(n\)</span> be the number of accepted finite samples and <span class="math notranslate nohighlight">\(m\)</span> their mean.
-For complex samples, <span class="math notranslate nohighlight">\(|z-m|\)</span> is Euclidean distance in the complex plane.</p>
+<p>Let <span class="math notranslate nohighlight">\(n\)</span> be the number of accepted finite samples and <span class="math notranslate nohighlight">\(m\)</span> their mean. For complex samples, <span class="math notranslate nohighlight">\(|z-m|\)</span> is
+Euclidean distance in the complex plane.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Real and complex reductions</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
@@ -1290,151 +1286,116 @@ For complex samples, <span class="math notranslate nohighlight">\(|z-m|\)</span>
 </tr>
 </tbody>
 </table>
-<p>The complex variance is not the mean of complex squared deviations and is not
-a covariance matrix. Both deviation reducers and variance return zero for fewer
-than two finite samples. Empty sums/products return their identities, zero/one;
-empty means are nonfinite and fail final expression validation.</p>
-<p>These reducers use ordinary double accumulation. Complex distance uses <code class="docutils literal notranslate"><span class="pre">hypot</span></code>
-to avoid unnecessary overflow in its intermediate squares, but squaring that
-distance or accumulating many values can still overflow. There is no compensated
-summation or general guarantee for extreme dynamic ranges. Standard deviation
-returns zero whenever the variance is not greater than zero, including a NaN
-comparison; this is an implementation detail worth preserving or deliberately
+<p>The complex variance is not the mean of complex squared deviations and is not a covariance matrix. Both deviation
+reducers and variance return zero for fewer than two finite samples. Empty sums/products return their identities,
+zero/one; empty means are nonfinite and fail final expression validation.</p>
+<p>These reducers use ordinary double accumulation. Complex distance uses <code class="docutils literal notranslate"><span class="pre">hypot</span></code> to avoid unnecessary overflow in its
+intermediate squares, but squaring that distance or accumulating many values can still overflow. There is no compensated
+summation or general guarantee for extreme dynamic ranges. Standard deviation returns zero whenever the variance is not
+greater than zero, including a NaN comparison; this is an implementation detail worth preserving or deliberately
 revising with tests, rather than assuming every nonfinite intermediate propagates.</p>
 </section>
 <section id="real-order-statistics-and-normalization">
 <h2>Real order statistics and normalization<a class="headerlink" href="#real-order-statistics-and-normalization" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.Median" title="Median"><code class="xref c c-func docutils literal notranslate"><span class="pre">Median()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.Q1" title="Q1"><code class="xref c c-func docutils literal notranslate"><span class="pre">Q1()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Q3" title="Q3"><code class="xref c c-func docutils literal notranslate"><span class="pre">Q3()</span></code></a> allocate a sorted index without reordering source data.
-Median selects the middle value for odd length and averages the middle pair for
-even length. Empty input or index-allocation failure returns <code class="docutils literal notranslate"><span class="pre">-DBL_MAX</span></code>. This
-is a finite sentinel, so the evaluator’s final finite check does not itself turn
-it into an error. These helpers have numeric return signatures, not Tcl status
-returns; their allocation-failure behavior needs separate attention if revised.</p>
-<p>Quartiles use legacy integer index formulas. For length below four, <code class="docutils literal notranslate"><span class="pre">q1</span></code> is
-the minimum and <code class="docutils literal notranslate"><span class="pre">q3</span></code> the maximum. Otherwise, with zero-based sorted positions,
-set <code class="docutils literal notranslate"><span class="pre">mid</span> <span class="pre">=</span> <span class="pre">(length-1)/2</span></code> using integer division. The lower index is <code class="docutils literal notranslate"><span class="pre">mid/2</span></code>;
-the upper is <code class="docutils literal notranslate"><span class="pre">mid</span> <span class="pre">+</span> <span class="pre">(length-mid)/2</span></code>. An odd <code class="docutils literal notranslate"><span class="pre">mid</span></code> selects that index, while
-an even <code class="docutils literal notranslate"><span class="pre">mid</span></code> averages it with the following value. This is not a selectable
-or universally standardized percentile method. For <code class="docutils literal notranslate"><span class="pre">{1</span> <span class="pre">2</span> <span class="pre">3</span> <span class="pre">4}</span></code>, the current
-results are <code class="docutils literal notranslate"><span class="pre">q1=1</span></code> and <code class="docutils literal notranslate"><span class="pre">q3=3</span></code>.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Median" title="Median"><code class="xref c c-func docutils literal notranslate"><span class="pre">Median()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.Q1" title="Q1"><code class="xref c c-func docutils literal notranslate"><span class="pre">Q1()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Q3" title="Q3"><code class="xref c c-func docutils literal notranslate"><span class="pre">Q3()</span></code></a> allocate a sorted index without reordering source data. Median selects
+the middle value for odd length and averages the middle pair for even length. Empty input or index-allocation failure
+returns <code class="docutils literal notranslate"><span class="pre">-DBL_MAX</span></code>. This is a finite sentinel, so the evaluator’s final finite check does not itself turn it into an
+error. These helpers have numeric return signatures, not Tcl status returns; their allocation-failure behavior needs
+separate attention if revised.</p>
+<p>Quartiles use legacy integer index formulas. For length below four, <code class="docutils literal notranslate"><span class="pre">q1</span></code> is the minimum and <code class="docutils literal notranslate"><span class="pre">q3</span></code> the
+maximum. Otherwise, with zero-based sorted positions, set <code class="docutils literal notranslate"><span class="pre">mid</span> <span class="pre">=</span> <span class="pre">(length-1)/2</span></code> using integer division. The lower index
+is <code class="docutils literal notranslate"><span class="pre">mid/2</span></code>; the upper is <code class="docutils literal notranslate"><span class="pre">mid</span> <span class="pre">+</span> <span class="pre">(length-mid)/2</span></code>. An odd <code class="docutils literal notranslate"><span class="pre">mid</span></code> selects that index, while an even <code class="docutils literal notranslate"><span class="pre">mid</span></code> averages
+it with the following value. This is not a selectable or universally standardized percentile method. For <code class="docutils literal notranslate"><span class="pre">{1</span> <span class="pre">2</span> <span class="pre">3</span> <span class="pre">4}</span></code>,
+the current results are <code class="docutils literal notranslate"><span class="pre">q1=1</span></code> and <code class="docutils literal notranslate"><span class="pre">q3=3</span></code>.</p>
 <p><a class="reference internal" href="expression-numerics-reference.html#c.Norm" title="Norm"><code class="xref c c-func docutils literal notranslate"><span class="pre">Norm()</span></code></a> implements <code class="docutils literal notranslate"><span class="pre">norm</span></code> and computes <code class="docutils literal notranslate"><span class="pre">(x-min)/(max-min)</span></code> over the full temporary. There is no
-constant-range guard, so nonempty constant input produces nonfinite values and
-is rejected by final expression validation. This helper is distinct from any
-instance normalization command and should not inherit that command’s behavior
-by assumption.</p>
+constant-range guard, so nonempty constant input produces nonfinite values and is rejected by final expression
+validation. This helper is distinct from any instance normalization command and should not inherit that command’s
+behavior by assumption.</p>
 </section>
 <section id="higher-moments-and-compatibility">
 <h2>Higher moments and compatibility<a class="headerlink" href="#higher-moments-and-compatibility" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.Kurtosis" title="Kurtosis"><code class="xref c c-func docutils literal notranslate"><span class="pre">Kurtosis()</span></code></a> implements <code class="docutils literal notranslate"><span class="pre">kurtosis</span></code> using sample variance <span class="math notranslate nohighlight">\(s^2\)</span> and returns
-<span class="math notranslate nohighlight">\(\sum (x-m)^4/(n s^4)-3\)</span>. It returns zero for fewer than two samples or
-zero variance. This is neither a bias-corrected estimator nor the usual
-population-moment normalization.</p>
-<p>The current <a class="reference internal" href="expression-numerics-reference.html#c.Skew" title="Skew"><code class="xref c c-func docutils literal notranslate"><span class="pre">Skew()</span></code></a> calculation (<code class="docutils literal notranslate"><span class="pre">skew</span></code>) uses <strong>absolute</strong> deviations:
-<span class="math notranslate nohighlight">\(\sum |x-m|^3/(n s^3)\)</span>. It therefore loses the sign of asymmetry and is not
-conventional signed skewness. For <code class="docutils literal notranslate"><span class="pre">{-1</span> <span class="pre">0</span> <span class="pre">1}</span></code> it returns approximately <code class="docutils literal notranslate"><span class="pre">2/3</span></code>,
-although conventional skewness is zero. Fewer than two samples return zero;
-constant input of length at least two produces a nonfinite result.</p>
-<p><code class="docutils literal notranslate"><span class="pre">skew</span></code> retains this legacy formula for compatibility. The separate <code class="docutils literal notranslate"><span class="pre">skewness</span></code>
-function uses signed population central moments, with no bias correction:
-<span class="math notranslate nohighlight">\(g_1=m_3/m_2^{3/2}\)</span>, where <span class="math notranslate nohighlight">\(m_k=\sum(x-m)^k/n\)</span>. It returns zero for
-symmetric samples and reverses sign under reflection. Empty or zero-variance
-input returns NaN internally and becomes an expression domain error; no partial
-result is assigned to a named destination.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.Skewness" title="Skewness"><code class="xref c c-func docutils literal notranslate"><span class="pre">Skewness()</span></code></a> scales finite samples by their maximum absolute value before
-computing the mean and central moments. This avoids cubing raw magnitudes and
-keeps moment accumulation bounded for extreme finite values. It performs three
-linear scans and allocates no numerical buffer. Like the other real reducers,
-it skips nonfinite selected samples. The function is real-only; it does not
-introduce an ordering or signed skewness definition for complex values.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Kurtosis" title="Kurtosis"><code class="xref c c-func docutils literal notranslate"><span class="pre">Kurtosis()</span></code></a> implements <code class="docutils literal notranslate"><span class="pre">kurtosis</span></code> using sample variance <span class="math notranslate nohighlight">\(s^2\)</span> and returns math:<cite>sum (x-m)^4/(n
+:s^4)-3</cite>. It returns zero for fewer than two samples or zero variance. This is neither a bias-corrected estimator nor
+:the usual population-moment normalization.</p>
+<p>The current <a class="reference internal" href="expression-numerics-reference.html#c.Skew" title="Skew"><code class="xref c c-func docutils literal notranslate"><span class="pre">Skew()</span></code></a> calculation (<code class="docutils literal notranslate"><span class="pre">skew</span></code>) uses <strong>absolute</strong> deviations: <span class="math notranslate nohighlight">\(\sum |x-m|^3/(n s^3)\)</span>. It
+therefore loses the sign of asymmetry and is not conventional signed skewness. For <code class="docutils literal notranslate"><span class="pre">{-1</span> <span class="pre">0</span> <span class="pre">1}</span></code> it returns approximately
+<code class="docutils literal notranslate"><span class="pre">2/3</span></code>, although conventional skewness is zero. Fewer than two samples return zero; constant input of length at least
+two produces a nonfinite result.</p>
+<p><code class="docutils literal notranslate"><span class="pre">skew</span></code> retains this legacy formula for compatibility. The separate <code class="docutils literal notranslate"><span class="pre">skewness</span></code> function uses signed population
+central moments, with no bias correction: <span class="math notranslate nohighlight">\(g_1=m_3/m_2^{3/2}\)</span>, where <span class="math notranslate nohighlight">\(m_k=\sum(x-m)^k/n\)</span>. It returns zero
+for symmetric samples and reverses sign under reflection. Empty or zero-variance input returns NaN internally and
+becomes an expression domain error; no partial result is assigned to a named destination.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Skewness" title="Skewness"><code class="xref c c-func docutils literal notranslate"><span class="pre">Skewness()</span></code></a> scales finite samples by their maximum absolute value before computing the mean and central
+moments. This avoids cubing raw magnitudes and keeps moment accumulation bounded for extreme finite values. It performs
+three linear scans and allocates no numerical buffer. Like the other real reducers, it skips nonfinite selected
+samples. The function is real-only; it does not introduce an ordering or signed skewness definition for complex values.</p>
 </section>
 <section id="complex-elementary-functions">
 <h2>Complex elementary functions<a class="headerlink" href="#complex-elementary-functions" title="Link to this heading"></a></h2>
-<p>Adapter selection depends on the temporary’s type. Real input uses real libm
-functions; it is not automatically promoted when a real-domain operation fails.
-An explicitly complex pair selects the complex kernel even when its imaginary
-part is zero. See <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> for type-changing adapter boundaries.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexLog" title="ComplexLog"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexLog()</span></code></a> combines a scaled logarithmic magnitude with <code class="docutils literal notranslate"><span class="pre">atan2</span></code>
-phase. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexSqrt" title="ComplexSqrt"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexSqrt()</span></code></a> scales large components before computing half the magnitude.
-Its negative-real branch tests <code class="docutils literal notranslate"><span class="pre">imag</span> <span class="pre">&lt;</span> <span class="pre">0</span></code>; negative imaginary zero therefore
-chooses the same side as positive zero. Do not claim complete C99 complex
-signed-zero branch semantics for these custom kernels.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexTan" title="ComplexTan"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexTan()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexTanh" title="ComplexTanh"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexTanh()</span></code></a> use decaying exponentials and rearranged
-denominators to reduce overflow and cancellation. Their axis-special cases use
-ordinary <code class="docutils literal notranslate"><span class="pre">tan</span></code>; above magnitude 350 the decaying term is set to zero to avoid
-an irrelevant underflow setting <code class="docutils literal notranslate"><span class="pre">errno</span></code>. Sine, cosine and their hyperbolic
-counterparts retain direct formulas and can overflow in intermediate libm calls.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexAsin" title="ComplexAsin"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAsin()</span></code></a> uses distances to plus/minus one, clamps rounding excursions in
-its auxiliary quantities and applies the imaginary sign with <code class="docutils literal notranslate"><span class="pre">copysign</span></code>.
-<a class="reference internal" href="expression-numerics-reference.html#c.ComplexAcos" title="ComplexAcos"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAcos()</span></code></a> derives from inverse sine. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexAtan" title="ComplexAtan"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAtan()</span></code></a> scales the angle
-calculation and uses logarithmic distances to plus/minus i. These strategies
-reduce specific numerical problems; they do not guarantee finite results for
-all finite inputs or remove genuine poles.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexPower" title="ComplexPower"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexPower()</span></code></a> uses exponentiation by squaring for finite real integral exponents,
-keeping the exponent as a double rather than narrowing it to a C integer. Zero
-to zero returns one. Negative powers of zero fail; zero to a positive real
-nonintegral power returns zero; a finite nonreal exponent of zero fails. Other
-cases use <code class="docutils literal notranslate"><span class="pre">exp(exponent*Log(base))</span></code> on the implemented logarithm branch.</p>
-<p>Most scalar kernels return numbers rather than Tcl statuses. The adapters check
-<code class="docutils literal notranslate"><span class="pre">errno</span></code> and/or component finiteness, and complete expression evaluation checks
-its final values again. A successful internal arithmetic dispatch alone is not
-a promise of a finite result. Rounding operates independently on complex
-components and uses half-away-from-zero; it does not round magnitude or phase.</p>
+<p>Adapter selection depends on the temporary’s type. Real input uses real libm functions; it is not automatically promoted
+when a real-domain operation fails. An explicitly complex pair selects the complex kernel even when its imaginary part
+is zero. See <a class="reference internal" href="expression-engine.html"><span class="doc">Expression parser and adapter internals</span></a> for type-changing adapter boundaries.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexLog" title="ComplexLog"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexLog()</span></code></a> combines a scaled logarithmic magnitude with <code class="docutils literal notranslate"><span class="pre">atan2</span></code> phase. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexSqrt" title="ComplexSqrt"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexSqrt()</span></code></a> scales large
+components before computing half the magnitude. Its negative-real branch tests <code class="docutils literal notranslate"><span class="pre">imag</span> <span class="pre">&lt;</span> <span class="pre">0</span></code>; negative imaginary zero
+therefore chooses the same side as positive zero. Do not claim complete C99 complex signed-zero branch semantics for
+these custom kernels.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexTan" title="ComplexTan"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexTan()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexTanh" title="ComplexTanh"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexTanh()</span></code></a> use decaying exponentials and rearranged denominators to reduce overflow
+and cancellation. Their axis-special cases use ordinary <code class="docutils literal notranslate"><span class="pre">tan</span></code>; above magnitude 350 the decaying term is set to zero to
+avoid an irrelevant underflow setting <code class="docutils literal notranslate"><span class="pre">errno</span></code>. Sine, cosine and their hyperbolic counterparts retain direct formulas
+and can overflow in intermediate libm calls.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexAsin" title="ComplexAsin"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAsin()</span></code></a> uses distances to plus/minus one, clamps rounding excursions in its auxiliary quantities and
+applies the imaginary sign with <code class="docutils literal notranslate"><span class="pre">copysign</span></code>. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexAcos" title="ComplexAcos"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAcos()</span></code></a> derives from inverse sine. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexAtan" title="ComplexAtan"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAtan()</span></code></a>
+scales the angle calculation and uses logarithmic distances to plus/minus i. These strategies reduce specific numerical
+problems; they do not guarantee finite results for all finite inputs or remove genuine poles.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexPower" title="ComplexPower"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexPower()</span></code></a> uses exponentiation by squaring for finite real integral exponents, keeping the exponent as a
+double rather than narrowing it to a C integer. Zero to zero returns one. Negative powers of zero fail; zero to a
+positive real nonintegral power returns zero; a finite nonreal exponent of zero fails. Other cases use
+<code class="docutils literal notranslate"><span class="pre">exp(exponent*Log(base))</span></code> on the implemented logarithm branch.</p>
+<p>Most scalar kernels return numbers rather than Tcl statuses. The adapters check <code class="docutils literal notranslate"><span class="pre">errno</span></code> and/or component finiteness,
+and complete expression evaluation checks its final values again. A successful internal arithmetic dispatch alone is not
+a promise of a finite result. Rounding operates independently on complex components and uses half-away-from-zero; it
+does not round magnitude or phase.</p>
 </section>
 <section id="scalar-ownership-and-dispatch">
 <h2>Scalar ownership and dispatch<a class="headerlink" href="#scalar-ownership-and-dispatch" title="Link to this heading"></a></h2>
-<p>Component kernels receive their numeric input by value. For example,
-<a class="reference internal" href="expression-numerics-reference.html#c.ComplexReal" title="ComplexReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexReal()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexImag" title="ComplexImag"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexImag()</span></code></a> extract copied components,
-<a class="reference internal" href="expression-numerics-reference.html#c.ComplexConj" title="ComplexConj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexConj()</span></code></a> returns a copied conjugate, and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexAbs" title="ComplexAbs"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAbs()</span></code></a>
-uses the magnitude of both components. They acquire no vector or Tcl-object
-references and cannot publish a vector change themselves.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.Identity" title="Identity"><code class="xref c c-func docutils literal notranslate"><span class="pre">Identity()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Zero" title="Zero"><code class="xref c c-func docutils literal notranslate"><span class="pre">Zero()</span></code></a> supply the real-input branches of paired
-adapters. <a class="reference internal" href="expression-numerics-reference.html#c.Arg" title="Arg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Arg()</span></code></a> uses the phase of a real value; <a class="reference internal" href="expression-numerics-reference.html#c.ComplexArg" title="ComplexArg"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexArg()</span></code></a>
-uses both components. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexCeil" title="ComplexCeil"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexCeil()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexFloor" title="ComplexFloor"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexFloor()</span></code></a> and
-<a class="reference internal" href="expression-numerics-reference.html#c.ComplexRound" title="ComplexRound"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexRound()</span></code></a> operate independently on the two components. Their
-scalar nature does not imply an error-reporting or finite-output guarantee:
-the adapter and final evaluator apply those policies.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.Random" title="Random"><code class="xref c c-func docutils literal notranslate"><span class="pre">Random()</span></code></a> ignores its input and advances the shared random generator
-once. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexRandom" title="ComplexRandom"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexRandom()</span></code></a> draws independent real and imaginary components,
-advancing it twice. These scalar signatures therefore describe value passing,
-not purity. <a class="reference internal" href="expression-engine-reference.html#c.ComplexValueIsFinite" title="ComplexValueIsFinite"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexValueIsFinite()</span></code></a> provides the separate test that both
-components are finite.</p>
+<p>Component kernels receive their numeric input by value. For example, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexReal" title="ComplexReal"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexReal()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexImag" title="ComplexImag"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexImag()</span></code></a>
+extract copied components, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexConj" title="ComplexConj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexConj()</span></code></a> returns a copied conjugate, and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexAbs" title="ComplexAbs"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexAbs()</span></code></a> uses the magnitude
+of both components. They acquire no vector or Tcl-object references and cannot publish a vector change themselves.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Identity" title="Identity"><code class="xref c c-func docutils literal notranslate"><span class="pre">Identity()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Zero" title="Zero"><code class="xref c c-func docutils literal notranslate"><span class="pre">Zero()</span></code></a> supply the real-input branches of paired adapters. <a class="reference internal" href="expression-numerics-reference.html#c.Arg" title="Arg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Arg()</span></code></a> uses the phase of
+a real value; <a class="reference internal" href="expression-numerics-reference.html#c.ComplexArg" title="ComplexArg"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexArg()</span></code></a> uses both components. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexCeil" title="ComplexCeil"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexCeil()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexFloor" title="ComplexFloor"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexFloor()</span></code></a> and
+<a class="reference internal" href="expression-numerics-reference.html#c.ComplexRound" title="ComplexRound"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexRound()</span></code></a> operate independently on the two components. Their scalar nature does not imply an
+error-reporting or finite-output guarantee: the adapter and final evaluator apply those policies.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Random" title="Random"><code class="xref c c-func docutils literal notranslate"><span class="pre">Random()</span></code></a> ignores its input and advances the shared random generator once. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexRandom" title="ComplexRandom"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexRandom()</span></code></a> draws
+independent real and imaginary components, advancing it twice. These scalar signatures therefore describe value passing,
+not purity. <a class="reference internal" href="expression-engine-reference.html#c.ComplexValueIsFinite" title="ComplexValueIsFinite"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexValueIsFinite()</span></code></a> provides the separate test that both components are finite.</p>
 </section>
 <section id="return-values-and-mutation-boundaries">
 <h2>Return values and mutation boundaries<a class="headerlink" href="#return-values-and-mutation-boundaries" title="Link to this heading"></a></h2>
-<p>The C return type is part of the contract. <a class="reference internal" href="expression-numerics-reference.html#c.Sort" title="Sort"><code class="xref c c-func docutils literal notranslate"><span class="pre">Sort()</span></code></a> returns a Tcl status
-and leaves values unchanged if its temporary allocation fails. <a class="reference internal" href="expression-numerics-reference.html#c.Norm" title="Norm"><code class="xref c c-func docutils literal notranslate"><span class="pre">Norm()</span></code></a>
-also returns a status, but <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> only means that its loop completed: a
-constant range can still produce nonfinite output. Both are mutation helpers
-for detached temporaries, not notification-producing named-vector operations.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.Median" title="Median"><code class="xref c c-func docutils literal notranslate"><span class="pre">Median()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.Q1" title="Q1"><code class="xref c c-func docutils literal notranslate"><span class="pre">Q1()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Q3" title="Q3"><code class="xref c c-func docutils literal notranslate"><span class="pre">Q3()</span></code></a> instead return a numeric
-<code class="docutils literal notranslate"><span class="pre">-DBL_MAX</span></code> sentinel for an empty vector or sort-index failure. Do not test
-these results as Tcl completion codes. Their full-selection requirement is
-stronger than the inclusive-range contract of <a class="reference internal" href="expression-numerics-reference.html#c.Mean" title="Mean"><code class="xref c c-func docutils literal notranslate"><span class="pre">Mean()</span></code></a> or
-<a class="reference internal" href="expression-numerics-reference.html#c.ComplexMean" title="ComplexMean"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexMean()</span></code></a>. The real reducers receive an <code class="docutils literal notranslate"><span class="pre">Rbc_Vector</span> <span class="pre">*</span></code> prefix
-but cast it back to RBC’s internal <code class="docutils literal notranslate"><span class="pre">VectorObject</span></code>; an independently fabricated
-public prefix is not a valid substitute for the internal record.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexPower" title="ComplexPower"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexPower()</span></code></a> writes its output only on <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>. Its explicit
-zero-base errors leave output storage unchanged, but successful arithmetic can
-still be nonfinite. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexExp" title="ComplexExp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexExp()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexLog10" title="ComplexLog10"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexLog10()</span></code></a>,
-<a class="reference internal" href="expression-numerics-reference.html#c.ComplexSin" title="ComplexSin"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexSin()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexCos" title="ComplexCos"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexCos()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexSinh" title="ComplexSinh"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexSinh()</span></code></a> and
-<a class="reference internal" href="expression-numerics-reference.html#c.ComplexCosh" title="ComplexCosh"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexCosh()</span></code></a> return copied numeric values without a Tcl status.
-The caller retains responsibility for checking those results.</p>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.LogHypot" title="LogHypot"><code class="xref c c-func docutils literal notranslate"><span class="pre">LogHypot()</span></code></a> avoids forming an overflowing magnitude before taking its
-logarithm. <a class="reference internal" href="expression-numerics-reference.html#c.RealAcosh" title="RealAcosh"><code class="xref c c-func docutils literal notranslate"><span class="pre">RealAcosh()</span></code></a> requires an argument at least one. Neither
-helper supplies a Tcl diagnostic or clears <code class="docutils literal notranslate"><span class="pre">errno</span></code>. Their callers establish
-the domain and apply the expression error policy.</p>
-<p>Legacy scalar conventions remain deliberate distinctions:
-<a class="reference internal" href="expression-numerics-reference.html#c.Fabs" title="Fabs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Fabs()</span></code></a> preserves negative zero, <a class="reference internal" href="expression-numerics-reference.html#c.Round" title="Round"><code class="xref c c-func docutils literal notranslate"><span class="pre">Round()</span></code></a> computes a rounded
-double without converting to an integer, and <a class="reference internal" href="expression-engine-reference.html#c.Fmod" title="Fmod"><code class="xref c c-func docutils literal notranslate"><span class="pre">Fmod()</span></code></a> implements
-a floor-based remainder with a zero-divisor result of zero. These names must
-not be treated as aliases for the corresponding C library routines.</p>
+<p>The C return type is part of the contract. <a class="reference internal" href="expression-numerics-reference.html#c.Sort" title="Sort"><code class="xref c c-func docutils literal notranslate"><span class="pre">Sort()</span></code></a> returns a Tcl status and leaves values unchanged if its
+temporary allocation fails. <a class="reference internal" href="expression-numerics-reference.html#c.Norm" title="Norm"><code class="xref c c-func docutils literal notranslate"><span class="pre">Norm()</span></code></a> also returns a status, but <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code> only means that its loop completed: a
+constant range can still produce nonfinite output. Both are mutation helpers for detached temporaries, not
+notification-producing named-vector operations.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Median" title="Median"><code class="xref c c-func docutils literal notranslate"><span class="pre">Median()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.Q1" title="Q1"><code class="xref c c-func docutils literal notranslate"><span class="pre">Q1()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Q3" title="Q3"><code class="xref c c-func docutils literal notranslate"><span class="pre">Q3()</span></code></a> instead return a numeric <code class="docutils literal notranslate"><span class="pre">-DBL_MAX</span></code> sentinel for an empty vector or
+sort-index failure. Do not test these results as Tcl completion codes. Their full-selection requirement is stronger than
+the inclusive-range contract of <a class="reference internal" href="expression-numerics-reference.html#c.Mean" title="Mean"><code class="xref c c-func docutils literal notranslate"><span class="pre">Mean()</span></code></a> or <a class="reference internal" href="expression-numerics-reference.html#c.ComplexMean" title="ComplexMean"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexMean()</span></code></a>. The real reducers receive an <code class="docutils literal notranslate"><span class="pre">Rbc_Vector</span> <span class="pre">*</span></code>
+prefix but cast it back to RBC’s internal <code class="docutils literal notranslate"><span class="pre">VectorObject</span></code>; an independently fabricated public prefix is not a valid
+substitute for the internal record.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.ComplexPower" title="ComplexPower"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexPower()</span></code></a> writes its output only on <code class="docutils literal notranslate"><span class="pre">TCL_OK</span></code>. Its explicit zero-base errors leave output storage
+unchanged, but successful arithmetic can still be nonfinite. <a class="reference internal" href="expression-numerics-reference.html#c.ComplexExp" title="ComplexExp"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexExp()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexLog10" title="ComplexLog10"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexLog10()</span></code></a>,
+<a class="reference internal" href="expression-numerics-reference.html#c.ComplexSin" title="ComplexSin"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexSin()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexCos" title="ComplexCos"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexCos()</span></code></a>, <a class="reference internal" href="expression-numerics-reference.html#c.ComplexSinh" title="ComplexSinh"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexSinh()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.ComplexCosh" title="ComplexCosh"><code class="xref c c-func docutils literal notranslate"><span class="pre">ComplexCosh()</span></code></a> return copied numeric values
+without a Tcl status. The caller retains responsibility for checking those results.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.LogHypot" title="LogHypot"><code class="xref c c-func docutils literal notranslate"><span class="pre">LogHypot()</span></code></a> avoids forming an overflowing magnitude before taking its logarithm. <a class="reference internal" href="expression-numerics-reference.html#c.RealAcosh" title="RealAcosh"><code class="xref c c-func docutils literal notranslate"><span class="pre">RealAcosh()</span></code></a> requires an
+argument at least one. Neither helper supplies a Tcl diagnostic or clears <code class="docutils literal notranslate"><span class="pre">errno</span></code>. Their callers establish the domain
+and apply the expression error policy.</p>
+<p>Legacy scalar conventions remain deliberate distinctions: <a class="reference internal" href="expression-numerics-reference.html#c.Fabs" title="Fabs"><code class="xref c c-func docutils literal notranslate"><span class="pre">Fabs()</span></code></a> preserves negative zero, <a class="reference internal" href="expression-numerics-reference.html#c.Round" title="Round"><code class="xref c c-func docutils literal notranslate"><span class="pre">Round()</span></code></a>
+computes a rounded double without converting to an integer, and <a class="reference internal" href="expression-engine-reference.html#c.Fmod" title="Fmod"><code class="xref c c-func docutils literal notranslate"><span class="pre">Fmod()</span></code></a> implements a floor-based remainder with a
+zero-divisor result of zero. These names must not be treated as aliases for the corresponding C library routines.</p>
 </section>
 <section id="full-storage-extrema-inputs">
 <h2>Full-storage extrema inputs<a class="headerlink" href="#full-storage-extrema-inputs" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="expression-numerics-reference.html#c.Rbc_VecMin" title="Rbc_VecMin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VecMin()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Rbc_VecMax" title="Rbc_VecMax"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VecMax()</span></code></a> require real vector storage and
-scan the complete array, ignoring the current first/last selection. They update
-the corresponding scalar cache but do not publish notifications, update extrema
-indices or clear invalidation flags. Empty or wholly nonfinite input returns NaN.</p>
+<p><a class="reference internal" href="expression-numerics-reference.html#c.Rbc_VecMin" title="Rbc_VecMin"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VecMin()</span></code></a> and <a class="reference internal" href="expression-numerics-reference.html#c.Rbc_VecMax" title="Rbc_VecMax"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_VecMax()</span></code></a> require real vector storage and scan the complete array, ignoring the
+current first/last selection. They update the corresponding scalar cache but do not publish notifications, update
+extrema indices or clear invalidation flags. Empty or wholly nonfinite input returns NaN.</p>
 </section>
 </section>
 

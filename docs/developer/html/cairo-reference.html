@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1286,17 +1287,14 @@
              
   <section id="cairo-backend-c-reference">
 <h1>Cairo backend C reference<a class="headerlink" href="#cairo-backend-c-reference" title="Link to this heading"></a></h1>
-<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcRenderCairo.c</span></code>. They are not component APIs.
-The documentation preprocessor enables <code class="docutils literal notranslate"><span class="pre">RBC_HAVE_CAIRO</span></code> to extract this group;
-it does not change the configured library build or require Cairo to build docs.
-See <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for platform-specific target lifetime, path consumption
-and pattern ownership. The parameter contracts describe backend state, not
-permission to call a helper on an arbitrary renderer context. In particular,
-fill callbacks require initialized fill style, and cleanup consumes its context.</p>
-<p>Start with <a class="reference internal" href="#c.BeginRenderTarget" title="BeginRenderTarget"><code class="xref c c-func docutils literal notranslate"><span class="pre">BeginRenderTarget()</span></code></a> for setup,
-<a class="reference internal" href="#c.StrokeRenderPath" title="StrokeRenderPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">StrokeRenderPath()</span></code></a> for stroke composition, and
-<a class="reference internal" href="#c.CreateRenderPhoto" title="CreateRenderPhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateRenderPhoto()</span></code></a> for copied pixel storage. Component code should use
-the interface in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a> instead of calling these static functions.</p>
+<p>These static helpers belong to <code class="docutils literal notranslate"><span class="pre">rbcRenderCairo.c</span></code>. They are not component APIs. The documentation preprocessor
+enables <code class="docutils literal notranslate"><span class="pre">RBC_HAVE_CAIRO</span></code> to extract this group; it does not change the configured library build or require Cairo to
+build docs.  See <a class="reference internal" href="cairo-rendering.html"><span class="doc">Cairo surfaces and drawing contexts</span></a> for platform-specific target lifetime, path consumption and pattern
+ownership. The parameter contracts describe backend state, not permission to call a helper on an arbitrary renderer
+context. In particular, fill callbacks require initialized fill style, and cleanup consumes its context.</p>
+<p>Start with <a class="reference internal" href="#c.BeginRenderTarget" title="BeginRenderTarget"><code class="xref c c-func docutils literal notranslate"><span class="pre">BeginRenderTarget()</span></code></a> for setup, <a class="reference internal" href="#c.StrokeRenderPath" title="StrokeRenderPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">StrokeRenderPath()</span></code></a> for stroke composition, and
+<a class="reference internal" href="#c.CreateRenderPhoto" title="CreateRenderPhoto"><code class="xref c c-func docutils literal notranslate"><span class="pre">CreateRenderPhoto()</span></code></a> for copied pixel storage. Component code should use the interface in <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>
+instead of calling these static functions.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__cairo__backend"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Cairo</span> <span class="pre">backend</span> <span class="pre">internals</span></span></dt>
@@ -1784,8 +1782,8 @@ Validates RGB offsets. A distinct valid alpha offset selects alpha; otherwise pi
 </section>
 <section id="windows-context-and-marker-pass-target">
 <h2>Windows context and marker-pass target<a class="headerlink" href="#windows-context-and-marker-pass-target" title="Link to this heading"></a></h2>
-<p>The target owns the shared DIB and borrows the graph and destination. Its image
-surface and DC are views of that DIB, not independently owned objects.</p>
+<p>The target owns the shared DIB and borrows the graph and destination. Its image surface and DC are views of that DIB,
+not independently owned objects.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.rbcCairoWindows.CairoRenderContext">
 <span class="target" id="id13"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CairoRenderContext</span></span></span><a class="headerlink" href="#c.rbcCairoWindows.CairoRenderContext" title="Link to this definition"></a><br /></dt>

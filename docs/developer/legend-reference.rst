@@ -1,9 +1,8 @@
 Legend C reference
 ==================
 
-See :doc:`legends` for ownership, layout, placement, redraw and command
-contracts. These are internal services, not public stubs. The documentation
-namespaces below disambiguate static helper names without changing C linkage.
+See :doc:`legends` for ownership, layout, placement, redraw and command contracts. These are internal services, not
+public stubs. The documentation namespaces below disambiguate static helper names without changing C linkage.
 
 Creation and configuration
 --------------------------

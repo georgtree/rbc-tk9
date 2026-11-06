@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1260,8 +1261,8 @@
              
   <section id="image-color-processing-c-reference">
 <h1>Image color processing C reference<a class="headerlink" href="#image-color-processing-c-reference" title="Link to this heading"></a></h1>
-<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code> and implemented in
-<code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a> for algorithms and current limitations.</p>
+<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code> and implemented in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a> for
+algorithms and current limitations.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_ColorImageToGreyscale">
 <span class="target" id="rbc_image_8h_1ad5e32baf678c094c228f752cf5405b47"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ColorImageToGreyscale</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_ColorImage</span></span><span class="w"> </span><span class="n"><span class="pre">image</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ColorImageToGreyscale" title="Link to this definition"></a><br /></dt>
@@ -1310,8 +1311,8 @@
 
 <section id="palette-reduction-implementation">
 <h2>Palette-reduction implementation<a class="headerlink" href="#palette-reduction-implementation" title="Link to this heading"></a></h2>
-<p>These structures and helpers implement the cumulative-moment partitioner in
-<code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a> for the stage ordering and invariants.</p>
+<p>These structures and helpers implement the cumulative-moment partitioner in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code>. See <a class="reference internal" href="image-colors.html"><span class="doc">Image color processing</span></a> for
+the stage ordering and invariants.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__image__quantize__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">RGB</span> <span class="pre">quantization</span> <span class="pre">internals</span></span></dt>
@@ -1611,8 +1612,8 @@
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.TrueColorMasks">
 <span class="target" id="struct_true_color_masks"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TrueColorMasks</span></span></span><a class="headerlink" href="#c.TrueColorMasks" title="Link to this definition"></a><br /></dt>

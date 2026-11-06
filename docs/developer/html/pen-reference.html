@@ -590,6 +590,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1297,8 +1298,8 @@
              
   <section id="pen-and-palette-c-reference">
 <h1>Pen and palette C reference<a class="headerlink" href="#pen-and-palette-c-reference" title="Link to this heading"></a></h1>
-<p>These private services distinguish counted named-pen references from borrowed
-normal-palette entries. See <a class="reference internal" href="pens.html"><span class="doc">Pens and style palettes</span></a> for lifetime and selection rules.</p>
+<p>These private services distinguish counted named-pen references from borrowed normal-palette entries. See <a class="reference internal" href="pens.html"><span class="doc">Pens and style palettes</span></a>
+for lifetime and selection rules.</p>
 <section id="pen-ownership-and-palette-records">
 <h2>Pen ownership and palette records<a class="headerlink" href="#pen-ownership-and-palette-records" title="Link to this heading"></a></h2>
 <dl class="c type">
@@ -1632,9 +1633,8 @@ Unmatched or unweighted points retain the first (normal) style. Weighted points 
 </section>
 <section id="named-pen-implementation">
 <h2>Named pen implementation<a class="headerlink" href="#named-pen-implementation" title="Link to this heading"></a></h2>
-<p>The implementation group uses a documentation-only <code class="docutils literal notranslate"><span class="pre">rbcGrPen</span></code> scope to
-separate file-local handler names (such as DeleteOp) from identical names in
-other modules. This does not rename C symbols or introduce a runtime namespace.</p>
+<p>The implementation group uses a documentation-only <code class="docutils literal notranslate"><span class="pre">rbcGrPen</span></code> scope to separate file-local handler names (such as
+DeleteOp) from identical names in other modules. This does not rename C symbols or introduce a runtime namespace.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="group__pen__internals"></span><em><span class="pre">group</span></em> <span class="sig-name descname"><span class="pre">Named</span> <span class="pre">pen</span> <span class="pre">internals</span></span></dt>
@@ -2001,8 +2001,8 @@ other modules. This does not rename C symbols or introduce a runtime namespace.<
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.PenOpSpec">
 <span class="target" id="struct_pen_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PenOpSpec</span></span></span><a class="headerlink" href="#c.PenOpSpec" title="Link to this definition"></a><br /></dt>

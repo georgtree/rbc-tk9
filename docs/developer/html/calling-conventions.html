@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,13 +1215,11 @@
              
   <section id="c-calling-conventions">
 <h1>C calling conventions<a class="headerlink" href="#c-calling-conventions" title="Link to this heading"></a></h1>
-<p>These are shared interpretation rules, not substitutes for a function’s own
-contract. A specific parameter, return or lifetime description takes precedence.
-The same page is a Doxygen reference target, so source comments can link here
-using the relevant section anchor, such as <code class="docutils literal notranslate"><span class="pre">&#64;ref</span> <span class="pre">rbc_interp_argument</span></code>
-beside an interpreter parameter. The page-level target
-<code class="docutils literal notranslate"><span class="pre">&#64;ref</span> <span class="pre">rbc_calling_conventions</span></code> is available for architectural overviews;
-it is not a required See also entry on individual functions.</p>
+<p>These are shared interpretation rules, not substitutes for a function’s own contract. A specific parameter, return or
+lifetime description takes precedence. The same page is a Doxygen reference target, so source comments can link here
+using the relevant section anchor, such as <code class="docutils literal notranslate"><span class="pre">&#64;ref</span> <span class="pre">rbc_interp_argument</span></code> beside an interpreter parameter. The page-level
+target <code class="docutils literal notranslate"><span class="pre">&#64;ref</span> <span class="pre">rbc_calling_conventions</span></code> is available for architectural overviews; it is not a required See also entry on
+individual functions.</p>
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="rbc_calling_conventions"></span><em><span class="pre">page</span></em> <span class="sig-name descname"><span class="pre">Shared</span> <span class="pre">C</span> <span class="pre">argument</span> <span class="pre">and</span> <span class="pre">lifetime</span> <span class="pre">conventions</span></span></dt>
@@ -1248,12 +1247,10 @@ it is not a required See also entry on individual functions.</p>
 
 <section id="writing-parameter-contracts">
 <h2>Writing parameter contracts<a class="headerlink" href="#writing-parameter-contracts" title="Link to this heading"></a></h2>
-<p>Use <code class="docutils literal notranslate"><span class="pre">&#64;param[in]</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;param[out]</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;param[in,out]</span></code> for function-specific
-arguments. State units, accepted ranges, NULL handling, ownership and the state
-of output arguments on failure. For conventional interpreter and command-vector
-arguments, link the common description and document only exceptions locally.
-Always describe the concrete meaning of <code class="docutils literal notranslate"><span class="pre">clientData</span></code>; it has no universal
-object type. See <a class="reference internal" href="commenting.html"><span class="doc">C documentation conventions</span></a> for examples and link syntax.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">&#64;param[in]</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;param[out]</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;param[in,out]</span></code> for function-specific arguments. State units, accepted
+ranges, NULL handling, ownership and the state of output arguments on failure. For conventional interpreter and
+command-vector arguments, link the common description and document only exceptions locally. Always describe the
+concrete meaning of <code class="docutils literal notranslate"><span class="pre">clientData</span></code>; it has no universal object type. See <a class="reference internal" href="commenting.html"><span class="doc">C documentation conventions</span></a> for examples and link syntax.</p>
 </section>
 </section>
 

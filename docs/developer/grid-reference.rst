@@ -1,8 +1,7 @@
 Grid C reference
 ================
 
-These private entry points borrow the graph and require the preparation or
-cleanup context described in :doc:`grids`.
+These private entry points borrow the graph and require the preparation or cleanup context described in :doc:`grids`.
 
 Grid configuration and mapped caches
 ------------------------------------
@@ -47,8 +46,8 @@ Implementation helpers
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: GridOpSpec
    :members:

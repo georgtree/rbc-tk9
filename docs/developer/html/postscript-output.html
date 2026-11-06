@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,87 +1215,66 @@
              
   <section id="postscript-output-and-drawing-state">
 <h1>PostScript output and drawing state<a class="headerlink" href="#postscript-output-and-drawing-state" title="Link to this heading"></a></h1>
-<p>See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for shared context ownership and the PDF/PostScript
-primitive contracts, including graphics-state and capture boundaries.</p>
-<p>PostScript output is independent of Cairo. <code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code> owns page setup and
-command delivery, <code class="docutils literal notranslate"><span class="pre">rbcRenderPostscript.c</span></code> implements renderer primitives,
-and <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code> supplies the private output token and legacy drawing helpers.
-<code class="docutils literal notranslate"><span class="pre">library/rbcGraph.pro</span></code> supplies executable PostScript procedures used by
-both layers. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for callback protection, geometry restoration,
-file delivery and the Windows EPS preview wrapper.</p>
+<p>See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for shared context ownership and the PDF/PostScript primitive contracts, including
+graphics-state and capture boundaries.</p>
+<p>PostScript output is independent of Cairo. <code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code> owns page setup and command delivery, <code class="docutils literal notranslate"><span class="pre">rbcRenderPostscript.c</span></code>
+implements renderer primitives, and <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code> supplies the private output token and legacy drawing helpers.
+<code class="docutils literal notranslate"><span class="pre">library/rbcGraph.pro</span></code> supplies executable PostScript procedures used by both layers. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for callback
+protection, geometry restoration, file delivery and the Windows EPS preview wrapper.</p>
 <section id="token-ownership">
 <h2>Token ownership<a class="headerlink" href="#token-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="postscript-reference.html#c.Rbc_GetPsToken" title="Rbc_GetPsToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPsToken()</span></code></a> allocates a token with an empty DString, NULL font/color map
-names and color output selected. Its interpreter and Tk window are borrowed.
-The command assigns mapping variable names from its PostScript configuration;
-the token does not own those strings. <a class="reference internal" href="postscript-reference.html#c.Rbc_ReleasePsToken" title="Rbc_ReleasePsToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ReleasePsToken()</span></code></a> frees the DString
-and token, but none of these borrowed objects.</p>
-<p>During <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a>, the shared export context’s <code class="docutils literal notranslate"><span class="pre">buffer</span></code> points to
-the token’s DString and <code class="docutils literal notranslate"><span class="pre">backendData</span></code> points to the token. Renderer contexts
-borrow that export context and token. Destroy renderer contexts before ending
-the enclosing export; releasing shared export state does not release the
-alternate DString. The command releases the PostScript token separately.</p>
-<p>The returned output pointer is a temporary view, not a detached document.
-Appending can invalidate it. Scratch storage is separate from the DString but
-is reused by formatting and prolog reads. Neither storage is safe for an
-independent, interleaved writer. Raw append helpers accept C strings; they are
-not a binary document API.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.Rbc_GetPsToken" title="Rbc_GetPsToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetPsToken()</span></code></a> allocates a token with an empty DString, NULL font/color map names and color output
+selected. Its interpreter and Tk window are borrowed. The command assigns mapping variable names from its PostScript
+configuration; the token does not own those strings. <a class="reference internal" href="postscript-reference.html#c.Rbc_ReleasePsToken" title="Rbc_ReleasePsToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ReleasePsToken()</span></code></a> frees the DString and token, but none
+of these borrowed objects.</p>
+<p>During <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a>, the shared export context’s <code class="docutils literal notranslate"><span class="pre">buffer</span></code> points to the token’s
+DString and <code class="docutils literal notranslate"><span class="pre">backendData</span></code> points to the token. Renderer contexts borrow that export context and token. Destroy
+renderer contexts before ending the enclosing export; releasing shared export state does not release the alternate
+DString. The command releases the PostScript token separately.</p>
+<p>The returned output pointer is a temporary view, not a detached document. Appending can invalidate it. Scratch storage
+is separate from the DString but is reused by formatting and prolog reads. Neither storage is safe for an independent,
+interleaved writer. Raw append helpers accept C strings; they are not a binary document API.</p>
 </section>
 <section id="prolog-and-page-setup">
 <h2>Prolog and page setup<a class="headerlink" href="#prolog-and-page-setup" title="Link to this heading"></a></h2>
-<p>Page setup emits EPS metadata and includes <code class="docutils literal notranslate"><span class="pre">rbcGraph.pro</span></code> from the directory
-named by <code class="docutils literal notranslate"><span class="pre">rbc::library</span></code>. An installed Tcl library is therefore a runtime
-export dependency, even though primitives are implemented in C. The included
-prolog defines such operations as <code class="docutils literal notranslate"><span class="pre">Fill</span></code> and symbol procedures; primitive
-output is not a self-contained PostScript document.</p>
-<p>Setup converts display pixels to points using screen resolution, reverses the
-vertical direction, then applies page origin, orientation and scale. Drawing
-primitives continue to receive display coordinates. A successful traversal
-appends <code class="docutils literal notranslate"><span class="pre">showpage</span></code> and the closing graphics/dictionary scope. Creation-date
-metadata means byte equality across separately timed exports is not a reliable
-geometry test.</p>
-<p>Prolog loading can leave partial output after an error. It reports lookup,
-open and read failures, closes the channel, and does not propagate close
-failure. The enclosing export must discard failed output rather than treat
-the buffer as a completed document.</p>
+<p>Page setup emits EPS metadata and includes <code class="docutils literal notranslate"><span class="pre">rbcGraph.pro</span></code> from the directory named by <code class="docutils literal notranslate"><span class="pre">rbc::library</span></code>. An installed
+Tcl library is therefore a runtime export dependency, even though primitives are implemented in C. The included prolog
+defines such operations as <code class="docutils literal notranslate"><span class="pre">Fill</span></code> and symbol procedures; primitive output is not a self-contained PostScript document.</p>
+<p>Setup converts display pixels to points using screen resolution, reverses the vertical direction, then applies page
+origin, orientation and scale. Drawing primitives continue to receive display coordinates. A successful traversal
+appends <code class="docutils literal notranslate"><span class="pre">showpage</span></code> and the closing graphics/dictionary scope. Creation-date metadata means byte equality across
+separately timed exports is not a reliable geometry test.</p>
+<p>Prolog loading can leave partial output after an error. It reports lookup, open and read failures, closes the channel,
+and does not propagate close failure. The enclosing export must discard failed output rather than treat the buffer as a
+completed document.</p>
 </section>
 <section id="graphics-state-boundaries">
 <h2>Graphics-state boundaries<a class="headerlink" href="#graphics-state-boundaries" title="Link to this heading"></a></h2>
-<p>Plot begin establishes the background and opens a saved clipping scope; plot
-end restores it. Nested rectangular clips also pair <code class="docutils literal notranslate"><span class="pre">gsave</span></code> and
-<code class="docutils literal notranslate"><span class="pre">grestore</span></code>. Preserve this nesting when adding track-local or component clips.</p>
-<p>Dash-background strokes use <code class="docutils literal notranslate"><span class="pre">DashesProc</span></code>; symbol batches use
-<code class="docutils literal notranslate"><span class="pre">DrawSymbolProc</span></code>. These procedures are redefined in the document dictionary.
-A graphics-state save does not make dictionary definitions local. Emit a
-batch’s definition and uses together; do not interleave another batch that
-redefines the same procedure.</p>
-<p>Elliptical arcs temporarily transform a unit circle. The backend saves and
-restores the current transformation matrix on the operand stack, retaining the
-constructed path. It restores display units before stroking or filling so
-line widths, dashes and stipples are not stretched with the ellipse.
-Polyline output is split at 1500 path components, restarting at the shared
-endpoint. Changes to this batching must preserve connected geometry and
-stroke behavior.</p>
+<p>Plot begin establishes the background and opens a saved clipping scope; plot end restores it. Nested rectangular clips
+also pair <code class="docutils literal notranslate"><span class="pre">gsave</span></code> and <code class="docutils literal notranslate"><span class="pre">grestore</span></code>. Preserve this nesting when adding track-local or component clips.</p>
+<p>Dash-background strokes use <code class="docutils literal notranslate"><span class="pre">DashesProc</span></code>; symbol batches use <code class="docutils literal notranslate"><span class="pre">DrawSymbolProc</span></code>. These procedures are redefined in the
+document dictionary. A graphics-state save does not make dictionary definitions local. Emit a batch’s definition and
+uses together; do not interleave another batch that redefines the same procedure.</p>
+<p>Elliptical arcs temporarily transform a unit circle. The backend saves and restores the current transformation matrix on
+the operand stack, retaining the constructed path. It restores display units before stroking or filling so line widths,
+dashes and stipples are not stretched with the ellipse. Polyline output is split at 1500 path components, restarting at
+the shared endpoint. Changes to this batching must preserve connected geometry and stroke behavior.</p>
 </section>
 <section id="legacy-primitive-contracts">
 <h2>Legacy primitive contracts<a class="headerlink" href="#legacy-primitive-contracts" title="Link to this heading"></a></h2>
-<p>The helpers in <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code> append to the existing token; they do not construct a
-page, write a file or own a renderer context. Their coordinates are already
-mapped. They rely on the enclosing transformation and clip, and generally do
-not validate geometry or save/restore graphics state. Components should still
-use renderer operations rather than add direct calls to these legacy helpers.</p>
-<p>Foreground and background conversion use the upper eight bits of each XColor
-component. The default prolog maps foreground to black and background to white
-in monochrome mode, or converts to grey in greyscale mode. An optional Tcl
-color-array entry instead supplies raw PostScript code and bypasses these
-operators. A lookup may execute a read trace, so this is a callback boundary,
-not just a color-table read. The enclosing export must protect borrowed
-lifetimes; the void color helpers do not expose lookup errors or undo output.
+<p>The helpers in <code class="docutils literal notranslate"><span class="pre">rbcPs.c</span></code> append to the existing token; they do not construct a page, write a file or own a renderer
+context. Their coordinates are already mapped. They rely on the enclosing transformation and clip, and generally do not
+validate geometry or save/restore graphics state. Components should still use renderer operations rather than add direct
+calls to these legacy helpers.</p>
+<p>Foreground and background conversion use the upper eight bits of each XColor component. The default prolog maps
+foreground to black and background to white in monochrome mode, or converts to grey in greyscale mode. An optional Tcl
+color-array entry instead supplies raw PostScript code and bypasses these operators. A lookup may execute a read trace,
+so this is a callback boundary, not just a color-table read. The enclosing export must protect borrowed lifetimes; the
+void color helpers do not expose lookup errors or undo output.
 <a class="reference internal" href="postscript-reference.html#c.rbcPsPrimitives.Rbc_ClearBackgroundToPostScript" title="rbcPsPrimitives.Rbc_ClearBackgroundToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsPrimitives.Rbc_ClearBackgroundToPostScript()</span></code></a> merely selects white: it clears no pixels.</p>
-<p>Line attributes have their own compatibility rules: zero-width lines become
-one user unit, CapNotLast maps to butt, and dash phase is always zero. The
-combined attribute helper also replaces <code class="docutils literal notranslate"><span class="pre">DashesProc</span></code> with an empty procedure.
-Callers that need a dash-background pass must define it after that setup.</p>
+<p>Line attributes have their own compatibility rules: zero-width lines become one user unit, CapNotLast maps to butt, and
+dash phase is always zero. The combined attribute helper also replaces <code class="docutils literal notranslate"><span class="pre">DashesProc</span></code> with an empty procedure. Callers
+that need a dash-background pass must define it after that setup.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Legacy path effects</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
@@ -1331,50 +1311,40 @@ Callers that need a dash-background pass must define it after that setup.</p>
 </tr>
 </tbody>
 </table>
-<p>Nonpositive point or segment counts append nothing, leaving any existing path
-untouched. Each independent segment ends with <code class="docutils literal notranslate"><span class="pre">DashesProc</span> <span class="pre">stroke</span></code>. Integer
-polyline batches use the 1500-component boundary; generic floating paths and
-polygons do not implement that splitting. Connected endpoints do not imply
-continuous dash phase or identical joins across separate strokes.</p>
-<p>The integer polyline helper treats fewer than two points as a no-op, without
-reading the point array or modifying the output. Two or more points retain the
-existing batching and stroke behavior. Its private regression checks run with
-<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code>; they cover empty/single-point input, ordinary lines and
-the 1500-component boundary.</p>
+<p>Nonpositive point or segment counts append nothing, leaving any existing path untouched. Each independent segment ends
+with <code class="docutils literal notranslate"><span class="pre">DashesProc</span> <span class="pre">stroke</span></code>. Integer polyline batches use the 1500-component boundary; generic floating paths and
+polygons do not implement that splitting. Connected endpoints do not imply continuous dash phase or identical joins
+across separate strokes.</p>
+<p>The integer polyline helper treats fewer than two points as a no-op, without reading the point array or modifying the
+output. Two or more points retain the existing batching and stroke behavior. Its private regression checks run with
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code>; they cover empty/single-point input, ordinary lines and the 1500-component boundary.</p>
 </section>
 <section id="relief-rectangles">
 <h2>Relief rectangles<a class="headerlink" href="#relief-rectangles" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="postscript-reference.html#c.rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript" title="rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript()</span></code></a> draws only border bands. It initializes Tk’s
-light-border GC before querying shadow colors, so export need not wait for a
-screen draw. Bottom and right strips are rectangles; the top/left band is a
-polygon. Raised and sunken relief exchange the light and dark sides. Groove
-and ridge recurse with half-width bands and complementary relief. Odd border
-widths retain the existing integer split and inset rules.</p>
-<p>The helper omits borders if either dimension is smaller than twice the border
-width. Inputs must keep that multiplication and inset arithmetic representable;
-this is not an arbitrary-size geometry validator. Colors and the final polygon
-path remain selected after emission. <a class="reference internal" href="postscript-reference.html#c.rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript" title="rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript()</span></code></a> first
-fills the whole background, then invokes the border helper: skipping the border
-does not skip the fill. Border colors use background conversion, preserving the
-monochrome policy rather than treating relief bands as foreground strokes.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript" title="rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsPrimitives.Rbc_Draw3DRectangleToPostScript()</span></code></a> draws only border bands. It initializes Tk’s light-border GC
+before querying shadow colors, so export need not wait for a screen draw. Bottom and right strips are rectangles; the
+top/left band is a polygon. Raised and sunken relief exchange the light and dark sides. Groove and ridge recurse with
+half-width bands and complementary relief. Odd border widths retain the existing integer split and inset rules.</p>
+<p>The helper omits borders if either dimension is smaller than twice the border width. Inputs must keep that
+multiplication and inset arithmetic representable; this is not an arbitrary-size geometry validator. Colors and the
+final polygon path remain selected after emission. <a class="reference internal" href="postscript-reference.html#c.rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript" title="rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsPrimitives.Rbc_Fill3DRectangleToPostScript()</span></code></a> first fills
+the whole background, then invokes the border helper: skipping the border does not skip the fill. Border colors use
+background conversion, preserving the monochrome policy rather than treating relief bands as foreground strokes.</p>
 </section>
 <section id="text-and-fill-limitations">
 <h2>Text and fill limitations<a class="headerlink" href="#text-and-fill-limitations" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="postscript-reference.html#c.Rbc_AppendPostScriptString" title="Rbc_AppendPostScriptString"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendPostScriptString()</span></code></a> emits literal-string contents, not the enclosing
-parentheses. It decodes Tcl UTF text, escapes delimiters and controls, and
-encodes ISO-8859-1 characters with octal escapes where needed. Characters
-outside that repertoire become spaces. This path does not use the SVG/PDF
-embedded-font mechanism described in <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a>.</p>
-<p>The renderer’s fill path supports foreground, optional background and stipple
-operations. It does not apply the fill opacity used by other backends.
-Document these format differences rather than assuming that a shared renderer
-operation guarantees identical capabilities in every exporter.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.Rbc_AppendPostScriptString" title="Rbc_AppendPostScriptString"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendPostScriptString()</span></code></a> emits literal-string contents, not the enclosing parentheses. It decodes Tcl UTF
+text, escapes delimiters and controls, and encodes ISO-8859-1 characters with octal escapes where needed. Characters
+outside that repertoire become spaces. This path does not use the SVG/PDF embedded-font mechanism described in
+<a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a>.</p>
+<p>The renderer’s fill path supports foreground, optional background and stipple operations. It does not apply the fill
+opacity used by other backends. Document these format differences rather than assuming that a shared renderer operation
+guarantees identical capabilities in every exporter.</p>
 </section>
 <section id="raster-ownership-and-encoding">
 <h2>Raster ownership and encoding<a class="headerlink" href="#raster-ownership-and-encoding" title="Link to this heading"></a></h2>
-<p>The legacy raster helpers do not use SVG/PDF font or image resources. They
-append inline hex data and depend on the current PostScript environment.
-Their inputs and temporary resources have distinct ownership:</p>
+<p>The legacy raster helpers do not use SVG/PDF font or image resources. They append inline hex data and depend on the
+current PostScript environment. Their inputs and temporary resources have distinct ownership:</p>
 <table class="docutils align-default" id="id2">
 <caption><span class="caption-text">Image conversion ownership</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
 <colgroup>
@@ -1401,33 +1371,28 @@ Their inputs and temporary resources have distinct ownership:</p>
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_ColorImageToPsData" title="rbcPsRaster.Rbc_ColorImageToPsData"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_ColorImageToPsData()</span></code></a> traverses rows from bottom to top. RGB output emits
-red, green and blue bytes. Its one-component branch emits the bitwise complement
-of the red channel; it does not itself calculate luminance. The outer serializer
-first calls <a class="reference internal" href="image-color-reference.html#c.Rbc_ColorImageToGreyscale" title="Rbc_ColorImageToGreyscale"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ColorImageToGreyscale()</span></code></a> for noncolor output, modifying the
-borrowed image. Both monochrome and greyscale token modes use this same raster
-branch; they do not threshold each pixel into a one-bit mask. Alpha is ignored,
-so transparent samples are neither omitted nor composited with a background.</p>
-<p>Data lines hold at most sixty hex digits, prefixed by the supplied string and a
-space. Wrapping continues across image rows; the final partial line also gets a
-newline. The return value counts emitted data lines, not success/failure.
-Unsupported component counts append nothing and return zero. <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.ByteToHex" title="rbcPsRaster.ByteToHex"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.ByteToHex()</span></code></a>
-writes exactly two uppercase digits without a NUL terminator.</p>
-<p>The image program defines <code class="docutils literal notranslate"><span class="pre">tmpStr</span></code> as a row-sized input buffer and places an
-eight-bit <code class="docutils literal notranslate"><span class="pre">image</span></code> or <code class="docutils literal notranslate"><span class="pre">colorimage</span></code> under a translated/scaled graphics state.
-The negative vertical image matrix and bottom-to-top sample traversal are
-existing encoding behavior. <code class="docutils literal notranslate"><span class="pre">grestore</span></code> restores transforms and drawing state,
-but does not undo the dictionary definition of <code class="docutils literal notranslate"><span class="pre">tmpStr</span></code>.</p>
-<p>The row-buffer byte count is formatted as <code class="docutils literal notranslate"><span class="pre">size_t</span></code>, preserving counts above
-<code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code> without a varargs type mismatch. This is serialization of the count,
-not a guarantee that a PostScript interpreter accepts arbitrarily large strings.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_ColorImageToPsData" title="rbcPsRaster.Rbc_ColorImageToPsData"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_ColorImageToPsData()</span></code></a> traverses rows from bottom to top. RGB output emits red, green and blue
+bytes. Its one-component branch emits the bitwise complement of the red channel; it does not itself calculate
+luminance. The outer serializer first calls <a class="reference internal" href="image-color-reference.html#c.Rbc_ColorImageToGreyscale" title="Rbc_ColorImageToGreyscale"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ColorImageToGreyscale()</span></code></a> for noncolor output, modifying the
+borrowed image. Both monochrome and greyscale token modes use this same raster branch; they do not threshold each pixel
+into a one-bit mask. Alpha is ignored, so transparent samples are neither omitted nor composited with a background.</p>
+<p>Data lines hold at most sixty hex digits, prefixed by the supplied string and a space. Wrapping continues across image
+rows; the final partial line also gets a newline. The return value counts emitted data lines, not success/failure.
+Unsupported component counts append nothing and return zero. <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.ByteToHex" title="rbcPsRaster.ByteToHex"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.ByteToHex()</span></code></a> writes exactly two
+uppercase digits without a NUL terminator.</p>
+<p>The image program defines <code class="docutils literal notranslate"><span class="pre">tmpStr</span></code> as a row-sized input buffer and places an eight-bit <code class="docutils literal notranslate"><span class="pre">image</span></code> or <code class="docutils literal notranslate"><span class="pre">colorimage</span></code>
+under a translated/scaled graphics state. The negative vertical image matrix and bottom-to-top sample traversal are
+existing encoding behavior. <code class="docutils literal notranslate"><span class="pre">grestore</span></code> restores transforms and drawing state, but does not undo the dictionary
+definition of <code class="docutils literal notranslate"><span class="pre">tmpStr</span></code>.</p>
+<p>The row-buffer byte count is formatted as <code class="docutils literal notranslate"><span class="pre">size_t</span></code>, preserving counts above <code class="docutils literal notranslate"><span class="pre">INT_MAX</span></code> without a varargs type
+mismatch. This is serialization of the count, not a guarantee that a PostScript interpreter accepts arbitrarily large
+strings.</p>
 </section>
 <section id="bitmap-acquisition-and-payloads">
 <h2>Bitmap acquisition and payloads<a class="headerlink" href="#bitmap-acquisition-and-payloads" title="Link to this heading"></a></h2>
-<p>Bitmap payloads are angle-bracket hex strings. Each row is packed separately,
-with the first pixel in the high bit and unused tail bits zero. This differs
-from the continuous byte stream of a color image. <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.ReverseBits" title="rbcPsRaster.ReverseBits"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.ReverseBits()</span></code></a> implements
-the bit-order conversion; wrapping counts complete output bytes.</p>
+<p>Bitmap payloads are angle-bracket hex strings. Each row is packed separately, with the first pixel in the high bit and
+unused tail bits zero. This differs from the continuous byte stream of a color image. <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.ReverseBits" title="rbcPsRaster.ReverseBits"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.ReverseBits()</span></code></a>
+implements the bit-order conversion; wrapping counts complete output bytes.</p>
 <table class="docutils align-default" id="id3">
 <caption><span class="caption-text">Native bitmap capture</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
 <colgroup>
@@ -1452,24 +1417,19 @@ the bit-order conversion; wrapping counts complete output bytes.</p>
 </tr>
 </tbody>
 </table>
-<p>Both paths require a live depth-one bitmap and positive matching dimensions.
-They do not acquire ownership of the bitmap. The void interface cannot tell an
-outer emitter to discard partially written operators when acquisition fails.
-These limitations are separate from the drawable capture fallback used for
-window export.</p>
-<p><a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_BitmapToPostScript" title="rbcPsRaster.Rbc_BitmapToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_BitmapToPostScript()</span></code></a> centers the scaled mask at the current origin and
-paints set bits in the current color inside a saved graphics state. It leaves
-unset bits unpainted. <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_StippleToPostScript" title="rbcPsRaster.Rbc_StippleToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_StippleToPostScript()</span></code></a> instead clips to the current
-path and repeats the bitmap through the prolog’s <code class="docutils literal notranslate"><span class="pre">StippleFill</span></code> procedure.
-Both require a registered Tk bitmap because they query its dimensions with
-<code class="docutils literal notranslate"><span class="pre">Tk_SizeOfBitmap</span></code>. Neither supplies an independent error channel or rolls
-back a partially emitted program.</p>
+<p>Both paths require a live depth-one bitmap and positive matching dimensions. They do not acquire ownership of the
+bitmap. The void interface cannot tell an outer emitter to discard partially written operators when acquisition fails.
+These limitations are separate from the drawable capture fallback used for window export.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_BitmapToPostScript" title="rbcPsRaster.Rbc_BitmapToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_BitmapToPostScript()</span></code></a> centers the scaled mask at the current origin and paints set bits in the
+current color inside a saved graphics state. It leaves unset bits
+unpainted. <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_StippleToPostScript" title="rbcPsRaster.Rbc_StippleToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_StippleToPostScript()</span></code></a> instead clips to the current path and repeats the bitmap
+through the prolog’s <code class="docutils literal notranslate"><span class="pre">StippleFill</span></code> procedure. Both require a registered Tk bitmap because they query its dimensions
+with <code class="docutils literal notranslate"><span class="pre">Tk_SizeOfBitmap</span></code>. Neither supplies an independent error channel or rolls back a partially emitted program.</p>
 </section>
 <section id="legacy-font-selection">
 <h2>Legacy font selection<a class="headerlink" href="#legacy-font-selection" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="postscript-reference.html#c.rbcPsText.Rbc_FontToPostScript" title="rbcPsText.Rbc_FontToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.Rbc_FontToPostScript()</span></code></a> chooses a name and point size for the prolog’s
-<code class="docutils literal notranslate"><span class="pre">SetFont</span></code>. It does not embed font programs or resolve fallback glyphs per
-character. Font selection follows this order:</p>
+<p><a class="reference internal" href="postscript-reference.html#c.rbcPsText.Rbc_FontToPostScript" title="rbcPsText.Rbc_FontToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.Rbc_FontToPostScript()</span></code></a> chooses a name and point size for the prolog’s <code class="docutils literal notranslate"><span class="pre">SetFont</span></code>. It does not embed
+font programs or resolve fallback glyphs per character. Font selection follows this order:</p>
 <table class="docutils align-default" id="id4">
 <caption><span class="caption-text">Selection order</span><a class="headerlink" href="#id4" title="Link to this table"></a></caption>
 <colgroup>
@@ -1483,155 +1443,122 @@ character. Font selection follows this order:</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Configured font-map array</p></td>
-<td><p>Lookup by Tk_NameOfFont. A found entry ends the search, even when its
-list or size is malformed.</p></td>
+<td><p>Lookup by Tk_NameOfFont. A found entry ends the search, even when its list or size is malformed.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Recognized family prefix</p></td>
-<td><p>Case-insensitive prefix match against the static alias list, followed
-by Tk_PostscriptFontName for the actual name and size.</p></td>
+<td><p>Case-insensitive prefix match against the static alias list, followed by Tk_PostscriptFontName for the actual
+name and size.</p></td>
 </tr>
 <tr class="row-even"><td><p>X11 core font properties</p></td>
-<td><p>XLoadQueryFont by Tk name, optional POINT_SIZE divided by ten, then
-FULL_NAME/FOUNDRY/FAMILY_NAME mapping. This stage is absent on Windows.</p></td>
+<td><p>XLoadQueryFont by Tk name, optional POINT_SIZE divided by ten, then FULL_NAME/FOUNDRY/FAMILY_NAME mapping. This
+stage is absent on Windows.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Final fallback</p></td>
-<td><p>Helvetica-Bold, with size twelve unless an X11 point-size property was
-obtained during the preceding attempt.</p></td>
+<td><p>Helvetica-Bold, with size twelve unless an X11 point-size property was obtained during the preceding attempt.</p></td>
 </tr>
 </tbody>
 </table>
-<p>A font-map entry’s first element replaces the name. Its size is used only for
-an exactly two-element list with a valid integer second element. A one-element
-mapping retains the initial size twelve; it does not inherit the Tk font size.
-An empty list retains the Tk name. An invalid list or size may leave an
-interpreter diagnostic, but the helper still emits SetFont and returns void.
-Mapped names are inserted as PostScript name syntax without escaping or
-validation, so callers must supply usable PostScript names.</p>
-<p>For core X11 fonts, property mapping requires all three named properties.
-Adobe families remain unchanged. Other foundries strip a leading <code class="docutils literal notranslate"><span class="pre">itc</span></code> plus space and
-use an exact alias match, falling back to Helvetica. A typeface suffix is taken
-from the full name only when it starts with the original family; spaces and
-dashes are removed before appending that suffix. The returned mapped name lives
-in a caller-owned DString, allowing the X font to be freed before emission.
+<p>A font-map entry’s first element replaces the name. Its size is used only for an exactly two-element list with a valid
+integer second element. A one-element mapping retains the initial size twelve; it does not inherit the Tk font size. An
+empty list retains the Tk name. An invalid list or size may leave an interpreter diagnostic, but the helper still emits
+SetFont and returns void. Mapped names are inserted as PostScript name syntax without escaping or validation, so
+callers must supply usable PostScript names.</p>
+<p>For core X11 fonts, property mapping requires all three named properties. Adobe families remain unchanged. Other
+foundries strip a leading <code class="docutils literal notranslate"><span class="pre">itc</span></code> plus space and use an exact alias match, falling back to Helvetica. A typeface suffix
+is taken from the full name only when it starts with the original family; spaces and dashes are removed before appending
+that suffix. The returned mapped name lives in a caller-owned DString, allowing the X font to be freed before emission.
 Atom names themselves remain borrowed from Tk.</p>
-<p>The alias table is a compatibility heuristic, not an inventory of installed
-PostScript fonts. A prefix match in the Tk-family path and an exact match in
-the X11-property path are intentionally documented as different operations.
+<p>The alias table is a compatibility heuristic, not an inventory of installed PostScript fonts. A prefix match in the
+Tk-family path and an exact match in the X11-property path are intentionally documented as different operations.
 SVG/PDF font embedding uses the separate machinery in <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a>.</p>
 </section>
 <section id="text-transforms-and-fragment-widths">
 <h2>Text transforms and fragment widths<a class="headerlink" href="#text-transforms-and-fragment-widths" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="postscript-reference.html#c.rbcPsText.Rbc_TextToPostScript" title="rbcPsText.Rbc_TextToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.Rbc_TextToPostScript()</span></code></a> builds a borrowed-string layout, computes the rotated
-box, translates the requested anchor to that box’s center, and emits BeginText.
-The prolog saves graphics state, translates to the center, rotates by the
-negative angle, then translates to the unrotated layout origin. Font selection
-and any shadow pass follow; the main pass selects active or normal foreground.
-EndText restores graphics state. No native disabled/emphasis relief pass is
-implemented here, and the style’s angle is not rewritten.</p>
-<p>Each nonempty fragment emits its escaped literal string, measured screen width
-and baseline through DrawAdjText. That prolog procedure adjusts character
-spacing to match the requested width, flips the vertical scale and uses ashow.
-Empty fragments contribute layout spacing but emit no string, avoiding division
-by zero in the prolog’s length-based adjustment. The string encoding remains
-ISO-8859-1 with unsupported characters replaced by spaces; width adjustment
-does not recover glyphs lost during that conversion.</p>
-<p>Font and color mapping can execute Tcl variable traces while the layout borrows
-its original string. The helper does not preserve the enclosing graph, style,
-font or string itself; callers own that lifetime protection. Temporary layouts,
-font-description objects, split-list arrays and mapped-name DStrings are released
-by their respective helpers.</p>
-<p>Fragment baselines and shadow offsets are added in <code class="docutils literal notranslate"><span class="pre">Tcl_WideInt</span></code> and emitted
-without narrowing to int. Normal coordinates retain the same decimal output;
-large sums no longer overflow signed int. The bounding-box calculation
-normalizes the angle remainder into [0, 360), so equivalent negative and
-positive rotations use the same anchor position. BeginText still receives the
-original angle and the style is unchanged. Callers must keep input angles and
+<p><a class="reference internal" href="postscript-reference.html#c.rbcPsText.Rbc_TextToPostScript" title="rbcPsText.Rbc_TextToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.Rbc_TextToPostScript()</span></code></a> builds a borrowed-string layout, computes the rotated box, translates the
+requested anchor to that box’s center, and emits BeginText. The prolog saves graphics state, translates to the center,
+rotates by the negative angle, then translates to the unrotated layout origin. Font selection and any shadow pass
+follow; the main pass selects active or normal foreground. EndText restores graphics state. No native disabled/emphasis
+relief pass is implemented here, and the style’s angle is not rewritten.</p>
+<p>Each nonempty fragment emits its escaped literal string, measured screen width and baseline through DrawAdjText. That
+prolog procedure adjusts character spacing to match the requested width, flips the vertical scale and uses ashow. Empty
+fragments contribute layout spacing but emit no string, avoiding division by zero in the prolog’s length-based
+adjustment. The string encoding remains ISO-8859-1 with unsupported characters replaced by spaces; width adjustment does
+not recover glyphs lost during that conversion.</p>
+<p>Font and color mapping can execute Tcl variable traces while the layout borrows its original string. The helper does not
+preserve the enclosing graph, style, font or string itself; callers own that lifetime protection. Temporary layouts,
+font-description objects, split-list arrays and mapped-name DStrings are released by their respective helpers.</p>
+<p>Fragment baselines and shadow offsets are added in <code class="docutils literal notranslate"><span class="pre">Tcl_WideInt</span></code> and emitted without narrowing to int. Normal
+coordinates retain the same decimal output; large sums no longer overflow signed int. The bounding-box calculation
+normalizes the angle remainder into [0, 360), so equivalent negative and positive rotations use the same anchor
+position. BeginText still receives the original angle and the style is unchanged. Callers must keep input angles and
 rounded dimensions within the conversion helpers’ ranges.</p>
 </section>
 <section id="graph-options-and-export-lifetime">
 <h2>Graph options and export lifetime<a class="headerlink" href="#graph-options-and-export-lifetime" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code> owns the graph-facing <code class="docutils literal notranslate"><span class="pre">postscript</span></code> component, whose option
-resource name is <code class="docutils literal notranslate"><span class="pre">postscript</span></code> and class is <code class="docutils literal notranslate"><span class="pre">Postscript</span></code>. Creation uses the
-shared option proxy, validates derived values and destroys the partial record
-on failure. Destruction detaches the record first, releases Tk options and
-the option table, then frees the allocation. It must run while the graph’s
-Tk configuration context is still usable.</p>
-<p>Configuration has two layers: Tk option objects and derived numeric fields.
-Dimensions, padding, color mode and preview format are converted into locals
-before committing any derived field. If conversion fails after Tk_SetOptions,
-<a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.SetPostScriptOptions" title="rbcGraphPostscript.SetPostScriptOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.SetPostScriptOptions()</span></code></a> restores the saved options and error state. Successful
-callers release the saved options. Queries use Tk_GetOptionValue and
-Tk_GetOptionInfo without rendering.</p>
-<p>Options supplied to <code class="docutils literal notranslate"><span class="pre">postscript</span> <span class="pre">output</span></code> are persistent settings. They remain
-installed even if a later prolog, rendering or file operation fails. This is
-separate from restoration of screen geometry. <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a> pairs
-<a class="reference internal" href="export-reference.html#c.Rbc_ExportBeginGraph" title="Rbc_ExportBeginGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportBeginGraph()</span></code></a> with <a class="reference internal" href="export-reference.html#c.Rbc_ExportEndGraph" title="Rbc_ExportEndGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph()</span></code></a> on both success and failure. For a
-surviving window, EndGraph resets dimensions to the live window, marks mapping
-work and schedules redraw. It does not immediately restore all mapped arrays
-or revert requested PostScript dimensions. The enclosing widget command owns
-callback lifetime protection; these helpers do not acquire it independently.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code> owns the graph-facing <code class="docutils literal notranslate"><span class="pre">postscript</span></code> component, whose option resource name is <code class="docutils literal notranslate"><span class="pre">postscript</span></code> and class is
+<code class="docutils literal notranslate"><span class="pre">Postscript</span></code>. Creation uses the shared option proxy, validates derived values and destroys the partial record on
+failure. Destruction detaches the record first, releases Tk options and the option table, then frees the allocation. It
+must run while the graph’s Tk configuration context is still usable.</p>
+<p>Configuration has two layers: Tk option objects and derived numeric fields. Dimensions, padding, color mode and preview
+format are converted into locals before committing any derived field. If conversion fails after Tk_SetOptions,
+<a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.SetPostScriptOptions" title="rbcGraphPostscript.SetPostScriptOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.SetPostScriptOptions()</span></code></a> restores the saved options and error state. Successful callers release
+the saved options. Queries use Tk_GetOptionValue and Tk_GetOptionInfo without rendering.</p>
+<p>Options supplied to <code class="docutils literal notranslate"><span class="pre">postscript</span> <span class="pre">output</span></code> are persistent settings. They remain installed even if a later prolog,
+rendering or file operation fails. This is separate from restoration of screen
+geometry. <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.GraphToPostScript" title="rbcGraphPostscript.GraphToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.GraphToPostScript()</span></code></a> pairs <a class="reference internal" href="export-reference.html#c.Rbc_ExportBeginGraph" title="Rbc_ExportBeginGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportBeginGraph()</span></code></a> with
+<a class="reference internal" href="export-reference.html#c.Rbc_ExportEndGraph" title="Rbc_ExportEndGraph"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ExportEndGraph()</span></code></a> on both success and failure. For a surviving window, EndGraph resets dimensions to the live
+window, marks mapping work and schedules redraw. It does not immediately restore all mapped arrays or revert requested
+PostScript dimensions. The enclosing widget command owns callback lifetime protection; these helpers do not acquire it
+independently.</p>
 </section>
 <section id="page-layout-and-preview-paths">
 <h2>Page layout and preview paths<a class="headerlink" href="#page-layout-and-preview-paths" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.ComputeBoundingBox" title="rbcGraphPostscript.ComputeBoundingBox"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.ComputeBoundingBox()</span></code></a> applies positive requested plot dimensions, exchanges the
-oriented extents for landscape, and computes a common scale from the available
-paper area after padding. Maxpect permits enlargement as well as reduction.
-Centered placement replaces the padding origin when the page is larger than
-the scaled plot. Wide arithmetic and positive-int clamping precede storage of
-the inclusive bounds. Layout failure propagates before document traversal.</p>
-<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PostScriptPreamble" title="rbcGraphPostscript.PostScriptPreamble"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PostScriptPreamble()</span></code></a> converts pixels to points using screen pixel and millimeter
-dimensions, emits escaped metadata and optional preview, loads <code class="docutils literal notranslate"><span class="pre">rbcGraph.pro</span></code>,
-and emits footer and coordinate transforms. Metadata includes the current time;
-byte-for-byte output comparisons must account for that field. Reading
-<code class="docutils literal notranslate"><span class="pre">rbc_version</span></code> can execute variable traces. Font/color mapping during traversal
-can also execute traces; the graph must remain protected throughout export.</p>
-<p>EPSI uses a native graph snapshot, converts it to grayscale, rotates it for
-landscape and encodes eight-bit preview rows. Resizing to a thumbnail is enabled
-only by THUMBNAIL_PREVIEW; the ordinary path uses the current export layout
-size. Failure to capture an image omits the preview without a separate error.
-Drawing invalidation is checked before capture and again by the preamble.
-This snapshot path is distinct from the vector document traversal.</p>
-<p>The preview parser accepts nonempty prefixes, with EPSI on all platforms and
-WMF on Windows. TIFF and its prefixes are rejected on every build, including
-those defining HAVE_TIFF_H, because no TIFF preview encoder exists. Windows
-binary packaging is selected explicitly for WMF. String output returns the
-PostScript payload without that binary wrapper.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.ComputeBoundingBox" title="rbcGraphPostscript.ComputeBoundingBox"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.ComputeBoundingBox()</span></code></a> applies positive requested plot dimensions, exchanges the oriented
+extents for landscape, and computes a common scale from the available paper area after padding. Maxpect permits
+enlargement as well as reduction. Centered placement replaces the padding origin when the page is larger than the
+scaled plot. Wide arithmetic and positive-int clamping precede storage of the inclusive bounds. Layout failure
+propagates before document traversal.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PostScriptPreamble" title="rbcGraphPostscript.PostScriptPreamble"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PostScriptPreamble()</span></code></a> converts pixels to points using screen pixel and millimeter dimensions,
+emits escaped metadata and optional preview, loads <code class="docutils literal notranslate"><span class="pre">rbcGraph.pro</span></code>, and emits footer and coordinate
+transforms. Metadata includes the current time; byte-for-byte output comparisons must account for that field. Reading
+<code class="docutils literal notranslate"><span class="pre">rbc_version</span></code> can execute variable traces. Font/color mapping during traversal can also execute traces; the graph must
+remain protected throughout export.</p>
+<p>EPSI uses a native graph snapshot, converts it to grayscale, rotates it for landscape and encodes eight-bit preview
+rows. Resizing to a thumbnail is enabled only by THUMBNAIL_PREVIEW; the ordinary path uses the current export layout
+size. Failure to capture an image omits the preview without a separate error. Drawing invalidation is checked before
+capture and again by the preamble. This snapshot path is distinct from the vector document traversal.</p>
+<p>The preview parser accepts nonempty prefixes, with EPSI on all platforms and WMF on Windows. TIFF and its prefixes are
+rejected on every build, including those defining HAVE_TIFF_H, because no TIFF preview encoder exists. Windows binary
+packaging is selected explicitly for WMF. String output returns the PostScript payload without that binary wrapper.</p>
 </section>
 <section id="delivery-and-ownership">
 <h2>Delivery and ownership<a class="headerlink" href="#delivery-and-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.OutputOp" title="rbcGraphPostscript.OutputOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.OutputOp()</span></code></a> owns the PostScript token and staging DString, while the token borrows
-the component’s font/color mapping names. Rendering and any binary preview
-assembly finish before opening the destination through Tcl’s filesystem API.
-Binary channel translation preserves document bytes. Short writes and close
-failures propagate, and cleanup preserves an earlier error instead of replacing
-it with a close diagnostic. Successful file output has an empty Tcl result.</p>
-<p>This ordering avoids truncating a destination on a rendering failure, but is
-not an atomic replacement protocol: an open, write or close failure can leave
-an empty or partial destination. The temporary token and DString are released
-on every <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.OutputOp" title="rbcGraphPostscript.OutputOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.OutputOp()</span></code></a> exit after their creation. Component options outlive them.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.OutputOp" title="rbcGraphPostscript.OutputOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.OutputOp()</span></code></a> owns the PostScript token and staging DString, while the token borrows the
+component’s font/color mapping names. Rendering and any binary preview assembly finish before opening the destination
+through Tcl’s filesystem API. Binary channel translation preserves document bytes. Short writes and close failures
+propagate, and cleanup preserves an earlier error instead of replacing it with a close diagnostic. Successful file
+output has an empty Tcl result.</p>
+<p>This ordering avoids truncating a destination on a rendering failure, but is not an atomic replacement protocol: an
+open, write or close failure can leave an empty or partial destination. The temporary token and DString are released on
+every <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.OutputOp" title="rbcGraphPostscript.OutputOp"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.OutputOp()</span></code></a> exit after their creation. Component options outlive them.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>When changing this layer, check ordinary and track graphs, nested clipping,
-solid and dashed strokes, symbol batches, stipple fills, arcs and text with
-parentheses or backslashes. Check failures with a missing prolog separately
-from successful output. Keep page framing and delivery in <code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>;
-component code should request renderer operations rather than assemble a new
-PostScript document.</p>
+<p>When changing this layer, check ordinary and track graphs, nested clipping, solid and dashed strokes, symbol batches,
+stipple fills, arcs and text with parentheses or backslashes. Check failures with a missing prolog separately from
+successful output. Keep page framing and delivery in <code class="docutils literal notranslate"><span class="pre">rbcGrPs.c</span></code>; component code should request renderer operations
+rather than assemble a new PostScript document.</p>
 </section>
 <section id="parameter-and-return-value-boundaries">
 <h2>Parameter and return-value boundaries<a class="headerlink" href="#parameter-and-return-value-boundaries" title="Link to this heading"></a></h2>
-<p>The token helpers operate on one caller-owned document buffer. The pointer from
-<a class="reference internal" href="postscript-reference.html#c.Rbc_PostScriptFromToken" title="Rbc_PostScriptFromToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PostScriptFromToken()</span></code></a> is borrowed and can move on the next append;
-<a class="reference internal" href="postscript-reference.html#c.Rbc_ScratchBufferFromToken" title="Rbc_ScratchBufferFromToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScratchBufferFromToken()</span></code></a> is separate reusable storage overwritten by
-formatting and prolog reads. Neither accessor returns an independent copy.
-Do not feed either buffer back into an operation that overwrites or relocates
-it before consuming the input.</p>
-<p><a class="reference internal" href="postscript-reference.html#c.Rbc_AppendToPostScript" title="Rbc_AppendToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendToPostScript()</span></code></a> takes NUL-terminated strings and a pointer-valued
-NULL sentinel. <a class="reference internal" href="postscript-reference.html#c.Rbc_AppendPostScriptString" title="Rbc_AppendPostScriptString"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendPostScriptString()</span></code></a> instead accepts an explicit
-UTF byte count ending on a character boundary and escapes literal contents.
-It is still a text converter, not a binary append or general Unicode font
-encoder. Its caller supplies the parentheses.</p>
+<p>The token helpers operate on one caller-owned document buffer. The pointer from <a class="reference internal" href="postscript-reference.html#c.Rbc_PostScriptFromToken" title="Rbc_PostScriptFromToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_PostScriptFromToken()</span></code></a> is
+borrowed and can move on the next append; <a class="reference internal" href="postscript-reference.html#c.Rbc_ScratchBufferFromToken" title="Rbc_ScratchBufferFromToken"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ScratchBufferFromToken()</span></code></a> is separate reusable storage overwritten
+by formatting and prolog reads. Neither accessor returns an independent copy. Do not feed either buffer back into an
+operation that overwrites or relocates it before consuming the input.</p>
+<p><a class="reference internal" href="postscript-reference.html#c.Rbc_AppendToPostScript" title="Rbc_AppendToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendToPostScript()</span></code></a> takes NUL-terminated strings and a pointer-valued NULL
+sentinel. <a class="reference internal" href="postscript-reference.html#c.Rbc_AppendPostScriptString" title="Rbc_AppendPostScriptString"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendPostScriptString()</span></code></a> instead accepts an explicit UTF byte count ending on a character boundary
+and escapes literal contents. It is still a text converter, not a binary append or general Unicode font encoder. Its
+caller supplies the parentheses.</p>
 <table class="docutils align-default" id="id5">
 <caption><span class="caption-text">Counts, outputs and omission</span><a class="headerlink" href="#id5" title="Link to this table"></a></caption>
 <colgroup>
@@ -1672,26 +1599,22 @@ encoder. Its caller supplies the parentheses.</p>
 </tr>
 </tbody>
 </table>
-<p>The foreground/background helpers require a non-NULL color. Their mapping
-lookups can run Tcl traces, and mapped values are raw PostScript programs.
-<a class="reference internal" href="postscript-reference.html#c.rbcPsPrimitives.XColorToPostScript" title="rbcPsPrimitives.XColorToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsPrimitives.XColorToPostScript()</span></code></a> is the narrower pure conversion:
-it emits RGB operands without a lookup or color-setting operator. These are
-separate contracts, not interchangeable ways to set color safely during reentry.</p>
-<p>Native resources remain borrowed. In particular,
-<a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_ColorImageToPostScript" title="rbcPsRaster.Rbc_ColorImageToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_ColorImageToPostScript()</span></code></a> may mutate the caller’s image in
-noncolor mode, whereas <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_PhotoToPostScript" title="rbcPsRaster.Rbc_PhotoToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_PhotoToPostScript()</span></code></a> and
+<p>The foreground/background helpers require a non-NULL color. Their mapping lookups can run Tcl traces, and mapped values
+are raw PostScript programs. <a class="reference internal" href="postscript-reference.html#c.rbcPsPrimitives.XColorToPostScript" title="rbcPsPrimitives.XColorToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsPrimitives.XColorToPostScript()</span></code></a> is the narrower pure conversion: it emits RGB
+operands without a lookup or color-setting operator. These are separate contracts, not interchangeable ways to set color
+safely during reentry.</p>
+<p>Native resources remain borrowed. In particular, <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_ColorImageToPostScript" title="rbcPsRaster.Rbc_ColorImageToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_ColorImageToPostScript()</span></code></a> may mutate the
+caller’s image in noncolor mode, whereas <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_PhotoToPostScript" title="rbcPsRaster.Rbc_PhotoToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_PhotoToPostScript()</span></code></a> and
 <a class="reference internal" href="postscript-reference.html#c.rbcPsRaster.Rbc_WindowToPostScript" title="rbcPsRaster.Rbc_WindowToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsRaster.Rbc_WindowToPostScript()</span></code></a> own temporary images that they free.
-<a class="reference internal" href="postscript-reference.html#c.rbcPsText.TextLayoutToPostScript" title="rbcPsText.TextLayoutToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.TextLayoutToPostScript()</span></code></a> borrows fragments and adds baseline
-offsets; it neither selects a font nor anchors a layout. The enclosing
-<a class="reference internal" href="postscript-reference.html#c.rbcPsText.Rbc_TextToPostScript" title="rbcPsText.Rbc_TextToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.Rbc_TextToPostScript()</span></code></a> owns those operations and its temporary
-layout, while leaving the caller’s style unchanged.</p>
+<a class="reference internal" href="postscript-reference.html#c.rbcPsText.TextLayoutToPostScript" title="rbcPsText.TextLayoutToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.TextLayoutToPostScript()</span></code></a> borrows fragments and adds baseline offsets; it neither selects a font nor
+anchors a layout. The enclosing <a class="reference internal" href="postscript-reference.html#c.rbcPsText.Rbc_TextToPostScript" title="rbcPsText.Rbc_TextToPostScript"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcPsText.Rbc_TextToPostScript()</span></code></a> owns those operations and its temporary layout,
+while leaving the caller’s style unchanged.</p>
 </section>
 <section id="command-arguments-and-transaction-boundaries">
 <h2>Command arguments and transaction boundaries<a class="headerlink" href="#command-arguments-and-transaction-boundaries" title="Link to this heading"></a></h2>
-<p>The command helpers receive the full widget command: index two is the
-PostScript operation. Only <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.SetPostScriptOptions" title="rbcGraphPostscript.SetPostScriptOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.SetPostScriptOptions()</span></code></a>
-receives a sliced option/value array. Passing the full array to that helper
-would attempt to interpret the widget and subcommand names as options.</p>
+<p>The command helpers receive the full widget command: index two is the PostScript operation. Only
+<a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.SetPostScriptOptions" title="rbcGraphPostscript.SetPostScriptOptions"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.SetPostScriptOptions()</span></code></a> receives a sliced option/value array. Passing the full array to that
+helper would attempt to interpret the widget and subcommand names as options.</p>
 <table class="docutils align-default" id="id6">
 <caption><span class="caption-text">State retained after a call</span><a class="headerlink" href="#id6" title="Link to this table"></a></caption>
 <colgroup>
@@ -1721,28 +1644,22 @@ would attempt to interpret the widget and subcommand names as options.</p>
 </tr>
 </tbody>
 </table>
-<p>Preview buffers have a different purpose from the final vector document.
-<a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PreviewImage" title="rbcGraphPostscript.PreviewImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PreviewImage()</span></code></a> draws at the export layout size and
-may omit an unavailable capture. The Windows-only <a class="reference internal" href="postscript-reference.html#c.rbcWindowsPostscript.CreateWindowsEPS" title="rbcWindowsPostscript.CreateWindowsEPS"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsPostscript.CreateWindowsEPS()</span></code></a> helper
-instead draws a metafile at live widget dimensions and appends binary packaging
-to an initialized DString. It includes the PostScript terminating NUL in that
-payload’s byte count. Its native handles are temporary; neither the token nor
-the destination DString is transferred or freed. Preview generation can run
-drawing callbacks, so the enclosing command’s graph protection remains required.</p>
+<p>Preview buffers have a different purpose from the final vector document. <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PreviewImage" title="rbcGraphPostscript.PreviewImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PreviewImage()</span></code></a>
+draws at the export layout size and may omit an unavailable capture. The Windows-only
+<a class="reference internal" href="postscript-reference.html#c.rbcWindowsPostscript.CreateWindowsEPS" title="rbcWindowsPostscript.CreateWindowsEPS"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcWindowsPostscript.CreateWindowsEPS()</span></code></a> helper instead draws a metafile at live widget dimensions and appends
+binary packaging to an initialized DString. It includes the PostScript terminating NUL in that payload’s byte count. Its
+native handles are temporary; neither the token nor the destination DString is transferred or freed. Preview generation
+can run drawing callbacks, so the enclosing command’s graph protection remains required.</p>
 </section>
 <section id="variable-trace-cancellation">
 <h2>Variable-trace cancellation<a class="headerlink" href="#variable-trace-cancellation" title="Link to this heading"></a></h2>
-<p>The preamble’s reads of <code class="docutils literal notranslate"><span class="pre">rbc_version</span></code> and <code class="docutils literal notranslate"><span class="pre">rbc::library</span></code> can invoke user
-read traces. Keeping the graph record allocated does not keep its Tk window
-alive. <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PostScriptPreamble" title="rbcGraphPostscript.PostScriptPreamble"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PostScriptPreamble()</span></code></a> therefore checks graph
-validity after the version read and after successful prolog loading, before
-continuing to use widget or component state.</p>
-<p>If a trace destroys the graph, output returns an error and the export cleanup
-still runs. File destinations are opened only after successful assembly, so
-this cancellation leaves an existing destination untouched. Recreating a widget
-with the same pathname does not revive the original graph record. These checks
-protect against destruction; they do not make arbitrary reentrant changes to
-export options transactional.</p>
+<p>The preamble’s reads of <code class="docutils literal notranslate"><span class="pre">rbc_version</span></code> and <code class="docutils literal notranslate"><span class="pre">rbc::library</span></code> can invoke user read traces. Keeping the graph record
+allocated does not keep its Tk window alive. <a class="reference internal" href="postscript-reference.html#c.rbcGraphPostscript.PostScriptPreamble" title="rbcGraphPostscript.PostScriptPreamble"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGraphPostscript.PostScriptPreamble()</span></code></a> therefore checks graph
+validity after the version read and after successful prolog loading, before continuing to use widget or component state.</p>
+<p>If a trace destroys the graph, output returns an error and the export cleanup still runs. File destinations are opened
+only after successful assembly, so this cancellation leaves an existing destination untouched. Recreating a widget with
+the same pathname does not revive the original graph record. These checks protect against destruction; they do not make
+arbitrary reentrant changes to export options transactional.</p>
 </section>
 </section>
 

@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,17 +1215,15 @@
              
   <section id="polar-data-and-grid-geometry">
 <h1>Polar data and grid geometry<a class="headerlink" href="#polar-data-and-grid-geometry" title="Link to this heading"></a></h1>
-<p>Polar elements reuse the line element implementation in <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code>.
-<code class="docutils literal notranslate"><span class="pre">rbcGrPolar.c</span></code> supplies polar/Smith grid geometry and label presentation. The graph’s
-mapped plane remains Cartesian. Selecting a Smith grid does not itself convert an
-element’s source values into impedance or admittance. See <a class="reference internal" href="polar-reference.html"><span class="doc">Polar data and geometry C reference</span></a> for
-selected private helper contracts.</p>
+<p>Polar elements reuse the line element implementation in <code class="docutils literal notranslate"><span class="pre">rbcGrLine.c</span></code>. <code class="docutils literal notranslate"><span class="pre">rbcGrPolar.c</span></code> supplies polar/Smith grid
+geometry and label presentation. The graph’s mapped plane remains Cartesian. Selecting a Smith grid does not itself
+convert an element’s source values into impedance or admittance. See <a class="reference internal" href="polar-reference.html"><span class="doc">Polar data and geometry C reference</span></a> for selected private helper
+contracts.</p>
 <section id="source-representation-and-conversion">
 <h2>Source representation and conversion<a class="headerlink" href="#source-representation-and-conversion" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LinePointCount" title="rbcGrLineData.LinePointCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LinePointCount()</span></code></a> selects either the complex-vector length or the
-shorter X/Y length. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.GetLineDataPoint" title="rbcGrLineData.GetLineDataPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.GetLineDataPoint()</span></code></a> then supplies Cartesian
-coordinates to extents, screen mapping and other consumers. The data mode determines the
-adapter:</p>
+<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LinePointCount" title="rbcGrLineData.LinePointCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LinePointCount()</span></code></a> selects either the complex-vector length or the shorter X/Y
+length. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.GetLineDataPoint" title="rbcGrLineData.GetLineDataPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.GetLineDataPoint()</span></code></a> then supplies Cartesian coordinates to extents, screen mapping and
+other consumers. The data mode determines the adapter:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Input</p></th>
@@ -1249,192 +1248,147 @@ adapter:</p>
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">-z0</span></code> is validated as positive and finite. Grid angular tick values use degrees;
-this must not be confused with the radians used for polar element input.
-Axis inversion and screen scaling happen later through <a class="reference internal" href="mapping-reference.html#c.Rbc_Map2D" title="Rbc_Map2D"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Map2D()</span></code></a>.</p>
-<p>The direct Cartesian/gamma adapters can return nonfinite coordinates; success only means
-that the source sample was available. Mapping callers still check finite values and
-domain validity. Complex conversion uses <a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ComplexDivide" title="rbcGrLineConfiguration.ComplexDivide"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ComplexDivide()</span></code></a>,
-which rejects nonfinite operands and zero denominators and checks its results. It is not
-an arbitrary-range exact complex arithmetic service. Outputs may have been written
-before a failed conversion, so callers must honor its return value.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-z0</span></code> is validated as positive and finite. Grid angular tick values use degrees; this must not be confused with the
+radians used for polar element input. Axis inversion and screen scaling happen later through <a class="reference internal" href="mapping-reference.html#c.Rbc_Map2D" title="Rbc_Map2D"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Map2D()</span></code></a>.</p>
+<p>The direct Cartesian/gamma adapters can return nonfinite coordinates; success only means that the source sample was
+available. Mapping callers still check finite values and domain validity. Complex conversion uses
+<a class="reference internal" href="element-reference.html#c.rbcGrLineConfiguration.ComplexDivide" title="rbcGrLineConfiguration.ComplexDivide"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineConfiguration.ComplexDivide()</span></code></a>, which rejects nonfinite operands and zero denominators and checks its
+results. It is not an arbitrary-range exact complex arithmetic service. Outputs may have been written before a failed
+conversion, so callers must honor its return value.</p>
 </section>
 <section id="complex-vector-ownership">
 <h2>Complex-vector ownership<a class="headerlink" href="#complex-vector-ownership" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="polar-reference.html#c.ParseComplexVectorObj" title="ParseComplexVectorObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseComplexVectorObj()</span></code></a> accepts a named complex RBC vector, with no list
-fallback. It allocates a client ID, verifies the vector type and borrows the
-record and numeric array. A null/empty option produces an empty candidate.
-It initializes its destination rather than releasing an existing candidate.</p>
-<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.PrepareLineComplexDataTransaction" title="rbcGrLineData.PrepareLineComplexDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.PrepareLineComplexDataTransaction()</span></code></a> processes initial defaults and
-explicit options in order. Nonempty <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> selects complex storage; empty <code class="docutils literal notranslate"><span class="pre">-cdata</span></code>
-or explicit ordinary data options select X/Y storage. Canonical option names ensure that
-aliases participate in the same ordering. Staging acquires a new client before releasing
-an earlier staged candidate. Failure frees staged resources without replacing the live
-line data.</p>
+<p><a class="reference internal" href="polar-reference.html#c.ParseComplexVectorObj" title="ParseComplexVectorObj"><code class="xref c c-func docutils literal notranslate"><span class="pre">ParseComplexVectorObj()</span></code></a> accepts a named complex RBC vector, with no list fallback. It allocates a client ID,
+verifies the vector type and borrows the record and numeric array. A null/empty option produces an empty candidate. It
+initializes its destination rather than releasing an existing candidate.</p>
+<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.PrepareLineComplexDataTransaction" title="rbcGrLineData.PrepareLineComplexDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.PrepareLineComplexDataTransaction()</span></code></a> processes initial defaults and explicit options in
+order. Nonempty <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> selects complex storage; empty <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> or explicit ordinary data options select X/Y
+storage. Canonical option names ensure that aliases participate in the same ordering. Staging acquires a new client
+before releasing an earlier staged candidate. Failure frees staged resources without replacing the live line data.</p>
 <p>Commit transfers the candidate into the stable <code class="docutils literal notranslate"><span class="pre">linePtr-&gt;z</span></code> member before registering
-<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.ComplexVectorChangedProc" title="rbcGrLineData.ComplexVectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.ComplexVectorChangedProc()</span></code></a>. Switching away from complex storage
-releases its client and clears the retained <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> option. The element does not free
-the source array or destroy the application vector.</p>
-<p>On update, the callback reacquires the record through its client ID and refreshes
-length, capacity and numeric pointer. On destruction it clears those borrowed
-fields and the ID. It requests axis reset/remapping and, for displayed elements,
-backing-store redisplay. It does not draw synchronously. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> and
-<a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for shared notification and data-transaction rules.</p>
+<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.ComplexVectorChangedProc" title="rbcGrLineData.ComplexVectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.ComplexVectorChangedProc()</span></code></a>. Switching away from complex storage releases its client and clears the
+retained <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> option. The element does not free the source array or destroy the application vector.</p>
+<p>On update, the callback reacquires the record through its client ID and refreshes length, capacity and numeric
+pointer. On destruction it clears those borrowed fields and the ID. It requests axis reset/remapping and, for displayed
+elements, backing-store redisplay. It does not draw synchronously. See <a class="reference internal" href="vectors.html"><span class="doc">Vector ownership and notifications</span></a> and <a class="reference internal" href="elements.html"><span class="doc">Element data and dispatch</span></a> for shared
+notification and data-transaction rules.</p>
 </section>
 <section id="polar-grid-construction">
 <h2>Polar grid construction<a class="headerlink" href="#polar-grid-construction" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="polar-reference.html#c.GetPolarRadiusRange" title="GetPolarRadiusRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarRadiusRange()</span></code></a> requires linear mapped axes with finite increasing
-bounds. It finds the minimum distance from the origin to the data viewport
-rectangle and the maximum distance to its farthest corner. This supports panned
-views where the origin is outside the visible rectangle. A separate helper,
-<a class="reference internal" href="polar-reference.html#c.PolarCompleteCircleRadius" title="PolarCompleteCircleRadius"><code class="xref c c-func docutils literal notranslate"><span class="pre">PolarCompleteCircleRadius()</span></code></a>, determines a fully contained circle for labels;
-these two radii serve different purposes.</p>
-<p><a class="reference internal" href="polar-reference.html#c.MapPolarCircles" title="MapPolarCircles"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapPolarCircles()</span></code></a> obtains radial candidates from the mapped X axis’s grid
-segments. It discards nonpositive radii and candidates outside the visible
-radial range. Each retained circle is approximated by 180 straight segments,
-with Cartesian points mapped through the selected axis pair. Temporary axis
-segments are freed, and the new array becomes <code class="docutils literal notranslate"><span class="pre">gridPtr-&gt;x.segments</span></code>.</p>
-<p><a class="reference internal" href="polar-reference.html#c.MapPolarSpokes" title="MapPolarSpokes"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapPolarSpokes()</span></code></a> reads the global grid’s angular tick arrays. Major spokes are
-always considered; minor spokes follow the minor-grid setting. <a class="reference internal" href="polar-reference.html#c.ClipPolarRay" title="ClipPolarRay"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClipPolarRay()</span></code></a>
-intersects each forward ray with the data viewport before mapping endpoints.
-The retained spokes become <code class="docutils literal notranslate"><span class="pre">gridPtr-&gt;y.segments</span></code>. Mapping allocates these
-arrays; the shared grid lifecycle clears old caches and owns final cleanup.
-It must not call these mappers over populated arrays without that cleanup.
-See <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a> for grid ownership and renderer clipping of complete strokes.</p>
+<p><a class="reference internal" href="polar-reference.html#c.GetPolarRadiusRange" title="GetPolarRadiusRange"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarRadiusRange()</span></code></a> requires linear mapped axes with finite increasing bounds. It finds the minimum distance
+from the origin to the data viewport rectangle and the maximum distance to its farthest corner. This supports panned
+views where the origin is outside the visible rectangle. A separate helper, <a class="reference internal" href="polar-reference.html#c.PolarCompleteCircleRadius" title="PolarCompleteCircleRadius"><code class="xref c c-func docutils literal notranslate"><span class="pre">PolarCompleteCircleRadius()</span></code></a>,
+determines a fully contained circle for labels; these two radii serve different purposes.</p>
+<p><a class="reference internal" href="polar-reference.html#c.MapPolarCircles" title="MapPolarCircles"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapPolarCircles()</span></code></a> obtains radial candidates from the mapped X axis’s grid segments. It discards nonpositive
+radii and candidates outside the visible radial range. Each retained circle is approximated by 180 straight segments,
+with Cartesian points mapped through the selected axis pair. Temporary axis segments are freed, and the new array
+becomes <code class="docutils literal notranslate"><span class="pre">gridPtr-&gt;x.segments</span></code>.</p>
+<p><a class="reference internal" href="polar-reference.html#c.MapPolarSpokes" title="MapPolarSpokes"><code class="xref c c-func docutils literal notranslate"><span class="pre">MapPolarSpokes()</span></code></a> reads the global grid’s angular tick arrays. Major spokes are always considered; minor spokes
+follow the minor-grid setting. <a class="reference internal" href="polar-reference.html#c.ClipPolarRay" title="ClipPolarRay"><code class="xref c c-func docutils literal notranslate"><span class="pre">ClipPolarRay()</span></code></a> intersects each forward ray with the data viewport before mapping
+endpoints. The retained spokes become <code class="docutils literal notranslate"><span class="pre">gridPtr-&gt;y.segments</span></code>. Mapping allocates these arrays; the shared grid
+lifecycle clears old caches and owns final cleanup. It must not call these mappers over populated arrays without that
+cleanup. See <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a> for grid ownership and renderer clipping of complete strokes.</p>
 </section>
 <section id="smith-grid-construction">
 <h2>Smith grid construction<a class="headerlink" href="#smith-grid-construction" title="Link to this heading"></a></h2>
-<p>Smith geometry also requires linear Cartesian axes. Resistance/conductance
-circles and reactance/susceptance arcs are generated in the Gamma plane and
-then screen-mapped. The normalized admittance grid negates both coordinates
-of the impedance construction, rotating it by 180 degrees.</p>
-<p><a class="reference internal" href="polar-reference.html#c.SmithReactanceGamma" title="SmithReactanceGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithReactanceGamma()</span></code></a> parameterizes the nonnegative real component as
-<code class="docutils literal notranslate"><span class="pre">t/(1-t)</span></code>. The endpoint at <code class="docutils literal notranslate"><span class="pre">t=1</span></code> is supplied explicitly instead of dividing
-by zero: <code class="docutils literal notranslate"><span class="pre">(+1,0)</span></code> for impedance and <code class="docutils literal notranslate"><span class="pre">(-1,0)</span></code> for admittance. Current grid
-resolution uses 180 segments for circles and 90 for reactive arcs. These are
-implementation sampling choices, not guarantees of exact analytic curves.
-The grid conversion helpers operate on selected grid values; they are not the
-same validated adapter used for arbitrary element complex-vector input.</p>
-<p>Polar and Smith labels have dedicated screen and export routines, including
-viewport-aware positioning and command-based formatting. They are separate
-from segment mapping: the pure geometry helpers documented here do not execute
-Tcl callbacks. Label formatting and export still run within the graph lifecycle
-and export orchestration described in <a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>.</p>
+<p>Smith geometry also requires linear Cartesian axes. Resistance/conductance circles and reactance/susceptance arcs are
+generated in the Gamma plane and then screen-mapped. The normalized admittance grid negates both coordinates of the
+impedance construction, rotating it by 180 degrees.</p>
+<p><a class="reference internal" href="polar-reference.html#c.SmithReactanceGamma" title="SmithReactanceGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithReactanceGamma()</span></code></a> parameterizes the nonnegative real component as <code class="docutils literal notranslate"><span class="pre">t/(1-t)</span></code>. The endpoint at <code class="docutils literal notranslate"><span class="pre">t=1</span></code> is
+supplied explicitly instead of dividing by zero: <code class="docutils literal notranslate"><span class="pre">(+1,0)</span></code> for impedance and <code class="docutils literal notranslate"><span class="pre">(-1,0)</span></code> for admittance. Current grid
+resolution uses 180 segments for circles and 90 for reactive arcs. These are implementation sampling choices, not
+guarantees of exact analytic curves. The grid conversion helpers operate on selected grid values; they are not the same
+validated adapter used for arbitrary element complex-vector input.</p>
+<p>Polar and Smith labels have dedicated screen and export routines, including viewport-aware positioning and command-based
+formatting. They are separate from segment mapping: the pure geometry helpers documented here do not execute Tcl
+callbacks. Label formatting and export still run within the graph lifecycle and export orchestration described in
+<a class="reference internal" href="graph-lifecycle.html"><span class="doc">Graph lifecycle and redisplay</span></a> and <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a>.</p>
 </section>
 <section id="integration-boundaries">
 <h2>Integration boundaries<a class="headerlink" href="#integration-boundaries" title="Link to this heading"></a></h2>
-<p>Polar line smoothing uses the parametric path where appropriate, rather than
-assuming monotonic Cartesian X. Density decimation excludes polar elements.
-Ordinary area fills can use origin/chord closure on their mapped geometry;
-error bands remain restricted to Cartesian graphs. See <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a>,
-<a class="reference internal" href="decimation.html"><span class="doc">Line decimation and source identity</span></a> and <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a>.</p>
-<p>Closest-point information can include derived normalized and physical Smith
-quantities. Reverse conversion explicitly represents the open-circuit gamma
-point <code class="docutils literal notranslate"><span class="pre">(+1,0)</span></code> as infinite impedance and the short-circuit point <code class="docutils literal notranslate"><span class="pre">(-1,0)</span></code> as
-infinite admittance. These reporting conventions do not change stored input,
-axis units or the data-mode selection.</p>
+<p>Polar line smoothing uses the parametric path where appropriate, rather than assuming monotonic Cartesian X. Density
+decimation excludes polar elements. Ordinary area fills can use origin/chord closure on their mapped geometry; error
+bands remain restricted to Cartesian graphs. See <a class="reference internal" href="splines.html"><span class="doc">Spline interpolation and graph smoothing</span></a>, <a class="reference internal" href="decimation.html"><span class="doc">Line decimation and source identity</span></a> and <a class="reference internal" href="fills.html"><span class="doc">Area fills and error bands</span></a>.</p>
+<p>Closest-point information can include derived normalized and physical Smith quantities. Reverse conversion explicitly
+represents the open-circuit gamma point <code class="docutils literal notranslate"><span class="pre">(+1,0)</span></code> as infinite impedance and the short-circuit point <code class="docutils literal notranslate"><span class="pre">(-1,0)</span></code> as
+infinite admittance. These reporting conventions do not change stored input, axis units or the data-mode selection.</p>
 </section>
 <section id="parallel-parameter-ownership-and-validation">
 <h2>Parallel parameter ownership and validation<a class="headerlink" href="#parallel-parameter-ownership-and-validation" title="Link to this heading"></a></h2>
-<p>Line and polar elements can retain a real parallel <code class="docutils literal notranslate"><span class="pre">-param</span></code> input for source
-metadata; strip elements do not expose this option. Parameter data has its own
-transaction and notification callback because it does not define plotted
-geometry. It can be a named real vector or a list of numeric expressions, using
-the common element parser. Complex <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> instead requires a named complex
-vector and has no list fallback.</p>
-<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.PrepareLineParamTransaction" title="rbcGrLineData.PrepareLineParamTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.PrepareLineParamTransaction()</span></code></a> processes an initial option-database
-value unless an explicit parameter option overrides it. Every explicit occurrence is
-parsed in caller order. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.StageLineParam" title="rbcGrLineData.StageLineParam"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.StageLineParam()</span></code></a> acquires a new candidate
-before discarding the old staged one, so failed parsing does not lose the earlier
-candidate. Preparation failure then releases all remaining staged ownership. It does not
-commit the candidate or validate its final relationship to the prospective data count.</p>
-<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.CommitLineParamTransaction" title="rbcGrLineData.CommitLineParamTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.CommitLineParamTransaction()</span></code></a> moves the slot to the stable line
-record before installing <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LineParamVectorChangedProc" title="rbcGrLineData.LineParamVectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LineParamVectorChangedProc()</span></code></a>. A parameter
-notification refreshes borrowed metadata without resetting axes, remapping geometry or
-scheduling a redraw. Destruction clears the client and storage; lookup failure clears
-potentially stale storage while retaining the client ID for cleanup. These clear paths
-leave extrema unchanged, so length and storage validity must be checked before using
-values.</p>
-<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LineParamConfigured" title="rbcGrLineData.LineParamConfigured"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LineParamConfigured()</span></code></a> uses the retained option text, not the
-source’s current length. An empty option disables the parallel mapping. Initial
-configuration and explicit changes to parameter or source-data options, selected by
-<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LineParamLengthValidationNeeded" title="rbcGrLineData.LineParamLengthValidationNeeded"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LineParamLengthValidationNeeded()</span></code></a>, require matching lengths.
-Unrelated style changes remain legal while independent external vector updates have
-temporarily produced a mismatch. Validation occurs before any of the line’s prepared
-transactions commit; it neither frees nor commits the candidates itself.</p>
+<p>Line and polar elements can retain a real parallel <code class="docutils literal notranslate"><span class="pre">-param</span></code> input for source metadata; strip elements do not expose
+this option. Parameter data has its own transaction and notification callback because it does not define plotted
+geometry. It can be a named real vector or a list of numeric expressions, using the common element parser. Complex
+<code class="docutils literal notranslate"><span class="pre">-cdata</span></code> instead requires a named complex vector and has no list fallback.</p>
+<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.PrepareLineParamTransaction" title="rbcGrLineData.PrepareLineParamTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.PrepareLineParamTransaction()</span></code></a> processes an initial option-database value unless an explicit
+parameter option overrides it. Every explicit occurrence is parsed in caller
+order. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.StageLineParam" title="rbcGrLineData.StageLineParam"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.StageLineParam()</span></code></a> acquires a new candidate before discarding the old staged one, so failed
+parsing does not lose the earlier candidate. Preparation failure then releases all remaining staged ownership. It does
+not commit the candidate or validate its final relationship to the prospective data count.</p>
+<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.CommitLineParamTransaction" title="rbcGrLineData.CommitLineParamTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.CommitLineParamTransaction()</span></code></a> moves the slot to the stable line record before installing
+<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LineParamVectorChangedProc" title="rbcGrLineData.LineParamVectorChangedProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LineParamVectorChangedProc()</span></code></a>. A parameter notification refreshes borrowed metadata without
+resetting axes, remapping geometry or scheduling a redraw. Destruction clears the client and storage; lookup failure
+clears potentially stale storage while retaining the client ID for cleanup. These clear paths leave extrema unchanged,
+so length and storage validity must be checked before using values.</p>
+<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LineParamConfigured" title="rbcGrLineData.LineParamConfigured"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LineParamConfigured()</span></code></a> uses the retained option text, not the source’s current length. An empty
+option disables the parallel mapping. Initial configuration and explicit changes to parameter or source-data options,
+selected by <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LineParamLengthValidationNeeded" title="rbcGrLineData.LineParamLengthValidationNeeded"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LineParamLengthValidationNeeded()</span></code></a>, require matching lengths. Unrelated style changes
+remain legal while independent external vector updates have temporarily produced a mismatch. Validation occurs before
+any of the line’s prepared transactions commit; it neither frees nor commits the candidates itself.</p>
 </section>
 <section id="current-counts-versus-cached-sample-storage">
 <h2>Current counts versus cached sample storage<a class="headerlink" href="#current-counts-versus-cached-sample-storage" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LinePointCount" title="rbcGrLineData.LinePointCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LinePointCount()</span></code></a> now reads named-vector lengths directly, so
-activation sees a resize even before its queued notification runs. It does not refresh
-cached array pointers or consume that notification.
-<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.GetLineDataPoint" title="rbcGrLineData.GetLineDataPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.GetLineDataPoint()</span></code></a>, by contrast, reads cached slots. A caller must
-not use a fresh point count as permission to read an old array. Source synchronization
-and mapping remain separate responsibilities.</p>
+<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.LinePointCount" title="rbcGrLineData.LinePointCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.LinePointCount()</span></code></a> now reads named-vector lengths directly, so activation sees a resize even before
+its queued notification runs. It does not refresh cached array pointers or consume that notification.
+<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.GetLineDataPoint" title="rbcGrLineData.GetLineDataPoint"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.GetLineDataPoint()</span></code></a>, by contrast, reads cached slots. A caller must not use a fresh point count as
+permission to read an old array. Source synchronization and mapping remain separate responsibilities.</p>
 <p>Configuration validation selects staged slots where supplied and retained live slots
-otherwise. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.ProspectiveLinePointCount" title="rbcGrLineData.ProspectiveLinePointCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.ProspectiveLinePointCount()</span></code></a> and
-<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.ValidateLineParamLength" title="rbcGrLineData.ValidateLineParamLength"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.ValidateLineParamLength()</span></code></a> query current lengths for named sources,
-including complex data and parameter vectors; literal candidates use their stored
-counts. This makes validation independent of whether pending resize notifications have
-run. It neither refreshes borrowed sample arrays nor delivers or cancels notifications.
-Real mismatches are still rejected before commit, and unrelated style changes retain the
-existing policy of permitting temporary data/parameter mismatch.</p>
-<p>Cartesian X/Y sample access returns source values without a finite check. Polar
-X/Y access checks finite theta and radius before converting radians; complex
-access delegates to its representation-specific converter. Callers must honor
-failure and validate mapped results. Source length, available cached sample and
-finite graph coordinate are separate conditions.</p>
+otherwise. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.ProspectiveLinePointCount" title="rbcGrLineData.ProspectiveLinePointCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.ProspectiveLinePointCount()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.ValidateLineParamLength" title="rbcGrLineData.ValidateLineParamLength"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.ValidateLineParamLength()</span></code></a> query
+current lengths for named sources, including complex data and parameter vectors; literal candidates use their stored
+counts. This makes validation independent of whether pending resize notifications have run. It neither refreshes
+borrowed sample arrays nor delivers or cancels notifications. Real mismatches are still rejected before commit, and
+unrelated style changes retain the existing policy of permitting temporary data/parameter mismatch.</p>
+<p>Cartesian X/Y sample access returns source values without a finite check. Polar X/Y access checks finite theta and
+radius before converting radians; complex access delegates to its representation-specific converter. Callers must honor
+failure and validate mapped results. Source length, available cached sample and finite graph coordinate are separate
+conditions.</p>
 </section>
 <section id="complex-mode-selection-and-cleanup">
 <h2>Complex mode selection and cleanup<a class="headerlink" href="#complex-mode-selection-and-cleanup" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.PrepareLineComplexDataTransaction" title="rbcGrLineData.PrepareLineComplexDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.PrepareLineComplexDataTransaction()</span></code></a> tracks both a candidate source
-and the selected mode. Explicit ordinary data options select X/Y; a later nonempty
-complex option selects complex mode again. Canonical aliases participate in this same
-sequence. An invalid earlier complex option still fails even if a later option would
-switch away from it. A staged client may therefore need cleanup even when the final mode
-is X/Y.</p>
-<p>Commit in complex mode transfers any staged source and installs the callback; without a
-candidate it retains the live source. Commit in X/Y mode releases both live and staged
-complex clients and clears the retained complex option object.
+<p><a class="reference internal" href="polar-reference.html#c.rbcGrLineData.PrepareLineComplexDataTransaction" title="rbcGrLineData.PrepareLineComplexDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.PrepareLineComplexDataTransaction()</span></code></a> tracks both a candidate source and the selected mode. Explicit
+ordinary data options select X/Y; a later nonempty complex option selects complex mode again. Canonical aliases
+participate in this same sequence. An invalid earlier complex option still fails even if a later option would switch
+away from it. A staged client may therefore need cleanup even when the final mode is X/Y.</p>
+<p>Commit in complex mode transfers any staged source and installs the callback; without a candidate it retains the live
+source. Commit in X/Y mode releases both live and staged complex clients and clears the retained complex option object.
 <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.CommitLineComplexDataTransaction" title="rbcGrLineData.CommitLineComplexDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.CommitLineComplexDataTransaction()</span></code></a> performs those transfers;
-<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.FreeLineComplexDataTransaction" title="rbcGrLineData.FreeLineComplexDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.FreeLineComplexDataTransaction()</span></code></a> and
-<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.FreeLineParamTransaction" title="rbcGrLineData.FreeLineParamTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.FreeLineParamTransaction()</span></code></a> dispose of abandoned candidates. The
-transaction cleanup functions are safe after commit because moved ownership is cleared.
-None of these cleanup paths destroys the application’s source vector.
-<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.ReplaceLineOptionObject" title="rbcGrLineData.ReplaceLineOptionObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.ReplaceLineOptionObject()</span></code></a> retains a replacement before releasing
-the previous Tcl object and treats identical pointers as a no-op.</p>
-<p>Complex notifications invalidate axes and mapping and schedule redraw for visible
-plotted elements. Parameter notifications deliberately do none of those things.
-The difference reflects the role of the data, rather than an interchangeable
-implementation of the common X/Y notification policy.</p>
+<a class="reference internal" href="polar-reference.html#c.rbcGrLineData.FreeLineComplexDataTransaction" title="rbcGrLineData.FreeLineComplexDataTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.FreeLineComplexDataTransaction()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.FreeLineParamTransaction" title="rbcGrLineData.FreeLineParamTransaction"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.FreeLineParamTransaction()</span></code></a> dispose of
+abandoned candidates. The transaction cleanup functions are safe after commit because moved ownership is cleared. None
+of these cleanup paths destroys the application’s source vector. <a class="reference internal" href="polar-reference.html#c.rbcGrLineData.ReplaceLineOptionObject" title="rbcGrLineData.ReplaceLineOptionObject"><code class="xref c c-func docutils literal notranslate"><span class="pre">rbcGrLineData.ReplaceLineOptionObject()</span></code></a>
+retains a replacement before releasing the previous Tcl object and treats identical pointers as a no-op.</p>
+<p>Complex notifications invalidate axes and mapping and schedule redraw for visible plotted elements. Parameter
+notifications deliberately do none of those things. The difference reflects the role of the data, rather than an
+interchangeable implementation of the common X/Y notification policy.</p>
 </section>
 <section id="segment-cache-construction-and-failure-policy">
 <h2>Segment cache construction and failure policy<a class="headerlink" href="#segment-cache-construction-and-failure-policy" title="Link to this heading"></a></h2>
-<p>The mapping entry points consume prepared axes and require old X/Y grid caches
-to have been released by the shared grid lifecycle. They do not replace and free
-an existing cache themselves. Circle and spoke/arc allocations are independent:
-a failed allocation can leave one family present and the other absent. Overflow
-checks and Tcl_AttemptAlloc failures return silently, without a Tcl diagnostic.
-The next normal remapping starts from cleared caches again.</p>
-<p>Polar radial candidates are reconstructed from X-axis grid segments using
-<a class="reference internal" href="polar-reference.html#c.PolarGridSegmentValue" title="PolarGridSegmentValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">PolarGridSegmentValue()</span></code></a>. Inverted graphs recover the tick from screen Y instead
-of screen X. Only finite positive radii within the viewport’s minimum/maximum
-radial distances are retained. Circles are complete sampled polylines; rendering
-clips their strokes. Spokes instead intersect their forward data-space ray with
-the axis rectangle before mapping. A tangential intersection can produce a
-zero-length segment; the clipping helpers do not impose a minimum pixel length.</p>
-<p>Smith real circles use center r/(r+1) and radius 1/(r+1), with both coordinates
-negated for admittance. In both-domain mode the zero-conductance circle is omitted
-when the impedance unit circle already represents it. Each nonzero reactive
-magnitude produces positive and negative arcs per selected domain; the shared
-zero-reactive real diameter is emitted once. Global grid settings supply tick
-arrays and domain selection, while the supplied grid supplies axes and minor-grid
+<p>The mapping entry points consume prepared axes and require old X/Y grid caches to have been released by the shared grid
+lifecycle. They do not replace and free an existing cache themselves. Circle and spoke/arc allocations are independent:
+a failed allocation can leave one family present and the other absent. Overflow checks and Tcl_AttemptAlloc failures
+return silently, without a Tcl diagnostic. The next normal remapping starts from cleared caches again.</p>
+<p>Polar radial candidates are reconstructed from X-axis grid segments using <a class="reference internal" href="polar-reference.html#c.PolarGridSegmentValue" title="PolarGridSegmentValue"><code class="xref c c-func docutils literal notranslate"><span class="pre">PolarGridSegmentValue()</span></code></a>. Inverted
+graphs recover the tick from screen Y instead of screen X. Only finite positive radii within the viewport’s
+minimum/maximum radial distances are retained. Circles are complete sampled polylines; rendering clips their
+strokes. Spokes instead intersect their forward data-space ray with the axis rectangle before mapping. A tangential
+intersection can produce a zero-length segment; the clipping helpers do not impose a minimum pixel length.</p>
+<p>Smith real circles use center r/(r+1) and radius 1/(r+1), with both coordinates negated for admittance. In both-domain
+mode the zero-conductance circle is omitted when the impedance unit circle already represents it. Each nonzero reactive
+magnitude produces positive and negative arcs per selected domain; the shared zero-reactive real diameter is emitted
+once. Global grid settings supply tick arrays and domain selection, while the supplied grid supplies axes and minor-grid
 policy. These helpers do not implement independently configured polar track grids.</p>
-<p>These normalized grid formulas use direct floating-point squared terms. They
-are not overflow-resistant replacements for the complex-vector data adapter.
-Count checks protect allocation sizes, not arbitrary numeric input to the private
-geometry helpers. A successful mapping operation alone is not proof that every
-resulting coordinate is finite for extreme values.</p>
+<p>These normalized grid formulas use direct floating-point squared terms. They are not overflow-resistant replacements for
+the complex-vector data adapter. Count checks protect allocation sizes, not arbitrary numeric input to the private
+geometry helpers. A successful mapping operation alone is not proof that every resulting coordinate is finite for
+extreme values.</p>
 </section>
 <section id="label-placement-in-full-and-cropped-views">
 <h2>Label placement in full and cropped views<a class="headerlink" href="#label-placement-in-full-and-cropped-views" title="Link to this heading"></a></h2>
@@ -1451,90 +1405,77 @@ resulting coordinate is finite for extreme values.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Polar radial</p></td>
-<td><p>The point (radius,0), only when visible. Uses the X-axis style, a
-two-pixel upper-left offset and the configured anchor (automatic is SE).</p></td>
+<td><p>The point (radius,0), only when visible. Uses the X-axis style, a two-pixel upper-left offset and the configured
+anchor (automatic is SE).</p></td>
 </tr>
 <tr class="row-odd"><td><p>Polar angular, centered view</p></td>
-<td><p>At 90 percent of the largest fully contained origin-centered circle.
-Automatic anchor derives from the data angle.</p></td>
+<td><p>At 90 percent of the largest fully contained origin-centered circle. Automatic anchor derives from the data
+angle.</p></td>
 </tr>
 <tr class="row-even"><td><p>Polar angular, cropped view</p></td>
-<td><p>At the far visible endpoint of the clipped forward spoke. Automatic
-anchor derives from the mapped screen direction; invisible rays are skipped.</p></td>
+<td><p>At the far visible endpoint of the clipped forward spoke. Automatic anchor derives from the mapped screen
+direction; invisible rays are skipped.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Smith real</p></td>
-<td><p>At the zero-reactive Gamma coordinate. Zero values extend inward from
-the unit-circle endpoints; other impedance/admittance labels sit two
-pixels above/below the real axis respectively.</p></td>
+<td><p>At the zero-reactive Gamma coordinate. Zero values extend inward from the unit-circle endpoints; other
+impedance/admittance labels sit two pixels above/below the real axis respectively.</p></td>
 </tr>
 <tr class="row-even"><td><p>Smith reactive, complete unit circle</p></td>
 <td><p>At 94 percent of the r=0/g=0 Gamma point, with a data-angle anchor.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Smith reactive, cropped unit circle</p></td>
-<td><p>At the first visible entry into the sampled reactive contour, walking
-from its unit-circle endpoint. The anchor follows the reversed local
-screen direction to extend inward.</p></td>
+<td><p>At the first visible entry into the sampled reactive contour, walking from its unit-circle endpoint. The anchor
+follows the reversed local screen direction to extend inward.</p></td>
 </tr>
 </tbody>
 </table>
-<p>The full-circle test is inclusive for the Smith unit circle but requires the
-origin strictly inside both axis ranges for a positive polar complete radius.
-Reactive cropped placement clips the same sampled chords used by rendering,
-rather than solving an analytic circle/rectangle intersection. Its accuracy
-therefore follows the current 90-segment approximation.</p>
-<p>Automatic inward anchors use eight direction sectors separated by 22.5 degrees
-plus multiples of 45 degrees. Degenerate screen segments select CENTER. Explicit
-polar anchors override automatic selection. Centered-view anchor selection uses
-data angles; cropped-view selection uses screen directions. These are current
-policies, not a promise that label orientation is invariant under axis inversion
-or reversal. Anchors alone do not guarantee the complete text fits in the plot.</p>
-<p>All label paths copy the axis text style and force zero text rotation. Radial and
-Smith real labels use X-axis showTicks/style; angular and Smith reactive labels
-use Y-axis showTicks/style. Only major ticks are labelled. Screen drawing rounds
-positions before applying fixed offsets; export retains fractional positions.
-Both paths release their temporary renderer, labels and tick snapshots.</p>
+<p>The full-circle test is inclusive for the Smith unit circle but requires the origin strictly inside both axis ranges for
+a positive polar complete radius. Reactive cropped placement clips the same sampled chords used by rendering, rather
+than solving an analytic circle/rectangle intersection. Its accuracy therefore follows the current 90-segment
+approximation.</p>
+<p>Automatic inward anchors use eight direction sectors separated by 22.5 degrees plus multiples of 45 degrees. Degenerate
+screen segments select CENTER. Explicit polar anchors override automatic selection. Centered-view anchor selection uses
+data angles; cropped-view selection uses screen directions. These are current policies, not a promise that label
+orientation is invariant under axis inversion or reversal. Anchors alone do not guarantee the complete text fits in the
+plot.</p>
+<p>All label paths copy the axis text style and force zero text rotation. Radial and Smith real labels use X-axis
+showTicks/style; angular and Smith reactive labels use Y-axis showTicks/style. Only major ticks are labelled. Screen
+drawing rounds positions before applying fixed offsets; export retains fractional positions. Both paths release their
+temporary renderer, labels and tick snapshots.</p>
 </section>
 <section id="formatter-callbacks-and-cancellation">
 <h2>Formatter callbacks and cancellation<a class="headerlink" href="#formatter-callbacks-and-cancellation" title="Link to this heading"></a></h2>
-<p>Angular prefixes receive widget path and numeric degrees, without the default
-degree suffix. Smith prefixes receive widget path, impedance/admittance domain
-and the original signed normalized value, without the default j decoration.
-A prefix is duplicated before arguments are appended, and evaluation uses the
-current Tcl context, matching axis formatters. A NULL or empty prefix retains
-normal formatting. A successful empty result suppresses that label; an ordinary
-callback error is reported as a background exception and retains default text.
-The prior interpreter state is restored after callback evaluation.</p>
-<p><a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a> shares the existing axisFormatActive/axisFormatInvalid mechanism.
-While it evaluates Tcl, recursive snapshot and export requests are rejected before
-they change dimensions or renderer state. Layout recursion is likewise rejected;
-read-only operations that need no layout may still succeed. Redraw requests or
-relevant window events during the callback mark the current pass invalid.</p>
-<p>After formatting, validity is checked before any cached grid, axis or copied
-text-style resource is reused. Invalidation returns NULL while leaving the
-caller’s DString initialized for cleanup. Each label loop stops and releases its
-owned temporary resources; Smith phase/domain dispatch and polar radial/angular
-dispatch also stop before moving to another phase. A surviving graph is queued
-for a fresh redraw. Snapshot/export callers receive the existing
-RBC GRAPH CALLBACK error rather than a completed image/document from stale state.
-Drawing already performed into an intermediate target is not rolled back.</p>
-<p>This guard does not undo application changes or prevent users from destroying
-the graph. The enclosing widget command or display wrapper retains the graph
-record across Tcl evaluation. Nor does the guard promise forward progress for a
-formatter that changes graph options on every call: applications should make
-such changes outside formatting or only once, so a later pass can complete.</p>
-<p>The existing polar.grid.options tests exercise all three formatter options with
-graph destruction, replacement tick arrays and axis font changes through screen
-snapshots and all three document exporters. They also check recursive rendering
-rejection and successful rendering after a cancelled pass. These tests belong to
-the normal suite; no private C harness or installed API extension is required.</p>
+<p>Angular prefixes receive widget path and numeric degrees, without the default degree suffix. Smith prefixes receive
+widget path, impedance/admittance domain and the original signed normalized value, without the default j decoration. A
+prefix is duplicated before arguments are appended, and evaluation uses the current Tcl context, matching axis
+formatters. A NULL or empty prefix retains normal formatting. A successful empty result suppresses that label; an
+ordinary callback error is reported as a background exception and retains default text. The prior interpreter state is
+restored after callback evaluation.</p>
+<p><a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a> shares the existing axisFormatActive/axisFormatInvalid mechanism. While it evaluates Tcl,
+recursive snapshot and export requests are rejected before they change dimensions or renderer state. Layout recursion is
+likewise rejected; read-only operations that need no layout may still succeed. Redraw requests or relevant window events
+during the callback mark the current pass invalid.</p>
+<p>After formatting, validity is checked before any cached grid, axis or copied text-style resource is reused. Invalidation
+returns NULL while leaving the caller’s DString initialized for cleanup. Each label loop stops and releases its owned
+temporary resources; Smith phase/domain dispatch and polar radial/angular dispatch also stop before moving to another
+phase. A surviving graph is queued for a fresh redraw. Snapshot/export callers receive the existing RBC GRAPH CALLBACK
+error rather than a completed image/document from stale state. Drawing already performed into an intermediate target is
+not rolled back.</p>
+<p>This guard does not undo application changes or prevent users from destroying the graph. The enclosing widget command or
+display wrapper retains the graph record across Tcl evaluation. Nor does the guard promise forward progress for a
+formatter that changes graph options on every call: applications should make such changes outside formatting or only
+once, so a later pass can complete.</p>
+<p>The existing polar.grid.options tests exercise all three formatter options with graph destruction, replacement tick
+arrays and axis font changes through screen snapshots and all three document exporters. They also check recursive
+rendering rejection and successful rendering after a cancelled pass. These tests belong to the normal suite; no private
+C harness or installed API extension is required.</p>
 </section>
 <section id="geometry-parameter-domains-and-output-storage">
 <h2>Geometry parameter domains and output storage<a class="headerlink" href="#geometry-parameter-domains-and-output-storage" title="Link to this heading"></a></h2>
-<p>The private geometry helpers consume already normalized grid values and prepared
-axis state. They are not replacements for validating arbitrary element data.
-<a class="reference internal" href="polar-reference.html#c.SmithImpedanceToGamma" title="SmithImpedanceToGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithImpedanceToGamma()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.SmithGridValueToGamma" title="SmithGridValueToGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithGridValueToGamma()</span></code></a> perform no
-reference-impedance scaling and use unchecked squared terms. Callers must not
-interpret their void return as confirmation of a finite result.</p>
+<p>The private geometry helpers consume already normalized grid values and prepared axis state. They are not replacements
+for validating arbitrary element data. <a class="reference internal" href="polar-reference.html#c.SmithImpedanceToGamma" title="SmithImpedanceToGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithImpedanceToGamma()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.SmithGridValueToGamma" title="SmithGridValueToGamma"><code class="xref c c-func docutils literal notranslate"><span class="pre">SmithGridValueToGamma()</span></code></a> perform no
+reference-impedance scaling and use unchecked squared terms. Callers must not interpret their void return as
+confirmation of a finite result.</p>
 <table class="docutils align-default" id="id2">
 <caption><span class="caption-text">Coordinate and buffer contracts</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
 <colgroup>
@@ -1567,34 +1508,28 @@ interpret their void return as confirmation of a finite result.</p>
 </tr>
 </tbody>
 </table>
-<p>The allocating mappers publish owned arrays into the supplied grid cache.
-<a class="reference internal" href="polar-reference.html#c.Rbc_MapPolarGrid" title="Rbc_MapPolarGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.Rbc_MapSmithGrid" title="Rbc_MapSmithGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid()</span></code></a> require those caches to
-be empty before entry; the shared grid lifecycle releases old arrays. Tick
-selection and Smith domain settings come from the graph’s global grid, even
-when a grid pointer is passed separately for axes and cache storage.</p>
-<p><a class="reference internal" href="polar-reference.html#c.GetPolarAngularLabelPosition" title="GetPolarAngularLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarAngularLabelPosition()</span></code></a>,
-<a class="reference internal" href="polar-reference.html#c.GetPolarRadialLabelPosition" title="GetPolarRadialLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarRadialLabelPosition()</span></code></a> and
-<a class="reference internal" href="polar-reference.html#c.GetSmithReactiveLabelPosition" title="GetSmithReactiveLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetSmithReactiveLabelPosition()</span></code></a> expose success-only outputs. A failed
-call need not preserve the caller’s old point or anchor. Check the return value
-before using either. Automatic circular anchors use normalized degree angles;
-cropped-view anchors derive their direction from mapped segments instead.</p>
+<p>The allocating mappers publish owned arrays into the supplied grid cache. <a class="reference internal" href="polar-reference.html#c.Rbc_MapPolarGrid" title="Rbc_MapPolarGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapPolarGrid()</span></code></a> and
+<a class="reference internal" href="polar-reference.html#c.Rbc_MapSmithGrid" title="Rbc_MapSmithGrid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_MapSmithGrid()</span></code></a> require those caches to be empty before entry; the shared grid lifecycle releases old
+arrays. Tick selection and Smith domain settings come from the graph’s global grid, even when a grid pointer is passed
+separately for axes and cache storage.</p>
+<p><a class="reference internal" href="polar-reference.html#c.GetPolarAngularLabelPosition" title="GetPolarAngularLabelPosition"><code class="xref c c-func docutils literal notranslate"><span class="pre">GetPolarAngularLabelPosition()</span></code></a>, func:<cite>GetPolarRadialLabelPosition</cite> and func:<cite>GetSmithReactiveLabelPosition</cite>
+:c:expose success-only outputs. A failed call need not preserve the caller’s old point or anchor. Check the return value
+:c:before using either. Automatic circular anchors use normalized degree angles; cropped-view anchors derive their
+:c:direction from mapped segments instead.</p>
 </section>
 <section id="formatter-storage-and-cancellation">
 <h2>Formatter storage and cancellation<a class="headerlink" href="#formatter-storage-and-cancellation" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="polar-reference.html#c.FormatPolarAngleLabel" title="FormatPolarAngleLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatPolarAngleLabel()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.FormatSmithLabel" title="FormatSmithLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatSmithLabel()</span></code></a> initialize the
-supplied DString themselves. Pass storage that does not already own an allocated
-buffer. Their common helper, <a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a>, instead requires an
-initialized DString already containing default text. All three return a borrowed
-pointer into that string, or NULL when the drawing pass has been invalidated.</p>
-<p>The caller frees the DString on every path, including NULL. An empty non-NULL
-string means suppress this label and continue; NULL means stop the pass before
-accessing cached grid, axis or copied text-style resources again. The returned
-string does not retain any of those resources. The outer graph command or
-display wrapper must keep the graph record alive across callback evaluation.</p>
-<p>Screen and export loops share this cancellation rule. Their drawable and export
-context remain borrowed; ending a temporary text renderer does not free the
-screen destination or finalize the enclosing document. Geometry sampling itself
-does not invoke label commands or establish a callback-preservation scope.</p>
+<p><a class="reference internal" href="polar-reference.html#c.FormatPolarAngleLabel" title="FormatPolarAngleLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatPolarAngleLabel()</span></code></a> and <a class="reference internal" href="polar-reference.html#c.FormatSmithLabel" title="FormatSmithLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatSmithLabel()</span></code></a> initialize the supplied DString themselves. Pass storage
+that does not already own an allocated buffer. Their common helper, <a class="reference internal" href="polar-reference.html#c.FormatGridLabel" title="FormatGridLabel"><code class="xref c c-func docutils literal notranslate"><span class="pre">FormatGridLabel()</span></code></a>, instead requires an
+initialized DString already containing default text. All three return a borrowed pointer into that string, or NULL when
+the drawing pass has been invalidated.</p>
+<p>The caller frees the DString on every path, including NULL. An empty non-NULL string means suppress this label and
+continue; NULL means stop the pass before accessing cached grid, axis or copied text-style resources again. The returned
+string does not retain any of those resources. The outer graph command or display wrapper must keep the graph record
+alive across callback evaluation.</p>
+<p>Screen and export loops share this cancellation rule. Their drawable and export context remain borrowed; ending a
+temporary text renderer does not free the screen destination or finalize the enclosing document. Geometry sampling
+itself does not invoke label commands or establish a callback-preservation scope.</p>
 </section>
 </section>
 

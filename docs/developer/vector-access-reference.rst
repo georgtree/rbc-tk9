@@ -3,9 +3,8 @@ Vector access C reference
 
 These declarations are private to RBC. See :doc:`vector-access`.
 
-Parameter directions and Tcl ownership follow :doc:`calling-conventions`.
-Indices in these contracts are zero-based storage positions unless explicitly
-identified as external indices. Selection and append sentinels require caller
+Parameter directions and Tcl ownership follow :doc:`calling-conventions`.  Indices in these contracts are zero-based
+storage positions unless explicitly identified as external indices. Selection and append sentinels require caller
 validation before storage access.
 
 .. doxygenfunction:: Rbc_VectorFlushCache
@@ -37,9 +36,8 @@ validation before storage access.
 Scalar complex helpers
 ----------------------
 
-These private helpers copy scalars by value. They neither allocate vector
-storage nor invoke Tcl callbacks. Arithmetic results are not checked for
-finiteness; callers choose their own error policy. See :doc:`vector-numerics`.
+These private helpers copy scalars by value. They neither allocate vector storage nor invoke Tcl callbacks. Arithmetic
+results are not checked for finiteness; callers choose their own error policy. See :doc:`vector-numerics`.
 
 .. doxygenfunction:: Rbc_ComplexFromReal
 

@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1576,9 +1577,8 @@
              
   <section id="marker-c-reference">
 <h1>Marker C reference<a class="headerlink" href="#marker-c-reference" title="Link to this heading"></a></h1>
-<p>These private entry points borrow the graph. Mapping and drawing assume the
-caller has prepared the appropriate layout and retained graph lifetime.
-See <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a> for class dispatch, special window behavior and cleanup.</p>
+<p>These private entry points borrow the graph. Mapping and drawing assume the caller has prepared the appropriate layout
+and retained graph lifetime.  See <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a> for class dispatch, special window behavior and cleanup.</p>
 <section id="mapping-and-output">
 <h2>Mapping and output<a class="headerlink" href="#mapping-and-output" title="Link to this heading"></a></h2>
 <dl class="c function">
@@ -1666,8 +1666,8 @@ Removes bindings and display-list entries, cleans remaining resources through th
 </section>
 <section id="internal-class-interface">
 <h2>Internal class interface<a class="headerlink" href="#internal-class-interface" title="Link to this heading"></a></h2>
-<p>The class callbacks are local to <code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code>. Their exact signatures and
-option-table fields are included directly:</p>
+<p>The class callbacks are local to <code class="docutils literal notranslate"><span class="pre">rbcGrMarker.c</span></code>. Their exact signatures and option-table fields are included
+directly:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="n">MarkerCreateProc</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
 <span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">MarkerDrawProc</span><span class="p">)(</span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Drawable</span><span class="w"> </span><span class="n">drawable</span><span class="p">);</span>
 <span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="p">(</span><span class="n">MarkerFreeProc</span><span class="p">)(</span><span class="n">Graph</span><span class="w"> </span><span class="o">*</span><span class="n">graphPtr</span><span class="p">,</span><span class="w"> </span><span class="n">Marker</span><span class="w"> </span><span class="o">*</span><span class="n">markerPtr</span><span class="p">);</span>
@@ -1694,8 +1694,8 @@ option-table fields are included directly:</p>
 </section>
 <section id="shared-implementation-reference">
 <h2>Shared implementation reference<a class="headerlink" href="#shared-implementation-reference" title="Link to this heading"></a></h2>
-<p>These groups cover common transactions, lifecycle, mapping helpers and
-commands. Concrete class contracts and pass batching follow below. Namespaces disambiguate private names without changing C linkage.</p>
+<p>These groups cover common transactions, lifecycle, mapping helpers and commands. Concrete class contracts and pass
+batching follow below. Namespaces disambiguate private names without changing C linkage.</p>
 <section id="option-preparation-and-commit">
 <h3>Option preparation and commit<a class="headerlink" href="#option-preparation-and-commit" title="Link to this heading"></a></h3>
 <dl>
@@ -4589,8 +4589,8 @@ commands. Concrete class contracts and pass batching follow below. Namespaces di
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.MarkerClass">
 <span class="target" id="struct_marker_class"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MarkerClass</span></span></span><a class="headerlink" href="#c.MarkerClass" title="Link to this definition"></a><br /></dt>

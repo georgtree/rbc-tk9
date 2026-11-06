@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1315,12 +1316,10 @@
              
   <section id="document-renderer-c-reference">
 <h1>Document renderer C reference<a class="headerlink" href="#document-renderer-c-reference" title="Link to this heading"></a></h1>
-<p>These are private implementation contracts, not installed C APIs. Component
-callers use <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>; these helpers borrow export state and have
-backend-specific preconditions. See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for linked
-comparisons of state, color and clipping policies. Parameter contracts distinguish
-borrowed geometry from document-owned resources; no callback here transfers
-ownership of the source image, font or mapped point array.</p>
+<p>These are private implementation contracts, not installed C APIs. Component callers use <a class="reference internal" href="reference.html"><span class="doc">Renderer C reference</span></a>; these helpers
+borrow export state and have backend-specific preconditions. See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for linked comparisons of
+state, color and clipping policies. Parameter contracts distinguish borrowed geometry from document-owned resources; no
+callback here transfers ownership of the source image, font or mapped point array.</p>
 <section id="shared-export-support">
 <h2>Shared export support<a class="headerlink" href="#shared-export-support" title="Link to this heading"></a></h2>
 <dl>

@@ -1,25 +1,21 @@
 Shared and X11 native backend C reference
 =========================================
 
-These declarations in ``rbcRenderNative.h`` are private backend services.
-Components use ``rbcRender.h`` instead. See :doc:`native-rendering` for platform
-behavior and ownership that cannot be inferred from a function signature.
+These declarations in ``rbcRenderNative.h`` are private backend services.  Components use ``rbcRender.h`` instead. See
+:doc:`native-rendering` for platform behavior and ownership that cannot be inferred from a function signature.
 
-The entries retain implementation-specific parameter contracts. Inputs described
-as borrowed must remain live through the call, or through batch destruction when
-retained by a constructor. Counts and dimensions are documented individually;
-short-coordinate conversion is not a general overflow check.
+The entries retain implementation-specific parameter contracts. Inputs described as borrowed must remain live through
+the call, or through batch destruction when retained by a constructor. Counts and dimensions are documented
+individually; short-coordinate conversion is not a general overflow check.
 
 Trace batches
 -------------
 
-The X11 constructor and destructor contracts are included with the platform
-implementation below. See :doc:`native-rendering` for the shared lifetime
-contract and Windows acquisition/restoration requirements. Start with
-:c:func:`rbcNativeX11.Rbc_NativeBeginTrace`, submit
-:c:func:`rbcNativeX11.Rbc_NativePolyline`, and release with
-:c:func:`rbcNativeX11.Rbc_NativeEndTrace`. Independent strips use
-:c:func:`rbcNativeX11.Rbc_NativeStrips` without a retained trace context.
+The X11 constructor and destructor contracts are included with the platform implementation below. See
+:doc:`native-rendering` for the shared lifetime contract and Windows acquisition/restoration requirements. Start with
+:c:func:`rbcNativeX11.Rbc_NativeBeginTrace`, submit :c:func:`rbcNativeX11.Rbc_NativePolyline`, and release with
+:c:func:`rbcNativeX11.Rbc_NativeEndTrace`. Independent strips use :c:func:`rbcNativeX11.Rbc_NativeStrips` without a
+retained trace context.
 
 Clip stacks
 -----------
@@ -35,9 +31,8 @@ Clip stacks
 Shared drawing implementation
 -----------------------------
 
-The source contracts below describe conversion, temporary storage, GC mutations
-and fallback behavior. These helpers consume mapped geometry; they do not own
-component resources or perform graph layout.
+The source contracts below describe conversion, temporary storage, GC mutations and fallback behavior. These helpers
+consume mapped geometry; they do not own component resources or perform graph layout.
 
 .. c:namespace:: rbcNativeShared
 
@@ -55,8 +50,8 @@ component resources or perform graph layout.
 X11 platform implementation
 ---------------------------
 
-These source contracts describe the X11 implementation. The common interface
-also has Windows implementations with different resource and batching rules.
+These source contracts describe the X11 implementation. The common interface also has Windows implementations with
+different resource and batching rules.
 
 .. c:namespace:: rbcNativeX11
 

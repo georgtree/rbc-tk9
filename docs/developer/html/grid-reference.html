@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1341,8 +1342,7 @@
              
   <section id="grid-c-reference">
 <h1>Grid C reference<a class="headerlink" href="#grid-c-reference" title="Link to this heading"></a></h1>
-<p>These private entry points borrow the graph and require the preparation or
-cleanup context described in <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a>.</p>
+<p>These private entry points borrow the graph and require the preparation or cleanup context described in <a class="reference internal" href="grids.html"><span class="doc">Grid mapping and inheritance</span></a>.</p>
 <section id="grid-configuration-and-mapped-caches">
 <h2>Grid configuration and mapped caches<a class="headerlink" href="#grid-configuration-and-mapped-caches" title="Link to this heading"></a></h2>
 <dl class="c struct">
@@ -2330,8 +2330,8 @@ Clears graphPtr-&gt;gridPtr, destroys each track’s local grid and cached segme
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.GridOpSpec">
 <span class="target" id="struct_grid_op_spec"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GridOpSpec</span></span></span><a class="headerlink" href="#c.GridOpSpec" title="Link to this definition"></a><br /></dt>

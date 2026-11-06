@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1237,9 +1238,8 @@
              
   <section id="pdf-builder-c-reference">
 <h1>PDF builder C reference<a class="headerlink" href="#pdf-builder-c-reference" title="Link to this heading"></a></h1>
-<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcExport.h</span></code> and implemented in
-<code class="docutils literal notranslate"><span class="pre">rbcPdf.c</span></code>. See <a class="reference internal" href="pdf-builder.html"><span class="doc">PDF resource builder and serialization</span></a> for the single-use lifecycle and resource
-numbering conventions. They are independent of Cairo.</p>
+<p>These private services are declared in <code class="docutils literal notranslate"><span class="pre">rbcExport.h</span></code> and implemented in <code class="docutils literal notranslate"><span class="pre">rbcPdf.c</span></code>. See <a class="reference internal" href="pdf-builder.html"><span class="doc">PDF resource builder and serialization</span></a> for the
+single-use lifecycle and resource numbering conventions. They are independent of Cairo.</p>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.Rbc_PdfBegin">
 <span class="target" id="rbc_export_8h_1aeabc6d439064df0cf3e6df42a0981a55"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_PdfBegin</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="export-reference.html#c.Rbc_ExportContext" title="Rbc_ExportContext"><span class="n"><span class="pre">Rbc_ExportContext</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">token</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scale</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">height</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_PdfBegin" title="Link to this definition"></a><br /></dt>
@@ -1387,8 +1387,8 @@ Frees copied resource bodies, the resource array and builder. Does not free font
 
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.PdfResource">
 <span class="target" id="struct_pdf_resource"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PdfResource</span></span></span><a class="headerlink" href="#c.PdfResource" title="Link to this definition"></a><br /></dt>

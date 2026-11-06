@@ -26,9 +26,8 @@ See :doc:`value-conversion` for lifetime and failure policy.
 Private parsing and legacy Tk adapters
 --------------------------------------
 
-These string adapters implement ``Tk_CustomOption`` callbacks, not the newer
-``Tk_OptionSpec`` transaction protocol. See :doc:`value-conversion` for the
-replacement and printer ownership differences.
+These string adapters implement ``Tk_CustomOption`` callbacks, not the newer ``Tk_OptionSpec`` transaction protocol. See
+:doc:`value-conversion` for the replacement and printer ownership differences.
 
 .. doxygengroup:: rbcConfig_internals
    :members:

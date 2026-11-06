@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,22 +1215,19 @@
              
   <section id="allocation-strings-and-interned-names">
 <h1>Allocation, strings and interned names<a class="headerlink" href="#allocation-strings-and-interned-names" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">rbcAlloc.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcUtil.c</span></code> supply shared infrastructure. Their contracts
-are not interchangeable: an allocated copy, a reference-counted UID, a borrowed
-UID lookup and a scratch formatting buffer all have different lifetimes.
-See <a class="reference internal" href="utility-reference.html"><span class="doc">Utility ownership C reference</span></a> for the selected C declarations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcAlloc.c</span></code> and <code class="docutils literal notranslate"><span class="pre">rbcUtil.c</span></code> supply shared infrastructure. Their contracts are not interchangeable: an allocated
+copy, a reference-counted UID, a borrowed UID lookup and a scratch formatting buffer all have different lifetimes. See
+<a class="reference internal" href="utility-reference.html"><span class="doc">Utility ownership C reference</span></a> for the selected C declarations.</p>
 <section id="allocation-and-failure-policy">
 <h2>Allocation and failure policy<a class="headerlink" href="#allocation-and-failure-policy" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="utility-reference.html#c.RbcCalloc" title="RbcCalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcCalloc()</span></code></a> checks the multiplication of element count and element size against
-SIZE_MAX. Overflow invokes Tcl_Panic. A zero logical size still allocates and
-zeros one byte, retaining ckalloc-style non-NULL behavior. <a class="reference internal" href="utility-reference.html#c.RbcStrdup" title="RbcStrdup"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a> copies a
-non-NULL NUL-terminated string, including its terminator. Both use Tcl allocation
+<p><a class="reference internal" href="utility-reference.html#c.RbcCalloc" title="RbcCalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcCalloc()</span></code></a> checks the multiplication of element count and element size against <code class="docutils literal notranslate"><span class="pre">SIZE_MAX</span></code>. Overflow invokes
+<code class="docutils literal notranslate"><span class="pre">Tcl_Panic</span></code>. A zero logical size still allocates and zeros one byte, retaining ckalloc-style non-NULL
+behavior. <a class="reference internal" href="utility-reference.html#c.RbcStrdup" title="RbcStrdup"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a> copies a non-NULL NUL-terminated string, including its terminator. Both use Tcl allocation
 and return storage to release with ckfree, not libc free.</p>
-<p>These wrappers do not offer a recoverable allocation-failure protocol. Code
-that requires a diagnostic and TCL_ERROR must choose an appropriate allocation
-strategy explicitly. A check after a fatal allocator is not a substitute.
-Likewise, a successful allocation does not prove that earlier arithmetic used
-to compute a count was safe; callers own those calculations.</p>
+<p>These wrappers do not offer a recoverable allocation-failure protocol. Code that requires a diagnostic and TCL_ERROR
+must choose an appropriate allocation strategy explicitly. A check after a fatal allocator is not a substitute.
+Likewise, a successful allocation does not prove that earlier arithmetic used to compute a count was safe; callers own
+those calculations.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 30.0%" />
@@ -1268,98 +1266,80 @@ to compute a count was safe; callers own those calculations.</p>
 </section>
 <section id="uid-table">
 <h2>UID table<a class="headerlink" href="#uid-table" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_GetUid" title="Rbc_GetUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetUid()</span></code></a> lazily initializes a process-static Tcl hash table keyed by string
-contents. It increments the entry count and returns the table’s key pointer.
-Equal names share identity while references remain. <a class="reference internal" href="utility-reference.html#c.Rbc_FreeUid" title="Rbc_FreeUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeUid()</span></code></a> decrements the
-count and deletes the entry at zero. The historical Rbc_Uid typedef is mutable,
-but callers must not modify hash-key characters or release them directly.</p>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_FindUid" title="Rbc_FindUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindUid()</span></code></a> returns the same pointer without incrementing its count. It is not
-an acquisition. Retaining its result after the last owner releases the UID is
-invalid, even if the characters previously matched another string. An unknown
-still-valid string passed to <a class="reference internal" href="utility-reference.html#c.Rbc_FreeUid" title="Rbc_FreeUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeUid()</span></code></a> produces a stderr diagnostic; this is
-not protection against NULL, stale or already-freed pointers.</p>
-<p>The table is not interpreter-associated and has no synchronization or teardown
-hook for each interpreter. Do not treat sharing a UID pointer as cross-thread
-support. These declarations already appear in <code class="docutils literal notranslate"><span class="pre">rbc.h</span></code>; they do not have
-entries in the vector stubs table. Documentation adds neither new symbols nor
-stub slots. See <a class="reference internal" href="initialization.html"><span class="doc">Package loading and stubs</span></a> for the actual client-stubs boundary.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_GetUid" title="Rbc_GetUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_GetUid()</span></code></a> lazily initializes a process-static Tcl hash table keyed by string contents. It increments the
+entry count and returns the table’s key pointer. Equal names share identity while references
+remain. <a class="reference internal" href="utility-reference.html#c.Rbc_FreeUid" title="Rbc_FreeUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeUid()</span></code></a> decrements the count and deletes the entry at zero. The historical Rbc_Uid typedef is
+mutable, but callers must not modify hash-key characters or release them directly.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_FindUid" title="Rbc_FindUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FindUid()</span></code></a> returns the same pointer without incrementing its count. It is not an acquisition. Retaining its
+result after the last owner releases the UID is invalid, even if the characters previously matched another string. An
+unknown still-valid string passed to <a class="reference internal" href="utility-reference.html#c.Rbc_FreeUid" title="Rbc_FreeUid"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_FreeUid()</span></code></a> produces a stderr diagnostic; this is not protection against
+NULL, stale or already-freed pointers.</p>
+<p>The table is not interpreter-associated and has no synchronization or teardown hook for each interpreter. Do not treat
+sharing a UID pointer as cross-thread support. These declarations already appear in <code class="docutils literal notranslate"><span class="pre">rbc.h</span></code>; they do not have entries
+in the vector stubs table. Documentation adds neither new symbols nor stub slots. See <a class="reference internal" href="initialization.html"><span class="doc">Package loading and stubs</span></a> for the
+actual client-stubs boundary.</p>
 </section>
 <section id="formatting-and-result-assembly">
 <h2>Formatting and result assembly<a class="headerlink" href="#formatting-and-result-assembly" title="Link to this heading"></a></h2>
-<p>The integer and double formatting helpers all return the same static buffer.
-Calling one overwrites the others’ output. In particular, using two formatter
-calls as arguments of one function does not produce two independent strings;
-argument evaluation order cannot make that safe. Copy or append one result
-before requesting the next. These helpers have no thread synchronization.</p>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_AppendResultStrings" title="Rbc_AppendResultStrings"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendResultStrings()</span></code></a> duplicates the current Tcl result object, appends raw
-NUL-terminated fragments and installs the completed duplicate. It preserves
-shared original objects, but does not quote list elements, retain binary data
-past NUL, or set errorCode/errorInfo. Its varargs terminate with a NULL string
-pointer. <a class="reference internal" href="utility-reference.html#c.Rbc_DStringAppendElements" title="Rbc_DStringAppendElements"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DStringAppendElements()</span></code></a> instead appends each argument through Tcl’s
-list-element quoting API. It borrows an initialized DString; the caller remains
-responsible for freeing it. Neither helper is an arbitrary Tcl evaluator.</p>
+<p>The integer and double formatting helpers all return the same static buffer. Calling one overwrites the others’
+output. In particular, using two formatter calls as arguments of one function does not produce two independent strings;
+argument evaluation order cannot make that safe. Copy or append one result before requesting the next. These helpers
+have no thread synchronization.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_AppendResultStrings" title="Rbc_AppendResultStrings"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_AppendResultStrings()</span></code></a> duplicates the current Tcl result object, appends raw NUL-terminated fragments and
+installs the completed duplicate. It preserves shared original objects, but does not quote list elements, retain binary
+data past NUL, or set errorCode/errorInfo. Its varargs terminate with a NULL string
+pointer. <a class="reference internal" href="utility-reference.html#c.Rbc_DStringAppendElements" title="Rbc_DStringAppendElements"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DStringAppendElements()</span></code></a> instead appends each argument through Tcl’s list-element quoting API. It
+borrows an initialized DString; the caller remains responsible for freeing it. Neither helper is an arbitrary Tcl
+evaluator.</p>
 </section>
 <section id="other-utility-boundaries">
 <h2>Other utility boundaries<a class="headerlink" href="#other-utility-boundaries" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_InitHexTable" title="Rbc_InitHexTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitHexTable()</span></code></a> initializes only the hexadecimal digit entries. Callers must
-initialize the remaining slots to their desired invalid-digit sentinel; the
-helper neither clears the table nor maintains an initialization flag.</p>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_RandomDouble" title="Rbc_RandomDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a> consumes the C library rand state and divides by RAND_MAX + 1,
-producing values from zero inclusive to one exclusive. It does not seed a
-per-interpreter generator, promise identical sequences across C libraries or
-provide a cryptographic random source.</p>
-<p>The same module contains legacy byte-case fallback routines, dictionary
-comparison and stdio filename conversion. They are not unified Unicode string
-or Tcl-channel abstractions. In particular, <a class="reference internal" href="utility-reference.html#c.Rbc_OpenUtfFile" title="Rbc_OpenUtfFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_OpenUtfFile()</span></code></a> converts a name to
-the default external encoding and uses fopen; it is not Tcl filesystem/VFS
-access. Their presence does not change the ownership rules above.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_InitHexTable" title="Rbc_InitHexTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_InitHexTable()</span></code></a> initializes only the hexadecimal digit entries. Callers must initialize the remaining slots
+to their desired invalid-digit sentinel; the helper neither clears the table nor maintains an initialization flag.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_RandomDouble" title="Rbc_RandomDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RandomDouble()</span></code></a> consumes the C library rand state and divides by RAND_MAX + 1, producing values from zero
+inclusive to one exclusive. It does not seed a per-interpreter generator, promise identical sequences across C libraries
+or provide a cryptographic random source.</p>
+<p>The same module contains legacy byte-case fallback routines, dictionary comparison and stdio filename conversion. They
+are not unified Unicode string or Tcl-channel abstractions. In particular, <a class="reference internal" href="utility-reference.html#c.Rbc_OpenUtfFile" title="Rbc_OpenUtfFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_OpenUtfFile()</span></code></a> converts a name to
+the default external encoding and uses fopen; it is not Tcl filesystem/VFS access. Their presence does not change the
+ownership rules above.</p>
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Review allocation/free pairs and UID acquisitions/releases at call sites.
-Test shared Tcl result objects when changing result assembly. Keep long-lived
-names separate from scratch formatting results. For parser-owned string arrays,
-review replacement and failure cleanup together as described in
-<a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a>. No generated stubs should be edited for these private
-utility changes.</p>
+<p>Review allocation/free pairs and UID acquisitions/releases at call sites. Test shared Tcl result objects when changing
+result assembly. Keep long-lived names separate from scratch formatting results. For parser-owned string arrays, review
+replacement and failure cleanup together as described in <a class="reference internal" href="value-conversion.html"><span class="doc">Shared value conversion and numeric policy</span></a>. No generated stubs should be edited
+for these private utility changes.</p>
 </section>
 <section id="dictionary-ordering-and-fatal-diagnostics">
 <h2>Dictionary ordering and fatal diagnostics<a class="headerlink" href="#dictionary-ordering-and-fatal-diagnostics" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_DictionaryCompare" title="Rbc_DictionaryCompare"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DictionaryCompare()</span></code></a> handles decimal runs without first converting them to
-machine integers. Thus <code class="docutils literal notranslate"><span class="pre">x9</span></code> precedes <code class="docutils literal notranslate"><span class="pre">x10</span></code> even when runs exceed an integer
-value’s range. Commas encountered while advancing digit runs are skipped by
-the legacy algorithm; this is not a general numeric parser. Leading zeros and
-letter case supply secondary differences only after primary comparisons tie.
-For example, <code class="docutils literal notranslate"><span class="pre">x2</span></code> precedes <code class="docutils literal notranslate"><span class="pre">x02</span></code>, and <code class="docutils literal notranslate"><span class="pre">B</span></code> precedes <code class="docutils literal notranslate"><span class="pre">b</span></code> but follows <code class="docutils literal notranslate"><span class="pre">a</span></code>.
-The first secondary difference encountered is retained.</p>
-<p>Other characters are decoded with Tcl_UtfToUniChar and compared after Tcl
-lowercase conversion. There is no normalization or locale collation. Both
-arguments are borrowed Tcl UTF strings despite their historical mutable C
-parameter types. Consumers should test the sign of the result, not expect
-exact values of minus one or plus one. This comparator is different from the
-conditional byte-oriented strcasecmp fallback in the same module.</p>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_OpenUtfFile" title="Rbc_OpenUtfFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_OpenUtfFile()</span></code></a> owns only its temporary encoding-conversion buffer. A
-successful FILE stream belongs to its caller and must be closed with fclose;
-NULL reports stdio failure, without a Tcl interpreter result. This helper
-cannot substitute for Tcl filesystem operations on virtual paths.</p>
-<p><a class="reference internal" href="utility-reference.html#c.Rbc_Assert" title="Rbc_Assert"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Assert()</span></code></a> and <a class="reference internal" href="utility-reference.html#c.Rbc_Panic" title="Rbc_Panic"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Panic()</span></code></a> are process-fatal diagnostics. They flush stderr and
-abort, rather than returning TCL_ERROR or invoking the ordinary ownership
-cleanup paths. The assertion function is compiled only in non-NDEBUG builds.
-Do not use either for expected malformed user input; that belongs in a
-recoverable parser with a diagnostic and explicit cleanup.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_DictionaryCompare" title="Rbc_DictionaryCompare"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_DictionaryCompare()</span></code></a> handles decimal runs without first converting them to machine integers. Thus <code class="docutils literal notranslate"><span class="pre">x9</span></code>
+precedes <code class="docutils literal notranslate"><span class="pre">x10</span></code> even when runs exceed an integer value’s range. Commas encountered while advancing digit runs are
+skipped by the legacy algorithm; this is not a general numeric parser. Leading zeros and letter case supply secondary
+differences only after primary comparisons tie. For example, <code class="docutils literal notranslate"><span class="pre">x2</span></code> precedes <code class="docutils literal notranslate"><span class="pre">x02</span></code>, and <code class="docutils literal notranslate"><span class="pre">B</span></code> precedes <code class="docutils literal notranslate"><span class="pre">b</span></code> but
+follows <code class="docutils literal notranslate"><span class="pre">a</span></code>. The first secondary difference encountered is retained.</p>
+<p>Other characters are decoded with Tcl_UtfToUniChar and compared after Tcl lowercase conversion. There is no
+normalization or locale collation. Both arguments are borrowed Tcl UTF strings despite their historical mutable C
+parameter types. Consumers should test the sign of the result, not expect exact values of minus one or plus one. This
+comparator is different from the conditional byte-oriented strcasecmp fallback in the same module.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_OpenUtfFile" title="Rbc_OpenUtfFile"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_OpenUtfFile()</span></code></a> owns only its temporary encoding-conversion buffer. A successful FILE stream belongs to its
+caller and must be closed with fclose; NULL reports stdio failure, without a Tcl interpreter result. This helper cannot
+substitute for Tcl filesystem operations on virtual paths.</p>
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_Assert" title="Rbc_Assert"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Assert()</span></code></a> and <a class="reference internal" href="utility-reference.html#c.Rbc_Panic" title="Rbc_Panic"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Panic()</span></code></a> are process-fatal diagnostics. They flush stderr and abort, rather than
+returning TCL_ERROR or invoking the ordinary ownership cleanup paths. The assertion function is compiled only in
+non-NDEBUG builds. Do not use either for expected malformed user input; that belongs in a recoverable parser with a
+diagnostic and explicit cleanup.</p>
 </section>
 <section id="byte-string-case-conversion">
 <h2>Byte-string case conversion<a class="headerlink" href="#byte-string-case-conversion" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="utility-reference.html#c.strtolower" title="strtolower"><code class="xref c c-func docutils literal notranslate"><span class="pre">strtolower()</span></code></a> is a platform fallback for a writable NUL-terminated byte
-string. It uses the C locale’s unsigned-byte case mapping in place; it is not
-Tcl Unicode conversion and does not allocate a replacement string.</p>
+<p><a class="reference internal" href="utility-reference.html#c.strtolower" title="strtolower"><code class="xref c c-func docutils literal notranslate"><span class="pre">strtolower()</span></code></a> is a platform fallback for a writable NUL-terminated byte string. It uses the C locale’s
+unsigned-byte case mapping in place; it is not Tcl Unicode conversion and does not allocate a replacement string.</p>
 </section>
 <section id="fallback-byte-string-comparisons">
 <h2>Fallback byte-string comparisons<a class="headerlink" href="#fallback-byte-string-comparisons" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="utility-reference.html#c.strcasecmp" title="strcasecmp"><code class="xref c c-func docutils literal notranslate"><span class="pre">strcasecmp()</span></code></a> and <a class="reference internal" href="utility-reference.html#c.strncasecmp" title="strncasecmp"><code class="xref c c-func docutils literal notranslate"><span class="pre">strncasecmp()</span></code></a> use the fixed byte-folding table
-when the platform lacks these routines. Their ordering is not Tcl Unicode
-ordering and does not follow the C locale used by <a class="reference internal" href="utility-reference.html#c.strtolower" title="strtolower"><code class="xref c c-func docutils literal notranslate"><span class="pre">strtolower()</span></code></a>.
-The bounded comparison reads at most its byte limit and stops at NUL.</p>
+<p><a class="reference internal" href="utility-reference.html#c.strcasecmp" title="strcasecmp"><code class="xref c c-func docutils literal notranslate"><span class="pre">strcasecmp()</span></code></a> and <a class="reference internal" href="utility-reference.html#c.strncasecmp" title="strncasecmp"><code class="xref c c-func docutils literal notranslate"><span class="pre">strncasecmp()</span></code></a> use the fixed byte-folding table when the platform lacks these
+routines. Their ordering is not Tcl Unicode ordering and does not follow the C locale used by <a class="reference internal" href="utility-reference.html#c.strtolower" title="strtolower"><code class="xref c c-func docutils literal notranslate"><span class="pre">strtolower()</span></code></a>. The
+bounded comparison reads at most its byte limit and stops at NUL.</p>
 </section>
 </section>
 

@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1241,9 +1242,8 @@
              
   <section id="component-configuration-c-reference">
 <h1>Component configuration C reference<a class="headerlink" href="#component-configuration-c-reference" title="Link to this heading"></a></h1>
-<p>These are private helpers implemented in <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> and declared in
-<code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>. They introduce no public stubs. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for
-transaction ordering, resource identity and cleanup responsibilities.</p>
+<p>These are private helpers implemented in <code class="docutils literal notranslate"><span class="pre">rbcConfig.c</span></code> and declared in <code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>. They introduce no public
+stubs. See <a class="reference internal" href="configuration.html"><span class="doc">Component configuration and resources</span></a> for transaction ordering, resource identity and cleanup responsibilities.</p>
 <section id="resource-initialization">
 <h2>Resource initialization<a class="headerlink" href="#resource-initialization" title="Link to this heading"></a></h2>
 <dl class="c function">
@@ -1394,8 +1394,8 @@ Resolves synonyms through their clientData canonical name. Use the same specific
 </section>
 <section id="data-records-and-member-contracts">
 <h2>Data records and member contracts<a class="headerlink" href="#data-records-and-member-contracts" title="Link to this heading"></a></h2>
-<p>These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.</p>
+<p>These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.</p>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.ColorPair">
 <span class="target" id="struct_color_pair"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ColorPair</span></span></span><a class="headerlink" href="#c.ColorPair" title="Link to this definition"></a><br /></dt>

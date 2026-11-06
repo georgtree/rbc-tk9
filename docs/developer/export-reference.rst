@@ -1,8 +1,8 @@
 Export orchestration C reference
 ================================
 
-These interfaces are private. See :doc:`exports` for ownership, format policy
-and the distinction between ending export mode and restoring screen layout.
+These interfaces are private. See :doc:`exports` for ownership, format policy and the distinction between ending export
+mode and restoring screen layout.
 
 Document context
 ----------------
@@ -33,9 +33,8 @@ Graph command and traversal
 SVG and PDF command helpers and format adapters
 -----------------------------------------------
 
-The policy record and internal helpers below implement the transaction described
-in :doc:`exports`. The concrete adapters own document framing, while shared
-services own configuration, geometry restoration and delivery.
+The policy record and internal helpers below implement the transaction described in :doc:`exports`. The concrete
+adapters own document framing, while shared services own configuration, geometry restoration and delivery.
 
 .. c:namespace:: rbcGraphExportCommands
 
@@ -47,8 +46,8 @@ services own configuration, geometry restoration and delivery.
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: Rbc_ExportContext
    :members:

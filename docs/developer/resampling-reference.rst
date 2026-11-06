@@ -1,9 +1,8 @@
 Image resampling C reference
 ============================
 
-These private services are declared in ``rbcImage.h`` and implemented in
-``rbcImage.c``. See :doc:`image-resampling` for coordinate conventions and
-:doc:`images-tiles` for image storage ownership.
+These private services are declared in ``rbcImage.h`` and implemented in ``rbcImage.c``. See :doc:`image-resampling` for
+coordinate conventions and :doc:`images-tiles` for image storage ownership.
 
 .. doxygenfunction:: Rbc_GetResampleFilterFromObj
 
@@ -20,9 +19,8 @@ These private services are declared in ``rbcImage.h`` and implemented in
 Filter kernels and contribution records
 ---------------------------------------
 
-These helpers implement the filtered path in ``rbcImage.c``. See
-:doc:`image-resampling` for kernel support, coordinate conventions and
-fixed-point arithmetic.
+These helpers implement the filtered path in ``rbcImage.c``. See :doc:`image-resampling` for kernel support, coordinate
+conventions and fixed-point arithmetic.
 
 .. c:namespace:: rbcImageResampling
 
@@ -34,8 +32,7 @@ fixed-point arithmetic.
 Contribution workspace records
 ------------------------------
 
-These image-local records are distinct from the element palette
-:c:type:`Weight` interval in :doc:`pen-reference`.
+These image-local records are distinct from the element palette :c:type:`Weight` interval in :doc:`pen-reference`.
 
 .. doxygenunion:: ResampleWeight
 

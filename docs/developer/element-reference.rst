@@ -41,9 +41,8 @@ Common data transactions
 Type dispatch signatures
 ------------------------
 
-Callbacks borrow graph and element records; dispatch does not itself retain
-components or protect against arbitrary Tcl callback reentry. The concrete
-operation's contract supplies any additional restrictions.
+Callbacks borrow graph and element records; dispatch does not itself retain components or protect against arbitrary Tcl
+callback reentry. The concrete operation's contract supplies any additional restrictions.
 
 .. doxygentypedef:: ElementDrawProc
 
@@ -73,9 +72,8 @@ operation's contract supplies any additional restrictions.
 Configuration transaction internals
 -----------------------------------
 
-These helpers separate candidate preparation from live-field commit and from
-retained Tcl option representations. See :doc:`elements` for their differing
-failure and cleanup rules.
+These helpers separate candidate preparation from live-field commit and from retained Tcl option representations. See
+:doc:`elements` for their differing failure and cleanup rules.
 
 .. doxygengroup:: element_transaction_internals
    :members:
@@ -83,8 +81,8 @@ failure and cleanup rules.
 Data observation and value presentation
 ---------------------------------------
 
-The documentation-only scope distinguishes private names such as GetIndex from
-similarly named helpers in other C files. It does not change C symbols.
+The documentation-only scope distinguishes private names such as GetIndex from similarly named helpers in other C
+files. It does not change C symbols.
 
 .. c:namespace-push:: rbcGrElemData
 
@@ -96,8 +94,8 @@ similarly named helpers in other C files. It does not change C symbols.
 Lifecycle and display dispatch
 ------------------------------
 
-These contracts cover registry ownership, option rollback, staged teardown and
-normal/active rendering. The namespace below is documentation-only.
+These contracts cover registry ownership, option rollback, staged teardown and normal/active rendering. The namespace
+below is documentation-only.
 
 .. c:namespace-push:: rbcGrElemLifecycle
 
@@ -109,9 +107,9 @@ normal/active rendering. The namespace below is documentation-only.
 Commands and binding tags
 -------------------------
 
-These handlers share the typed element dispatch table. Their contracts distinguish
-query order, per-element transactions, sequential mutations and Tcl trace safety.
-The scope below separates generic handler names from other modules' private names.
+These handlers share the typed element dispatch table. Their contracts distinguish query order, per-element
+transactions, sequential mutations and Tcl trace safety. The scope below separates generic handler names from other
+modules' private names.
 
 .. c:namespace-push:: rbcGrElemCommands
 
@@ -123,9 +121,8 @@ The scope below separates generic handler names from other modules' private name
 Line geometry and resource lifecycle
 ------------------------------------
 
-These contracts cover line, strip and polar mapping storage and pen resources.
-See :doc:`elements` for the reset and teardown boundaries. The scope is
-documentation-only.
+These contracts cover line, strip and polar mapping storage and pen resources. See :doc:`elements` for the reset and
+teardown boundaries. The scope is documentation-only.
 
 .. c:namespace-push:: rbcGrLineGeometry
 
@@ -137,9 +134,8 @@ documentation-only.
 Line mapping pipeline
 ---------------------
 
-These private contracts describe continuous runs, symbol selection, clipping,
-palette slices and the top-level mapping pass. See :doc:`elements` for ordering.
-The C namespace below only disambiguates documentation names.
+These private contracts describe continuous runs, symbol selection, clipping, palette slices and the top-level mapping
+pass. See :doc:`elements` for ordering. The C namespace below only disambiguates documentation names.
 
 .. c:namespace-push:: rbcGrLineMapping
 
@@ -151,9 +147,8 @@ The C namespace below only disambiguates documentation names.
 Line picking and stroke dispatch
 --------------------------------
 
-See :doc:`elements` for the distinction between point and trace metrics,
-snapshot metadata collection, and orientation-aware source-range pruning.
-This namespace only disambiguates private documentation symbols.
+See :doc:`elements` for the distinction between point and trace metrics, snapshot metadata collection, and
+orientation-aware source-range pruning. This namespace only disambiguates private documentation symbols.
 
 .. c:namespace-push:: rbcGrLinePicking
 
@@ -165,8 +160,8 @@ This namespace only disambiguates private documentation symbols.
 Line symbol and output dispatch
 -------------------------------
 
-See :doc:`elements` for sampling, renderer fallback and label lifetime rules.
-These are private adapters; the namespace below is documentation-only.
+See :doc:`elements` for sampling, renderer fallback and label lifetime rules. These are private adapters; the namespace
+below is documentation-only.
 
 .. c:namespace-push:: rbcGrLineOutput
 
@@ -178,8 +173,8 @@ These are private adapters; the namespace below is documentation-only.
 Line configuration and smoothing
 --------------------------------
 
-See :doc:`elements` for staged configuration, resampling boundaries and the
-reference-impedance validation boundary. This namespace disambiguates private names only.
+See :doc:`elements` for staged configuration, resampling boundaries and the reference-impedance validation
+boundary. This namespace disambiguates private names only.
 
 .. c:namespace-push:: rbcGrLineConfiguration
 
@@ -197,8 +192,8 @@ Shared error-bar geometry
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: ElementOpSpec
    :members:

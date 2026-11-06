@@ -507,6 +507,7 @@
 <li class="toctree-l5"><a class="reference internal" href="decimation.html#bucket-and-range-contracts">Bucket and range contracts</a></li>
 </ul>
 </li>
+<li class="toctree-l4"><a class="reference internal" href="decimation.html#converted-source-representations">Converted source representations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="decimation.html#pixel-bucket-output-ownership">Pixel-bucket output ownership</a></li>
 </ul>
 </li>
@@ -1214,163 +1215,127 @@
              
   <section id="svg-definitions-and-image-encoding">
 <h1>SVG definitions and image encoding<a class="headerlink" href="#svg-definitions-and-image-encoding" title="Link to this heading"></a></h1>
-<p>See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for shared context ownership and the PDF/PostScript
-primitive contracts, including graphics-state and capture boundaries.</p>
-<p><code class="docutils literal notranslate"><span class="pre">rbcGrSvg.c</span></code> frames the document; <code class="docutils literal notranslate"><span class="pre">rbcRenderSvg.c</span></code> emits primitives through
-the renderer interface. Both borrow a shared <code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code>. SVG requires
-no Cairo backend or PDF object builder. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for command-level
+<p>See <a class="reference internal" href="document-rendering.html"><span class="doc">Document renderer primitives</span></a> for shared context ownership and the PDF/PostScript primitive contracts, including
+graphics-state and capture boundaries.</p>
+<p><code class="docutils literal notranslate"><span class="pre">rbcGrSvg.c</span></code> frames the document; <code class="docutils literal notranslate"><span class="pre">rbcRenderSvg.c</span></code> emits primitives through the renderer interface. Both borrow a
+shared <code class="docutils literal notranslate"><span class="pre">Rbc_ExportContext</span></code>. SVG requires no Cairo backend or PDF object builder. See <a class="reference internal" href="exports.html"><span class="doc">Export orchestration and document ownership</span></a> for command-level
 layout, restoration and delivery, and <a class="reference internal" href="svg-reference.html"><span class="doc">SVG backend C reference</span></a> for helper contracts.</p>
 <section id="document-and-context-lifetime">
 <h2>Document and context lifetime<a class="headerlink" href="#document-and-context-lifetime" title="Link to this heading"></a></h2>
-<p>The SVG document callback appends an XML declaration and root element using the
-mapped graph width/height for both dimensions and viewBox. It traverses graph
-output, finishes embedded fonts after successful traversal, and appends the
-root close. On success it creates a Tcl string from the document buffer. The
-shared command checks export status and owns delivery with UTF-8/LF settings.
-An unsuccessful partially generated document must not be returned as valid SVG.</p>
-<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a> allocates a zeroed context containing shared export
-state and bitmap-symbol definition state. It borrows the token and its buffer;
-renderer completion frees the context without closing the document. All contexts
-must finish before shared export storage and font resources are released.
-Drawing appends XML immediately; it does not retain a DOM or a deferred scene.</p>
+<p>The SVG document callback appends an XML declaration and root element using the mapped graph width/height for both
+dimensions and viewBox. It traverses graph output, finishes embedded fonts after successful traversal, and appends the
+root close. On success it creates a Tcl string from the document buffer. The shared command checks export status and
+owns delivery with UTF-8/LF settings. An unsuccessful partially generated document must not be returned as valid SVG.</p>
+<p><a class="reference internal" href="document-render-reference.html#c.Rbc_RenderCreateSvg" title="Rbc_RenderCreateSvg"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_RenderCreateSvg()</span></code></a> allocates a zeroed context containing shared export state and bitmap-symbol definition
+state. It borrows the token and its buffer; renderer completion frees the context without closing the document. All
+contexts must finish before shared export storage and font resources are released. Drawing appends XML immediately; it
+does not retain a DOM or a deferred scene.</p>
 </section>
 <section id="definitions-and-scopes">
 <h2>Definitions and scopes<a class="headerlink" href="#definitions-and-scopes" title="Link to this heading"></a></h2>
-<p>Rectangular clip pushes increment <code class="docutils literal notranslate"><span class="pre">nextResourceId</span></code>, emit a clipPath definition
-in user coordinates, and open a group referring to it. Pop closes the group.
-Common renderer depth tracking controls pairing and unwind. Plot output has a
-separate <code class="docutils literal notranslate"><span class="pre">rbcPlot</span></code> definition/group and paints its background before entering
-the plot clip. That fixed name belongs to the current single-graph document;
-it is not a namespace scheme for concatenating independent SVG documents.</p>
-<p>Patterns and bitmap-symbol definitions also use document-generated identifiers.
-A fill context caches its pattern ID, so repeated polygons with the same style
-reuse that definition. This is not PDF-style document-wide byte interning.
-Changing resource styles behind a context’s cached ID would reuse the wrong
-definition; configure a context before drawing and keep borrowed resources live.</p>
-<p>Tile patterns use photo blocks when available and otherwise capture generic Tk
-images. Their origin accounts for the widget’s offset from its toplevel, matching
-native tile alignment. Stipple patterns read monochrome bits with XYPixmap,
-emit an optional background rectangle and foreground runs, and release the
-readback image. Pattern dimensions and contents use userSpaceOnUse coordinates.
-Definitions are emitted inline as needed, rather than collected in one header.</p>
+<p>Rectangular clip pushes increment <code class="docutils literal notranslate"><span class="pre">nextResourceId</span></code>, emit a clipPath definition in user coordinates, and open a group
+referring to it. Pop closes the group. Common renderer depth tracking controls pairing and unwind. Plot output has a
+separate <code class="docutils literal notranslate"><span class="pre">rbcPlot</span></code> definition/group and paints its background before entering the plot clip. That fixed name belongs
+to the current single-graph document; it is not a namespace scheme for concatenating independent SVG documents.</p>
+<p>Patterns and bitmap-symbol definitions also use document-generated identifiers. A fill context caches its pattern ID,
+so repeated polygons with the same style reuse that definition. This is not PDF-style document-wide byte interning.
+Changing resource styles behind a context’s cached ID would reuse the wrong definition; configure a context before
+drawing and keep borrowed resources live.</p>
+<p>Tile patterns use photo blocks when available and otherwise capture generic Tk images. Their origin accounts for the
+widget’s offset from its toplevel, matching native tile alignment. Stipple patterns read monochrome bits with XYPixmap,
+emit an optional background rectangle and foreground runs, and release the readback image. Pattern dimensions and
+contents use userSpaceOnUse coordinates. Definitions are emitted inline as needed, rather than collected in one header.</p>
 </section>
 <section id="primitive-geometry-and-paint">
 <h2>Primitive geometry and paint<a class="headerlink" href="#primitive-geometry-and-paint" title="Link to this heading"></a></h2>
-<p>Polylines with fewer than two points and polygons with fewer than three points
-emit nothing. Independent segments are emitted as individual two-point
-polylines. A dashed stroke with an off-color emits a solid underlay first, then
-the dashed foreground. For segments, both passes finish for each segment before
-the next segment begins. Caps and joins come from retained export state; native
-GC objects are not consulted during SVG emission.</p>
-<p>Solid polygons use the even-odd fill rule and explicit fill opacity. Patterned
-polygons and arcs instead use the pattern’s paint; solid-fill opacity is not
-applied to these patterns. Rectangle fills use their own optional opacity group
-around each rectangle, including patterned rectangles. These paths are not
-interchangeable opacity implementations. Keep the component’s style semantics
-when reusing a primitive. A failed rectangle pattern balances the current group
-before returning, but does not roll back earlier rectangles.</p>
-<p>Arc geometry arrives normalized by the common dispatcher. Positive mathematical
-angles map upward in SVG screen coordinates. A full ellipse is represented by
-two arc commands with a close, avoiding a radial seam; a partial pieslice adds
-the center, while a chord closes directly between endpoints. <a class="reference internal" href="svg-reference.html#c.SvgArcPath" title="SvgArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgArcPath()</span></code></a>
-leaves the path element open for its caller to append fill or stroke attributes.</p>
-<p>Background clearing paints white rather than removing alpha. Relief borders
-force Tk’s lazy shadow-color allocation before reading colors, then approximate
-edges with filled geometry. Groove and ridge are composed from nested reliefs;
+<p>Polylines with fewer than two points and polygons with fewer than three points emit nothing. Independent segments are
+emitted as individual two-point polylines. A dashed stroke with an off-color emits a solid underlay first, then the
+dashed foreground. For segments, both passes finish for each segment before the next segment begins. Caps and joins come
+from retained export state; native GC objects are not consulted during SVG emission.</p>
+<p>Solid polygons use the even-odd fill rule and explicit fill opacity. Patterned polygons and arcs instead use the
+pattern’s paint; solid-fill opacity is not applied to these patterns. Rectangle fills use their own optional opacity
+group around each rectangle, including patterned rectangles. These paths are not interchangeable opacity
+implementations. Keep the component’s style semantics when reusing a primitive. A failed rectangle pattern balances the
+current group before returning, but does not roll back earlier rectangles.</p>
+<p>Arc geometry arrives normalized by the common dispatcher. Positive mathematical angles map upward in SVG screen
+coordinates. A full ellipse is represented by two arc commands with a close, avoiding a radial seam; a partial pieslice
+adds the center, while a chord closes directly between endpoints. <a class="reference internal" href="svg-reference.html#c.SvgArcPath" title="SvgArcPath"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgArcPath()</span></code></a> leaves the path element open for
+its caller to append fill or stroke attributes.</p>
+<p>Background clearing paints white rather than removing alpha. Relief borders force Tk’s lazy shadow-color allocation
+before reading colors, then approximate edges with filled geometry. Groove and ridge are composed from nested reliefs;
 flat or undersized borders retain only the requested background fill.</p>
 </section>
 <section id="symbol-definitions-and-placement">
 <h2>Symbol definitions and placement<a class="headerlink" href="#symbol-definitions-and-placement" title="Link to this heading"></a></h2>
-<p>Geometric symbols use their shape-specific size factors and rounding rules.
-Skinny plus/cross symbols are unfilled strokes; ordinary symbols combine fill
-and outline. Bar legend samples use translated rectangle fills with the current
+<p>Geometric symbols use their shape-specific size factors and rounding rules. Skinny plus/cross symbols are unfilled
+strokes; ordinary symbols combine fill and outline. Bar legend samples use translated rectangle fills with the current
 bar style. These are component conventions, not an SVG-wide rounding policy.</p>
-<p>Bitmap symbols are read back once per context and stored in a document resource.
-An explicit mask is used when a fill color is present and must match the bitmap’s
-dimensions. Transparent symbols do not acquire that separate mask. Set pixels
-are encoded as unit-height horizontal vector runs, with optional mask
-intersection. Repeated symbols use translated/scaled references with a uniform
-scale that preserves aspect ratio. Readback images are temporary; the SVG
+<p>Bitmap symbols are read back once per context and stored in a document resource. An explicit mask is used when a fill
+color is present and must match the bitmap’s dimensions. Transparent symbols do not acquire that separate mask. Set
+pixels are encoded as unit-height horizontal vector runs, with optional mask intersection. Repeated symbols use
+translated/scaled references with a uniform scale that preserves aspect ratio. Readback images are temporary; the SVG
 resource and its dimensions remain cached until context destruction.</p>
 </section>
 <section id="strings-and-error-propagation">
 <h2>Strings and error propagation<a class="headerlink" href="#strings-and-error-propagation" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="svg-reference.html#c.SvgString" title="SvgString"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgString()</span></code></a> escapes ampersands, angle brackets and both quote characters.
-Other bytes are decoded as Tcl UTF characters and checked for prohibited XML
-characters. Errors are recorded on the export context; already emitted bytes
-are not removed. The helper expects valid readable Tcl UTF input, not arbitrary
-binary data. Binary images and font payloads use separate encoding paths.</p>
-<p>A void drawing helper or nonzero resource ID does not establish overall success.
-The shared export error records the first failure, and the outer command must
-honor it. Do not implement a fallback by appending a second representation after
-an encoding helper has partially emitted XML and recorded an error.</p>
+<p><a class="reference internal" href="svg-reference.html#c.SvgString" title="SvgString"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgString()</span></code></a> escapes ampersands, angle brackets and both quote characters. Other bytes are decoded as Tcl UTF
+characters and checked for prohibited XML characters. Errors are recorded on the export context; already emitted bytes
+are not removed. The helper expects valid readable Tcl UTF input, not arbitrary binary data. Binary images and font
+payloads use separate encoding paths.</p>
+<p>A void drawing helper or nonzero resource ID does not establish overall success. The shared export error records the
+first failure, and the outer command must honor it. Do not implement a fallback by appending a second representation
+after an encoding helper has partially emitted XML and recorded an error.</p>
 </section>
 <section id="raster-encoding">
 <h2>Raster encoding<a class="headerlink" href="#raster-encoding" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="svg-reference.html#c.SvgPhotoBlock" title="SvgPhotoBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a> emits an inline PNG data URI. It copies each source row using
-the Tk pitch and pixel layout, adds a zero PNG filter byte, and writes straight
-RGBA pixels. Unlike Cairo image surfaces, these channels are not premultiplied.
-A valid alpha offset distinct from RGB is used; otherwise alpha becomes 255.
-The producer must supply valid RGB offsets and readable backing storage.</p>
-<p>The helper rejects invalid basic storage and raw buffers exceeding its INT_MAX
-size checks. Empty dimensions produce no image. Tcl zlib compresses the raw
-scanlines; interpreter state is saved/restored around compression and the
-compressed result is retained while its bytes are used. Temporary raw and
-compressed objects are released explicitly.</p>
-<p>PNG assembly writes signature, IHDR, IDAT and IEND chunks, including chunk
-checksums. Base64 encodes the binary PNG into an image href with explicit mapped
-position and dimensions. Temporary PNG storage is freed after emission. Encoding
-is in memory and does not create temporary image files or invoke a Tcl image
-format command.</p>
-<p>Generic Tk images expose drawing rather than a universal pixel layout. Their
-export path uses the shared raster-image capture service, including its
-source-over/two-matte assumptions, then releases captured color images after
-encoding. Window markers use a separate capture path: unmapped or zero-sized
-windows are skipped; mapped windows are read from their current native drawable.
-Export does not instantiate or lay out replacement child widgets. See
+<p><a class="reference internal" href="svg-reference.html#c.SvgPhotoBlock" title="SvgPhotoBlock"><code class="xref c c-func docutils literal notranslate"><span class="pre">SvgPhotoBlock()</span></code></a> emits an inline PNG data URI. It copies each source row using the Tk pitch and pixel layout,
+adds a zero PNG filter byte, and writes straight RGBA pixels. Unlike Cairo image surfaces, these channels are not
+premultiplied. A valid alpha offset distinct from RGB is used; otherwise alpha becomes 255. The producer must supply
+valid RGB offsets and readable backing storage.</p>
+<p>The helper rejects invalid basic storage and raw buffers exceeding its INT_MAX size checks. Empty dimensions produce no
+image. Tcl zlib compresses the raw scanlines; interpreter state is saved/restored around compression and the compressed
+result is retained while its bytes are used. Temporary raw and compressed objects are released explicitly.</p>
+<p>PNG assembly writes signature, IHDR, IDAT and IEND chunks, including chunk checksums. Base64 encodes the binary PNG into
+an image href with explicit mapped position and dimensions. Temporary PNG storage is freed after emission. Encoding is
+in memory and does not create temporary image files or invoke a Tcl image format command.</p>
+<p>Generic Tk images expose drawing rather than a universal pixel layout. Their export path uses the shared raster-image
+capture service, including its source-over/two-matte assumptions, then releases captured color images after
+encoding. Window markers use a separate capture path: unmapped or zero-sized windows are skipped; mapped windows are
+read from their current native drawable. Export does not instantiate or lay out replacement child widgets. See
 <a class="reference internal" href="images-tiles.html"><span class="doc">Image storage and tile clients</span></a> and <a class="reference internal" href="markers.html"><span class="doc">Marker lifecycle and drawing</span></a> for source lifetime and window behavior.</p>
 </section>
 <section id="text-and-integration-boundaries">
 <h2>Text and integration boundaries<a class="headerlink" href="#text-and-integration-boundaries" title="Link to this heading"></a></h2>
-<p>SVG text selects embedded-font output when requested; otherwise it resolves Tk
-font attributes and emits text using those attributes. The nonembedded path
-calls Tcl’s font command, so it is not a pure geometry operation. Font state
-belongs to the shared export token, and final embedded-font definitions are
-emitted before the closing root element. See <a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a> for font ownership.</p>
-<p>SVG paths, patterns and clip groups preserve renderer painter order. No native
-pixel rounding should be introduced simply to resemble a screen backend.
-Validation should parse the emitted XML and exercise escaped labels, transparent
-images, repeated patterns, nested track clips, font modes and export followed by
-screen-geometry restoration. A visually correct image alone does not validate
-XML quoting, resource references or encoded binary payloads.</p>
+<p>SVG text selects embedded-font output when requested; otherwise it resolves Tk font attributes and emits text using
+those attributes. The nonembedded path calls Tcl’s font command, so it is not a pure geometry operation. Font state
+belongs to the shared export token, and final embedded-font definitions are emitted before the closing root element. See
+<a class="reference internal" href="text-fonts.html"><span class="doc">Text layout and document fonts</span></a> for font ownership.</p>
+<p>SVG paths, patterns and clip groups preserve renderer painter order. No native pixel rounding should be introduced
+simply to resemble a screen backend. Validation should parse the emitted XML and exercise escaped labels, transparent
+images, repeated patterns, nested track clips, font modes and export followed by screen-geometry restoration. A visually
+correct image alone does not validate XML quoting, resource references or encoded binary payloads.</p>
 </section>
 <section id="text-placement-and-font-finalization">
 <h2>Text placement and font finalization<a class="headerlink" href="#text-placement-and-font-finalization" title="Link to this heading"></a></h2>
-<p>Embedded text first resolves characters to export faces and measures the layout.
-When Tk reports a zero-width character but the selected fallback face has a
-positive advance, the layout gains the rounded-up fallback advance; genuine
-zero-width glyphs retain their positions. Justification and rotated anchor
-placement are then recalculated. Shadow and foreground passes emit per-character
-spans, keeping Unicode text editable and registering faces on the export token.</p>
-<p>Nonembedded text obtains attributes through the global Tcl <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">actual</span></code>
-command and uses SVG <code class="docutils literal notranslate"><span class="pre">textLength</span></code> to preserve Tk’s measured line widths. Its
-attribute result is retained while interpreter state is restored. That restores
-the Tcl result, not widget lifetime: replacing the global font command with a
-mutating script is outside this helper’s resource-lifetime guarantee.</p>
-<p><a class="reference internal" href="svg-reference.html#c.Rbc_SvgFontsFinish" title="Rbc_SvgFontsFinish"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish()</span></code></a> runs after drawing has registered all used faces. It hashes
-the current document and original font bytes into a deterministic family prefix,
-replaces temporary family attributes, and emits base64 Unicode font programs in
-CSS font-face definitions. This reduces family collisions between inline SVG
-documents with different character maps; it is not a security hash or a general
-namespace for clip/pattern identifiers. The operation mutates the document buffer
-and belongs to one finalization pass. Font-program failure can leave partial
-output, which the outer export command must reject.</p>
+<p>Embedded text first resolves characters to export faces and measures the layout. When Tk reports a zero-width character
+but the selected fallback face has a positive advance, the layout gains the rounded-up fallback advance; genuine
+zero-width glyphs retain their positions. Justification and rotated anchor placement are then recalculated. Shadow and
+foreground passes emit per-character spans, keeping Unicode text editable and registering faces on the export token.</p>
+<p>Nonembedded text obtains attributes through the global Tcl <code class="docutils literal notranslate"><span class="pre">font</span> <span class="pre">actual</span></code> command and uses SVG <code class="docutils literal notranslate"><span class="pre">textLength</span></code> to
+preserve Tk’s measured line widths. Its attribute result is retained while interpreter state is restored. That restores
+the Tcl result, not widget lifetime: replacing the global font command with a mutating script is outside this helper’s
+resource-lifetime guarantee.</p>
+<p><a class="reference internal" href="svg-reference.html#c.Rbc_SvgFontsFinish" title="Rbc_SvgFontsFinish"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish()</span></code></a> runs after drawing has registered all used faces. It hashes the current document and
+original font bytes into a deterministic family prefix, replaces temporary family attributes, and emits base64 Unicode
+font programs in CSS font-face definitions. This reduces family collisions between inline SVG documents with different
+character maps; it is not a security hash or a general namespace for clip/pattern identifiers. The operation mutates the
+document buffer and belongs to one finalization pass. Font-program failure can leave partial output, which the outer
+export command must reject.</p>
 </section>
 <section id="font-finalization-failure-boundary">
 <h2>Font-finalization failure boundary<a class="headerlink" href="#font-finalization-failure-boundary" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="svg-reference.html#c.Rbc_SvgFontsFinish" title="Rbc_SvgFontsFinish"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish()</span></code></a> runs once after text collection. Embedding-disabled
-output is unchanged. With embedding enabled, font names may already have been
-rewritten and definitions partly appended when font-program creation fails;
+<p><a class="reference internal" href="svg-reference.html#c.Rbc_SvgFontsFinish" title="Rbc_SvgFontsFinish"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_SvgFontsFinish()</span></code></a> runs once after text collection. Embedding-disabled output is unchanged. With embedding
+enabled, font names may already have been rewritten and definitions partly appended when font-program creation fails;
 discard that incomplete export rather than treating the operation as rollback.</p>
 </section>
 </section>

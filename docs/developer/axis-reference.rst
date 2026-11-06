@@ -1,9 +1,8 @@
 Axis control C reference
 ========================
 
-These implementation contracts cover registry lifetime, configuration entry
-points and command dispatch in ``rbcGrAxis.c``. See :doc:`axes` for ownership
-and error boundaries and :doc:`mapping-reference` for coordinate helpers.
+These implementation contracts cover registry lifetime, configuration entry points and command dispatch in
+``rbcGrAxis.c``. See :doc:`axes` for ownership and error boundaries and :doc:`mapping-reference` for coordinate helpers.
 Namespaces below disambiguate private handler names without changing linkage.
 
 Registry and lifetime
@@ -79,8 +78,8 @@ Layout, queries, scrolling and notifications
 Data records and member contracts
 ---------------------------------
 
-These records describe stored state and resource ownership. Their presence in
-the reference does not make private layouts part of the installed C API.
+These records describe stored state and resource ownership. Their presence in the reference does not make private
+layouts part of the installed C API.
 
 .. doxygenstruct:: AxisInfo
    :members:
