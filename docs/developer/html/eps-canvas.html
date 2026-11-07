@@ -1320,8 +1320,8 @@ services and <a class="reference internal" href="exports.html"><span class="doc"
 </section>
 <section id="maintenance-checks">
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
-<p>Keep parsing, display and export expectations separate. Existing <code class="docutils literal notranslate"><span class="pre">RBC.eps.file.A.test</span></code>, <code class="docutils literal notranslate"><span class="pre">RBC.eps.image.A.test</span></code> and
-the other <code class="docutils literal notranslate"><span class="pre">RBC.eps.*</span></code> files cover canvas options and lifecycle cases. Review malformed headers, file/image
+<p>Keep parsing, display and export expectations separate. Existing <code class="docutils literal notranslate"><span class="pre">eps.file.test</span></code>, <code class="docutils literal notranslate"><span class="pre">eps.image.test</span></code> and
+the other <code class="docutils literal notranslate"><span class="pre">eps.*</span></code> files cover canvas options and lifecycle cases. Review malformed headers, file/image
 replacement, quick-mode cache invalidation, source-image deletion, anchor picking and PostScript body preservation when
 changing these paths. Use <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for temporary-photo acquisition and release.</p>
 <p>The optional <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code> harness counts source-instance releases on deletion followed by reconfiguration or

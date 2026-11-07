@@ -7,12 +7,12 @@ if {[llength $argv] && ![string match -* [lindex $argv 0]]} {
     set argv [lrange $argv 1 end]
 }
 set here [file dirname [file normalize [info script]]]
-set private [dict create notify {RBC_NOTIFY_TEST_LIB RBC.vector.notify.A.test}\
-                     tile {RBC_TILE_TEST_LIB RBC.tile.notify.A.test}\
-                     temporary {RBC_IMAGE_TEST_LIB RBC.image.temporary.A.test}\
-                     photo {RBC_IMAGE_TEST_LIB RBC.image.photo.A.test}\
-                     resources {RBC_RESOURCE_TEST_LIB RBC.resources.lifecycle.A.test}\
-                     ps {RBC_RESOURCE_TEST_LIB RBC.postscript.primitives.A.test}]
+set private [dict create notify {RBC_NOTIFY_TEST_LIB vector.notify.test}\
+                     tile {RBC_TILE_TEST_LIB tile.notify.test}\
+                     temporary {RBC_IMAGE_TEST_LIB image.temporary.test}\
+                     photo {RBC_IMAGE_TEST_LIB image.photo.test}\
+                     resources {RBC_RESOURCE_TEST_LIB resources.lifecycle.test}\
+                     ps {RBC_RESOURCE_TEST_LIB postscript.primitives.test}]
 
 if {$suite eq {all}} {
     foreach phase [list widgets vector {*}[dict keys $private]] {
@@ -42,14 +42,13 @@ if {$suite eq {widgets}} {
 }
 switch -- $suite {
     widgets {
-        set candidates [lmap path [glob -directory $here runtime/*/RBC.*.test] {file tail $path}]
+        set candidates [lmap path [glob -directory $here runtime/*/*.test] {file tail $path}]
     }
     vector {
-        set candidates {RBC.vector.load.A.test RBC.vector.capi.A.test RBC.vector.readonly.A.test\
-                                 RBC.vector.parentheses.A.test RBC.vector.namespace.A.test RBC.vector.rename.A.test\
-                                 RBC.vector.map.A.test RBC.vector.fft.A.test RBC.vector.ifft.A.test\
-                                 RBC.vector.fftfreq.A.test RBC.vector.window.A.test RBC.vector.simplify.A.test\
-                                 RBC.graph.legacy.headless.A.test}
+        set candidates {vector.load.test vector.capi.test vector.readonly.test\
+                                vector.parentheses.test vector.namespace.test vector.rename.test vector.map.test\
+                                vector.fft.test vector.ifft.test vector.fftfreq.test vector.window.test\
+                                vector.simplify.test graph.legacy.headless.test}
     }
     default {
         set candidates [lrange [dict get $private $suite] 1 end]
@@ -71,8 +70,8 @@ foreach file $candidates {
         }
     }
     if {$selected} {
-        # RBC.<group>.<test>.test lives under runtime/<group>.
-        lappend files [file join runtime [lindex [split $file .] 1] $file]
+        # <group>.<test>.test lives under runtime/<group>.
+        lappend files [file join runtime [lindex [split $file .] 0] $file]
     }
 }
 if {![llength $files]} {

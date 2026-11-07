@@ -1,0 +1,1605 @@
+# stripchart.pen.configure.test --
+#
+###Abstract
+# This file tests the configuration of pen component of a BLT stripchart component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide stripchart.pen
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval stripchart.pen {    
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -color command works correctly when given a valid
+	# color name.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.1.1 {
+		stripchart pen: configure - color - valid color name
+	} -setup {
+		stripchart .stripchart1
+		pack .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -color black
+		.stripchart1 pen cget "activeLine" -color
+	} -cleanup {
+		destroy .stripchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -color command works correctly when given an
+	# invalid color name.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.1.2 {
+		stripchart pen: configure - color - invalid color name
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -color invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command works correctly when given a
+	# valid dash list.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.2.1 {
+		stripchart pen: configure - dashes - valid dash list
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -dashes {2 3 2 4}
+		.stripchart1 pen cget "activeLine" -dashes
+	} -cleanup {
+		destroy .stripchart1
+	} -result {2 3 2 4}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command works correctly when given an
+	# empty dash list.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.2.2 {
+		stripchart pen: configure - dashes - empty dash list
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -dashes ""
+		.stripchart1 pen cget "activeLine" -dashes
+	} -cleanup {
+		destroy .stripchart1
+	} -result {}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command works correctly when given a dash
+	# list that is too long.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.2.3 {
+		stripchart pen: configure - dashes - long dash list
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -dashes {2 3 2 4 2 3 2 4 2 3 2}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command works correctly when given an
+	# invalid numerical dash list.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.2.4 {
+		stripchart pen: configure - dashes - invalid numerical dash list
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -dashes {2 3 2 -1 2}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command works correctly when given a dash
+	# list with characters.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.2.5 {
+		stripchart pen: configure - dashes - dash list with characters
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -dashes {2 3 2 a 2}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -dashes command accepts the maximum supported
+	# number of dash values.
+	# ------------------------------------------------------------------------------------
+    test stripchart.pen.configure.2.6 {
+		stripchart pen: configure - dashes - maximum dash list
+	} -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 pen configure "activeLine" -dashes {1 2 3 4 5 6 7 8 9 10}
+        .stripchart1 pen cget "activeLine" -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result {1 2 3 4 5 6 7 8 9 10}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the maximum individual dash value is preserved.
+	# ------------------------------------------------------------------------------------
+    test stripchart.pen.configure.2.7 {
+		stripchart pen: configure - dashes - maximum dash value
+	} -setup {
+        stripchart .stripchart1
+    } -body {
+        .stripchart1 pen configure "activeLine" -dashes {255 1}
+        .stripchart1 pen cget "activeLine" -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result {255 1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a pen with high-valued, multi-element dashes can be used repeatedly
+	# for drawing without corrupting the GC dash state.
+	# ------------------------------------------------------------------------------------
+    test stripchart.pen.configure.2.8 {
+		stripchart pen: configure - dashes - repeated native drawing
+	} -setup {
+        stripchart .stripchart1 -width 300 -height 200
+        pack .stripchart1
+        .stripchart1 pen create Pen1 -dashes {255 1 10 2} -linewidth 2
+        .stripchart1 element create Element1 -data {0 0 1 1 2 0 3 1} -pen Pen1
+    } -body {
+        update idletasks
+        # Force the element to be mapped and drawn again using the
+        # same pen/GC.
+        .stripchart1 element configure Element1 -hide 1
+        update idletasks
+        .stripchart1 element configure Element1 -hide 0
+        update idletasks
+        .stripchart1 pen cget Pen1 -dashes
+    } -cleanup {
+        destroy .stripchart1
+    } -result {255 1 10 2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the fill configuration works for valid fill colors
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.3.1 {
+	    Test pen configure fill
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -fill black
+	    .stripchart1 pen cget "activeLine" -fill
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the fill configuration works for no fill
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.3.2 {
+	    Test pen configure no fill
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -fill ""
+	    .stripchart1 pen cget "activeLine" -fill
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the fill configuration works for no fill
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.3.3 {
+	    Test pen configure invalid color
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    if {[catch {.stripchart1 pen configure "activeLine" -fill invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -linewidth command works correctly when given a
+	# valid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.4.1 {
+		stripchart pen: configure - linewidth - valid integer input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -linewidth 2
+		.stripchart1 pen cget "activeLine" -linewidth
+	} -cleanup {
+		destroy .stripchart1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -linewidth command works correctly when given an
+	# invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.4.2 {
+		stripchart pen: configure - linewidth - invalid integer input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -linewidth -2}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -linewidth command works correctly when given a
+	# decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.4.3 {
+		stripchart pen: configure - linewidth - decimal input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -linewidth 3.5
+		.stripchart1 pen cget "activeLine" -linewidth
+	} -cleanup {
+		destroy .stripchart1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -linewidth command works correctly when given an
+	# invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.4.4 {
+		stripchart pen: configure - linewidth - invalid decimal input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -linewidth -2.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -linewidth command works correctly when given a
+	# character value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.4.5 {
+		stripchart pen: configure - linewidth - character input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -linewidth invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -linewidth command works correctly when given 0 as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.4.6 {
+		stripchart pen: configure - linewidth - zero
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -linewidth 0
+		.stripchart1 pen cget "activeLine" -linewidth
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the offdash configuration works for valid offdash colors 
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.5.1 {
+	    Test pen configure offdash - valid color
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -offdash black
+	    .stripchart1 pen cget "activeLine" -offdash
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the offdash configuration works for invalid color names
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.5.2 {
+	    Test pen configure offdash - invalid color
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    if {[catch {.stripchart1 pen configure "activeLine" -offdash invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the outline configuration works for valid outline colors
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.6.1 {
+	    Test pen configure outline - valid color
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -outline black
+	    .stripchart1 pen cget "activeLine" -outline
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the outline configuration works for invalid color names
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.6.2 {
+	    Test pen configure outline - invalid color
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    if {[catch {.stripchart1 pen configure "activeLine" -outline invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the outline configuration works for defcolor (the same color
+	# as the color configuration option)
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.6.3 {
+	    Test pen configure default outline
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -outline defcolor
+	    .stripchart1 pen cget "activeLine" -outline
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {defcolor}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -outlinewidth command works correctly when given
+	# an integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.7.1 {
+		stripchart pen: configure - outlinewidth - valid integer input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -outlinewidth 2
+		.stripchart1 pen cget "activeLine" -outlinewidth
+	} -cleanup {
+		destroy .stripchart1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -outlinewidth command works correctly when given
+	# an invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.7.2 {
+		stripchart pen: configure - outlinewidth - invalid integer input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -outlinewidth -1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -outlinewidth command works correctly when given a
+	# decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.7.3 {
+		stripchart pen: configure - outlinewidth - valid decimal input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -outlinewidth 3.5
+		.stripchart1 pen cget "activeLine" -outlinewidth
+	} -cleanup {
+		destroy .stripchart1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -outlinewidth command works correctly when given
+	# an invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.7.4 {
+		stripchart pen: configure - outlinewidth - invalid decimal input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -outlinewidth -1.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -outlinewidth command works correctly when given a
+	# character as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.7.5 {
+		stripchart pen: configure - outlinewidth - character input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -outlinewidth a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -pixels command works correctly when given an
+	# integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.8.1 {
+		stripchart pen: configure - pixels - valid integer input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -pixels 2
+		.stripchart1 pen cget "activeLine" -pixels
+	} -cleanup {
+		destroy .stripchart1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -pixels command works correctly when given an
+	# invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.8.2 {
+		stripchart pen: configure - pixels - invalid integer input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -pixels -1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -pixels command works correctly when given a
+	# decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.8.3 {
+		stripchart pen: configure - pixels - valid decimal input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -pixels 3.5
+		.stripchart1 pen cget "activeLine" -pixels
+	} -cleanup {
+		destroy .stripchart1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -pixels command works correctly when given an
+	# invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.8.4 {
+		stripchart pen: configure - pixels - invalid decimal input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -pixels -1.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -pixels command works correctly when given a
+	# character as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.8.5 {
+		stripchart pen: configure - pixels - character input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -pixels a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the pixels configuration works for symbol size zero
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.8.6 {
+	    stripchart pen: configure - no pixels
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -pixels 0
+	    .stripchart1 pen cget "activeLine" -pixels
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for square
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.1 {
+	    Test pen configure symbol square
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol square
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {square}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for circle
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.2 {
+	    Test pen configure symbol circle
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol circle
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {circle}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for diamond
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.3 {
+	    Test pen configure symbol diamond
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol diamond
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {diamond}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for plus
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.4 {
+	    Test pen configure symbol plus
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol plus
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {plus}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for cross
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.5 {
+	    Test pen configure symbol cross
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol cross
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {cross}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for splus
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.6 {
+	    Test pen configure symbol splus
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol splus
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {splus}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for scross
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.7 {
+	    Test pen configure symbol scross
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol scross
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {scross}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for triangle
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.8 {
+	    Test pen configure symbol triangle
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol triangle
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {triangle}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for no symbol
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.9 {
+	    Test pen configure symbol none
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol none
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {none}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for bitmap symbols
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.10 {
+	    Test pen configure symbol bitmap
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -symbol warning
+	    .stripchart1 pen cget "activeLine" -symbol
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {warning}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the symbol configuration works for invalid input
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.9.11 {
+	    stripchart pen: configure - invalid input
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    if {[catch {.stripchart1 pen configure "activeLine" -symbol invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the default type of a pen is set
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.10.1 {
+	    Test pen configure default type
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen create Pen1
+	    .stripchart1 pen cget Pen1 -type
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {line}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the type configuration works with valid input
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.10.2 {
+	    Test pen configure type
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    catch {.stripchart1 pen create Pen1 -type foobar} errorStr
+	    return $errorStr
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {unknown pen type "foobar" specified}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the errorbarcolor configuration works for valid errorbarcolor colors
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.11.1 {
+	    Test pen configure errorbarcolor
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -errorbarcolor black
+	    .stripchart1 pen cget "activeLine" -errorbarcolor
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the errorbarcolor configuration works for no errorbarcolor
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.11.2 {
+	    Test pen configure invalid color
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    if {[catch {.stripchart1 pen configure "activeLine" -errorbarcolor invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# an integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.12.1 {
+		stripchart pen: configure - errorbarwidth - valid integer input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -errorbarwidth 2
+		.stripchart1 pen cget "activeLine" -errorbarwidth
+	} -cleanup {
+		destroy .stripchart1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# an invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.12.2 {
+		stripchart pen: configure - errorbarwidth - invalid integer input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -errorbarwidth -1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# a decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.12.3 {
+		stripchart pen: configure - errorbarwidth - valid decimal input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -errorbarwidth 3.5
+		.stripchart1 pen cget "activeLine" -errorbarwidth
+	} -cleanup {
+		destroy .stripchart1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# an invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.12.4 {
+		stripchart pen: configure - errorbarwidth - invalid decimal input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -errorbarwidth -1.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# a character as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.12.5 {
+		stripchart pen: configure - errorbarwidth - character input
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		if {[catch {.stripchart1 pen configure "activeLine" -errorbarwidth a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the errorbarwidth configuration works for symbol size zero
+	# ------------------------------------------------------------------------------------ 
+	test stripchart.pen.configure.12.6 {
+	    stripchart pen: configure - no errorbarwidth
+	} -setup {
+	    stripchart .stripchart1
+	    pack .stripchart1    
+	} -body {
+	    .stripchart1 pen configure "activeLine" -errorbarwidth 0
+	    .stripchart1 pen cget "activeLine" -errorbarwidth
+	} -cleanup {
+	    destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# x.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.13.1 {
+		stripchart pen configure: showvalues - x
+	} -setup {
+		stripchart .stripchart1
+		pack .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -showvalues x
+		.stripchart1 pen cget "activeLine" -showvalues
+	} -cleanup {
+		destroy .stripchart1
+	} -result {x}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# y.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.13.2 {
+		stripchart pen configure: showvalues - y
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -showvalues y
+		.stripchart1 pen cget "activeLine" -showvalues
+	} -cleanup {
+		destroy .stripchart1
+	} -result {y}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# both.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.13.3 {
+		stripchart pen configure: showvalues - both
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -showvalues both
+		.stripchart1 pen cget "activeLine" -showvalues
+	} -cleanup {
+		destroy .stripchart1
+	} -result {both}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# none.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.13.4 {
+		stripchart pen configure: showvalues - none
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -showvalues none
+		.stripchart1 pen cget "activeLine" -showvalues
+	} -cleanup {
+		destroy .stripchart1
+	} -result {none}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# no.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.13.5 {
+		stripchart pen configure: showvalues - no
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 pen configure "activeLine" -showvalues no
+		.stripchart1 pen cget "activeLine" -showvalues
+	} -cleanup {
+		destroy .stripchart1
+	} -result {no}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'n' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.1 {
+		stripchart pen configure: valueanchor - n
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor n
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {n}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'ne' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.2 {
+		stripchart pen configure: valueanchor - ne
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor ne
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {ne}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'e' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.3 {
+		stripchart pen configure: valueanchor - e
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor e
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {e}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'se' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.4 {
+		stripchart pen configure: valueanchor - se
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor se
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {se}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'ne' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.5 {
+		stripchart pen configure: valueanchor - s
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor s
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {s}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'sw' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.6 {
+		stripchart pen configure: valueanchor - sw
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor sw
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {sw}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'w' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.7 {
+		stripchart pen configure: valueanchor - w
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor w
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {w}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'nw' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.8 {
+		stripchart pen configure: valueanchor - nw
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor nw
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {nw}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'center' as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.9 {
+		stripchart pen configure: valueanchor - center
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueanchor center
+		.stripchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {center}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given invalid numerical input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.10 {
+		stripchart pen configure: valueanchor - invalid numerical input
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valueanchor 3.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given invalid character input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.14.11 {
+		stripchart pen configure: valueanchor - invalid character input
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valueanchor invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuecolor command works correctly when given
+	# a valid color name.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.15.1 {
+		stripchart pen configure: valuecolor - valid color name
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuecolor black
+		.stripchart1 pen cget pen1 -valuecolor
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuecolor command works correctly when given
+	# an invalid color name.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.15.2 {
+		stripchart pen configure: valuecolor - invalid color name
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valuecolor invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when 
+	# given an integer angle.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.16.1 {
+		stripchart pen configure: valuerotate - integer input
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuerotate 90
+		.stripchart1 pen cget pen1 -valuerotate
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {90}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when 
+	# given a decimal angle.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.16.2 {
+		stripchart pen configure: valuerotate - decimal input
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuerotate 45.5
+		.stripchart1 pen cget pen1 -valuerotate
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {45.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when 
+	# given a negative integer angle.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.16.3 {
+		stripchart pen configure: valuerotate - negative integer input
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuerotate -90
+		.stripchart1 pen cget pen1 -valuerotate
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {-90}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when
+	# given a negative decimal angle.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.16.4 {
+		stripchart pen configure: valuerotate - negative decimal input
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuerotate -45.5
+		.stripchart1 pen cget pen1 -valuerotate
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {-45.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when
+	# given a character as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.16.5 {
+		stripchart pen configure: valuerotate - character input
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valuerotate invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when  
+	# given a valid color name.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.17.1 {
+		stripchart pen configure: valueshadow - valid color name
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueshadow black
+		.stripchart1 pen cget pen1 -valueshadow
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when 
+	# given an invalid color name.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.17.2 {
+		stripchart pen configure: valueshadow - invalid color name
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valueshadow invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when  
+	# given a valid color name and valid integer value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.17.3 {
+		stripchart pen configure: valueshadow - valid color name, valid integer
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueshadow {black 2}
+		.stripchart1 pen cget pen1 -valueshadow
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {black 2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when 
+	# given an invalid color name and valid integer value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.17.4 {
+		stripchart pen configure: valueshadow - invalid color name, valid integer
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valueshadow {invalid 1}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when 
+	# given a valid color name and invalid integer value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.17.5 {
+		stripchart pen configure: valueshadow - valid color name, invalid integer
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valueshadow {black -1}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueformat command works correctly when an 
+	# input value is given.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.18.1 {
+		stripchart pen configure: valueformat - input
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valueformat formatstring
+		.stripchart1 pen cget pen1 -valueformat
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {formatstring}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a string as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.19.1 {
+		stripchart pen configure: valuefont - string
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuefont Times
+		.stripchart1 pen cget pen1 -valuefont
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {Times}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with a string as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.19.2 {
+		stripchart pen configure: valuefont - list with string
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuefont {Times}
+		.stripchart1 pen cget pen1 -valuefont
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {Times}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with a string and positive integer as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.19.3 {
+		stripchart pen configure: valuefont - list with string and positive integer
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuefont {Times 10}
+		.stripchart1 pen cget pen1 -valuefont
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {Times 10}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with a string and negative integer as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.19.4 {
+		stripchart pen configure: valuefont - list with string and negative integer
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		.stripchart1 pen configure pen1 -valuefont {Times -10}
+		.stripchart1 pen cget pen1 -valuefont
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {Times -10}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with a string and decimal as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.19.5 {
+		stripchart pen configure: valuefont - list with string and decimal
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valuefont {Times 10.5}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with 2 strings as input.
+	# ------------------------------------------------------------------------------------
+	test stripchart.pen.configure.19.6 {
+		stripchart pen configure: valuefont - list with 2 strings
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 pen create pen1
+	} -body {
+		if {[catch {.stripchart1 pen configure pen1 -valuefont {Times Ten}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.stripchart1 pen delete pen1
+		destroy .stripchart1
+	} -result {0}
+
+    test stripchart.pen.configure.20.1 {
+        named line pen configuration is atomic
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 pen create pen1 -color blue -linewidth 2 -symbol circle -valueshadow {gray 2}
+        set oldColor [.stripchart1 pen cget pen1 -color]
+        set oldWidth [.stripchart1 pen cget pen1 -linewidth]
+        set oldSymbol [.stripchart1 pen cget pen1 -symbol]
+        set oldShadow [.stripchart1 pen cget pen1 -valueshadow]
+    } -body {
+        set code [catch {.stripchart1 pen configure pen1 -color red -linewidth 3.5 -symbol invalid -valueshadow {black 4}}\
+                          message]
+        list $code [expr {[.stripchart1 pen cget pen1 -color] eq $oldColor}]\
+                [expr {[.stripchart1 pen cget pen1 -linewidth] eq $oldWidth }]\
+                [expr {[.stripchart1 pen cget pen1 -symbol] eq $oldSymbol}]\
+                [expr {[.stripchart1 pen cget pen1 -valueshadow] eq $oldShadow}]
+    } -cleanup {
+        destroy .stripchart1
+        unset -nocomplain oldColor oldWidth oldSymbol oldShadow code message
+    } -result {1 1 1 1 1}
+
+    test stripchart.pen.configure.21.1 {
+        embedded line pen remains legacy
+    } -setup {
+        stripchart .stripchart1
+        .stripchart1 element create e1
+    } -body {
+        .stripchart1 element configure e1 -linewidth 3.5
+        .stripchart1 element cget e1 -linewidth
+    } -cleanup {
+        destroy .stripchart1
+    } -result 3.5
+
+    test stripchart.pen.configure.22.1 {
+        modern named line pen resource lifetime
+    } -body {
+        for {set i 0} {$i < 200} {incr i} {
+            stripchart .stripchart1
+            .stripchart1 pen create pen1 -color blue -dashes dashdot -errorbarcolor defcolor -errorbarwidth 2.5 -errorbarcap\
+                    3.5 -fill defcolor -linewidth 3.5 -offdash white -outline defcolor -outlinewidth 2.5 -pixels 6.5\
+                    -showerrorbars both -showvalues no -symbol warning -valuecolor black -valuefont TkDefaultFont\
+                    -valuerotate 45 -valueshadow {gray 2}
+            .stripchart1 element create e1 -xdata {1 2 3} -ydata {2 4 1} -pen pen1
+            .stripchart1 pen configure pen1 -symbol circle -fill red -outline black -valueshadow {blue 3}
+            .stripchart1 pen configure pen1 -symbol warning -fill "" -offdash ""
+            .stripchart1 pen delete pen1
+            .stripchart1 element delete e1
+            destroy .stripchart1
+        }
+        update
+        return ok
+    } -cleanup {
+        catch {destroy .stripchart1}
+    } -result ok
+	
+	cleanupTests
+}

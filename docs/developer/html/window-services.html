@@ -1331,7 +1331,7 @@ callbacks.</p>
 <h2>Maintenance checks<a class="headerlink" href="#maintenance-checks" title="Link to this heading"></a></h2>
 <p>Keep GC acquisition/release pairs explicit, preserve depth selection for unrealized windows, and review both platform
 branches when changing native identifiers. Run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-headers</span></code> after declaration changes. Window capture
-regressions belong in the existing <code class="docutils literal notranslate"><span class="pre">RBC.winop.snap*.test</span></code> files; renderer changes also need the appropriate component
+regressions belong in the existing <code class="docutils literal notranslate"><span class="pre">winop.snap*.test</span></code> files; renderer changes also need the appropriate component
 drawing tests.</p>
 <p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-resources</span></code> exercises lookup/deletion before the first setter, payload replacement, repeated deletion and
 the X11 parent-query fallback. The private harness injects parent-query failure only on X11; other tests also run on

@@ -1,0 +1,278 @@
+# Source-point error metadata in closest results. See license.terms.
+###Package Definition
+package provide graph.element.closest.errors
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.element.closest.errors {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0 4 0 5 0 6 0 7 0 9 0 10 0}
+    proc Create {kind} {
+        ::rbc::$kind .ce -width 400 -height 400
+        pack .ce
+        .ce axis configure x -min -1 -max 6 -loose no
+        .ce axis configure y -min -1 -max 6 -loose no
+        .ce element create e -x {1 3 5} -y {1 3 5}
+        update idletasks
+    }
+    proc Query {{value 3} {interpolate no}} {
+        variable hit
+        update idletasks
+        lassign [.ce transform $value $value] x y
+        if {![.ce element closest $x $y hit -interpolate $interpolate -halo 10 e]} {
+            error "No closest point"
+        }
+        set result {}
+        foreach key {xerror xlow xhigh yerror ylow yhigh} {
+            if {[info exists hit($key)]} {lappend result $key $hit($key)}
+        }
+        return $result
+    }
+    foreach kind {graph stripchart polar barchart} {
+        test graph.element.closest.errors.1.[incr testCase(1)] {symmetric errors report the selected source sample} -setup {
+            Create $kind
+            .ce element configure e -xerror {0.1 0.2 0.3} -yerror {0.4 0.5 0.6}
+        } -body {Query} -cleanup {destroy .ce} -result {xerror 0.2 yerror 0.5}
+
+        test graph.element.closest.errors.2.[incr testCase(2)] {asymmetric values are absolute bounds, not magnitudes} -setup {
+            Create $kind
+            .ce element configure e -xlow {0 2 4} -xhigh {2 4 6} -ylow {0 1 4} -yhigh {2 5 6}
+        } -body {Query} -cleanup {destroy .ce} -result {xlow 2.0 xhigh 4.0 ylow 1.0 yhigh 5.0}
+
+        test graph.element.closest.errors.3.[incr testCase(3)] {symmetric errors override bounds and clearing removes stale fields} -setup {
+            Create $kind
+            .ce element configure e -xerror {1 2 3} -xlow {0 2 4} -xhigh {2 4 6}
+        } -body {
+            set result [list [Query]]
+            .ce element configure e -xerror {}
+            lappend result [Query]
+            .ce element configure e -xlow {} -xhigh {}
+            lappend result [Query]
+            set result
+        } -cleanup {destroy .ce} -result {{xerror 2.0} {xlow 2.0 xhigh 4.0} {}}
+
+        test graph.element.closest.errors.4.[incr testCase(4)] {short or incomplete error arrays omit unavailable metadata} -setup {
+            Create $kind
+            .ce element configure e -xerror {0.1} -ylow {0 2 4}
+        } -body {Query} -cleanup {destroy .ce} -result {}
+
+        test graph.element.closest.errors.5.[incr testCase(5)] {metadata is independent of displayed error bars and clears on a miss} -setup {
+            Create $kind
+            .ce element configure e -yerror {1 2 3} -showerrorbars none
+        } -body {
+            set result [list [Query]]
+            set found [.ce element closest -100 -100 hit -halo 1 e]
+            lappend result $found [info exists hit(yerror)]
+            set result
+        } -cleanup {destroy .ce} -result {{yerror 2.0} 0 0}
+    }
+    foreach kind {graph stripchart polar} {
+        test graph.element.closest.errors.6.[incr testCase(6)] {interpolated hits use info(index) without interpolating errors} -setup {
+            Create $kind
+            .ce element configure e -yerror {1 2 3}
+        } -body {
+            Query 2 yes
+            expr {$hit(yerror) == [lindex {1 2 3} $hit(index)]}
+        } -cleanup {destroy .ce} -result 1
+
+        test graph.element.closest.errors.7.[incr testCase(7)] {exact hits retain errors for omitted symbols and error bars} -setup {
+            Create $kind
+            .ce element configure e -yerror {1 2 3} -reduce 1 -symbolpoints reduced -maxsymbols 1
+        } -body {Query} -cleanup {destroy .ce} -result {yerror 2.0}
+    }
+    test graph.element.closest.errors.8.1 {vector changes and resizing update error metadata} -setup {
+        Create graph
+        ::rbc::vector create ceErrors
+        ceErrors set {1 2 3}
+        .ce element configure e -yerror ceErrors
+    } -body {
+        set result [list [Query]]
+        ceErrors set {4 5 6}
+        lappend result [Query]
+        ceErrors set {4}
+        lappend result [Query]
+        set result
+    } -cleanup {
+        destroy .ce
+        ::rbc::vector destroy ceErrors
+    } -result {{yerror 2.0} {yerror 5.0} {}}
+    # Error-cap geometry is shared by line, strip and bar elements.
+    proc CapCreate {kind inverted descending logarithmic errors} {
+        Create $kind
+        .ce configure -invertxy $inverted
+        foreach axis {x y} {
+            .ce axis configure $axis -min 1 -max 6 -loose no \
+                -descending $descending -logscale $logarithmic
+        }
+        .ce element configure e -data {3 3} -errorbarcolor magenta -errorbarcap 16 -errorbarwidth 2
+        if {$errors eq "symmetric"} {
+            .ce element configure e -xerror 1 -yerror 1
+        } else {
+            .ce element configure e -xlow 2 -xhigh 4 -ylow 2 -yhigh 4
+        }
+        update
+    }
+
+    proc CapSegments {} {
+        set result {}
+        foreach line [split [.ce svg output] \n] {
+            if {[string first {stroke="#ff00ff"} $line] < 0} {continue}
+            if {[regexp {<polyline points="([^"]+)"} $line -> points]} {
+                lappend result [string map {, { }} [string trim $points]]
+            }
+        }
+        return $result
+    }
+
+    proc CapsMatch {segments axis} {
+        if {[llength $segments] != 3} {return 0}
+        lassign [lindex $segments 0] px py qx qy
+        if {$axis eq "x"} {
+            set expected [concat [.ce transform 4 3] [.ce transform 2 3]]
+        } else {
+            set expected [concat [.ce transform 3 4] [.ce transform 3 2]]
+        }
+        foreach actual [list $px $py $qx $qy] wanted $expected {
+            if {abs($actual-$wanted) > 0.51} {return 0}
+        }
+        foreach cap [lrange $segments 1 2] ex [list $px $qx] ey [list $py $qy] {
+            lassign $cap ax ay bx by
+            # Constant pixel length, centred on the endpoint, perpendicular to the shaft.
+            if {abs(hypot($bx-$ax,$by-$ay)-16) > 0.02 ||
+                abs(($ax+$bx)/2-$ex) > 0.02 || abs(($ay+$by)/2-$ey) > 0.02 ||
+                abs(($bx-$ax)*($qx-$px)+($by-$ay)*($qy-$py)) > 0.02} {return 0}
+        }
+        return 1
+    }
+
+    foreach kind {graph barchart stripchart} {
+        foreach errors {symmetric explicit} {
+            foreach inverted {0 1} {
+                foreach descending {0 1} {
+                    foreach logarithmic {0 1} {
+                        test graph.element.closest.errors.9.[incr testCase(9)] {
+                            X and Y caps retain length and perpendicular direction on transformed axes
+                        } -setup {
+                            CapCreate $kind $inverted $descending $logarithmic $errors
+                        } -body {
+                            set segments [CapSegments]
+                            list [llength $segments] [CapsMatch [lrange $segments 0 2] x] \
+                                [CapsMatch [lrange $segments 3 5] y]
+                        } -cleanup {destroy .ce} -result {6 1 1}
+                    }
+                }
+            }
+        }
+    }
+
+    ::rbc::graph .errorCapProbe
+    set code [catch {.errorCapProbe configure -renderer cairo} message]
+    destroy .errorCapProbe
+    if {$code && $message ne {Cairo renderer is not available in this build}} {error $message}
+    testConstraint errorCapsCairo [expr {!$code}]
+    foreach kind {graph barchart stripchart} {
+        foreach renderer {native cairo} {
+            set constraints {}
+            if {$renderer eq "cairo"} {set constraints errorCapsCairo}
+            foreach inverted {0 1} {
+                test graph.element.closest.errors.10.[incr testCase(10)] {
+                    both ends of X and Y caps are visible away from the error shaft
+                } -constraints $constraints -setup {
+                    CapCreate $kind $inverted 0 0 symmetric
+                    .ce configure -renderer $renderer
+                    set photo [image create photo]
+                } -body {
+                    update
+                    .ce snap $photo
+                    set result {}
+                    foreach {axis valueX valueY} {x 4 3 x 2 3 y 3 4 y 3 2} {
+                        lassign [.ce transform $valueX $valueY] px py
+                        set horizontal [expr {($axis eq "y") != $inverted}]
+                        foreach sign {-1 1} {
+                            set cx [expr {$px + ($horizontal ? 6*$sign : 0)}]
+                            set cy [expr {$py + ($horizontal ? 0 : 6*$sign)}]
+                            set found 0
+                            for {set dx -1} {$dx <= 1} {incr dx} {
+                                for {set dy -1} {$dy <= 1} {incr dy} {
+                                    lassign [$photo get [expr {round($cx)+$dx}] [expr {round($cy)+$dy}]] red green blue
+                                    if {$red > 200 && $blue > 200 && $green < 80} {set found 1}
+                                }
+                            }
+                            lappend result $found
+                        }
+                    }
+                    set result
+                } -cleanup {destroy .ce; image delete $photo} -result {1 1 1 1 1 1 1 1}
+            }
+        }
+    }
+
+    # Compare complete results, including bar rectangles and polar metadata.
+    proc Snapshot {} {
+        variable hit
+        set result {}
+        foreach key [lsort [array names hit]] {lappend result $key $hit($key)}
+        return $result
+    }
+    proc ChangeOnTrace {target script name key op} {
+        variable traceCount
+        if {$key ne $target} {return}
+        trace remove variable ::graph.element.closest.errors::hit $op \
+            [list ::graph.element.closest.errors::ChangeOnTrace $target $script]
+        incr traceCount
+        uplevel #0 $script
+    }
+    set case 0
+    foreach kind {graph stripchart polar barchart} {
+        foreach {event key} {write name write xerror unset xerror} {
+            foreach action {
+                {.ce element configure e -xerror {7 8 9} -yerror {10 11 12}}
+                {.ce element delete e}
+                {destroy .ce}
+            } {
+                test graph.element.closest.errors.11.[incr case] {
+                    closest publication retains a complete snapshot across destructive traces
+                } -setup {
+                    Create $kind
+                    .ce element configure e -xerror {1 2 3} -yerror {4 5 6}
+                    if {$kind in {graph polar}} {.ce element configure e -param {10 20 30}}
+                    Query
+                    set expected [Snapshot]
+                    set traceCount 0
+                    set callback [list ::graph.element.closest.errors::ChangeOnTrace $key $action]
+                    trace add variable ::graph.element.closest.errors::hit $event $callback
+                } -body {
+                    Query
+                    list $traceCount [expr {[Snapshot] eq $expected}]
+                } -cleanup {
+                    catch {trace remove variable ::graph.element.closest.errors::hit $event $callback}
+                    catch {destroy .ce}
+                    unset -nocomplain hit
+                } -result {1 1}
+            }
+        }
+    }
+    test graph.element.closest.errors.12.1 {
+        failed publication preserves the write-trace diagnostic and stops subsequent writes
+    } -setup {
+        Create graph
+        .ce element configure e -xerror {1 2 3} -yerror {4 5 6}
+        Query
+        set traceCount 0
+        set callback [list ::graph.element.closest.errors::ChangeOnTrace xerror {error closest-trace-failed}]
+        trace add variable ::graph.element.closest.errors::hit write $callback
+    } -body {
+        set code [catch {Query} message]
+        list $code [string match *closest-trace-failed* $message] $traceCount [info exists hit(yerror)]
+    } -cleanup {
+        catch {trace remove variable ::graph.element.closest.errors::hit write $callback}
+        destroy .ce
+        unset -nocomplain hit
+    } -result {1 1 1 0}
+
+::tcltest::cleanupTests
+}

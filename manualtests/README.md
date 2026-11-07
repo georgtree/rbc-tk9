@@ -1,6 +1,6 @@
 # Manual visual tests
 
-The manual suite complements `tests/runtime/*/RBC.*.A.test`. It exercises appearance, mouse interaction and platform-dependent
+The manual suite complements `tests/runtime/*/*.test`. It exercises appearance, mouse interaction and platform-dependent
 display behavior. Successful script execution is not a visual pass.
 
 ## Running tests
@@ -43,22 +43,22 @@ For careful before/after inspection, invoke a case manually:
 
 ```tcl
 cd manualtests/graphtoolbar
-source RBC.graphtoolbar.controls.M.tcl
-::graphtoolbar.controls::RBC.graphtoolbar.controls.M.1.3.Setup
+source graphtoolbar.controls.tcl
+::graphtoolbar.controls::graphtoolbar.controls.1.3.Setup
 # Inspect, zoom individual tracks, click local legends and drag dividers.
-::graphtoolbar.controls::RBC.graphtoolbar.controls.M.1.3.Body
+::graphtoolbar.controls::graphtoolbar.controls.1.3.Body
 # Inspect again after track reordering.
-::graphtoolbar.controls::RBC.graphtoolbar.controls.M.1.3.Cleanup
+::graphtoolbar.controls::graphtoolbar.controls.1.3.Cleanup
 ```
 
-Files use `package provide component.topic`, RBC command imports and numbered `RBC.component.topic.M.major.minor.Setup`,
+Files use `package provide component.topic`, RBC command imports and numbered `component.topic.major.minor.Setup`,
 `.Body`, and `.Cleanup` procedures in the component namespace. Case comments describe the intended behavior.
 
 ## Reading the output
 
 - `OPTIONS` reports the selected renderer and delay once per outermost run.
 - `COMPONENT` identifies the current component suite.
-- `CASE RBC.…` identifies the case responsible for the following diagnostic output.  Closest-point dictionaries, event
+- `CASE <case-name>` identifies the case responsible for the following diagnostic output.  Closest-point dictionaries, event
   messages and other legacy observations are informational; they are not automatically declared correct.
 - `CHECK …` reports a numerical check that raises an error if its tolerance is exceeded. Transform checks use explicit
   axis limits and round trips with a one-pixel tolerance, rather than a fixed screen coordinate or exact decimal text.
@@ -72,7 +72,7 @@ Files use `package provide component.topic`, RBC command imports and numbered `R
 For example:
 
 ```text
-CASE RBC.graph.axis.transform.M.1.1
+CASE graph.axis.transform.1.1
 CHECK axis round trip: data=5.0 pixel=... restored=... (tolerance 1 pixel)
 EXECUTION graph.axis: ... completed, 0 errors; visual review still required.
 ```

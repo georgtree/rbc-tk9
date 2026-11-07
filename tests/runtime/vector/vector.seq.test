@@ -1,0 +1,230 @@
+# vector.seq.test --
+#
+###Abstract
+# This file tests the different constructs for the sequence (seq) function of 
+# the vector rbc component using no arguments.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide vector.seq
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval vector.seq {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that a sequence will be generated from start to finish
+	# ------------------------------------------------------------------------------------ 
+	test vector.seq.1.1 {
+	    Test sequence generation without step
+	} -setup {
+		vector create TestVector
+	} -body {
+		TestVector seq 2 5
+		TestVector range 0 end
+	} -cleanup {
+	    vector destroy TestVector
+	} -result {2.0 3.0 4.0 5.0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that a sequence will be generated from start to finish with a step
+	# ------------------------------------------------------------------------------------ 
+	test vector.seq.1.2 {
+	    Test sequence generation with step
+	} -setup {
+		vector create TestVector
+	} -body {
+		TestVector seq 2 5 2
+		TestVector range 0 end
+	} -cleanup {
+	    vector destroy TestVector
+	} -result {2.0 4.0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that a sequence will be generated when given a negative step
+	# ------------------------------------------------------------------------------------ 
+	test vector.seq.1.3 {
+	    Test sequence generation with negative step
+	} -setup {
+		vector create TestVector
+	} -body {
+		TestVector seq 5 0 -1
+		TestVector range 0 end
+	} -cleanup {
+	    vector destroy TestVector
+	} -result {5.0 4.0 3.0 2.0 1.0 0.0}
+
+    test vector.seq.1.4 {
+        vector seq: zero step is rejected
+    } -setup {
+        vector create TestVector
+        TestVector set {10 20}
+    } -body {
+        set code [catch {TestVector seq 0 5 0}]
+        list $code [TestVector range 0 end]
+    } -cleanup {
+        vector destroy TestVector
+    } -result {1 {10.0 20.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that matching real and imaginary sequences generate a complex
+    # sequence.
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.1 {
+        vector seq: complex sequence
+    } -setup {
+        vector create TestVector -type complex
+    } -body {
+        TestVector seq {1 10} {4 40} {1 10}
+        list [TestVector type] [TestVector range 0 end]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {complex {{1.0 10.0} {2.0 20.0} {3.0 30.0} {4.0 40.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a constant imaginary component imposes no sequence-length
+    # constraint.
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.2 {
+        vector seq: horizontal complex sequence
+    } -setup {
+        vector create TestVector -type complex
+    } -body {
+        TestVector seq {1 10} {4 10} {1 0}
+        TestVector range 0 end
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {{1.0 10.0} {2.0 10.0} {3.0 10.0} {4.0 10.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a constant real component imposes no sequence-length
+    # constraint.
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.3 {
+        vector seq: vertical complex sequence
+    } -setup {
+        vector create TestVector -type complex
+    } -body {
+        TestVector seq {1 10} {1 40} {0 10}
+        TestVector range 0 end
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {{1.0 10.0} {1.0 20.0} {1.0 30.0} {1.0 40.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that real scalar arguments are promoted to complex values with zero
+    # imaginary component.
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.4 {
+        vector seq: real arguments in complex vector
+    } -setup {
+        vector create TestVector -type complex
+    } -body {
+        TestVector seq 2 5
+        TestVector range 0 end
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {{2.0 0.0} {3.0 0.0} {4.0 0.0} {5.0 0.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that "end" uses the existing complex vector length.
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.5 {
+        vector seq: complex sequence to end
+    } -setup {
+        vector create TestVector -type complex
+        TestVector length 4
+    } -body {
+        TestVector seq {1 10} end {1 10}
+        list [TestVector type] [TestVector length] [TestVector range 0 end]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {complex 4 {{1.0 10.0} {2.0 20.0} {3.0 30.0} {4.0 40.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that "end" permits a zero complex step because the existing vector
+    # length determines the sequence length.
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.6 {
+        vector seq: constant complex sequence to end
+    } -setup {
+        vector create TestVector -type complex
+        TestVector length 3
+    } -body {
+        TestVector seq {2 3} end {0 0}
+        TestVector range 0 end
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {{2.0 3.0} {2.0 3.0} {2.0 3.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that independently calculated real and imaginary sequence lengths
+    # must agree.
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.7 {
+        vector seq: different component lengths rejected
+    } -setup {
+        vector create TestVector -type complex
+        TestVector set {{9 10} {11 12}}
+    } -body {
+        set code [catch {TestVector seq {1 10} {4 50} {1 10}} message]
+        list $code $message [TestVector range 0 end]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {1 {real and imaginary sequences have different lengths} {{9.0 10.0} {11.0 12.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that a component cannot change when its corresponding step is zero.
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.8 {
+        vector seq: changing component with zero step rejected
+    } -setup {
+        vector create TestVector -type complex
+        TestVector set {{9 10} {11 12}}
+    } -body {
+        set code [catch {TestVector seq {1 10} {4 40} {1 0}} message]
+        list $code $message [TestVector range 0 end]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {1 {imaginary component of complex sequence has zero step but different bounds} {{9.0 10.0} {11.0 12.0}}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an all-zero complex step is rejected when no existing length
+    # is supplied by "end".
+    # ------------------------------------------------------------------------------------
+    test vector.seq.2.9 {
+        vector seq: zero complex step rejected
+    } -setup {
+        vector create TestVector -type complex
+        TestVector set {{9 10}}
+    } -body {
+        set code [catch {TestVector seq {1 2} {1 2} {0 0}} message]
+        list $code $message [TestVector range 0 end]
+    } -cleanup {
+        catch {vector destroy TestVector}
+    } -result {1 {sequence step cannot be zero} {{9.0 10.0}}}
+	
+
+    foreach {case type initial value} {
+        1 real {1 2 3} {[rbc::vector destroy foo; expr 9]}
+        2 complex {{1 2} {3 4} {5 6}} {{[rbc::vector destroy foo; expr 9]} 0}
+    } {
+        test vector.seq.21.$case {conversion destroys original receiver} -setup {
+            vector create foo -type $type
+            foo set $initial
+        } -body {
+            set code [catch {foo seq $value end} message options]
+            list $code [dict get $options -errorcode]
+        } -cleanup {catch {vector destroy foo}} -result {1 {RBC VECTOR DESTROYED}}
+    }
+
+	cleanupTests
+}

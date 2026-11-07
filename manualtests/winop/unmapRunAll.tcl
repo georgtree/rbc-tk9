@@ -3,7 +3,7 @@ source [file join [file dirname [info script]] ../ManualRunAllSupportMethods.tcl
 ::rbcManual::RunRunner [info script] {
 set CommandName "unmap"
 
-source RBC.winop.$CommandName.M.tcl
+source winop.$CommandName.tcl
 source ../WinopRunAllSupportMethods.tcl
 
 ExecuteCommandSequenceNoCommand $CommandName

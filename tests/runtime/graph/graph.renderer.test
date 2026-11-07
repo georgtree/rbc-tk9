@@ -1,0 +1,3206 @@
+# Optional Cairo renderer: configuration and snapshot regressions.
+# See license.terms for details.
+package provide graph.renderer
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.renderer {
+
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {23 0 24 0 25 0 26 0 27 0 28 0 29 0 30 0 31 0 32 0 33 0 34 0 35 0 36 0 37 0 38 0 39 0 40 0 41 0 42 0 43 0 44 0 45 0 46 0 47 0 48 0 49 0 50 0 51 0 52 0 53 0 54 0 55 0 56 0 57 0 58 0 59 0 60 0 61 0 62 0 63 0 64 0 65 0 66 0 67 0}
+    ::rbc::graph .rendererProbe
+    set code [catch {.rendererProbe configure -renderer cairo} message]
+    destroy .rendererProbe
+    if {$code && $message ne {Cairo renderer is not available in this build}} {
+        error $message
+    }
+    testConstraint rbcCairo [expr {!$code}]
+    testConstraint rbcNoCairo $code
+
+    proc PartialGrayPixels {photo} {
+        set count 0
+        # Axes, symbols, borders and text are disabled in these fixtures.
+        for {set y 21} {$y < [image height $photo]-21} {incr y} {
+            for {set x 21} {$x < [image width $photo]-21} {incr x} {
+                lassign [$photo get $x $y] r g b
+                if {$r == $g && $g == $b && $r > 0 && $r < 255} {
+                    incr count
+                }
+            }
+        }
+        return $count
+    }
+
+    test graph.renderer.1.1 {explicit native renderer and invalid-option rollback} -setup {
+        ::rbc::graph .renderer -renderer native -title original
+    } -body {
+        set initial [.renderer cget -renderer]
+        set code [catch {.renderer configure -title changed -renderer bogus}]
+        list $initial $code [.renderer cget -renderer] [.renderer cget -title]
+    } -cleanup {
+        destroy .renderer
+    } -result {native 1 native original}
+
+    test graph.renderer.1.2 {unavailable Cairo restores other options} -constraints rbcNoCairo -setup {
+        ::rbc::graph .renderer -title original
+    } -body {
+        set code [catch {.renderer configure -title changed -renderer cairo} message]
+        list $code $message [.renderer cget -renderer] [.renderer cget -title]
+    } -cleanup {
+        destroy .renderer
+    } -result {1 {Cairo renderer is not available in this build} native original}
+
+    test graph.renderer.1.3 {failed derived configuration restores renderer} -constraints rbcCairo -setup {
+        ::rbc::graph .renderer -renderer native -title original
+    } -body {
+        set code [catch {.renderer configure -renderer cairo -title changed -aspect Inf}]
+        list $code [.renderer cget -renderer] [.renderer cget -title]
+    } -cleanup {
+        destroy .renderer
+    } -result {1 native original}
+
+    foreach kind {graph barchart stripchart polar} {
+        test graph.renderer.23.[incr testCase(23)] {compiled renderer default follows Cairo availability} -setup {
+            ::rbc::$kind .renderer
+        } -body {
+            # The descriptor exposes the compiled default even under the suite's option database.
+            expr {[lindex [.renderer configure -renderer] 3] eq ([testConstraint rbcCairo] ? "cairo" : "native")}
+        } -cleanup {
+            destroy .renderer
+        } -result 1
+
+        test graph.renderer.24.[incr testCase(24)] {automated suite keeps native as its effective default}\
+                -constraints rbcNativeSuiteDefault -setup {
+            ::rbc::$kind .renderer
+        } -body {
+            .renderer cget -renderer
+        } -cleanup {
+            destroy .renderer
+        } -result native
+
+        test graph.renderer.25.[incr testCase(25)] {explicit Cairo overrides the automated native default}\
+                -constraints rbcCairo -setup {
+            ::rbc::$kind .renderer -renderer cairo
+        } -body {
+            .renderer cget -renderer
+        } -cleanup {
+            destroy .renderer
+        } -result cairo
+    }
+
+    foreach kind {graph stripchart} {
+        test graph.renderer.26.[incr testCase(26)] {solid strokes use Cairo and can switch back}\
+                -constraints rbcCairo -setup {
+            ::rbc::$kind .renderer -width 240 -height 180 -background white -plotbackground white -borderwidth 0\
+                    -plotborderwidth 0 -highlightthickness 0 -leftmargin 20 -rightmargin 20 -topmargin 20\
+                    -bottommargin 20
+            pack .renderer
+            .renderer legend configure -hide yes
+            .renderer grid configure -hide yes
+            foreach axis {x y x2 y2} {
+                .renderer axis configure $axis -hide yes
+            }
+            .renderer axis configure x -min 0 -max 10
+            .renderer axis configure y -min 0 -max 10
+            .renderer element create signal -data {1 2 9 7} -symbol none -color black -linewidth 1
+            set photo [image create photo]
+            update
+        } -body {
+            set results {}
+            foreach renderer {native cairo native} {
+                .renderer configure -renderer $renderer
+                update idletasks
+                .renderer snap $photo
+                lappend results [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {0 1 0}
+    }
+
+    proc StrokeFixture {kind {renderer cairo}} {
+        ::rbc::$kind .renderer -renderer $renderer -width 240 -height 180 -background white -plotbackground white\
+                -borderwidth 0 -plotborderwidth 0 -highlightthickness 0 -leftmargin 20 -rightmargin 20 -topmargin 20\
+                -bottommargin 20
+        pack .renderer
+        .renderer legend configure -hide yes
+        .renderer grid configure -hide yes
+        foreach axis {x y x2 y2} {
+            .renderer axis configure $axis -hide yes
+        }
+        .renderer axis configure x -min 0 -max 10
+        .renderer axis configure y -min 0 -max 10
+        .renderer element create signal -data {1 2 9 7} -symbol none -color black -linewidth 1
+        update
+    }
+
+    proc CountPhotoColor {photo color} {
+        set count 0
+        for {set y 21} {$y < [image height $photo]-21} {incr y} {
+            for {set x 21} {$x < [image width $photo]-21} {incr x} {
+                if {[$photo get $x $y] eq $color} {incr count}
+            }
+        }
+        return $count
+    }
+
+    test graph.renderer.3.1 {antialias modes and transactional validation} -setup {
+        ::rbc::graph .renderer -title original
+    } -body {
+        set initial [.renderer cget -antialias]
+        set modes {}
+        foreach mode {default none gray fast good best} {
+            .renderer configure -antialias $mode
+            lappend modes [.renderer cget -antialias]
+        }
+        set invalid [catch {.renderer configure -title changed -antialias bogus}]
+        set derived [catch {.renderer configure -antialias none -aspect Inf}]
+        list $initial $modes $invalid $derived [.renderer cget -antialias] [.renderer cget -title]
+    } -cleanup {
+        destroy .renderer
+    } -result {default {default none gray fast good best} 1 1 best original}
+
+    foreach kind {graph stripchart} {
+        foreach pattern {{} {8 4} {3 5 7} {5}} {
+            set suffix [join $pattern -]
+            test graph.renderer.27.[incr testCase(27)] {Cairo antialias applies to solid and dashed strokes}\
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer element configure signal -dashes $pattern
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach mode {none gray none} {
+                    .renderer configure -antialias $mode
+                    update idletasks
+                    .renderer snap $photo
+                    lappend results [expr {[PartialGrayPixels $photo] > 0}]
+                }
+                set results
+            } -cleanup {
+                catch {image delete $photo}
+                destroy .renderer
+            } -result {0 1 0}
+        }
+
+        test graph.renderer.28.[incr testCase(28)] {offdash colors and defcolor handling} -constraints rbcCairo -setup {
+            StrokeFixture $kind
+            .renderer configure -antialias none
+            .renderer element configure signal -data {1 5 9 5} -linewidth 3 -dashes {8 4}
+            set photo [image create photo]
+        } -body {
+            .renderer element configure signal -offdash red
+            .renderer snap $photo
+            set colors [list [expr {[CountPhotoColor $photo {0 0 0}] > 0}]\
+                                [expr {[CountPhotoColor $photo {255 0 0}] > 0}]]
+            .renderer element configure signal -offdash {}
+            .renderer snap $photo
+            lappend colors [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+            # Equal foreground/gap colors must match one solid AA stroke.
+            .renderer configure -antialias gray
+            .renderer element configure signal -data {1 2 9 7} -linewidth 1 -offdash defcolor
+            .renderer snap $photo
+            set sameColor [$photo data]
+            .renderer element configure signal -dashes {} -offdash {}
+            .renderer snap $photo
+            lappend colors [expr {$sameColor eq [$photo data]}]
+            set colors
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 1 1 1}
+    }
+
+    test graph.renderer.3.4 {dash phase continues through line vertices} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer configure -antialias none
+        .renderer element configure signal -data {1 5 9 5} -dashes {8 4}
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set before [$photo data]
+        .renderer element configure signal -data {1 5 3.13 5 5.77 5 9 5}
+        .renderer snap $photo
+        expr {$before eq [$photo data]}
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result 1
+
+    test graph.renderer.3.5 {active dashed pen uses Cairo antialias selection} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -color white
+        .renderer pen create selected -type line -color black -linewidth 1 -symbol none -dashes {8 4}
+        .renderer element configure signal -activepen selected
+        .renderer element activate signal
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach mode {none gray} {
+            .renderer configure -antialias $mode
+            .renderer snap $photo
+            lappend results [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {0 1}
+
+
+    # Count ink on either side of the plot clip, with all decorations hidden.
+    proc PlotInk {photo} {
+        lassign [.renderer extents plotarea] left top width height
+        set right [expr {$left+$width}]
+        set bottom [expr {$top+$height}]
+        set inside 0
+        set outside 0
+        for {set y 0} {$y < [image height $photo]} {incr y} {
+            for {set x 0} {$x < [image width $photo]} {incr x} {
+                if {[$photo get $x $y] eq {255 255 255}} {continue}
+                if {$x >= $left && $x < $right && $y >= $top && $y < $bottom} {
+                    incr inside
+                } else {
+                    incr outside
+                }
+            }
+        }
+        list $inside $outside
+    }
+
+    foreach kind {graph stripchart} {
+        foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+            test graph.renderer.29.[incr testCase(29)] {geometric symbols use Cairo antialias selection}\
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer element configure signal -data {5 5} -linewidth 0 -symbol $symbol -pixels 17 -outlinewidth 2\
+                        -fill defcolor -outline defcolor
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach mode {none gray none} {
+                    .renderer configure -antialias $mode
+                    .renderer snap $photo
+                    lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}]\
+                            [expr {[PartialGrayPixels $photo] > 0}]
+                }
+                set results
+            } -cleanup {
+                catch {image delete $photo}
+                destroy .renderer
+            } -result {1 0 1 1 1 0}
+        }
+
+        test graph.renderer.30.[incr testCase(30)] {partial symbols clip at all plot edges, also with inverted axes}\
+                -constraints rbcCairo -setup {
+            StrokeFixture $kind
+            .renderer configure -antialias gray
+            .renderer element configure signal -linewidth 0 -pixels 17 -outlinewidth 2
+            set photo [image create photo]
+        } -body {
+            set failures {}
+            foreach invert {no yes} {
+                .renderer configure -invertxy $invert
+                update idletasks
+                lassign [.renderer extents plotarea] left top width height
+                set right [expr {$left+$width-1}]
+                set bottom [expr {$top+$height-1}]
+                set midx [expr {($left+$right)/2}]
+                set midy [expr {($top+$bottom)/2}]
+                set positions [list [list [expr {$left-3}] $midy] [list [expr {$right+3}] $midy]\
+                                       [list $midx [expr {$top-3}]] [list $midx [expr {$bottom+3}]]]
+                foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+                    .renderer element configure signal -symbol $symbol
+                    foreach position $positions {
+                        .renderer element configure signal -data [.renderer invtransform {*}$position]
+                        .renderer snap $photo
+                        lassign [PlotInk $photo] inside outside
+                        if {$inside == 0 || $outside != 0} {
+                            lappend failures [list $invert $symbol $position $inside $outside]
+                        }
+                    }
+                }
+                .renderer element configure signal -data [.renderer invtransform [expr {$left-40}] $midy]
+                .renderer snap $photo
+                if {[PlotInk $photo] ne {0 0}} {
+                    lappend failures fullyOutside
+                }
+            }
+            set failures
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {}
+
+        test graph.renderer.31.[incr testCase(31)] {symbol fill and outline remain independent} -constraints rbcCairo -setup {
+            StrokeFixture $kind
+            .renderer element configure signal -data {5 5} -linewidth 0 -symbol circle -pixels 21 -fill red\
+                    -outline blue -outlinewidth 2
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach {fill width} {red 2 {} 2 red 0 {} 0} {
+                .renderer element configure signal -fill $fill -outlinewidth $width
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 0}]\
+                        [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+            }
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 1 0 1 1 0 0 0}
+
+        foreach invert {no yes} {
+            test graph.renderer.32.[incr testCase(32)] {error bars are solid, colored, clipped and antialiased}\
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer configure -invertxy $invert
+                .renderer element configure signal -data {5.137 5.193} -linewidth 0 -symbol none -dashes {8 4}\
+                        -offdash red -xerror {8} -yerror {8} -showerrorbars both -errorbarwidth 2\
+                        -errorbarcolor defcolor
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach mode {none gray none} {
+                    .renderer configure -antialias $mode
+                    .renderer snap $photo
+                    lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}]\
+                            [expr {[PartialGrayPixels $photo] > 0}]
+                }
+                lappend results [expr {[lindex [PlotInk $photo] 1] == 0}]
+                set dashed [$photo data]
+                .renderer element configure signal -dashes {} -offdash {}
+                .renderer snap $photo
+                lappend results [expr {$dashed eq [$photo data]}]
+                .renderer element configure signal -errorbarcolor blue -errorbarwidth 0
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+                .renderer element configure signal -showerrorbars none
+                .renderer snap $photo
+                lappend results [expr {[PlotInk $photo] eq {0 0}}]
+                set results
+            } -cleanup {
+                catch {image delete $photo}
+                destroy .renderer
+            } -result {1 0 1 1 1 0 1 1 1 1}
+        }
+    }
+
+    test graph.renderer.4.5 {maxsymbols selects the same points for both symbol passes} -constraints rbcCairo\
+            -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {1 5 3 5 5 5 7 5 9 5} -linewidth 0 -symbol circle -pixels 13\
+                -outlinewidth 2 -maxsymbols 2
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach max {2 0 2} {
+            .renderer element configure signal -maxsymbols $max
+            .renderer snap $photo
+            set selected {}
+            foreach x {1 3 5 7 9} {
+                lassign [.renderer transform $x 5] px py
+                lappend selected [expr {[$photo get [expr {int($px)}] [expr {int($py)}]] eq {0 0 0}}]
+            }
+            lappend results $selected
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {{1 0 1 0 1} {1 1 1 1 1} {1 0 1 0 1}}
+
+    test graph.renderer.4.6 {active symbol pens and renderer switching}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {5 5} -linewidth 0 -symbol circle -pixels 17 -color white\
+                -outlinewidth 2
+        .renderer pen create selected -type line -color black -linewidth 0 -symbol circle -pixels 17 -outlinewidth 2
+        .renderer element configure signal -activepen selected
+        .renderer element activate signal
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach renderer {native cairo native} {
+            .renderer configure -renderer $renderer -antialias gray
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        .renderer element deactivate signal
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 0 1 1 1 0 1}
+
+    test graph.renderer.4.7 {bitmap symbols preserve native pixels}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {5 5} -linewidth 0 -symbol warning -pixels 21
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        expr {$native eq [$photo data] && [lindex [PlotInk $photo] 0] > 0}
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result 1
+
+    test graph.renderer.4.8 {later symbol fill batches do not erase earlier outlines} -constraints rbcCairo\
+            -setup {
+        StrokeFixture graph
+        .renderer configure -antialias none
+        # Straight edges avoid circle rasterization differences between batches.
+        .renderer element configure signal -linewidth 0 -symbol square -pixels 21 -fill red -outline black\
+                -outlinewidth 2
+        set photo [image create photo]
+    } -body {
+        # The second symbol overlaps the first outline, across a batch boundary.
+        set data {}
+        for {set i 0} {$i < 256} {incr i} {
+            lappend data 4.8 5
+        }
+        lappend data 5.2 5
+        .renderer element configure signal -data $data
+        .renderer snap $photo
+        set batched [$photo data]
+        .renderer element configure signal -data {4.8 5 5.2 5}
+        .renderer snap $photo
+        expr {$batched eq [$photo data]}
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result 1
+
+
+    foreach pattern {solid gray25 gray50 gray75} {
+        test graph.renderer.33.[incr testCase(33)] {area edges use Cairo antialias selection} -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 -areapattern $pattern\
+                    -areaforeground black -areabackground {}
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            .renderer element configure signal -areapattern {}
+            .renderer snap $photo
+            lappend results [expr {[PlotInk $photo] eq {0 0}}]
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0 1 1 1 0 1}
+    }
+
+    proc AreaInterior {photo} {
+        lassign [.renderer extents plotarea] left top width height
+        set result {}
+        # Safely inside the constant-height fill used by graph.renderer.5.2.
+        for {set y [expr {$top+$height/2}]} {$y < $top+3*$height/4} {incr y} {
+            for {set x [expr {$left+$width/3}]} {$x < $left+2*$width/3} {incr x} {
+                lappend result [$photo get $x $y]
+            }
+        }
+        return $result
+    }
+
+    foreach pattern {gray25 gray50 warning} {
+        test graph.renderer.34.[incr testCase(34)] {stipple pixels, colors and origin match native after remapping}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer configure -plotbackground red -antialias none
+            .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 -areapattern $pattern\
+                    -areaforeground black
+            set photo [image create photo]
+        } -body {
+            set failures {}
+            foreach background {{} blue} {
+                .renderer element configure signal -areabackground $background
+                foreach limits {{0 10} {-1 11}} {
+                    .renderer axis configure x -min [lindex $limits 0] -max [lindex $limits 1]
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [AreaInterior $photo]
+                    .renderer configure -renderer cairo
+                    .renderer snap $photo
+                    set cairo [AreaInterior $photo]
+                    set gap [expr {$background eq {} ? {255 0 0} : {0 0 255}}]
+                    if {$native ne $cairo || {0 0 0} ni $cairo || $gap ni $cairo} {
+                        lappend failures [list $background $limits]
+                    }
+                }
+            }
+            set failures
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {}
+    }
+
+    foreach invert {no yes} {
+        test graph.renderer.35.[incr testCase(35)] {area fills clip to the plot with inverted axes too}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer configure -invertxy $invert -antialias gray
+            .renderer element configure signal -data {-5 3 5 13 15 -3} -linewidth 0 -areapattern solid\
+                    -areaforeground red
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0}
+    }
+
+    test graph.renderer.5.4 {area fills precede traces and symbols} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {1 4 5 6 9 4} -linewidth 3 -symbol circle -pixels 17 -color blue\
+                -areapattern solid -areaforeground red
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        lassign [.renderer transform 5 6] x y
+        list [expr {[CountPhotoColor $photo {255 0 0}] > 0}] [$photo get [expr {int($x)}] [expr {int($y)+3}]]
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 {0 0 255}}
+
+    test graph.renderer.5.5 {photo tile interiors match native and take precedence over stipples}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        set tile [image create photo -width 2 -height 2]
+        $tile put {{red blue} {blue red}}
+        .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 -areapattern solid -areaforeground black\
+                -areatile $tile
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [AreaInterior $photo]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [AreaInterior $photo]}] [expr {[CountPhotoColor $photo {255 0 0}] > 0}]\
+                [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {1 1 1}
+
+    test graph.renderer.5.6 {empty foreground preserves the native interior color across antialias modes}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 -areapattern solid -areaforeground {}
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [AreaInterior $photo]
+        set results {}
+        foreach mode {none gray none} {
+            .renderer configure -renderer cairo -antialias $mode
+            .renderer snap $photo
+            set actual [AreaInterior $photo]
+            lappend results [expr {$native eq $actual && {0 0 0} in $actual}]
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 1 1}
+
+    test graph.renderer.6.1 {photo tile edges use Cairo antialias selection} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        set tile [image create photo -width 1 -height 1]
+        $tile put black
+        .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 -areatile $tile -areapattern solid\
+                -areaforeground red
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach mode {none gray none} {
+            .renderer configure -antialias $mode
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {1 0 1 1 1 0}
+
+    test graph.renderer.6.2 {photo tiles preserve transparent and partial-alpha pixels}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        # RGBA: opaque red, transparent blue, half-alpha green, opaque blue.
+        set tile [image create photo -data\
+                          {iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVR4nGP4z8AAQUDcACT+AwA2XgZ7cJWRwAAAAABJRU5ErkJggg==}]
+        .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 -areatile $tile
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set pixels [AreaInterior $photo]
+        list [expr {{255 0 0} in $pixels}] [expr {{255 255 255} in $pixels}] [expr {{127 255 127} in $pixels}]\
+                [expr {{0 0 255} in $pixels}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {1 1 1 1}
+
+    test graph.renderer.6.3 {photo tile origin matches native in a moved nested widget}\
+            -constraints rbcCairo -setup {
+        toplevel .tileTop
+        wm geometry .tileTop 360x280
+        frame .tileTop.host -borderwidth 3
+        place .tileTop.host -x 13 -y 17 -width 300 -height 230
+        set g .tileTop.host.graph
+        ::rbc::graph $g -width 240 -height 180 -background white -plotbackground white -borderwidth 0\
+                -plotborderwidth 0 -highlightthickness 0 -leftmargin 20 -rightmargin 20 -topmargin 20 -bottommargin 20
+        place $g -x 11 -y 9 -width 240 -height 180
+        $g legend configure -hide yes
+        $g grid configure -hide yes
+        foreach axis {x y x2 y2} {$g axis configure $axis -hide yes}
+        $g axis configure x -min 0 -max 10
+        $g axis configure y -min 0 -max 10
+        set tile [image create photo -width 3 -height 2]
+        $tile put {{red green blue} {cyan magenta yellow}}
+        $g element create signal -data {1 8 5 8 9 8} -linewidth 0 -symbol none -areatile $tile
+        set photo [image create photo]
+        update
+    } -body {
+        set results {}
+        foreach position {{13 17} {22 28}} {
+            place configure .tileTop.host -x [lindex $position 0] -y [lindex $position 1]
+            update
+            $g configure -renderer native
+            $g snap $photo
+            set native [$photo data -from 80 90 150 130]
+            $g configure -renderer cairo
+            $g snap $photo
+            lappend results [expr {$native eq [$photo data -from 80 90 150 130]}]
+        }
+        set results
+    } -cleanup {
+        destroy .tileTop
+        catch {image delete $photo $tile}
+    } -result {1 1}
+
+    foreach renderer {native cairo} {
+        test graph.renderer.36.[incr testCase(36)] {tile edits invalidate the displayed element cache}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer configure -renderer $renderer -bufferelements yes
+            set tile [image create photo -width 2 -height 2]
+            $tile put red -to 0 0 2 2
+            .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 -areatile $tile
+            set photo [image create photo]
+            update
+        } -body {
+            set results {}
+            # Capture the displayed window: graph snap would bypass its cache.
+            ::rbc::winop snap .renderer $photo
+            lappend results [$photo get 120 120]
+            $tile put blue -to 0 0 2 2
+            update
+            ::rbc::winop snap .renderer $photo
+            lappend results [$photo get 120 120]
+            $tile configure -width 3 -height 2
+            $tile put #00ff00 -to 0 0 3 2
+            update
+            ::rbc::winop snap .renderer $photo
+            lappend results [$photo get 120 120]
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo $tile}
+        } -result {{255 0 0} {0 0 255} {0 255 0}}
+    }
+
+    test graph.renderer.6.5 {deleted and recreated photo tiles preserve precedence} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        set tile [image create photo -width 2 -height 2]
+        $tile put red -to 0 0 2 2
+        .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 -areatile $tile -areapattern solid\
+                -areaforeground black
+        set photo [image create photo]
+        update
+    } -body {
+        image delete $tile
+        update
+        .renderer snap $photo
+        set empty [expr {[PlotInk $photo] eq {0 0}}]
+        image create photo $tile -width 2 -height 2
+        $tile put blue -to 0 0 2 2
+        update
+        .renderer snap $photo
+        list $empty [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {1 1}
+
+    test graph.renderer.6.6 {non-photo image tiles retain native rendering} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        set tile [image create bitmap -foreground black -background white -data {
+            #define tile_width 2
+            #define tile_height 2
+            static unsigned char tile_bits[] = {
+                0x01, 0x02
+            };
+        }]
+        .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 -areatile $tile -areapattern solid\
+                -areaforeground red
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]\
+                [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {1 1 1}
+
+    foreach pattern {{} {6 4}} {
+        set suffix [join $pattern -]
+        test graph.renderer.37.[incr testCase(37)] {grid strokes use Cairo AA and retain hide/axis settings}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer grid configure -hide no -color black -linewidth 2 -dashes $pattern -mapx x -mapy y -minor no
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            .renderer grid configure -hide yes
+            .renderer snap $photo
+            lappend results [expr {[PlotInk $photo] eq {0 0}}]
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0 1 1 1 0 1}
+    }
+
+    foreach shape {line polygonFill polygonOutline} {
+        test graph.renderer.38.[incr testCase(38)] {simple markers reach Cairo, including Windows batch candidates}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            switch $shape {
+                line {
+                    .renderer marker create line -name m -coords {1 2 9 7} -outline black -linewidth 1
+                }
+                polygonFill {
+                    .renderer marker create polygon -name m -coords {1 2 5 8 9 3} -fill black -outline {}
+                }
+                polygonOutline {
+                    .renderer marker create polygon -name m -coords {1 2 5 8 9 3} -fill {} -outline black -linewidth 1
+                }
+            }
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[lindex [PlotInk $photo] 0] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            set results
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0 1 1 1 0}
+    }
+
+    test graph.renderer.8.2 {line arrowheads add solid geometry to a dashed hairline} -constraints rbcCairo\
+            -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer marker create line -name m -coords {2 2 8 8} -outline black -linewidth 0 -dashes {6 4} -arrow none
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set before [lindex [PlotInk $photo] 0]
+        .renderer marker configure m -arrow both -arrowshape {12 16 6}
+        .renderer snap $photo
+        list [expr {[lindex [PlotInk $photo] 0] > $before}] [expr {[PartialGrayPixels $photo] > 0}]
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 1}
+
+    test graph.renderer.8.3 {line dash offset and gap color are preserved} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer configure -antialias none
+        .renderer marker create line -name m -coords {1 5 9 5} -linewidth 3 -outline black -fill red -dashes {6 4}\
+                -dashoffset 0
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set before [$photo data]
+        set results [list [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[CountPhotoColor $photo {255 0 0}] > 0}]]
+        .renderer marker configure m -dashoffset 4
+        .renderer snap $photo
+        lappend results [expr {$before ne [$photo data]}]
+        .renderer marker configure m -dashes {}
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 1 1 1}
+
+    test graph.renderer.8.4 {polygon stipple and dashed outline keep separate color pairs} -constraints rbcCairo\
+            -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer configure -antialias none
+        .renderer marker create polygon -name m -coords {2 2 2 8 8 8 8 2} -fill {black red} -stipple gray50\
+                -outline {blue #00ff00} -dashes {8 4} -linewidth 3
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set results {}
+        foreach rgb {{0 0 0} {255 0 0} {0 0 255} {0 255 0}} {
+            lappend results [expr {[CountPhotoColor $photo $rgb] > 0}]
+        }
+        .renderer marker configure m -fill {}
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {1 1 1 1 1}
+
+    test graph.renderer.8.5 {marker under/over ordering is preserved} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 -areapattern solid -areaforeground red
+        .renderer marker create line -name m -coords {2 5 8 5} -outline blue -linewidth 3 -under yes
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach under {yes no yes} {
+            .renderer marker configure m -under $under
+            .renderer snap $photo
+            lassign [.renderer transform 5 5] x y
+            lappend results [$photo get [expr {int($x)}] [expr {int($y)}]]
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {{255 0 0} {0 0 255} {255 0 0}}
+
+    foreach kind {text xorLine xorPolygon} {
+        test graph.renderer.39.[incr testCase(39)] {text and XOR markers retain native rendering} -constraints rbcCairo\
+                -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            switch $kind {
+                text {
+                    .renderer marker create text -coords {5 5} -text {Native text} -foreground black
+                }
+                xorLine {
+                    .renderer marker create line -coords {2 2 8 8} -outline blue -xor yes
+                }
+                xorPolygon {
+                    .renderer marker create polygon -coords {2 2 5 8 8 2} -outline blue -fill {} -xor yes
+                }
+            }
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo -antialias gray
+            .renderer snap $photo
+            list [expr {$native eq [$photo data]}] [expr {[lindex [PlotInk $photo] 0] > 0}]
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 1}
+    }
+
+    foreach invert {no yes} {
+        test graph.renderer.40.[incr testCase(40)] {geometric markers clip to the plotting area} -constraints rbcCairo\
+                -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -invertxy $invert
+            .renderer marker create polygon -coords {-2 2 5 12 12 2} -fill black -outline blue -linewidth 5
+            .renderer marker create line -coords {-2 4 12 8} -outline red -linewidth 5 -arrow both
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            catch {image delete $photo}
+            destroy .renderer
+        } -result {1 0}
+    }
+
+    test graph.renderer.8.8 {marker caps retain their endpoint extent} -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer configure -antialias none
+        set coords [concat [.renderer invtransform 88 100] [.renderer invtransform 148 100]]
+        .renderer marker create line -name m -coords $coords -outline black -linewidth 6
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach cap {butt round projecting} {
+            .renderer marker configure m -cap $cap
+            .renderer snap $photo
+            lappend results [$photo get 86 100]
+        }
+        set results
+    } -cleanup {
+        catch {image delete $photo}
+        destroy .renderer
+    } -result {{255 255 255} {0 0 0} {0 0 0}}
+
+    foreach anchor {nw center se} {
+        test graph.renderer.41.[incr testCase(41)] {opaque photo markers preserve native placement and pixels}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            set tile [image create photo -width 12 -height 8]
+            $tile put red -to 0 0 6 8
+            $tile put blue -to 6 0 12 8
+            .renderer marker create image -name m -coords {5 5} -image $tile -anchor $anchor -xoffset 3 -yoffset -4
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            set results {}
+            foreach mode {none gray} {
+                .renderer configure -renderer cairo -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {255 0 0}] == 48}]\
+                        [expr {[CountPhotoColor $photo {0 0 255}] == 48}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo $tile}
+        } -result {1 1 1 1 1 1}
+    }
+
+    test graph.renderer.9.2 {photo marker alpha and integer origin are preserved without tiling}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        set tile [image create photo -data\
+                          {iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAE0lEQVR4nGP4z8AAQUDcACT+AwA2XgZ7cJWRwAAAAABJRU5ErkJggg==}]
+        .renderer marker create image -name m -coords [.renderer invtransform 80 80] -anchor nw -image $tile
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach mode {none gray} {
+            .renderer configure -antialias $mode
+            .renderer snap $photo
+            foreach {x y} {80 80 81 80 80 81 81 81 79 80 82 80} {
+                lappend results [$photo get $x $y]
+            }
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {{255 0 0} {255 255 255} {127 255 127} {0 0 255} {255 255 255} {255 255 255} {255 0 0} {255 255 255}\
+                       {127 255 127} {0 0 255} {255 255 255} {255 255 255}}
+
+    foreach renderer {native cairo} {
+        test graph.renderer.42.[incr testCase(42)] {source resizing discards a stale scaled photo} -constraints rbcCairo\
+                -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -renderer $renderer -plotpadx 0 -plotpady 0
+            update
+            set tile [image create photo -width 12 -height 8]
+            $tile put red -to 0 0 12 8
+            .renderer marker create image -name m -coords {2 2 8 8} -image $tile
+            lassign [.renderer extents plotarea] left top plotWidth plotHeight
+            # The image mapper uses unrounded coordinates, unlike transform.
+            set width [expr {int(0.6*($plotWidth-1))+1}]
+            set height [expr {int(0.6*($plotHeight-1))+1}]
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            set results [list [expr {[CountPhotoColor $photo {255 0 0}] > 96}]]
+            # Match the mapped size without reconfiguring the marker.
+            $tile configure -width $width -height $height
+            $tile put blue -to 0 0 $width $height
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 255}] == $width*$height}]\
+                [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+            $tile configure -width 12 -height 8
+            $tile put red -to 0 0 12 8
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 96}]
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo $tile}
+        } -result {1 1 1 1}
+    }
+
+    foreach invert {no yes} {
+        test graph.renderer.43.[incr testCase(43)] {natural and scaled photo markers clip at plot edges}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -invertxy $invert -plotpadx 0 -plotpady 0
+            update
+            set tile [image create photo -width 12 -height 8]
+            $tile put black -to 0 0 12 8
+            .renderer marker create image -name m -image $tile -anchor center -coords {0 10}
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach coords {{0 10} {-2 -2 12 12} {-10 -10}} {
+                .renderer marker configure m -coords $coords
+                .renderer snap $photo
+                lassign [PlotInk $photo] inside outside
+                lappend results [expr {$inside > 0}] $outside
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo $tile}
+        } -result {1 0 1 0 0 0}
+    }
+
+    test graph.renderer.9.5 {photo edits, resizing, deletion and recreation refresh under markers}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        set tile [image create photo -width 12 -height 8]
+        $tile put red -to 0 0 12 8
+        .renderer marker create image -name m -image $tile -coords {5 5} -under yes
+        set photo [image create photo]
+    } -body {
+        set results {}
+        update
+        rbc::winop snap .renderer $photo
+        lappend results [CountPhotoColor $photo {255 0 0}]
+        $tile put blue -to 0 0 12 8
+        update
+        rbc::winop snap .renderer $photo
+        lappend results [CountPhotoColor $photo {0 0 255}] [CountPhotoColor $photo {255 0 0}]
+        $tile configure -width 6 -height 4
+        update
+        rbc::winop snap .renderer $photo
+        lappend results [CountPhotoColor $photo {0 0 255}]
+        image delete $tile
+        update
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        image create photo $tile -width 3 -height 2
+        $tile put red -to 0 0 3 2
+        update
+        .renderer snap $photo
+        lappend results [CountPhotoColor $photo {255 0 0}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {96 96 0 24 1 6}
+
+    test graph.renderer.9.6 {non-photo image markers retain native drawing after a scaled photo}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        set tile [image create photo -width 2 -height 2]
+        $tile put red -to 0 0 2 2
+        .renderer marker create image -name m -image $tile -coords {2 2 8 8}
+        set photo [image create photo]
+        .renderer snap $photo
+        image delete $tile
+        image create bitmap $tile -foreground black -background white -data {
+            #define tile_width 2
+            #define tile_height 2
+            static unsigned char tile_bits[] = {
+                0x01, 0x02
+            };
+        }
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [$photo data]}] [CountPhotoColor $photo {0 0 0}] [CountPhotoColor $photo {255 0 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo $tile}
+    } -result {1 2 0}
+
+    proc BarFixture {} {
+        ::rbc::barchart .renderer -renderer cairo -width 240 -height 180 -background white -plotbackground white\
+                -borderwidth 0 -plotborderwidth 0 -highlightthickness 0 -leftmargin 20 -rightmargin 20 -topmargin 20\
+                -bottommargin 20
+        pack .renderer
+        .renderer legend configure -hide yes
+        .renderer grid configure -hide yes
+        foreach axis {x y x2 y2} {.renderer axis configure $axis -hide yes}
+        .renderer axis configure x -min 0 -max 10
+        .renderer axis configure y -min -10 -max 10
+        .renderer element create signal -data {2 5 5 -5 8 7} -foreground black -background {} -relief flat\
+                -borderwidth 0 -showvalues no -showerrorbars none
+        update
+    }
+
+    foreach mode {normal aligned overlap stacked} {
+        foreach invert {no yes} {
+            test graph.renderer.44.[incr testCase(44)] {bar layouts and integer fill pixels match native}\
+                    -constraints rbcCairo -setup {
+                BarFixture
+                .renderer configure -barmode $mode -invertxy $invert
+                .renderer element create other -data {2 3 5 -3 8 2} -foreground blue -background {} -borderwidth 0\
+                        -relief flat -showerrorbars none
+                set photo [image create photo]
+            } -body {
+                .renderer configure -renderer native
+                .renderer snap $photo
+                set native [$photo data]
+                set results {}
+                foreach aa {none gray} {
+                    .renderer configure -renderer cairo -antialias $aa
+                    .renderer snap $photo
+                    lappend results [expr {$native eq [$photo data]}] [expr {[lindex [PlotInk $photo] 0] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1 1}
+        }
+    }
+
+    foreach colors {{black {}} {black red} {{} blue}} {
+        foreach pattern {gray25 gray50 warning} {
+            test graph.renderer.45.[incr testCase(45)]\
+                    {bar stipple colors and origin match native after remapping} -constraints rbcCairo -setup {
+                BarFixture
+                .renderer element configure signal -foreground [lindex $colors 0] -background [lindex $colors 1]\
+                        -stipple $pattern
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach limits {{0 10} {-1 11}} {
+                    .renderer axis configure x -min [lindex $limits 0] -max [lindex $limits 1]
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    .renderer configure -renderer cairo
+                    .renderer snap $photo
+                    lappend results [expr {$native eq [$photo data]}] [expr {[lindex [PlotInk $photo] 0] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1 1}
+        }
+    }
+
+    foreach relief {flat raised sunken ridge groove solid} {
+        test graph.renderer.46.[incr testCase(46)] {bar relief borders and value labels retain native rendering}\
+                -constraints rbcCairo -setup {
+            BarFixture
+            .renderer element configure signal -foreground blue -background navy -borderwidth 2 -relief $relief\
+            -showvalues y
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            list [expr {$native eq [$photo data]}] [expr {[lindex [PlotInk $photo] 0] > 0}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1}
+    }
+
+    test graph.renderer.10.4 {active bar selections and pens use the same fill path} -constraints rbcCairo\
+            -setup {
+        BarFixture
+        .renderer pen configure activeBar -foreground red -background {} -borderwidth 0 -relief flat
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach selection {{1} {}} {
+            .renderer element deactivate signal
+            .renderer element activate signal {*}$selection
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            lappend results [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+        }
+        .renderer element deactivate signal
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1}
+
+    test graph.renderer.10.5 {bar error strokes honor Cairo antialiasing, hairlines and visibility}\
+            -constraints rbcCairo -setup {
+        BarFixture
+        .renderer element configure signal -foreground {} -background {} -data {5.13 4.17} -xerror 1 -yerror 2\
+                -errorbarcolor black -errorbarwidth 0 -errorbarcap 10 -showerrorbars both
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach aa {none gray none} {
+            .renderer configure -antialias $aa
+            .renderer snap $photo
+            lappend results [expr {[lindex [PlotInk $photo] 0] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        .renderer element configure signal -showerrorbars none
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 0 1 1 1 0 1}
+
+    foreach invert {no yes} {
+        test graph.renderer.47.[incr testCase(47)] {wide and negative bars clip to the plot} -constraints rbcCairo -setup {
+            BarFixture
+            .renderer configure -invertxy $invert
+            .renderer element configure signal -data {0 30 5 -30 10 30} -barwidth 4
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 0}
+    }
+
+    test graph.renderer.10.7 {weighted bar pens preserve their separate fills} -constraints rbcCairo -setup {
+        BarFixture
+        .renderer pen create low -type bar -foreground red -background {} -relief flat -borderwidth 0
+        .renderer pen create high -type bar -foreground blue -background {} -relief flat -borderwidth 0
+        .renderer element configure signal -weights {0.5 1.5 3} -styles {{low 0 1} {high 1 2}}
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {255 0 0}] > 0}]\
+                [expr {[CountPhotoColor $photo {0 0 255}] > 0}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1}
+
+    proc LegendPixels {photo {color {}}} {
+        set ink 0
+        set gray 0
+        set matching 0
+        for {set y 0} {$y < [image height $photo]} {incr y} {
+            for {set x 0} {$x < [image width $photo]} {incr x} {
+                set rgb [$photo get $x $y]
+                lassign $rgb r g b
+                incr ink [expr {$rgb ne {255 255 255}}]
+                incr gray [expr {$r == $g && $g == $b && $r > 0 && $r < 255}]
+                incr matching [expr {$rgb eq $color}]
+            }
+        }
+        return [list $ink $gray $matching]
+    }
+
+    proc ShowSampleLegend {} {
+        .renderer element configure signal -label Sample -hideplot yes
+        .renderer legend configure -hide no -position rightmargin -background white -foreground white -borderwidth 0\
+                -relief flat -font {Arial 18}
+        update
+    }
+
+    foreach kind {graph stripchart} {
+        foreach shape {circle diamond triangle scross arrow} {
+            test graph.renderer.48.[incr testCase(48)] {legend geometry uses Cairo outside the plot area}\
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer element configure signal -symbol $shape -linewidth 0 -fill black -outline black
+                ShowSampleLegend
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach aa {none gray none} {
+                    .renderer configure -antialias $aa
+                    .renderer snap $photo
+                    lassign [LegendPixels $photo] ink gray
+                    lappend results [expr {$ink > 0}] [expr {$gray > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 0 1 1 1 0}
+        }
+    }
+
+    test graph.renderer.11.2 {legend dashes preserve both colors and reconfiguration} -constraints rbcCairo\
+            -setup {
+        StrokeFixture graph
+        .renderer element configure signal -symbol none -linewidth 2 -color red -offdash blue -dashes {6 4}
+        ShowSampleLegend
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set results [list [expr {[lindex [LegendPixels $photo {255 0 0}] 2] > 0}]\
+                             [expr {[lindex [LegendPixels $photo {0 0 255}] 2] > 0}]]
+        .renderer element configure signal -dashes {}
+        .renderer snap $photo
+        lappend results [expr {[lindex [LegendPixels $photo {0 0 255}] 2] == 0}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1}
+
+    foreach pattern {{} gray25 gray50 warning} {
+        foreach background {{} red} {
+            test graph.renderer.49.[incr testCase(49)] {bar legend stipples restart at the swatch origin}\
+                    -constraints rbcCairo -setup {
+                BarFixture
+                .renderer element configure signal -stipple $pattern -foreground black -background $background
+                ShowSampleLegend
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach position {rightmargin @40,30} {
+                    .renderer legend configure -position $position
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    .renderer configure -renderer cairo
+                    .renderer snap $photo
+                    lappend results [expr {$native eq [$photo data]}]\
+                            [expr {[lindex [LegendPixels $photo {0 0 0}] 2] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1 1}
+        }
+    }
+
+    test graph.renderer.11.4 {legend text, activation backgrounds and borders stay native} -constraints rbcCairo\
+            -setup {
+        StrokeFixture graph
+        .renderer element configure signal -symbol none -linewidth 0
+        ShowSampleLegend
+        .renderer legend configure -foreground black -borderwidth 2 -relief raised -activebackground yellow\
+                -activeforeground blue -activeborderwidth 2 -activerelief sunken
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach active {no yes} {
+            if {$active} {
+                .renderer legend activate signal
+            } else {
+                .renderer legend deactivate signal
+            }
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            lappend results [expr {$native eq [$photo data]}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1}
+
+    test graph.renderer.11.5 {external legend pixmaps use their own dimensions after resizing}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -symbol circle -linewidth 0 -fill black -outline black
+        ShowSampleLegend
+        .renderer legend configure -position .sampleLegend
+        pack .sampleLegend -fill x
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach size {18 26 18} {
+            .renderer legend configure -font [list Arial $size]
+            foreach aa {none gray} {
+                .renderer configure -antialias $aa
+                update
+                rbc::winop snap .sampleLegend $photo
+                lassign [LegendPixels $photo] ink gray
+                lappend results [expr {$ink > 0}] [expr {$gray > 0}]
+            }
+        }
+        set results
+    } -cleanup {
+        catch {destroy .sampleLegend}
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 0 1 1 1 0 1 1 1 0 1 1}
+
+    proc EmptyAxisLabel {args} {return {}}
+
+    proc AxisFixture {axis} {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer configure -leftmargin 40 -rightmargin 40 -topmargin 40 -bottommargin 40
+        .renderer axis configure $axis -hide no -color black -linewidth 2 -showticks yes\
+                -command ::graph.renderer::EmptyAxisLabel -title {} -min 0 -max 10
+        update
+    }
+
+    foreach axis {x y x2 y2} {
+        foreach invert {no yes} {
+            test graph.renderer.50.[incr testCase(50)] {axis strokes use Cairo throughout the widget margins}\
+                    -constraints rbcCairo -setup {
+                AxisFixture $axis
+                .renderer configure -invertxy $invert
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach aa {none gray none} {
+                    .renderer configure -antialias $aa
+                    .renderer snap $photo
+                    lassign [LegendPixels $photo] ink gray
+                    lappend results [expr {$ink > 0}] [expr {$gray > 0}]
+                }
+                .renderer axis configure $axis -hide yes
+                .renderer snap $photo
+                lappend results [expr {[lindex [LegendPixels $photo] 0] == 0}]
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 0 1 1 1 0 1}
+        }
+    }
+
+    test graph.renderer.12.2 {zero axis width hides strokes and tick visibility changes geometry}\
+            -constraints rbcCairo -setup {
+        AxisFixture x
+        .renderer configure -antialias none
+        .renderer axis configure x -majorticks {0 2 4 6 8 10} -ticklength 12
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set ticks [lindex [LegendPixels $photo] 0]
+        .renderer axis configure x -showticks no
+        .renderer snap $photo
+        set baseline [lindex [LegendPixels $photo] 0]
+        .renderer axis configure x -linewidth 0
+        .renderer snap $photo
+        list [expr {$ticks > $baseline}] [expr {$baseline > 0}] [lindex [LegendPixels $photo] 0]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 0}
+
+    foreach log {no yes} {
+        test graph.renderer.51.[incr testCase(51)] {descending and logarithmic axis remaps preserve Cairo strokes}\
+                -constraints rbcCairo -setup {
+            AxisFixture y
+            .renderer axis configure y -min 1 -max 100 -logscale $log -color blue
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach descending {no yes no} {
+                .renderer axis configure y -descending $descending
+                .renderer snap $photo
+                lappend results [expr {[lindex [LegendPixels $photo {0 0 255}] 2] > 0}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1}
+    }
+
+    test graph.renderer.12.4 {axis titles and tick labels retain native rendering} -constraints rbcCairo -setup {
+        AxisFixture x
+        .renderer axis configure x -linewidth 0 -command {} -title {Native axis title}
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        list [expr {$native eq [$photo data]}] [expr {[lindex [LegendPixels $photo] 0] > 0}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1}
+
+    test graph.renderer.12.5 {multiple axes retain their own colors after renderer switching}\
+            -constraints rbcCairo -setup {
+        AxisFixture y
+        .renderer axis configure y -color red
+        .renderer axis create extra -hide no -min 0 -max 10 -color blue -linewidth 2\
+                -command ::graph.renderer::EmptyAxisLabel -title {}
+        .renderer yaxis use {y extra}
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach backend {cairo native cairo} {
+            .renderer configure -renderer $backend
+            .renderer snap $photo
+            lappend results [expr {[lindex [LegendPixels $photo {255 0 0}] 2] > 0}]\
+                    [expr {[lindex [LegendPixels $photo {0 0 255}] 2] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1 1}
+
+    proc BitmapFixture {{renderer cairo}} {
+        StrokeFixture graph $renderer
+        .renderer element delete signal
+        set bitmap [makeFile {
+            #define sample_width 8
+            #define sample_height 8
+            static unsigned char sample_bits[] = {
+                0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa
+            };
+        } renderer-bitmap.xbm]
+        set mask [makeFile {
+            #define sample_width 8
+            #define sample_height 8
+            static unsigned char sample_bits[] = {
+                0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f
+            };
+        } renderer-mask.xbm]
+        .renderer marker create bitmap -name m -coords {5 5} -bitmap @$bitmap -foreground black -background blue\
+                -anchor center
+        return [list $bitmap $mask]
+    }
+
+    foreach angle {0 90 180 270} {
+        foreach masked {no yes} {
+            test graph.renderer.52.[incr testCase(52)] {mapped bitmap pixels and masks match native rendering}\
+                    -constraints rbcCairo -setup {
+                lassign [BitmapFixture] bitmap mask
+                .renderer marker configure m -rotate $angle -mask [expr {$masked ? "@$mask" : ""}]
+                set photo [image create photo]
+            } -body {
+                set results {}
+                foreach coords {{5 5} {3 3 7 7}} {
+                    .renderer marker configure m -coords $coords
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    .renderer configure -renderer cairo
+                    .renderer snap $photo
+                    lappend results [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]\
+                            [expr {[CountPhotoColor $photo {0 0 255}] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+                removeFile $bitmap
+                removeFile $mask
+            } -result {1 1 1 1 1 1}
+        }
+    }
+
+    foreach angle {0 27 90} {
+      foreach masked {no yes} {
+        test graph.renderer.53.[incr testCase(53)] {transparent bitmap markers retain sharp mapped pixels}\
+                -constraints rbcCairo -setup {
+            lassign [BitmapFixture] bitmap mask
+            .renderer marker configure m -background {} -rotate $angle -coords {3 3 7 7}\
+                    -mask [expr {$masked ? "@$mask" : ""}]
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            set results {}
+            foreach aa {none gray} {
+                .renderer configure -renderer cairo -antialias $aa
+                .renderer snap $photo
+                lappend results [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]\
+                        [expr {[PartialGrayPixels $photo] == 0}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+            removeFile $bitmap
+            removeFile $mask
+        } -result {1 1 1 1 1 1}
+      }
+    }
+
+    test graph.renderer.13.3 {rotated bitmap backgrounds use Cairo antialiasing} -constraints rbcCairo -setup {
+        lassign [BitmapFixture] bitmap mask
+        .renderer marker configure m -background black -foreground black -rotate 27 -coords {3 3 7 7}
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach aa {none gray none} {
+            .renderer configure -antialias $aa
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 0 1 1 1 0}
+
+    foreach invert {no yes} {
+        test graph.renderer.54.[incr testCase(54)] {bitmap markers clip to the plot after rotation and scaling}\
+                -constraints rbcCairo -setup {
+            lassign [BitmapFixture] bitmap mask
+            .renderer configure -invertxy $invert
+            .renderer marker configure m -rotate 27 -coords {-2 2 5 12}
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+            removeFile $bitmap
+            removeFile $mask
+        } -result {1 0}
+    }
+
+    test graph.renderer.13.5 {bitmap marker color, mask and bitmap changes invalidate drawing}\
+            -constraints rbcCairo -setup {
+        lassign [BitmapFixture] bitmap mask
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set before [CountPhotoColor $photo {0 0 0}]
+        .renderer marker configure m -foreground red -mask @$mask
+        .renderer snap $photo
+        set results [list [expr {[CountPhotoColor $photo {0 0 0}] == 0}]\
+                             [expr {[CountPhotoColor $photo {255 0 0}] > 0}]\
+                             [expr {[CountPhotoColor $photo {255 0 0}] < $before}]]
+        .renderer marker configure m -bitmap {}
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 1 1 1}
+
+    proc BitmapSymbolFixture {kind} {
+        lassign [BitmapFixture] bitmap mask
+        destroy .renderer
+        StrokeFixture $kind
+        .renderer element configure signal -data {2 2 5 5 8 8} -linewidth 0 -symbol @$bitmap -pixels 17 -outline black\
+                -fill blue
+        return [list $bitmap $mask]
+    }
+
+    foreach kind {graph stripchart} {
+        foreach masked {no yes} {
+            foreach fill {{} blue} {
+                test graph.renderer.55.[incr testCase(55)] {bitmap symbol colors and masks match native pixels}\
+                        -constraints rbcCairo -setup {
+                    lassign [BitmapSymbolFixture $kind] bitmap mask
+                    .renderer element configure signal -fill $fill\
+                            -symbol [list @$bitmap [expr {$masked ? "@$mask" : ""}]]
+                    set photo [image create photo]
+                } -body {
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    set results {}
+                    foreach aa {none gray} {
+                        .renderer configure -renderer cairo -antialias $aa
+                        .renderer snap $photo
+                        lappend results [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+                    }
+                    set results
+                } -cleanup {
+                    destroy .renderer
+                    catch {image delete $photo}
+                    removeFile $bitmap
+                    removeFile $mask
+                } -result {1 1 1 1}
+            }
+        }
+    }
+
+    foreach invert {no yes} {
+        test graph.renderer.56.[incr testCase(56)] {bitmap symbols remain partially visible at plot edges}\
+                -constraints rbcCairo -setup {
+            lassign [BitmapSymbolFixture graph] bitmap mask
+            .renderer configure -invertxy $invert -plotpadx 0 -plotpady 0
+            .renderer element configure signal -data {0 0 0 10 10 0 10 10} -pixels 25 -fill {}
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+            removeFile $bitmap
+            removeFile $mask
+        } -result {1 0}
+    }
+
+    test graph.renderer.14.3 {bitmap symbol limits preserve native point selection}\
+            -constraints rbcCairo -setup {
+        lassign [BitmapSymbolFixture graph] bitmap mask
+        .renderer element configure signal -data {1 5 2 5 3 5 4 5 5 5 6 5 7 5 8 5 9 5} -pixels 9 -fill {}
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set all [CountPhotoColor $photo {0 0 0}]
+        .renderer element configure signal -maxsymbols 3
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        set limited [CountPhotoColor $photo {0 0 0}]
+        list [expr {$native eq [$photo data]}] [expr {$limited > 0 && $limited < $all}]
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 1}
+
+    test graph.renderer.14.4 {active bitmap pens retain their colors and renderer switching}\
+            -constraints rbcCairo -setup {
+        lassign [BitmapSymbolFixture graph] bitmap mask
+        .renderer pen create selected -type line -linewidth 0 -symbol @$bitmap -pixels 17 -outline red -fill {}
+        .renderer element configure signal -activepen selected
+        .renderer element activate signal 1
+        set photo [image create photo]
+    } -body {
+        .renderer configure -renderer native
+        .renderer snap $photo
+        set native [$photo data]
+        .renderer configure -renderer cairo
+        .renderer snap $photo
+        set results [list [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {255 0 0}] > 0}]]
+        .renderer element deactivate signal
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 0}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 1 1}
+
+    test graph.renderer.14.5 {bitmap legend samples use local bounds and preserve native pixels}\
+            -constraints rbcCairo -setup {
+        lassign [BitmapSymbolFixture graph] bitmap mask
+        .renderer element configure signal -symbol [list @$bitmap @$mask]
+        ShowSampleLegend
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach position {rightmargin @40,30} {
+            .renderer legend configure -position $position
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            lappend results [expr {$native eq [$photo data]}] [expr {[lindex [LegendPixels $photo {0 0 0}] 2] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+        removeFile $bitmap
+        removeFile $mask
+    } -result {1 1 1 1}
+
+    foreach backend {native cairo} {
+        foreach shape {circle bitmap} {
+            test graph.renderer.57.[incr testCase(57)] {explicit active points survive repeated snapshot remapping}\
+                    -constraints rbcCairo -setup {
+                lassign [BitmapSymbolFixture graph] bitmap mask
+                .renderer configure -renderer $backend
+                set symbol [expr {$shape eq "bitmap" ? "@$bitmap" : "circle"}]
+                .renderer pen create selected -type line -linewidth 0 -symbol $symbol -pixels 17 -outline red -fill red
+                .renderer element configure signal -activepen selected
+                .renderer element activate signal 1
+                set photo [image create photo]
+            } -body {
+                set results {}
+                for {set i 0} {$i < 3} {incr i} {
+                    .renderer snap $photo
+                    lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+                removeFile $bitmap
+                removeFile $mask
+            } -result {1 1 1}
+        }
+    }
+
+    foreach kind {graph stripchart} {
+        foreach shape {circle splus bitmap} {
+            foreach fill {black defcolor {}} {
+                test graph.renderer.58.[incr testCase(58)]\
+                        {tiny symbols preserve pixels, fill and selection rules} -constraints rbcCairo -setup {
+                    lassign [BitmapSymbolFixture $kind] bitmap mask
+                    set symbol [expr {$shape eq "bitmap" ? "@$bitmap" : $shape}]
+                    .renderer element configure signal -symbol $symbol -pixels 1 -fill $fill -outline red -color black\
+                            -maxsymbols 1 -data {2 2 Inf Inf 5 5 Inf Inf 5 5 Inf Inf 8 8}
+                    set photo [image create photo]
+                } -body {
+                    .renderer configure -renderer native
+                    .renderer snap $photo
+                    set native [$photo data]
+                    set results {}
+                    foreach mode {none gray none} {
+                        .renderer configure -renderer cairo -antialias $mode
+                        .renderer snap $photo
+                        lappend results [expr {$native eq [$photo data]}]\
+                                [expr {[CountPhotoColor $photo {0 0 0}] == ($fill eq {} ? 0 : 3)}]\
+                                [expr {[PartialGrayPixels $photo] == 0}]
+                    }
+                    set results
+                } -cleanup {
+                    destroy .renderer
+                    catch {image delete $photo}
+                    removeFile $bitmap
+                    removeFile $mask
+                } -result {1 1 1 1 1 1 1 1 1}
+            }
+        }
+    }
+
+    foreach inverted {no yes} {
+        test graph.renderer.59.[incr testCase(59)] {tiny symbols retain plot clipping with inverted axes}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer configure -invertxy $inverted -plotpadx 0 -plotpady 0
+            .renderer element configure signal -symbol square -pixels 1 -fill black -linewidth 0\
+                    -data {-1 5 0 0 0 10 5 5 10 0 10 10 11 5}
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            .renderer configure -renderer cairo
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$native eq [$photo data]}] [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 0}
+    }
+
+    test graph.renderer.15.3 {tiny active pens survive repeated snapshots and renderer switching}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {2 2 5 5 8 8} -linewidth 0 -symbol circle -pixels 1 -fill black
+        .renderer pen create selected -type line -linewidth 0 -symbol square -pixels 1 -fill red -outline blue
+        .renderer element configure signal -activepen selected
+        .renderer element activate signal 1
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach backend {native cairo cairo native} {
+            .renderer configure -renderer $backend
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {255 0 0}] == 1}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1}
+
+    foreach pattern {solid gray25 gray50} {
+        test graph.renderer.60.[incr testCase(60)] {empty area foreground uses the GC color through Cairo}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element configure signal -data {1 3 5 7 9 4} -linewidth 0 -areapattern $pattern\
+                    -areaforeground {} -areabackground {}
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -renderer cairo -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 0 1 1 1 0}
+    }
+
+    test graph.renderer.16.2 {empty line outline reaches Cairo including arrowheads} -constraints rbcCairo\
+            -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer marker create line -name m -coords {1 2 9 7} -outline {} -linewidth 3 -arrow both
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach mode {none gray none} {
+            .renderer configure -antialias $mode
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}] [expr {[PartialGrayPixels $photo] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 0 1 1 1 0}
+
+    foreach background {{} blue} {
+        test graph.renderer.61.[incr testCase(61)] {empty bitmap foreground preserves native colors and switching}\
+                -constraints rbcCairo -setup {
+            lassign [BitmapFixture] bitmap mask
+            .renderer marker configure m -foreground {} -background $background
+            set photo [image create photo]
+        } -body {
+            .renderer configure -renderer native
+            .renderer snap $photo
+            set native [$photo data]
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -renderer cairo -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {$native eq [$photo data]}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+            }
+            .renderer marker configure m -foreground red
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+            .renderer marker configure m -foreground {}
+            .renderer snap $photo
+            lappend results [expr {$native eq [$photo data]}]
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+            removeFile $bitmap
+            removeFile $mask
+        } -result {1 1 1 1 1 1 1 1}
+    }
+
+    foreach angle {0 27 90} {
+        test graph.renderer.62.[incr testCase(62)] {text background edges follow Cairo antialias selection}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer marker create text -name m -coords {5 5} -text {            } -font {Arial 14} -foreground black\
+                    -background black -rotate $angle
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach mode {none gray none} {
+                .renderer configure -antialias $mode
+                .renderer snap $photo
+                lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}]\
+                        [expr {([PartialGrayPixels $photo] > 0) == ($mode eq "gray" && $angle == 27)}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1 1 1 1}
+    }
+
+    foreach inverted {no yes} {
+        test graph.renderer.63.[incr testCase(63)] {rotated text backgrounds clip to the plot} -constraints rbcCairo\
+                -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -invertxy $inverted
+            foreach {name x y} {left 0 5 right 10 5 top 5 10 bottom 5 0} {
+                .renderer marker create text -name $name -coords [list $x $y] -text {            } -font {Arial 14}\
+                        -foreground black -background black -rotate 27 -anchor center
+            }
+            set photo [image create photo]
+        } -body {
+            .renderer snap $photo
+            lassign [PlotInk $photo] inside outside
+            list [expr {$inside > 0}] $outside
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 0}
+    }
+
+    test graph.renderer.17.3 {text background changes and renderer switching preserve redraws}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer marker create text -name m -coords {5 5} -text {            } -font {Arial 14} -foreground black\
+                -background black -rotate 27
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach backend {native cairo native cairo} {
+            .renderer configure -renderer $backend
+            .renderer snap $photo
+            lappend results [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+        }
+        .renderer marker configure m -background red
+        .renderer snap $photo
+        lappend results [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+        .renderer marker configure m -background {}
+        .renderer snap $photo
+        lappend results [expr {[PlotInk $photo] eq {0 0}}]
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1 1}
+
+    foreach mode {none default} {
+        test graph.renderer.64.[incr testCase(64)] {marker target preserves geometry and native text ordering}\
+                -constraints rbcCairo -setup {
+            StrokeFixture graph
+            .renderer element delete signal
+            .renderer configure -antialias $mode
+            for {set i 0} {$i < 300} {incr i} {
+                .renderer marker create polygon -coords {1 1 9 1 9 9 1 9} -fill red -outline {}
+            }
+            .renderer marker create text -coords {5 5} -anchor center -text {MMMMMMMM} -font {Arial 20}\
+                    -foreground black -background blue
+            .renderer marker create polygon -coords {5 4 7 4 7 6 5 6} -fill #008000 -outline {}
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach renderer {native cairo native cairo} {
+                .renderer configure -renderer $renderer
+                .renderer snap $photo
+                lassign [.renderer transform 6 5] x y
+                lappend results [expr {[$photo get [expr {int($x)}] [expr {int($y)}]] eq {0 128 0}}]\
+                        [expr {[CountPhotoColor $photo {255 0 0}] > 0}] [expr {[CountPhotoColor $photo {0 0 255}] > 0}]\
+                        [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+            }
+            set results
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1}
+    }
+
+    test graph.renderer.18.2 {marker target retains existing element pixels across under and over passes}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element configure signal -data {2 5 8 5} -color blue -linewidth 5
+        .renderer marker create polygon -name under -under yes -coords {1 1 9 1 9 9 1 9} -fill red -outline {}
+        .renderer marker create polygon -name over -coords {4 4 6 4 6 6 4 6} -fill #008000 -outline {}
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach renderer {native cairo native cairo} {
+            .renderer configure -renderer $renderer
+            .renderer snap $photo
+            foreach {x y expected} {3 5 {0 0 255} 5 5 {0 128 0} 3 3 {255 0 0}} {
+                lassign [.renderer transform $x $y] px py
+                lappend results [expr {[$photo get [expr {int($px)}] [expr {int($py)}]] eq $expected}]
+            }
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1 1 1 1 1 1 1 1}
+
+    test graph.renderer.18.3 {marker targets are recreated for resized snapshot drawables}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        .renderer marker create polygon -coords {1 1 9 1 9 9 1 9} -fill red -outline {}
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach {width height} {320 240 480 320 240 180} {
+            .renderer snap $photo -width $width -height $height
+            lappend results [expr {[image width $photo] == $width && [image height $photo] == $height}]\
+                [expr {[CountPhotoColor $photo {255 0 0}] > 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1 1 1 1}
+
+    foreach mode {none gray default} {
+        foreach kind {line polygon} {
+            test graph.renderer.65.[incr testCase(65)] {shared stroke contexts preserve overlapping marker pixels}\
+                    -constraints rbcCairo -setup {
+                StrokeFixture graph
+                .renderer element delete signal
+                .renderer configure -antialias $mode
+                set barriers {}
+                for {set i 0} {$i < 40} {incr i} {
+                    set y [expr {3.0 + ($i % 4)*0.03}]
+                    if {$kind eq "line"} {
+                        .renderer marker create line -coords [list 2 $y 8 7] -outline black -linewidth 1
+                    } else {
+                        .renderer marker create polygon -coords [list 2 $y 8 7 8 3] -fill {} -outline black -linewidth 1
+                    }
+                    # A whitespace text marker ends the run without painting pixels.
+                    lappend barriers [.renderer marker create text -coords {5 5} -text { } -foreground white]
+                }
+                set photo [image create photo]
+            } -body {
+                .renderer snap $photo
+                set separate [$photo data]
+                .renderer marker delete {*}$barriers
+                .renderer snap $photo
+                list [expr {$separate eq [$photo data]}] [expr {[CountPhotoColor $photo {0 0 0}] > 0}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1}
+        }
+    }
+
+    test graph.renderer.19.2 {stroke runs preserve style changes and native drawing boundaries}\
+            -constraints rbcCairo -setup {
+        StrokeFixture graph
+        .renderer element delete signal
+        set barriers {}
+        set specs {
+            {line -coords {2 2 8 8} -outline red -linewidth 1}
+            {polygon -coords {2 2 8 8 8 2} -outline red -fill {} -linewidth 1}
+            {line -coords {2 8 8 2} -outline blue -linewidth 5 -cap round}
+            {line -coords {2 8 8 2} -outline blue -linewidth 5 -cap round}
+            {line -coords {2 3 8 7} -outline black -linewidth 2 -dashes {4 3} -arrow both}
+            {text -coords {5 5} -text {Native text} -foreground black -background yellow}
+            {polygon -coords {3 3 7 3 7 7 3 7} -outline red -fill blue}
+            {line -coords {2 7 8 3} -outline black -linewidth 1}
+            {line -coords {2 7 8 3} -outline black -linewidth 1}
+        }
+        foreach spec $specs {
+            .renderer marker create {*}$spec
+            lappend barriers [.renderer marker create text -coords {5 5} -text { } -foreground white]
+        }
+        set photo [image create photo]
+    } -body {
+        .renderer snap $photo
+        set separate [$photo data]
+        .renderer marker delete {*}$barriers
+        set results {}
+        for {set i 0} {$i < 3} {incr i} {
+            .renderer snap $photo
+            lappend results [expr {$separate eq [$photo data]}]
+        }
+        set results
+    } -cleanup {
+        destroy .renderer
+        catch {image delete $photo}
+    } -result {1 1 1}
+
+    foreach kind {graph stripchart} {
+        foreach inverted {no yes} {
+            test graph.renderer.66.[incr testCase(66)] {renderer switching refreshes auto-decimation geometry}\
+                    -constraints rbcCairo -setup {
+                StrokeFixture $kind
+                .renderer configure -invertxy $inverted
+                update
+                # Six points per data-X pixel: between the two thresholds.
+                lassign [.renderer transform 0 0] x0 y0
+                lassign [.renderer transform 10 10] x1 y1
+                set span [expr {$inverted eq {yes} ? abs($y1-$y0) : abs($x1-$x0)}]
+                set count [expr {6*$span}]
+                set data {}
+                for {set i 0} {$i < $count} {incr i} {
+                    lappend data [expr {10.0*$i/($count-1)}] [expr {2+($i%7)}]
+                }
+                .renderer element configure signal -data $data -decimate auto
+                set photo [image create photo]
+                update
+            } -body {
+                set results {}
+                foreach backend {native cairo native cairo} {
+                    .renderer configure -renderer $backend
+                    update idletasks
+                    .renderer snap $photo
+                    set switched [$photo data]
+                    # Explicit remapping must agree with renderer-switch remapping.
+                    .renderer element configure signal -decimate auto
+                    update idletasks
+                    .renderer snap $photo
+                    lappend results [expr {$switched eq [$photo data]}]
+                    if {$backend eq {native}} {
+                        set automatic [$photo data]
+                        .renderer element configure signal -decimate none
+                        .renderer snap $photo
+                        lappend results [expr {$automatic eq [$photo data]}]
+                        .renderer element configure signal -decimate auto
+                    }
+                }
+                set results
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1 1 1 1}
+        }
+    }
+
+    proc OpacityFixture {kind invert renderer} {
+        ::rbc::$kind .opacity -width 400 -height 400 -plotbackground blue \
+            -renderer $renderer -invertxy $invert
+        pack .opacity
+        .opacity axis configure x -min -3 -max 3
+        .opacity axis configure y -min -3 -max 3
+        .opacity grid configure -hide yes
+        .opacity legend configure -hide yes
+        .opacity element create signal -data {-2 -2 2 -2 2 2 -2 2 -2 -2} \
+            -linewidth 0 -symbol none -areaclose chord -areapattern solid -areaforeground red
+        update idletasks
+    }
+
+    proc OpacityPixel {photo x y expected} {
+        lassign [.opacity transform $x $y] px py
+        foreach actual [$photo get $px $py] target $expected {
+            if {abs($actual-$target) > 1} {
+                return 0
+            }
+        }
+        return 1
+    }
+
+    foreach kind {graph polar} {
+        foreach invert {no yes} {
+            test graph.renderer.67.[incr testCase(67)] {solid opacity blends and survives renderer switching} \
+                    -constraints rbcCairo -setup {
+                OpacityFixture $kind $invert cairo
+                set photo [image create photo]
+                # Cross the plot boundaries to exercise the fill clip too.
+                .opacity element configure signal -data {-4 -4 4 -4 4 4 -4 4 -4 -4}
+            } -body {
+                set failures {}
+                foreach antialias {none gray} {
+                    .opacity configure -antialias $antialias
+                    foreach opacity {1 0.5 0 1} expected {{255 0 0} {128 0 127} {0 0 255} {255 0 0}} {
+                        .opacity element configure signal -areaopacity $opacity
+                        .opacity snap $photo
+                        if {![OpacityPixel $photo 1 1 $expected]} {
+                            lappend failures [list $antialias $opacity]
+                        }
+                    }
+                }
+                .opacity element configure signal -areaopacity 0.5
+                foreach renderer {native cairo native} expected {{255 0 0} {128 0 127} {255 0 0}} {
+                    .opacity configure -renderer $renderer
+                    .opacity snap $photo
+                    if {![OpacityPixel $photo 1 1 $expected]} {
+                        lappend failures $renderer
+                    }
+                }
+                set failures
+            } -cleanup {
+                destroy .opacity
+                image delete $photo
+            } -result {}
+        }
+    }
+
+    test graph.renderer.22.2 {native solid fills ignore opacity} -setup {
+        OpacityFixture graph no native
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach opacity {0 0.5 1} {
+            .opacity element configure signal -areaopacity $opacity
+            .opacity snap $photo
+            lappend results [OpacityPixel $photo 1 1 {255 0 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .opacity
+        image delete $photo
+    } -result {1 1 1}
+
+    test graph.renderer.22.3 {opacity leaves stipples and photo alpha unchanged} \
+            -constraints rbcCairo -setup {
+        OpacityFixture graph no cairo
+        set photo [image create photo]
+        set tile [image create photo -width 2 -height 2]
+        $tile put {#ff0000@0.5} -to 0 0 2 2
+    } -body {
+        .opacity element configure signal -areapattern gray50
+        .opacity snap $photo
+        set stipple [$photo data]
+        .opacity element configure signal -areaopacity 0
+        .opacity snap $photo
+        set same [expr {$stipple eq [$photo data]}]
+        .opacity element configure signal -areatile $tile
+        .opacity snap $photo
+        list $same [OpacityPixel $photo 1 1 {128 0 127}]
+    } -cleanup {
+        destroy .opacity
+        image delete $photo $tile
+    } -result {1 1}
+
+    # Exercise native batching beyond the Windows strip limits, including wide
+    # pens. Collinear dense geometry must have the same pixels as a short trace.
+    set testCase(68) 0
+    set testCase(69) 0
+    foreach kind {graph stripchart} {
+        foreach width {1 4} {
+            foreach inverted {0 1} {
+                test graph.renderer.68.[incr testCase(68)] {native dense traces preserve pixels across batches} -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    ::rbc::vector create rendererStrokeX rendererStrokeY
+                    rendererStrokeX seq 1 9 0.0004
+                    rendererStrokeY length [rendererStrokeX length]
+                    rendererStrokeY expr {rendererStrokeX*0+5}
+                    .renderer element configure signal -linewidth $width -decimate none
+                    if {$kind eq "graph"} {.renderer element configure signal -reduce 0}
+                    set photo [image create photo]
+                } -body {
+                    .renderer element configure signal -xdata rendererStrokeX -ydata rendererStrokeY
+                    update
+                    .renderer snap $photo
+                    set dense [$photo data]
+                    .renderer element configure signal -data {1 5 9 5}
+                    .renderer snap $photo
+                    set same [expr {$dense eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$dense ne [$photo data]}]
+                } -cleanup {
+                    destroy .renderer
+                    image delete $photo
+                    ::rbc::vector destroy rendererStrokeX rendererStrokeY
+                } -result {1 1}
+
+                test graph.renderer.69.[incr testCase(69)] {native error-bar batches preserve clipping and hairlines} -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    .renderer element configure signal -linewidth 0 -errorbarcolor red \
+                        -errorbarwidth [expr {$width == 1 ? 0 : $width}] -errorbarcap 8
+                    set photo [image create photo]
+                } -body {
+                    # Duplicate bars exercise batching without changing the picture.
+                    .renderer element configure signal -xdata [lrepeat 10001 5] -ydata [lrepeat 10001 5] \
+                        -yerror [lrepeat 10001 20]
+                    update
+                    .renderer snap $photo
+                    set dense [$photo data]
+                    .renderer element configure signal -xdata {5} -ydata {5} -yerror {20}
+                    .renderer snap $photo
+                    set same [expr {$dense eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$dense ne [$photo data]}]
+                } -cleanup {
+                    destroy .renderer
+                    image delete $photo
+                } -result {1 1}
+            }
+        }
+    }
+
+    # Native backend adapters must preserve symbol sampling and batch order.
+    set testCase(70) 0
+    foreach kind {graph stripchart} {
+        foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+            foreach inverted {0 1} {
+                test graph.renderer.70.[incr testCase(70)] {native symbol sampling matches explicit source subset} -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    .renderer element configure signal -data {1 2 2 5 3 8 4 2 5 5 6 8 7 2 8 5 9 8} \
+                        -linewidth 0 -symbol $symbol -pixels 11 -scalesymbols no -maxsymbols 3 \
+                        -fill red -outline blue -outlinewidth 2
+                    set photo [image create photo]
+                    update
+                } -body {
+                    .renderer snap $photo
+                    set sampled [$photo data]
+                    .renderer element configure signal -maxsymbols 0 -data {1 2 4 2 7 2}
+                    .renderer snap $photo
+                    set same [expr {$sampled eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$sampled ne [$photo data]}]
+                } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+            }
+        }
+    }
+
+    set testCase(71) 0
+    foreach kind {polygon ellipse chord pieslice} {
+        test graph.renderer.71.[incr testCase(71)] {native marker fill batching preserves individual polygon pixels} -setup {
+            StrokeFixture graph native
+            .renderer element delete signal
+            for {set i 0} {$i < 100} {incr i} {
+                set x [expr {($i % 10)+0.1}]
+                set y [expr {($i / 10)+0.1}]
+                set coords [list $x $y [expr {$x+0.8}] [expr {$y+0.8}]]
+                if {$kind eq "polygon"} {
+                    .renderer marker create polygon -name m$i -coords [list $x $y $x [expr {$y+0.8}] \
+                        [expr {$x+0.8}] [expr {$y+0.8}]] -fill red -outline {} -linewidth 0
+                } else {
+                    .renderer marker create arc -name m$i -coords $coords -fill red -outline {} -linewidth 0 \
+                        -style [expr {$kind eq "pieslice" ? "pieslice" : "chord"}] \
+                        -extent [expr {$kind eq "ellipse" ? 360 : 120}]
+                }
+            }
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set batched [$photo data]
+            # An unused solid-fill background disables the Windows fast batch.
+            foreach name [.renderer marker names] {.renderer marker configure $name -fill {red white}}
+            .renderer snap $photo
+            expr {$batched eq [$photo data]}
+        } -cleanup {destroy .renderer; image delete $photo} -result 1
+    }
+
+    set testCase(72) 0
+    foreach style {flat raised stipple} {
+        foreach inverted {0 1} {
+            test graph.renderer.72.[incr testCase(72)] {native bar fill and bevel batches match a single identical bar} -setup {
+                ::rbc::barchart .renderer -renderer native -width 240 -height 180 -barmode normal \
+                    -invertxy $inverted
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                .renderer axis configure y -min 0 -max 10
+                .renderer element create signal -xdata [lrepeat 1001 5] -ydata [lrepeat 1001 7] \
+                    -barwidth 2 -foreground red -background white -borderwidth 0 -relief flat
+                if {$style eq "raised"} {.renderer element configure signal -borderwidth 2 -relief raised}
+                if {$style eq "stipple"} {.renderer element configure signal -stipple gray50}
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set batched [$photo data]
+                .renderer element configure signal -data {5 7}
+                .renderer snap $photo
+                set same [expr {$batched eq [$photo data]}]
+                .renderer element configure signal -hide yes
+                .renderer snap $photo
+                list $same [expr {$batched ne [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+        }
+    }
+
+    set testCase(73) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            foreach layout {fit scroll} {
+                foreach symbol {circle square} {
+                    test graph.renderer.73.[incr testCase(73)] {nested symbol and track clips restore shared drawing resources after remapping} \
+                            -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                        ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -tracklayout $layout \
+                                -width 320 -height 240 -plotbackground white -bufferelements no
+                        pack .renderer
+                        .renderer legend configure -hide yes
+                        .renderer axis configure x -min 0 -max 10 -loose no -hide yes
+                        foreach name {first second} {
+                            .renderer axis create $name -min 0 -max 10 -loose no -hide yes
+                            .renderer track create $name -yaxes $name -height 200
+                            .renderer track legend $name configure -hide yes
+                        }
+                        .renderer pen create shared -symbol $symbol -pixels 17 \
+                                -color magenta -fill magenta -outline magenta -linewidth 0
+                        .renderer line create a -track first -mapy first -pen shared -scalesymbols no \
+                                -data {0 0 0 10 5 5 10 0 10 10}
+                        .renderer line create b -track second -mapy second -pen shared -scalesymbols no \
+                                -data {0 0 0 10 5 5 10 0 10 10} -hide yes
+                        .renderer line create blue -track second -mapy second -symbol none -color blue \
+                                -linewidth 5 -data {0 0 10 10}
+                        .renderer bar create bars -track first -mapy first -data {0 12 10 12} \
+                                -barwidth 1 -foreground magenta -borderwidth 3 -relief raised
+                        .renderer marker create polygon -name region -track first -mapy first \
+                                -coords {-1 -1 2 -1 2 11 -1 11} -fill magenta -outline magenta -linewidth 5
+                        .renderer marker create arc -track first -mapy first -coords {8 -2 12 12} \
+                                -style arc -outline magenta -linewidth 5
+                        set photo [image create photo]
+                        update
+                        if {$layout eq "scroll"} {.renderer track view moveto 0.12; update}
+                    } -body {
+                        .renderer snap $photo
+                        set initial [$photo data]
+                        # Exercise a shared pen in a different viewport, then restore.
+                        .renderer element configure b -hide no
+                        .renderer snap $photo
+                        .renderer element configure b -hide yes
+                        .renderer marker configure region -hide yes
+                        .renderer snap $photo
+                        .renderer marker configure region -hide no
+                        .renderer axis configure x -max 12
+                        .renderer snap $photo
+                        .renderer axis configure x -max 10
+                        .renderer snap $photo
+                        set same [expr {$initial eq [$photo data]}]
+                        lassign [.renderer track bbox first] l t r b
+                        set valid 1; set count 0; set blue 0
+                        for {set y 0} {$y<[image height $photo]} {incr y} {
+                            for {set x 0} {$x<[image width $photo]} {incr x} {
+                                lassign [$photo get $x $y] red green blueValue
+                                if {$red>80 && $blueValue>80 && $green<$red/2 && $green<$blueValue/2} {
+                                    incr count
+                                    if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                                }
+                                if {$red<80 && $green<80 && $blueValue>180} {incr blue}
+                            }
+                        }
+                        list $same $valid [expr {$count>0}] [expr {$blue>0}]
+                    } -cleanup {destroy .renderer; image delete $photo} -result {1 1 1 1}
+                }
+            }
+        }
+    }
+
+    # Screen text keeps Tk font/layout behavior on both rendering backends.
+    set testCase(74) 0
+    foreach renderer {native cairo} {
+        foreach angle {0 45 90} {
+            test graph.renderer.74.[incr testCase(74)] {cached multiline marker text survives style changes and remapping} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::graph .renderer -renderer $renderer -width 320 -height 240 -plotbackground white
+                pack .renderer
+                .renderer legend configure -hide yes
+                foreach axis {x y} {.renderer axis configure $axis -min 0 -max 10 -hide yes}
+                .renderer marker create text -name label -coords {5 5} -text "Voltage \u03a9\nSecond line" \
+                        -foreground red -background {} -rotate $angle -font TkDefaultFont -anchor center
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                set redPixels 0
+                for {set y 0} {$y<[image height $photo]} {incr y} {
+                    for {set x 0} {$x<[image width $photo]} {incr x} {
+                        lassign [$photo get $x $y] r g b
+                        if {$r>150 && $g<100 && $b<100} {incr redPixels}
+                    }
+                }
+                .renderer marker configure label -foreground blue -text Changed -rotate 15
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer marker configure label -foreground red -text "Voltage \u03a9\nSecond line" -rotate $angle
+                .renderer axis configure x -max 20
+                .renderer snap $photo
+                .renderer axis configure x -max 10
+                .renderer snap $photo
+                list [expr {$redPixels>0}] $changed [expr {$original eq [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1 1}
+        }
+    }
+
+    set testCase(75) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            test graph.renderer.75.[incr testCase(75)] {axis text and global legend redraw after text style changes} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::graph .renderer -renderer $renderer -invertxy $inverted -width 420 -height 320 \
+                        -title "Title\nSecond line" -buffergraph no -bufferelements no
+                pack .renderer
+                foreach axis {x y} {
+                    .renderer axis configure $axis -min 0 -max 10 -rotate 45 -title "Axis $axis" \
+                            -limitsformat {%.1f}
+                }
+                .renderer element create a -data {2 3 8 7} -label "Signal\nVoltage" -showvalues y
+                .renderer legend configure -position plotarea -anchor ne -foreground red
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                .renderer legend configure -foreground blue
+                .renderer axis configure x -rotate 90
+                .renderer configure -title Changed
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer legend configure -foreground red
+                .renderer axis configure x -rotate 45
+                .renderer configure -title "Title\nSecond line"
+                .renderer snap $photo
+                list $changed [expr {$original eq [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+        }
+    }
+
+    set testCase(76) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            test graph.renderer.76.[incr testCase(76)] {track text and local legends restore after scrolling} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -tracklayout scroll \
+                        -width 400 -height 320 -bufferelements no
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                foreach track {first second} {
+                    .renderer axis create $track -min 0 -max 10 -title $track -rotate 45
+                    .renderer track create $track -yaxes $track -height 240
+                    .renderer line create $track -track $track -mapy $track -data {2 3 8 7} -label "Signal $track"
+                    .renderer track legend $track configure -hide no -position right
+                    .renderer marker create text -track $track -mapy $track -coords {5 5} \
+                            -text "Track $track\nVoltage" -rotate 45 -foreground red -background {}
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                .renderer track view moveto 0.4
+                update
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer track view moveto 0
+                update
+                .renderer snap $photo
+                list $changed [expr {$original eq [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+        }
+    }
+
+    set testCase(77) 0
+    foreach renderer {native cairo} {
+        test graph.renderer.77.[incr testCase(77)] {external legend text uses its own window and restores active styling} \
+                -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+            ::rbc::graph .renderer -renderer $renderer -width 320 -height 240
+            pack .renderer
+            .renderer element create a -data {2 3 8 7} -label "External\nLegend" -symbol none -linewidth 0
+            .renderer legend configure -position .textLegend -background white -foreground red \
+                    -activeforeground blue -activebackground white -borderwidth 0 -activeborderwidth 0
+            pack .textLegend
+            set photo [image create photo]
+            update
+        } -body {
+            ::rbc::winop snap .textLegend $photo
+            set redPixels 0
+            for {set y 0} {$y<[image height $photo]} {incr y} {
+                for {set x 0} {$x<[image width $photo]} {incr x} {
+                    lassign [$photo get $x $y] r g b
+                    if {$r>150 && $g<100 && $b<100} {incr redPixels}
+                }
+            }
+            set original [$photo data]
+            .renderer legend activate a
+            update
+            ::rbc::winop snap .textLegend $photo
+            set changed [expr {$original ne [$photo data]}]
+            .renderer legend deactivate a
+            update
+            ::rbc::winop snap .textLegend $photo
+            list [expr {$redPixels>0}] $changed [expr {$original eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {destroy .textLegend}
+            image delete $photo
+        } -result {1 1 1}
+    }
+
+    set testCase(78) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            foreach layout {fit scroll} {
+                test graph.renderer.78.[incr testCase(78)] {mapped raster markers retain track clips and restore after scrolling and remapping} \
+                        -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                    lassign [BitmapFixture $renderer] bitmap mask
+                    destroy .renderer
+                    ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -tracklayout $layout \
+                            -width 320 -height 240 -plotbackground white -buffergraph no -bufferelements no
+                    pack .renderer
+                    .renderer legend configure -hide yes
+                    .renderer axis configure x -min 0 -max 10 -loose no -hide yes
+                    foreach track {first second} {
+                        .renderer axis create $track -min 0 -max 10 -loose no -hide yes
+                        .renderer track create $track -yaxes $track -height 200
+                        .renderer track legend $track configure -hide yes
+                    }
+                    set tile [image create photo -width 8 -height 8]
+                    $tile put magenta -to 0 0 8 8
+                    for {set i 0} {$i<8} {incr i} {$tile transparency set $i $i 1}
+                    set bitmapImage [image create bitmap -file $bitmap -foreground magenta -background {}]
+                    set photo [image create photo]
+                    update
+                    if {$layout eq "scroll"} {.renderer track view moveto 0.15; update}
+                } -body {
+                    set results {}
+                    foreach kind {bitmap photo tkbitmap} {
+                        if {$kind eq "bitmap"} {
+                            .renderer marker create bitmap -name raster -track first -mapy first \
+                                    -coords {-2 2 8 12} -bitmap @$bitmap -mask @$mask -rotate 45 \
+                                    -foreground magenta -background {}
+                        } else {
+                            set image [expr {$kind eq "photo" ? $tile : $bitmapImage}]
+                            # Non-photo Tk images retain their natural size.
+                            set coords [expr {$kind eq "photo" ? {-2 2 8 12} : {5 5}}]
+                            .renderer marker create image -name raster -track first -mapy first \
+                                    -coords $coords -image $image
+                        }
+                        .renderer snap $photo
+                        set original [$photo data]
+                        lassign [.renderer track bbox first] l t r b
+                        set valid 1; set count 0
+                        for {set y 0} {$y<[image height $photo]} {incr y} {
+                            for {set x 0} {$x<[image width $photo]} {incr x} {
+                                lassign [$photo get $x $y] red green blue
+                                if {$red>150 && $green<100 && $blue>150} {
+                                    incr count
+                                    if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                                }
+                            }
+                        }
+                        .renderer marker configure raster -hide yes
+                        .renderer snap $photo
+                        set hidden [expr {$original ne [$photo data]}]
+                        .renderer marker configure raster -hide no
+                        .renderer axis configure x -max 12
+                        if {$layout eq "scroll"} {.renderer track view moveto 0.3}
+                        .renderer snap $photo
+                        .renderer axis configure x -max 10
+                        if {$layout eq "scroll"} {.renderer track view moveto 0.15}
+                        .renderer snap $photo
+                        lappend results [expr {$count>0 && $valid && $hidden && $original eq [$photo data]}]
+                        .renderer marker delete raster
+                    }
+                    set results
+                } -cleanup {
+                    destroy .renderer
+                    catch {image delete $photo $tile $bitmapImage}
+                    removeFile $bitmap
+                    removeFile $mask
+                } -result {1 1 1}
+            }
+        }
+    }
+
+    set testCase(79) 0
+    foreach renderer {native cairo} {
+        foreach relief {flat raised sunken ridge groove solid} {
+            test graph.renderer.79.[incr testCase(79)] {widget and legend decorations restore after tiled backgrounds and focus changes} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::graph .renderer -renderer $renderer -width 360 -height 260 -background ivory \
+                        -plotbackground white -borderwidth 4 -relief $relief -plotborderwidth 3 \
+                        -plotrelief $relief -highlightthickness 3 -highlightcolor magenta -buffergraph no
+                pack .renderer
+                .renderer axis configure x -min 0 -max 10 -background lightblue -borderwidth 2 -relief $relief
+                .renderer axis configure y -min 0 -max 10
+                .renderer element create a -data {2 3 8 7} -symbol none -linewidth 0 -label Signal
+                .renderer legend configure -position rightmargin -background lightyellow -borderwidth 3 \
+                        -relief $relief -activebackground orange -activeborderwidth 2 -activerelief $relief
+                .renderer legend activate a
+                set tile [image create photo -width 8 -height 8]
+                $tile put navy -to 0 0 8 8
+                $tile put gold -to 0 0 4 4
+                set photo [image create photo]
+                update
+                event generate .renderer <FocusOut>
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                .renderer configure -tile $tile
+                .renderer legend configure -background {}
+                .renderer snap $photo
+                set tiled [expr {$original ne [$photo data]}]
+                .renderer configure -tile {}
+                .renderer legend configure -background lightyellow
+                .renderer snap $photo
+                set restored [expr {$original eq [$photo data]}]
+                event generate .renderer <FocusIn>
+                update
+                .renderer snap $photo
+                set focused [expr {$original ne [$photo data]}]
+                event generate .renderer <FocusOut>
+                update
+                .renderer snap $photo
+                list $tiled $restored $focused [expr {$original eq [$photo data]}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo $tile}
+            } -result {1 1 1 1}
+        }
+    }
+
+    set testCase(80) 0
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            test graph.renderer.80.[incr testCase(80)] {track divider and local legend decorations survive divider reconfiguration} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -width 400 -height 300 \
+                        -background ivory -plotbackground white -buffergraph no -bufferelements no \
+                        -trackseparatorcolor magenta -trackseparatorwidth 5
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                foreach track {first second} {
+                    .renderer axis create $track -min 0 -max 10 -background lightblue -borderwidth 2 -relief raised
+                    .renderer track create $track -yaxes $track
+                    .renderer line create $track -track $track -mapy $track -data {2 3 8 7} -label $track
+                    .renderer track legend $track configure -hide no -position right -background lightyellow \
+                            -borderwidth 3 -relief ridge -activebackground orange -activeborderwidth 2
+                    .renderer track legend $track activate $track
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                set visible [expr {[CountPhotoColor $photo {255 0 255}]>0}]
+                .renderer configure -trackseparatorcolor {}
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer configure -trackseparatorcolor magenta
+                .renderer snap $photo
+                list $visible $changed [expr {$original eq [$photo data]}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1}
+        }
+    }
+
+    set testCase(81) 0
+    foreach renderer {native cairo} {
+        foreach type {graph trackgraph} {
+            foreach inverted {0 1} {
+                foreach dashes {{} {4 2}} {
+                    test graph.renderer.81.[incr testCase(81)] {native XOR crosshairs erase exactly after movement and redraw} \
+                            -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                        ::rbc::$type .renderer -renderer $renderer -invertxy $inverted -width 400 -height 300 \
+                                -plotbackground white
+                        pack .renderer
+                        .renderer axis configure x -min 0 -max 10
+                        .renderer axis configure y -min 0 -max 10
+                        if {$type eq "trackgraph"} {.renderer track create first -yaxes y}
+                        .renderer grid configure -hide no -color lightblue -dashes {3 2}
+                        .renderer crosshairs configure -hide yes -color red -linewidth 2 -dashes $dashes
+                        set background [.renderer cget -background]
+                        set photo [image create photo]
+                        update
+                    } -body {
+                        ::rbc::winop snap .renderer $photo
+                        set original [$photo data]
+                        if {$type eq "trackgraph"} {
+                            lassign [.renderer track transform first 3 4] x y
+                        } else {
+                            lassign [.renderer transform 3 4] x y
+                        }
+                        set position @[expr {int($x)}],[expr {int($y)}]
+                        .renderer crosshairs configure -position $position -hide no
+                        ::rbc::winop snap .renderer $photo
+                        set visible [expr {$original ne [$photo data]}]
+                        .renderer crosshairs configure -position @[expr {int($x)+12}],[expr {int($y)+12}]
+                        .renderer crosshairs configure -hide yes
+                        ::rbc::winop snap .renderer $photo
+                        set erased [expr {$original eq [$photo data]}]
+                        # Also erase without movement, then retrace a round trip.
+                        .renderer crosshairs configure -position $position -hide no
+                        .renderer crosshairs configure -hide yes
+                        ::rbc::winop snap .renderer $photo
+                        set stationary [expr {$original eq [$photo data]}]
+                        .renderer crosshairs configure -position $position -hide no
+                        .renderer crosshairs configure -position @[expr {int($x)+12}],[expr {int($y)+12}]
+                        .renderer crosshairs configure -position $position
+                        .renderer crosshairs configure -hide yes
+                        ::rbc::winop snap .renderer $photo
+                        set roundtrip [expr {$original eq [$photo data]}]
+                        .renderer crosshairs configure -position $position -hide no
+                        .renderer configure -background ivory
+                        update
+                        .renderer crosshairs configure -hide yes
+                        .renderer configure -background $background
+                        update
+                        # Compare against a full redraw with the original background.
+                        .renderer snap $photo
+                        set redrawn [$photo data]
+                        ::rbc::winop snap .renderer $photo
+                        list $visible $erased $stationary $roundtrip [expr {$redrawn eq [$photo data]}]
+                    } -cleanup {
+                        destroy .renderer
+                        catch {image delete $photo}
+                    } -result {1 1 1 1 1}
+                }
+            }
+        }
+    }
+
+    set testCase(82) 0
+    foreach renderer {native cairo} {
+        foreach type {graph trackgraph} {
+            foreach inverted {0 1} {
+                foreach buffers {{0 0} {0 1} {1 0} {1 1}} {
+                    test graph.renderer.82.[incr testCase(82)] {screen copies restore cached plots and transparent legends after redraw and resize} \
+                            -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                        lassign $buffers bufferGraph bufferElements
+                        ::rbc::$type .renderer -renderer $renderer -invertxy $inverted -width 400 -height 300 \
+                                -buffergraph $bufferGraph -bufferelements $bufferElements -plotbackground white
+                        pack .renderer
+                        .renderer axis configure x -min 0 -max 10
+                        .renderer axis configure y -min 0 -max 10
+                        .renderer legend configure -position plotarea -anchor ne -background {}
+                        set options {}
+                        if {$type eq "trackgraph"} {
+                            .renderer legend configure -hide yes
+                            foreach track {first second} {
+                                .renderer axis create $track -min 0 -max 10 -title $track
+                                .renderer track create $track -yaxes $track
+                                .renderer line create $track -track $track -mapy $track \
+                                        -data {0 2 5 8 10 2} -color blue -symbol none -label $track
+                                .renderer track legend $track configure -hide no -position right -background {}
+                            }
+                            set options {-track first -mapy first}
+                        }
+                        .renderer element create signal -data {0 8 5 2 10 8} -color red -symbol none \
+                                -label Signal {*}$options
+                        set photo [image create photo]
+                        update
+                    } -body {
+                        ::rbc::winop snap .renderer $photo
+                        set original [$photo data]
+                        .renderer element configure signal -color green
+                        update
+                        ::rbc::winop snap .renderer $photo
+                        set changed [expr {$original ne [$photo data]}]
+                        .renderer element configure signal -color red
+                        update
+                        ::rbc::winop snap .renderer $photo
+                        set restored [expr {$original eq [$photo data]}]
+                        .renderer configure -width 480 -height 360
+                        update
+                        .renderer configure -width 400 -height 300
+                        update
+                        ::rbc::winop snap .renderer $photo
+                        list $changed $restored [expr {$original eq [$photo data]}]
+                    } -cleanup {
+                        destroy .renderer
+                        catch {image delete $photo}
+                    } -result {1 1 1}
+                }
+            }
+        }
+    }
+
+    set testCase(83) 0
+    foreach renderer {native cairo} {
+        test graph.renderer.83.[incr testCase(83)] {alternating export backends retain independent state and restore the screen} \
+                -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+            StrokeFixture graph $renderer
+            .renderer marker create arc -coords {2 2 8 8} -start 25 -extent 220 \
+                    -style pieslice -fill lightblue -outline navy
+            .renderer marker create text -coords {5 5} -text Backend -rotate 25 -foreground black
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set before [$photo data]
+            set outputs {}
+            set valid 1
+            foreach format {svg pdf postscript postscript pdf svg} {
+                set output [.renderer $format output]
+                # Only the wall-clock creation date may differ between PS documents.
+                if {$format eq "postscript"} {
+                    regsub -line {^%%CreationDate:.*$} $output {} output
+                }
+                if {[dict exists $outputs $format]} {
+                    if {$output ne [dict get $outputs $format]} {set valid 0}
+                } else {
+                    dict set outputs $format $output
+                }
+            }
+            .renderer snap $photo
+            list $valid [expr {$before eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1}
+    }
+
+    set testCase(84) 0
+    foreach symbol {circle square plus cross diamond triangle arrow} {
+        test graph.renderer.84.[incr testCase(84)] {native symbol batches retain every symbol independent of input order and resize} -setup {
+            StrokeFixture graph native
+            set data {}
+            set reverse {}
+            for {set row 0} {$row < 20} {incr row} {
+                for {set column 0} {$column < 20} {incr column} {
+                    set pair [list [expr {0.25 + $column * 0.5}] [expr {0.25 + $row * 0.5}]]
+                    lappend data {*}$pair
+                    set reverse [concat $pair $reverse]
+                }
+            }
+            .renderer element configure signal -data $data -linewidth 0 -symbol $symbol \
+                    -pixels 3 -scalesymbols no -fill red -outline black -outlinewidth 1
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set before [$photo data]
+            set ink [lindex [PlotInk $photo] 0]
+            .renderer element configure signal -data $reverse
+            .renderer snap $photo
+            set reordered [expr {$before eq [$photo data]}]
+            .renderer configure -width 320 -height 240
+            update
+            .renderer snap $photo
+            .renderer configure -width 240 -height 180
+            update
+            .renderer snap $photo
+            list [expr {$ink > 400}] $reordered [expr {$before eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1}
+    }
+
+    set testCase(85) 0
+    foreach renderer {native cairo} {
+        foreach kind {text bitmap mixed} {
+            test graph.renderer.85.[incr testCase(85)] {marker runs match individually flushed drawing without changing painter order} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                lassign [BitmapFixture $renderer] bitmap mask
+                .renderer marker delete m
+                set separators {}
+                for {set i 0} {$i < 12} {incr i} {
+                    set x [expr {1.0 + ($i % 4) * 2.5}]
+                    set y [expr {2.0 + ($i / 4) * 3.0}]
+                    if {$kind ne "bitmap"} {
+                        .renderer marker create text -name text$i -coords [list $x $y] \
+                                -text "Run $i" -foreground red -background {} -rotate [expr {($i % 3) * 30}]
+                        lappend separators [.renderer marker create polygon -coords {1 1 2 1 2 2} \
+                                -fill {} -outline {} -hide yes]
+                    }
+                    if {$kind ne "text"} {
+                        .renderer marker create bitmap -name bitmap$i -coords [list $x $y] \
+                                -bitmap @$bitmap -foreground black -background blue -rotate 0
+                        lappend separators [.renderer marker create polygon -coords {1 1 2 1 2 2} \
+                                -fill {} -outline {} -hide yes]
+                    }
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set before [$photo data]
+                set visible [expr {[lindex [PlotInk $photo] 0] > 0}]
+                # A visible, unpainted polygon ends the preceding Windows run.
+                # Hidden separators are skipped, allowing adjacent markers to batch.
+                foreach marker $separators {.renderer marker configure $marker -hide no}
+                .renderer snap $photo
+                set individual [expr {$before eq [$photo data]}]
+                foreach marker $separators {.renderer marker configure $marker -hide yes}
+                .renderer snap $photo
+                list $visible $individual [expr {$before eq [$photo data]}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+                removeFile renderer-bitmap.xbm
+                removeFile renderer-mask.xbm
+            } -result {1 1 1}
+        }
+    }
+
+    set testCase(86) 0
+    foreach renderer {native cairo} {
+        test graph.renderer.86.[incr testCase(86)] {rotated backgrounds, arrowheads and native legend samples restore after redraw} \
+                -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+            StrokeFixture graph $renderer
+            .renderer configure -width 400 -height 300 -buffergraph no -bufferelements no
+            .renderer element configure signal -label Dashed -dashes {3 5} -linewidth 2 -color navy
+            .renderer bar create bars -data {3 4 7 6} -label Stipple -foreground purple \
+                    -background yellow -stipple gray50 -barwidth 0.8
+            .renderer legend configure -hide no -position rightmargin
+            .renderer marker create text -name label -coords {5 7} -text "Rotated\nbackground" \
+                    -rotate 37 -foreground black -background lightblue
+            .renderer marker create line -name arrow -coords {1 1 9 9} -arrow both -arrowshape {12 18 6} \
+                    -linewidth 2 -dashes {4 3} -outline red
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set before [$photo data]
+            .renderer marker configure label -background orange
+            .renderer marker configure arrow -outline blue
+            .renderer snap $photo
+            set changed [expr {$before ne [$photo data]}]
+            .renderer marker configure label -background lightblue
+            .renderer marker configure arrow -outline red
+            .renderer snap $photo
+            set restored [expr {$before eq [$photo data]}]
+            .renderer legend configure -hide yes
+            .renderer snap $photo
+            .renderer legend configure -hide no
+            .renderer snap $photo
+            list $changed $restored [expr {$before eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1}
+    }
+
+    cleanupTests
+}

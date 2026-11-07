@@ -59,7 +59,7 @@ keep those controlled and record them separately. Keep comparison output outside
 Utility tests:
 
 ```sh
-tclsh91 tests/benchmark/RBC.benchmark.revisions.A.test
+tclsh91 tests/benchmark/benchmark.revisions.test
 ```
 
 ## Line and strip benchmark
@@ -261,7 +261,7 @@ and HTML generation do not require a browser installation.
 Run these headless tests separately from the Tk widget suite:
 
 ```sh
-tclsh tests/benchmark/RBC.benchmark.compare.A.test
+tclsh tests/benchmark/benchmark.compare.test
 ```
 
 They cover both schemas, quoted/multiline CSV, repeated runs, matching rules, antialias variants, missing pairs,

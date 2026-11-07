@@ -1,0 +1,423 @@
+# graph.pdf.test --
+#
+###Abstract
+# Cairo-independent PDF export: options, byte offsets, binary output,
+# resources, supported drawing primitives, errors and geometry restoration.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide graph.pdf
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.pdf {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {9 0 10 0 11 0}
+    proc Setup {{kind graph}} {
+        rbc::$kind .pdf -width 420 -height 320 -renderer native -title {PDF test}
+        pack .pdf
+        update
+    }
+
+    # Validate every object offset, not just the PDF signature or trailer.
+    proc CheckDocument {document} {
+        if {![string match {%PDF-1.4*} $document] || ![regexp {startxref\n([0-9]+)\n%%EOF\n$} $document -> start]} {
+            return 0
+        }
+        set table [string range $document $start end]
+        if {![regexp {^xref\n0 ([0-9]+)\n} $table -> count]} {
+            return 0
+        }
+        set rows [split $table \n]
+        if {[lindex $rows 2] ne {0000000000 65535 f }} {
+            return 0
+        }
+        for {set id 1} {$id < $count} {incr id} {
+            scan [lindex $rows [expr {$id+2}]] {%d %d %s} offset generation state
+            if {$generation != 0 || $state ne "n" ||
+                [string range $document $offset [expr {$offset+[string length "$id 0 obj"]-1}]] ne "$id 0 obj"} {
+                return 0
+            }
+        }
+        # Each stream length must end immediately before its endstream.
+        set from 0
+        while {[regexp -start $from -indices {/Length ([0-9]+) >>\nstream\n} $document match digits]} {
+            lassign $match first last
+            set length [string range $document {*}$digits]
+            set end [expr {$last+1+$length}]
+            if {[string range $document $end [expr {$end+9}]] ne "\nendstream"} {
+                return 0
+            }
+            set from [expr {$end+10}]
+        }
+        return 1
+    }
+
+    # 1. Command options and validation are independent of other exporters.
+    test graph.pdf.5.1 {named export resources support class defaults, instance precedence and all graph types} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *Pdf.Width 510
+            option add *Pdf.Height 320
+            option add *Pdf.Decorations false
+            option add *Pdf.EmbedFonts false
+            option add *g.pdf.width 620
+            set result {}
+            foreach type {graph barchart stripchart polar trackgraph} {
+                rbc::$type .g
+                lappend result [.g pdf cget -width] [.g pdf cget -height] \
+                    [.g pdf cget -decorations] [.g pdf cget -embedfonts] \
+                    [.g svg cget -width] [expr {[winfo children .g] eq {}}]
+                destroy .g
+            }
+            expr {$result eq [concat {620 320 0 0 0 1} {620 320 0 0 0 1} {620 320 0 0 0 1} {620 320 0 0 0 1} {620 320 0 0 0 1}]}
+        }
+    } -cleanup {interp delete exportOptionChild} -result 1
+
+    test graph.pdf.6.1 {database changes affect new widgets only; configure and output override initialized values} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *pdf.width 510
+            rbc::graph .g
+            option add *pdf.width 610
+            rbc::graph .h
+            set result [list [.g pdf cget -width] [.h pdf cget -width]]
+            .g pdf configure -width 520
+            lappend result [.g pdf configure -width]
+            .g pdf output -width 530
+            lappend result [.g pdf cget -width] [.g svg cget -width]
+            set result
+        }
+    } -cleanup {interp delete exportOptionChild} -result {510 610 {-width width Width 0 520} 530 0}
+
+    test graph.pdf.7.1 {invalid database dimensions and booleans fail widget creation cleanly} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            set result {}
+            foreach {resource value} {width -1 height bogus decorations bogus embedFonts bogus} {
+                option clear
+                option add *pdf.$resource $value
+                lappend result [catch {rbc::graph .g}] [expr {![winfo exists .g] && [info commands .g] eq {}}]
+                option clear
+                rbc::graph .g
+                destroy .g
+            }
+            expr {0 ni $result}
+        }
+    } -cleanup {interp delete exportOptionChild} -result 1
+
+    test graph.pdf.8.1 {screen-distance resource values are converted to pixels} -setup {
+        interp create exportOptionChild
+        interp eval exportOptionChild [list set auto_path $::auto_path]
+        interp eval exportOptionChild {package require rbc; wm withdraw .}
+    } -body {
+        interp eval exportOptionChild {
+            option add *pdf.width 2c
+            option add *pdf.height 1i
+            rbc::graph .g
+            list [expr {[.g pdf cget -width]==[winfo pixels .g 2c]}] \
+                [expr {[.g pdf cget -height]==[winfo pixels .g 1i]}]
+        }
+    } -cleanup {interp delete exportOptionChild} -result {1 1}
+
+    test graph.pdf.1.1 {defaults and option descriptors} -setup {
+        Setup
+    } -body {
+        list [.pdf pdf cget -width] [.pdf pdf cget -height] [.pdf pdf cget -decorations] [.pdf pdf configure -width]\
+                [llength [.pdf pdf configure]]
+    } -cleanup {destroy .pdf} -result {0 0 1 {-width width Width 0 0} 4}
+
+    test graph.pdf.1.2 {transactional options and independent SVG settings} -setup {
+        Setup
+    } -body {
+        .pdf pdf configure -width 600 -height 400
+        set failed [catch {.pdf pdf configure -width 900 -decorations invalid}]
+        list $failed [.pdf pdf cget -width] [.pdf pdf cget -height] [.pdf svg cget -width]
+    } -cleanup {destroy .pdf} -result {1 600 400 0}
+
+    set case 0
+    foreach args {{-width -1} {-height -2} {-width} {-unknown 2}} {
+        test graph.pdf.9.[incr testCase(9)] {invalid dimensions/options fail} -setup {
+            Setup
+        } -body {
+            catch {.pdf pdf output {*}$args}
+        } -cleanup {destroy .pdf} -result 1
+    }
+
+    # 2. All graph classes emit a standalone single-page PDF without Cairo.
+    foreach kind {graph barchart stripchart polar} {
+        test graph.pdf.10.[incr testCase(10)] {valid document and classic cross-reference table} -setup {
+            Setup $kind
+        } -body {
+            set document [.pdf pdf output]
+            list [CheckDocument $document] [regexp {/Type /Pages /Kids \[3 0 R\] /Count 1} $document]
+        } -cleanup {destroy .pdf} -result {1 1}
+    }
+
+    test graph.pdf.2.2 {binary file and returned bytearray agree} -setup {
+        Setup
+        set filename [makeFile {} pdf-output.pdf]
+        set photo [image create photo -width 2 -height 2]
+        $photo put {{#000000 #ff0000} {#00ff00 #0000ff}}
+        .pdf marker create image -coords {0.5 0.5} -image $photo
+    } -body {
+        set memory [.pdf pdf output]
+        .pdf pdf output $filename
+        set channel [open $filename rb]
+        set disk [read $channel]
+        close $channel
+        list [expr {$disk eq $memory}] [CheckDocument $disk] [regexp {/Subtype /Image} $disk]
+    } -cleanup {
+        destroy .pdf
+        image delete $photo
+        removeFile pdf-output.pdf
+    } -result {1 1 1}
+
+    test graph.pdf.2.3 {resized export restores geometry and remaps ellipse} -setup {
+        Setup
+        .pdf marker create arc -coords {0.2 0.2 0.8 0.8} -fill blue -outline red
+        update
+    } -body {
+        set before [.pdf transform 0.5 0.5]
+        set original [.pdf pdf output]
+        set enlarged [.pdf pdf output -width 800 -height 600]
+        set after [.pdf transform 0.5 0.5]
+        set restored [.pdf pdf output -width 0 -height 0]
+        list [expr {$before eq $after}] [expr {$original ne $enlarged}] [expr {$original eq $restored}]
+    } -cleanup {destroy .pdf} -result {1 1 1}
+
+    test graph.pdf.2.4 {physical dimensions are converted to PDF points} -setup {
+        Setup
+    } -body {
+        set document [.pdf pdf output -width 2i -height 1i]
+        regexp {/MediaBox \[0 0 ([0-9.]+) ([0-9.]+)\]} $document -> width height
+        expr {abs($width-144) < 1 && abs($height-72) < 1}
+    } -cleanup {destroy .pdf} -result 1
+
+    # 3. Exercise geometry, images, font encoding and resource-array growth.
+    test graph.pdf.3.1 {arrows, arc styles, symbols and opacity resources} -setup {
+        Setup
+        .pdf element create trace -data {0 0 0.5 1 1 0.3} -symbol diamond -color navy \
+            -areapattern solid -areaforeground blue -areaopacity 0.4
+        .pdf marker create line -coords {0.2 0.2 0.8 0.8} -arrow both -outline red
+        foreach style {arc chord pieslice} start {0 90 180} {
+            .pdf marker create arc -coords {0.2 0.2 0.8 0.8} -style $style -start $start -extent 60 -fill orange\
+                    -outline black
+        }
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/ExtGState /ca 0.40000000} $document]\
+                [regexp { c\n} $document] [regexp { re W n} $document]
+    } -cleanup {destroy .pdf} -result {1 1 1 1}
+
+    test graph.pdf.3.2 {embedded Unicode text escapes PDF delimiters safely} -setup {
+        Setup
+        .pdf configure -title {Café (test) \ €}
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/ToUnicode} $document]\
+                [regexp {<[0-9A-F]+> <00E9>} $document] [regexp {<[0-9A-F]+> <20AC>} $document]
+    } -cleanup {destroy .pdf} -result {1 1 1 1}
+
+    test graph.pdf.3.3 {missing glyph fails before destination is opened} -setup {
+        Setup
+        set filename [makeFile sentinel pdf-error.pdf]
+        .pdf configure -title \U0010ffff
+        set before [.pdf transform 0.5 0.5]
+    } -body {
+        set code [catch {.pdf pdf output $filename -width 800} message]
+        set channel [open $filename r]
+        set contents [string trim [read $channel]]
+        close $channel
+        list $code [string match {*font*} $message] $contents [expr {$before eq [.pdf transform 0.5 0.5]}]
+    } -cleanup {
+        destroy .pdf
+        removeFile pdf-error.pdf
+    } -result {1 1 sentinel 1}
+
+    test graph.pdf.3.4 {many distinct resources survive storage growth} -setup {
+        Setup
+        set photos {}
+        for {set i 0} {$i < 40} {incr i} {
+            set p [image create photo -width 1 -height 1]
+            $p put [format "#%02x0000" $i]
+            lappend photos $p
+            .pdf marker create image -coords [list [expr {$i/40.0}] 0.5] -image $p
+        }
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp -all {/Subtype /Image} $document]
+    } -cleanup {
+        destroy .pdf
+        image delete {*}$photos
+    } -result {1 40}
+
+    test graph.pdf.3.5 {stipple pattern and alpha soft mask} -setup {
+        Setup
+        .pdf marker create polygon -coords {0.1 0.1 0.9 0.1 0.9 0.9} -fill blue -stipple gray50
+        set photo [image create photo -width 2 -height 1]
+        $photo put {{#ff000080 #00ff0000}}
+        .pdf marker create image -coords {0.5 0.5} -image $photo
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/PatternType 1} $document] [regexp {/SMask} $document]
+    } -cleanup {
+        destroy .pdf
+        image delete $photo
+    } -result {1 1 1}
+
+    foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+        test graph.pdf.11.[incr testCase(11)] {geometric symbol exports through PDF callbacks} -setup {
+            Setup
+            .pdf element create trace -data {0 0 0.5 1 1 0.3} -symbol $symbol
+        } -body {
+            CheckDocument [.pdf pdf output]
+        } -cleanup {destroy .pdf} -result 1
+    }
+
+    test graph.pdf.4.2 {bar fill rectangles use mapped integer coordinates} -setup {
+        Setup barchart
+        .pdf element create bars -data {1 2 2 3} -foreground red
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {\n[0-9]+ [0-9]+ [0-9]+ [0-9]+ re f\n} $document]
+    } -cleanup {destroy .pdf} -result {1 1}
+
+    test graph.pdf.4.3 {photo tile creates a pattern with an image resource} -setup {
+        Setup
+        set photo [image create photo -width 2 -height 2]
+        $photo put {{red blue} {blue red}}
+        .pdf element create trace -data {0 0 0.5 1 1 0} -areatile $photo
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/PatternType 1} $document] [regexp {/Subtype /Image} $document]
+    } -cleanup {
+        destroy .pdf
+        image delete $photo
+    } -result {1 1 1}
+
+    test graph.pdf.4.4 {mapped window is captured as an image} -setup {
+        Setup
+        button .pdf.info -text Info
+        .pdf marker create window -coords {0.5 0.5} -window .pdf.info -width 60 -height 25
+        update
+    } -body {
+        set document [.pdf pdf output]
+        list [CheckDocument $document] [regexp {/Subtype /Image} $document]
+    } -cleanup {destroy .pdf} -result {1 1}
+
+    Setup
+    set available [expr {![catch {.pdf configure -renderer cairo}]}]
+    destroy .pdf
+    testConstraint pdfCairo $available
+    test graph.pdf.4.5 {PDF output is independent of the screen renderer} -constraints pdfCairo -setup {
+        Setup
+        .pdf element create trace -data {0 0 0.5 1 1 0.3} -symbol circle
+    } -body {
+        set native [.pdf pdf output]
+        .pdf configure -renderer cairo
+        expr {$native eq [.pdf pdf output]}
+    } -cleanup {destroy .pdf} -result 1
+
+    test graph.pdf.12.1 {complete metadata uses stable defaults and current configured values} -setup {
+        Setup
+        .pdf pdf configure -w 321 -h 234 -d no -e yes
+    } -body {
+        set result {}
+        foreach info [.pdf pdf configure] {
+            set name [lindex $info 0]
+            lappend result [expr {$info eq [.pdf pdf configure $name]}] \
+                [expr {[lindex $info 4] eq [.pdf pdf cget $name]}]
+        }
+        list [expr {0 ni $result}] [.pdf pdf configure]
+    } -cleanup {destroy .pdf} -result {1 {{-width width Width 0 321} {-height height Height 0 234} {-decorations decorations Decorations 1 0} {-embedfonts embedFonts EmbedFonts 1 1}}}
+
+    test graph.pdf.12.2 {ambiguous options preserve state and report the component's option list} -setup {
+        Setup
+    } -body {
+        set before [.pdf pdf configure]
+        set failed [catch {.pdf pdf configure -w 700 - 1} message]
+        list $failed $message [expr {$before eq [.pdf pdf configure]}]
+    } -cleanup {destroy .pdf} -result {1 {ambiguous PDF option "-": must be -width, -height, -decorations, or -embedfonts} 1}
+
+
+    test graph.pdf.13.1 {unembedded text errors do not poison subsequent PDF and SVG exports} -setup {
+        Setup
+        .pdf configure -title "unsupported\u0100"
+    } -body {
+        set failed [catch {.pdf pdf output -embedfonts no} message]
+        .pdf configure -title recovered
+        list $failed $message [CheckDocument [.pdf pdf output]] \
+            [string match {<?xml*} [.pdf svg output -embedfonts no]]
+    } -cleanup {destroy .pdf} -result {1 {PDF text contains a character outside Windows-1252; enable -embedfonts} 1 1}
+
+
+    test graph.pdf.14.1 {option order, abbreviations and duplicate values retain transaction semantics} -setup {
+        Setup
+    } -body {
+        .pdf pdf conf -e no -h 2c -d false -w 100 -width 240
+        list [.pdf pdf cg -width] \
+                [expr {[.pdf pdf cget -height] == [winfo pixels .pdf 2c]}] \
+                [.pdf pdf cget -decorations] [.pdf pdf cget -embedfonts]
+    } -cleanup {destroy .pdf} -result {240 1 0 0}
+
+    test graph.pdf.14.2 {invalid output options preserve configuration and destination} -setup {
+        Setup
+        set filename [makeFile sentinel pdf-options-error.tmp]
+        set before [.pdf pdf configure]
+    } -body {
+        set result {}
+        foreach args {{-width 700 -embedfonts invalid} {-width 700 -height} {-width 700 -unknown 1}} {
+            lappend result [catch {.pdf pdf output $filename {*}$args}] \
+                    [expr {$before eq [.pdf pdf configure]}]
+        }
+        lappend result [string trim [viewFile $filename]]
+        set result
+    } -cleanup {
+        removeFile $filename
+        destroy .pdf
+    } -result {1 1 1 1 1 1 sentinel}
+
+    test graph.pdf.14.3 {open failure restores screen geometry but retains valid output options} -setup {
+        Setup
+        set before [.pdf transform 0 0]
+        set filename [file join $::tcltest::temporaryDirectory missing-pdf-directory out.pdf]
+    } -body {
+        set code [catch {.pdf pdf output $filename -w 700 -h 500 -embedfonts no} message options]
+        set restored [expr {$before eq [.pdf transform 0 0]}]
+        set configured [list [.pdf pdf cget -width] [.pdf pdf cget -height]]
+        set document [.pdf pdf output]
+        list $code [lindex [dict get $options -errorcode] 0] $restored $configured \
+                [expr {[string length $document] > 0}]
+    } -cleanup {destroy .pdf} -result {1 POSIX 1 {700 500} 1}
+
+    testConstraint pdfFullDevice [expr {$::tcl_platform(platform) eq "unix" && [file exists /dev/full]}]
+    test graph.pdf.14.4 {write failure preserves error details and allows another export} \
+            -constraints pdfFullDevice -setup {
+        Setup
+        set before [.pdf transform 0 0]
+    } -body {
+        set code [catch {.pdf pdf output /dev/full -width 700 -embedfonts no} message options]
+        list $code [lrange [dict get $options -errorcode] 0 1] \
+                [expr {$before eq [.pdf transform 0 0]}] \
+                [expr {[string length [.pdf pdf output]] > 0}]
+    } -cleanup {destroy .pdf} -result {1 {POSIX ENOSPC} 1 1}
+
+    cleanupTests
+}

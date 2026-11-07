@@ -17,16 +17,16 @@ proc sleep { ms } {
 
 proc LoadSources {CommandList CommandName} {
     foreach command $CommandList {
-        source "RBC.graphtoolbar.$CommandName.$command.M.tcl"
+        source "graphtoolbar.$CommandName.$command.tcl"
     }
 }
 
 proc ProcNameGenCommand {commandName command major minor} {
-    return "graphtoolbar.$commandName\::RBC.graphtoolbar.$commandName.$command.M.$major.$minor"
+    return "graphtoolbar.$commandName\::graphtoolbar.$commandName.$command.$major.$minor"
 }
 
 proc ProcNameGenNoCommand {commandName major minor} {
-    return "graphtoolbar.$commandName\::RBC.graphtoolbar.$commandName.M.$major.$minor"
+    return "graphtoolbar.$commandName\::graphtoolbar.$commandName.$major.$minor"
 }
 
 proc ExecuteCommandSequenceCommand {CommandList CommandName} {

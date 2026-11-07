@@ -1,0 +1,340 @@
+# graph.marker.configure.image.test --
+#
+###Abstract
+# This file contains the automatic tests that test the image marker configure
+# function of the graph BLT component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide graph.marker
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval graph.marker {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image
+	# markers when given 'n' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.1 {
+		graph marker configure image: anchor - n
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor n
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {n}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given 'ne' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.2 {
+		graph marker configure image: anchor - ne
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor ne
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {ne}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given 'e' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.3 {
+		graph marker configure image: anchor - e
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor e
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {e}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image
+	# markers when given 'se' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.4 {
+		graph marker configure image: anchor - se
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor se
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {se}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given 's' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.5 {
+		graph marker configure image: anchor - s
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor s
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {s}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given 'sw' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.6 {
+		graph marker configure image: anchor - sw
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor sw
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {sw}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given 'w' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.7 {
+		graph marker configure image: anchor - w
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor w
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {w}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given 'nw' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.8 {
+		graph marker configure image: anchor - nw
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor nw
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {nw}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given 'center' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.9 {
+		graph marker configure image: anchor - center
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor center
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {center}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given invalid numerical input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.10 {
+		graph marker configure image: anchor - invalid numerical input
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -anchor 3.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for image 
+	# markers when given invalid character input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.1.11 {
+		graph marker configure image: anchor - invalid character input
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -anchor invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure configuring image changes the coresponding option value pair
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.image.2.1 {
+	    graph marker configure image: image - valid image name
+	} -setup {
+		graph .graph1
+		.graph1 marker create image -name marker1
+		
+		# the following should set Image1 to the designated name
+		set Image1 [image create photo image.a.2.1 -data {
+						R0lGODlhEAAQAIYAAPwCBHSi1Iyy5Hym3Hym1GSWxJS65Lza/OT2/Pz+/PT+
+						/KTK5DxmlJS67PT6/Pz6/Lzm/BRGhHSe1MTe/OTy/Oz2/Mzm/NTq/FSKtJS2
+						7PT2/MTi/LTa/AQyVOTu/Lze/LTS/JTC9MTq/Mzi/KzK/KTC/KS+/BQuRJzG
+						/KzO/LTO/KS6/Jy2/DRmpAQOHEx+rLTK/Jy+/Iym/Jyq/GSK/GSOrIyCBHSi
+						5HyW/DxuxFxqhPT+dPzqbHRCBAQmPBxenBxSjBxanARGfMRyDOymNOTCnPTG
+						fIRKDMyGNOzGlISu7GSOzIROBPTGjJSy9EyGvIxODNSORMSWTLxyFDx6tBxe
+						lKRiJGQ6BCQWBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+						AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+						AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAAA
+						LAAAAAAQABAAAAesgACCAQIDBAWCiYoABgcICQoJCwyLgg0OCQkPmgoQEYsS
+						E5mYFBUWFxiLGZmbGhoWGxMcHYoDChoOFR4fByAcIbSJAyIXIxYgICQkJSbB
+						gicovCkqJSssKy0uiy8bIDAxLDIzNDU2lS031TI4OTo7PD2VPj9AQUIuQ0RF
+						RvGVi0dIkvATpGSJPwBMkDQxwkSCkyc3DkKJImUKlSdVhBxEaOUKACVVNgrC
+						AsBPIAAh/mhDcmVhdGVkIGJ5IEJNUFRvR0lGIFBybyB2ZXJzaW9uIDIuNQ0K
+						qSBEZXZlbENvciAxOTk3LDE5OTguIEFsbCByaWdodHMgcmVzZXJ2ZWQuDQpo
+						dHRwOi8vd3d3LmRldmVsY29yLmNvbQA7
+		    		}]
+	} -body {
+		.graph1 marker configure marker1 -image $Image1
+		.graph1 marker cget marker1 -image
+	} -cleanup {
+		image delete $Image1
+	    .graph1 marker delete marker1
+		destroy .graph1
+	} -result {image.a.2.1}
+
+    test graph.marker.configure.image.3.1 {
+        image marker configuration is atomic
+    } -setup {
+        graph .graph1
+        image create photo image1 -width 8 -height 8
+        .graph1 marker create image -name Marker1 -coords {0 0} -anchor center -image image1
+        set oldCoords [.graph1 marker cget Marker1 -coords]
+        set oldAnchor [ .graph1 marker cget Marker1 -anchor]
+        set oldImage [.graph1 marker cget Marker1 -image]
+    } -body {
+        set code [catch {.graph1 marker configure Marker1 -coords {2 2 4 4} -anchor nw -image imageDoesNotExist}\
+                          message]
+        list $code [expr {[.graph1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.graph1 marker cget Marker1 -anchor] eq $oldAnchor}]\
+                [expr {[.graph1 marker cget Marker1 -image] eq $oldImage}]
+    } -cleanup {
+        destroy .graph1
+        image delete image1
+        unset -nocomplain oldCoords oldAnchor oldImage code message
+    } -result {1 1 1 1}
+
+    test graph.marker.configure.image.4.1 {
+        modern image marker resource lifetime
+    } -body {
+        for {set i 0} {$i < 200} {incr i} {
+            graph .graph1
+            pack .graph1
+            image create photo image1 -width 8 -height 8
+            image create photo image2 -width 16 -height 16
+            .graph1 marker create image -name Marker1 -coords {0 0} -image image1
+            update idletasks
+            .graph1 marker configure Marker1 -coords {1 1 3 3} -image image2
+            .graph1 marker configure Marker1 -image {}
+            .graph1 marker configure Marker1 -image image1
+            image delete image1
+            update idletasks
+            .graph1 marker delete Marker1
+            destroy .graph1
+            image delete image2
+        }
+        update
+        return ok
+    } -cleanup {
+        catch {destroy .graph1}
+        catch {image delete image1}
+        catch {image delete image2}
+    } -result ok
+
+    test graph.marker.configure.image.4.2 {
+        scaled image cleanup ignores a failing Tcl image deletion wrapper
+    } -setup {
+        graph .graph1 -width 320 -height 240
+        pack .graph1
+        .graph1 axis configure x -min 0 -max 10
+        .graph1 axis configure y -min 0 -max 10
+        set source [image create photo -width 4 -height 4]
+        $source put red -to 0 0 4 4
+        set baseline [lsort [image names]]
+        .graph1 marker create image -name Marker1 -coords {2 2 8 8} -image $source
+        update
+    } -body {
+        set created [expr {[lsort [image names]] ne $baseline}]
+        rename ::image ::rbcImageCleanupOriginal
+        proc ::image {args} {
+            if {[lindex $args 0] eq "delete"} {error "image deletion blocked"}
+            uplevel 1 [list ::rbcImageCleanupOriginal {*}$args]
+        }
+        .graph1 marker configure Marker1 -coords {5 5}
+        update
+        set natural [expr {[lsort [image names]] eq $baseline}]
+        .graph1 marker configure Marker1 -coords {2 2 8 8}
+        update
+        destroy .graph1
+        list $created $natural [expr {[lsort [image names]] eq $baseline}]
+    } -cleanup {
+        if {[llength [info commands ::rbcImageCleanupOriginal]]} {
+            rename ::image {}
+            rename ::rbcImageCleanupOriginal ::image
+        }
+        catch {destroy .graph1}
+        foreach name [image names] {
+            if {$name ni $baseline} {image delete $name}
+        }
+        image delete $source
+    } -result {1 1 1}
+
+	cleanupTests
+}

@@ -1,0 +1,2245 @@
+# graph.legend.configure.test --
+#
+###Abstract
+# This file contains the automatic tests that test the legend configure 
+# function of the graph BLT component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide graph.legend
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval graph.legend {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {23 0 24 0 26 0}
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activebackground configuration works for valid colors.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.1.1 {
+	    graph legend: configure - activebackground - valid color
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activebackground black
+	    .graph1 legend cget -activebackground
+	} -cleanup {
+	    destroy .graph1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activebackground configuration works for invalid colors.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.1.2 {
+	    graph legend: configure - activebackground - invalid color
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -activebackground invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activeborderwidth configuration works for valid integer
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.2.1 {
+	    graph legend: configure - activeborderwidth - valid integer input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activeborderwidth 20
+	    .graph1 legend cget -activeborderwidth
+	} -cleanup {
+	    destroy .graph1
+	} -result {20}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activeborderwidth configuration works for invalid integer
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.2.2 {
+	    graph legend: configure - activeborderwidth - invalid integer input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -activeborderwidth -20}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activeborderwidth configuration works for valid decimal
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.2.3 {
+	    graph legend: configure - activeborderwidth - valid decimal input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activeborderwidth 20.5
+	    .graph1 legend cget -activeborderwidth
+	} -cleanup {
+	    destroy .graph1
+	} -result {20.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activeborderwidth configuration works for invalid decimal
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.2.4 {
+	    graph legend: configure - activeborderwidth - invalid decimal input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -activeborderwidth -20.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activeborderwidth configuration works for character input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.2.5 {
+	    graph legend: configure - activeborderwidth - character input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -activeborderwidth invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activeborderwidth configuration works when given 0 as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.2.6 {
+	    graph legend: configure - activeborderwidth - 0
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activeborderwidth 0
+	    .graph1 legend cget -activeborderwidth
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activeforeground configuration works for valid colors.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.3.1 {
+	    graph legend: configure - activeforeground - valid color
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activeforeground black
+	    .graph1 legend cget -activeforeground
+	} -cleanup {
+	    destroy .graph1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activeforeground configuration works for invalid input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.3.2 {
+	    graph legend: configure - activeforeground - invalid input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -activeforeground invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activerelief configuration works for raised reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.4.1 {
+	    graph legend: configure - activerelief - raised
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activerelief raised
+	    .graph1 legend cget -activerelief
+	} -cleanup {
+	    destroy .graph1
+	} -result {raised}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activerelief configuration works for flat reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.4.2 {
+	    graph legend: configure - activerelief - flat
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activerelief flat
+	    .graph1 legend cget -activerelief
+	} -cleanup {
+	    destroy .graph1
+	} -result {flat}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activerelief configuration works for grooved reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.4.3 {
+	    graph legend: configure - activerelief - groove
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activerelief groove
+	    .graph1 legend cget -activerelief
+	} -cleanup {
+	    destroy .graph1
+	} -result {groove}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activerelief configuration works for ridged reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.4.4 {
+	    graph legend: configure - activerelief - ridge
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activerelief ridge
+	    .graph1 legend cget -activerelief
+	} -cleanup {
+	    destroy .graph1
+	} -result {ridge}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activerelief configuration works for solid reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.4.5 {
+	    graph legend: configure - activerelief - solid
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activerelief solid
+	    .graph1 legend cget -activerelief
+	} -cleanup {
+	    destroy .graph1
+	} -result {solid}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activerelief configuration works for sunken reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.4.6 {
+	    graph legend: configure - activerelief - sunken
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -activerelief sunken
+	    .graph1 legend cget -activerelief
+	} -cleanup {
+	    destroy .graph1
+	} -result {sunken}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the activerelief configuration works for invalid input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.4.7 {
+	    graph legend: configure - activerelief - invalid input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -activerelief invalid}]} {
+			return 0
+	    } else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for center anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.1 {
+	    graph legend: configure - anchor - center
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor center
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {center}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for north anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.2 {
+	    graph legend: configure - anchor - north
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor n
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {n}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for northeast anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.3 {
+	    graph legend: configure - anchor - northeast
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor ne
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {ne}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for northwest anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.4 {
+	    graph legend: configure - anchor - northwest
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor nw
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {nw}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for south anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.5 {
+	    graph legend: configure - anchor - south
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor s
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {s}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for southeast anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.6 {
+	    graph legend: configure - anchor - southeast
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor se
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {se}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for southwest anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.7 {
+	    graph legend: configure - anchor - southwest
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor sw
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {sw}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for east anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.8 {
+	    graph legend: configure - anchor - east
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor e
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {e}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for west anchor.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.9 {
+	    graph legend: configure - anchor - west
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -anchor w
+	    .graph1 legend cget -anchor
+	} -cleanup {
+	    destroy .graph1
+	} -result {w}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the anchor configuration works for invalid input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.5.10 {
+	    graph legend: configure - anchor - invalid input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -anchor invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the background configuration works for valid colors.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.6.1 {
+	    graph legend: configure - background - valid color
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -background black
+	    .graph1 legend cget -background
+	} -cleanup {
+	    destroy .graph1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the background configuration works for invalid input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.6.2 {
+	    graph legend: configure - background - invalid input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -background invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the background configuration works when given the empty string.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.6.3 {
+	    graph legend: configure - background - empty string
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -background ""
+	    .graph1 legend cget -background
+	} -cleanup {
+	    destroy .graph1
+	} -result {}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the borderwidth configuration works for valid integer input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.7.1 {
+	    graph legend: configure - borderwidth - valid integer input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -borderwidth 3
+	    .graph1 legend cget -borderwidth
+	} -cleanup {
+	    destroy .graph1
+	} -result {3}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the borderwidth configuration works for invalid integer input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.7.2 {
+	    graph legend: configure - borderwidth - invalid integer input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -borderwidth -3}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the borderwidth configuration works for valid decimal input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.7.3 {
+	    graph legend: configure - borderwidth - valid decimal input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -borderwidth 2.5
+	    .graph1 legend cget -borderwidth
+	} -cleanup {
+	    destroy .graph1
+	} -result {2.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the borderwidth configuration works for invalid decimal input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.7.4 {
+	    graph legend: configure - borderwidth - invalid decimal input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -borderwidth -2.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the borderwidth configuration works for character input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.7.5 {
+	    graph legend: configure - borderwidth - character input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -borderwidth invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the borderwidth configuration works when given 0 as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.7.6 {
+	    graph legend: configure - borderwidth - 0
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -borderwidth 0
+	    .graph1 legend cget -borderwidth
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -font command works correctly when given a
+	# string as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.8.1 {
+		graph legend configure: font - string
+	} -setup {
+		graph .graph1
+	} -body {
+		.graph1 legend configure -font Times
+		.graph1 legend cget -font
+	} -cleanup {
+		destroy .graph1
+	} -result {Times}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -font command works correctly when given a list
+	# with a string as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.8.2 {
+		graph legend configure: font - list with string
+	} -setup {
+		graph .graph1
+	} -body {
+		.graph1 legend configure -font {Times}
+		.graph1 legend cget -font
+	} -cleanup {
+		destroy .graph1
+	} -result {Times}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -font command works correctly when given a list
+	# with a string and positive integer as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.8.3 {
+		graph legend configure: font - list with string and positive integer
+	} -setup {
+		graph .graph1
+	} -body {
+		.graph1 legend configure -font {Times 10}
+		.graph1 legend cget -font
+	} -cleanup {
+		destroy .graph1
+	} -result {Times 10}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -font command works correctly when given a list
+	# with a string and negative integer as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.8.4 {
+		graph legend configure: font - list with string and negative integer
+	} -setup {
+		graph .graph1
+	} -body {
+		.graph1 legend configure -font {Times -10}
+		.graph1 legend cget -font
+	} -cleanup {
+		destroy .graph1
+	} -result {Times -10}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -font command works correctly when given a list
+	# with a string and decimal as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.8.5 {
+		graph legend configure: font - list with string and decimal
+	} -setup {
+		graph .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -font {Times 10.5}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -font command works correctly when given a list
+	# with 2 strings as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.8.6 {
+		graph legend configure: font - list with 2 strings
+	} -setup {
+		graph .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -font {Times Ten}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -font command works correctly when given a
+	# valid font string.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.8.7 {
+	    graph legend configure: font - valid font string
+	} -setup {
+	    graph .graph1
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -font "*-Arial-Bold-R-Normal-*-12-120-*" 
+	    .graph1 legend cget -font
+	} -cleanup {
+	    destroy .graph1
+	} -result {*-Arial-Bold-R-Normal-*-12-120-*}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the foreground configuration works for valid colors.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.9.1 {
+	    graph legend: configure - foreground - valid color
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -foreground white
+	    .graph1 legend cget -foreground
+	} -cleanup {
+	    destroy .graph1
+	} -result {white}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the foreground configuration works for invalid input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.9.2 {
+	    graph legend: configure - foreground - invalid input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -foreground invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -hide command works correctly when given 1.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.10.1 {
+		graph legend: configure - hide - 1
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -hide 1
+		.graph1 legend cget -hide
+	} -cleanup {
+		destroy .graph1
+	} -result {1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -hide command works correctly when given 0.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.10.2 {
+		graph legend: configure - hide - 0
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -hide 0
+		.graph1 legend cget -hide
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -hide command works correctly when given 
+	# true.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.10.3 {
+		graph legend: configure - hide - true
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -hide true
+		.graph1 legend cget -hide
+	} -cleanup {
+		destroy .graph1
+	} -result {1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -hide command works correctly when given 
+	# false.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.10.4 {
+		graph legend: configure - hide - false
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -hide false
+		.graph1 legend cget -hide
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -hide command works correctly when given 
+	# yes.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.10.5 {
+		graph legend: configure - hide - yes
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -hide yes
+		.graph1 legend cget -hide
+	} -cleanup {
+		destroy .graph1
+	} -result {1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -hide command works correctly when given 
+	# no.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.10.6 {
+		graph legend: configure - hide - no
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -hide no
+		.graph1 legend cget -hide
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -hide command works correctly when given an 
+	# invalid input value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.10.7 {
+		graph legend: configure - hide - invalid input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -hide invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given an
+	# integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.1 {
+		graph legend configure: ipadx - integer input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -ipadx 2
+		.graph1 legend cget -ipadx
+	} -cleanup {
+		destroy .graph1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given an
+	# invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.2 {
+		graph legend configure: ipadx - invalid integer input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -ipadx -2}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given a
+	# decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.3 {
+		graph legend configure: ipadx - decimal input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -ipadx 3.5
+		.graph1 legend cget -ipadx
+	} -cleanup {
+		destroy .graph1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given an
+	# invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.4 {
+		graph legend configure: ipadx - invalid decimal input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -ipadx -2.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given a
+	# valid list of numerical pixel values.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.5 {
+	    graph legend: configure: ipadx - valid list of values
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -ipadx {1 2.5}
+	    .graph1 legend cget -ipadx
+	} -cleanup {
+	    destroy .graph1
+	} -result {1 2.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given a
+	# character as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.6 {
+		graph legend configure: ipadx - character input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -ipadx a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given an
+	# invalid list of numerical pixel values.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.7 {
+	    graph legend: configure: ipadx - invalid list of values
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -ipadx {1 a}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given a
+	# list of input that is too long.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.8 {
+		graph legend configure: ipadx - invalid list length
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -ipadx {1 2 3}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipadx command works correctly when given 0 as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.11.9 {
+	    graph legend: configure: ipadx - 0
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -ipadx 0
+	    .graph1 legend cget -ipadx
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given an
+	# integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.1 {
+		graph legend configure: ipady - integer input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -ipady 2
+		.graph1 legend cget -ipady
+	} -cleanup {
+		destroy .graph1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given an
+	# invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.2 {
+		graph legend configure: ipady - invalid integer input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -ipady -2}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given a
+	# decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.3 {
+		graph legend configure: ipady - decimal input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -ipady 3.5
+		.graph1 legend cget -ipady
+	} -cleanup {
+		destroy .graph1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given an
+	# invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.4 {
+		graph legend configure: ipady - invalid decimal input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -ipady -2.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given a
+	# valid list of numerical pixel values.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.5 {
+	    graph legend: configure: ipady - valid list of values
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -ipady {1 2.5}
+	    .graph1 legend cget -ipady
+	} -cleanup {
+	    destroy .graph1
+	} -result {1 2.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given a
+	# character as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.6 {
+		graph legend configure: ipady - character input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -ipady a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given an
+	# invalid list of numerical pixel values.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.7 {
+	    graph legend: configure: ipady - invalid list of values
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -ipady {1 a}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given a
+	# list of input that is too long.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.8 {
+		graph legend configure: ipady - invalid list length
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -ipady {1 2 3}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -ipady command works correctly when given 0 as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.12.9 {
+	    graph legend: configure: ipady - 0
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -ipady 0
+	    .graph1 legend cget -ipady
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given an
+	# integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.1 {
+		graph legend configure: padx - integer input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -padx 2
+		.graph1 legend cget -padx
+	} -cleanup {
+		destroy .graph1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given an
+	# invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.2 {
+		graph legend configure: padx - invalid integer input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -padx -2}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given a
+	# decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.3 {
+		graph legend configure: padx - decimal input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -padx 3.5
+		.graph1 legend cget -padx
+	} -cleanup {
+		destroy .graph1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given an
+	# invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.4 {
+		graph legend configure: padx - invalid decimal input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -padx -2.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given a
+	# valid list of numerical pixel values.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.5 {
+	    graph legend: configure: padx - valid list of values
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -padx {1 2.5}
+	    .graph1 legend cget -padx
+	} -cleanup {
+	    destroy .graph1
+	} -result {1 2.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given a
+	# character as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.6 {
+		graph legend configure: padx - character input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -padx a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given an
+	# invalid list of numerical pixel values.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.7 {
+	    graph legend: configure: padx - invalid list of values
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -padx {1 a}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given a
+	# list of input that is too long.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.8 {
+		graph legend configure: padx - invalid list length
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -padx {1 2 3}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -padx command works correctly when given 0 as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.13.9 {
+	    graph legend: configure: padx - 0
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -padx 0
+	    .graph1 legend cget -padx
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given an
+	# integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.1 {
+		graph legend configure: pady - integer input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -pady 2
+		.graph1 legend cget -pady
+	} -cleanup {
+		destroy .graph1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given an
+	# invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.2 {
+		graph legend configure: pady - invalid integer input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -pady -2}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given a
+	# decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.3 {
+		graph legend configure: pady - decimal input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -pady 3.5
+		.graph1 legend cget -pady
+	} -cleanup {
+		destroy .graph1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given an
+	# invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.4 {
+		graph legend configure: pady - invalid decimal input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -pady -2.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given a
+	# valid list of numerical pixel values.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.5 {
+	    graph legend: configure: pady - valid list of values
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -pady {1 2.5}
+	    .graph1 legend cget -pady
+	} -cleanup {
+	    destroy .graph1
+	} -result {1 2.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given a
+	# character as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.6 {
+		graph legend configure: pady - character input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -pady a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given an
+	# invalid list of numerical pixel values.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.7 {
+	    graph legend: configure: pady - invalid list of values
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -pady {1 a}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given a
+	# list of input that is too long.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.8 {
+		graph legend configure: pady - invalid list length
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -pady {1 2 3}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -pady command works correctly when given 0 as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.14.9 {
+	    graph legend: configure: pady - 0
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -pady 0
+	    .graph1 legend cget -pady
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the position configuration works when given 'rightmargin' as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.15.1 {
+	    graph legend: configure - position - rightmargin
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -position rightmargin
+	    .graph1 legend cget -position
+	} -cleanup {
+	    destroy .graph1
+	} -result {rightmargin}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the position configuration works when given 'leftmargin' as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.15.2 {
+	    graph legend: configure - position - leftmargin
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -position leftmargin
+	    .graph1 legend cget -position
+	} -cleanup {
+	    destroy .graph1
+	} -result {leftmargin}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the position configuration works when given 'topmargin' as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.15.3 {
+	    graph legend: configure - position - topmargin
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -position topmargin
+	    .graph1 legend cget -position
+	} -cleanup {
+	    destroy .graph1
+	} -result {topmargin}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the position configuration works when given 'bottommargin' as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.15.4 {
+	    graph legend: configure - position - bottommargin
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -position bottommargin
+	    .graph1 legend cget -position
+	} -cleanup {
+	    destroy .graph1
+	} -result {bottommargin}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the position configuration works when given 'plotarea' as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.15.5 {
+	    graph legend: configure - position - plotarea
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -position plotarea
+	    .graph1 legend cget -position
+	} -cleanup {
+	    destroy .graph1
+	} -result {plotarea}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the position configuration works when given valid coordinates
+	# as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.15.6 {
+	    graph legend: configure - position - valid coordinates
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -position "@10, 10"
+	    .graph1 legend cget -position
+	} -cleanup {
+	    destroy .graph1
+	} -result {@10, 10}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the position configuration works when given invalid coordinates
+	# as input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.15.7 {
+	    graph legend: configure - position - invalid coordinates
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -position "10, 10"}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -raised command works correctly when given 1.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.16.1 {
+		graph legend: configure - raised - 1
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -raised 1
+		.graph1 legend cget -raised
+	} -cleanup {
+		destroy .graph1
+	} -result {1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -raised command works correctly when given 0.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.16.2 {
+		graph legend: configure - raised - 0
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -raised 0
+		.graph1 legend cget -raised
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -raised command works correctly when given 
+	# true.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.16.3 {
+		graph legend: configure - raised - true
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -raised true
+		.graph1 legend cget -raised
+	} -cleanup {
+		destroy .graph1
+	} -result {1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -raised command works correctly when given 
+	# false.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.16.4 {
+		graph legend: configure - raised - false
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -raised false
+		.graph1 legend cget -raised
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -raised command works correctly when given 
+	# yes.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.16.5 {
+		graph legend: configure - raised - yes
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -raised yes
+		.graph1 legend cget -raised
+	} -cleanup {
+		destroy .graph1
+	} -result {1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -raised command works correctly when given 
+	# no.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.16.6 {
+		graph legend: configure - raised - no
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		.graph1 legend configure -raised no
+		.graph1 legend cget -raised
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the legend configure -raised command works correctly when given an 
+	# invalid input value.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.16.7 {
+		graph legend: configure - raised - invalid input
+	} -setup {
+		graph .graph1
+		pack .graph1
+	} -body {
+		if {[catch {.graph1 legend configure -raised invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the relief configuration works for raised reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.17.1 {
+	    graph legend: configure - relief - raised
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -relief raised
+	    .graph1 legend cget -relief
+	} -cleanup {
+	    destroy .graph1
+	} -result {raised}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the relief configuration works for flat reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.17.2 {
+	    graph legend: configure - relief - flat
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -relief flat
+	    .graph1 legend cget -relief
+	} -cleanup {
+	    destroy .graph1
+	} -result {flat}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the relief configuration works for grooved reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.17.3 {
+	    graph legend: configure - relief - groove
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -relief groove
+	    .graph1 legend cget -relief
+	} -cleanup {
+	    destroy .graph1
+	} -result {groove}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the relief configuration works for ridged reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.17.4 {
+	    graph legend: configure - relief - ridge
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -relief ridge
+	    .graph1 legend cget -relief
+	} -cleanup {
+	    destroy .graph1
+	} -result {ridge}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the relief configuration works for solid reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.17.5 {
+	    graph legend: configure - relief - solid
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -relief solid
+	    .graph1 legend cget -relief
+	} -cleanup {
+	    destroy .graph1
+	} -result {solid}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the relief configuration works for sunken reliefs.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.17.6 {
+	    graph legend: configure - relief - sunken
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -relief sunken
+	    .graph1 legend cget -relief
+	} -cleanup {
+	    destroy .graph1
+	} -result {sunken}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the relief configuration works for invalid input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.17.7 {
+	    graph legend: configure - relief - invalid input
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -relief invalid}]} {
+			return 0
+	    } else {
+			return 1
+		}
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for valid colors and no depth
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.1 {
+	    graph legend: configure - shadow - valid color, no depth
+	} -setup {
+	    graph .graph1
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -shadow salmon
+	    .graph1 legend cget -shadow
+	} -cleanup {
+	    destroy .graph1
+	} -result {salmon}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for invalid color input and no 
+	# depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.2 {
+	    graph legend: configure - shadow - invalid color, no depth
+	} -setup {
+	    graph .graph1
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -shadow invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for a valid color and a valid 
+	# integer depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.3 {
+	    graph legend: configure - shadow - valid color, valid integer depth
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -shadow {salmon 2}
+	    .graph1 legend cget -shadow
+	} -cleanup {
+	    destroy .graph1
+	} -result {salmon 2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for an invalid color and a valid 
+	# depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.4 {
+	    graph legend: configure - shadow - invalid color, valid integer depth
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -shadow {invalid 2}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for a valid color and a valid 
+	# decimal depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.5 {
+	    graph legend: configure - shadow - valid color, valid decimal depth
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -shadow {salmon 2.5}
+	    .graph1 legend cget -shadow
+	} -cleanup {
+	    destroy .graph1
+	} -result {salmon 2.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for an invalid color and a valid 
+	# decimal depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.6 {
+	    graph legend: configure - shadow - invalid color, valid decimal depth
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -shadow {invalid 2.5}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for a valid color and an invalid 
+	# integer depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.7 {
+	    graph legend: configure - shadow - valid color, invalid integer depth
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -shadow {salmon -2}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for an invalid color and an 
+	# invalid depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.8 {
+	    graph legend: configure - shadow - invalid color, invalid integer depth
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -shadow {invalid -2}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for a valid color and an invalid 
+	# decimal depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.9 {
+	    graph legend: configure - shadow - valid color, invalid decimal depth
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -shadow {salmon -2.5}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works for an invalid color and an  
+	# invalid decimal depth input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.10 {
+	    graph legend: configure - shadow - invalid color, invalid decimal depth
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    if {[catch {.graph1 legend configure -shadow {invalid -2.5}}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+	    destroy .graph1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the shadow configuration works when given the emtpy string as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test graph.legend.configure.18.11 {
+	    graph legend: configure - shadow - empty string
+	} -setup {
+	    graph .graph1     
+	    pack .graph1  
+	} -body {
+	    .graph1 legend configure -shadow ""
+	    .graph1 legend cget -shadow
+	} -cleanup {
+	    destroy .graph1
+	} -result {}
+
+    test graph.legend.configure.19.1 {
+        graph legend: padding configuration rollback
+    } -setup {
+        graph .graph1
+        set oldForeground [.graph1 legend cget -foreground]
+        set oldPadX [.graph1 legend cget -padx]
+    } -body {
+        set code [catch {.graph1 legend configure -foreground red -padx {-1 2}} message]
+        list $code [expr {[.graph1 legend cget -foreground] eq $oldForeground}] [expr {[.graph1 legend cget -padx]\
+                                                                                               eq $oldPadX}]
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain oldForeground oldPadX code message
+    } -result {1 1 1}
+
+    test graph.legend.configure.20.1 {
+        graph legend: external window rollback
+    } -setup {
+        graph .graph1
+        frame .occupied
+        set oldBackground [.graph1 legend cget -background]
+        set oldPosition [.graph1 legend cget -position]
+    } -body {
+        set code [catch {.graph1 legend configure -background red -position .occupied} message]
+        list $code [expr {[.graph1 legend cget -background] eq $oldBackground}]\
+                [expr {[.graph1 legend cget -position] eq $oldPosition}]
+    } -cleanup {
+        destroy .graph1
+        destroy .occupied
+        unset -nocomplain oldBackground oldPosition code message
+    } -result {1 1 1}
+
+    test graph.legend.configure.21.1 {
+        graph legend: external window lifecycle
+    } -setup {
+        graph .graph1
+    } -body {
+        .graph1 legend configure -position .legend1
+        update idletasks
+        .graph1 legend configure -position .legend2
+        update idletasks
+        set firstGone [ expr {![winfo exists .legend1]} ]
+        set secondExists [ winfo exists .legend2 ]
+        destroy .legend2
+        update idletasks
+        list $firstGone $secondExists [.graph1 legend cget -position]
+    } -cleanup {
+        catch {destroy .legend1}
+        catch {destroy .legend2}
+        catch {destroy .graph1}
+    } -result {1 1 rightmargin}
+
+    test graph.legend.configure.22.1 {
+        graph legend: modern option resource lifetime
+    } -body {
+        for {set i 0} {$i < 100} {incr i} {
+            graph .graph1
+            .graph1 legend configure -activebackground yellow -activeborderwidth 3.5 -background white -borderwidth 2m\
+                    -columns 2 -foreground black -ipadx {1 2} -ipady 3.5 -padx {2 4} -pady 2m -position @50,60 -rows 3\
+                    -shadow {gray 2}
+            .graph1 legend configure -position .externalLegend
+            update idletasks
+            .graph1 legend configure -position rightmargin
+            destroy .graph1
+        }
+        return ok
+    } -cleanup {
+        catch {destroy .externalLegend}
+        catch {destroy .graph1}
+    } -result ok
+	
+    # Single-row cells follow their labels; multi-row cells remain uniform.
+    proc LegendCellWidths {graph y} {
+        set widths {}
+        for {set x 0} {$x < [winfo width $graph]} {incr x} {
+            set name [$graph legend get @$x,$y]
+            if {$name ne {}} {
+                dict incr widths $name
+            }
+        }
+        return [lsort -integer [dict values $widths]]
+    }
+
+    foreach widget {graph barchart stripchart} {
+        test graph.legend.configure.23.[incr testCase(23)] {
+            single-row legend uses individual entry widths and hit regions
+        } -setup {
+            $widget .graph1 -width 800 -height 300
+            pack .graph1
+            .graph1 element create short -label i
+            .graph1 element create long -label WWWWWWWWWW
+            .graph1 legend configure -position @20,20 -anchor nw -rows 1 -columns 0 -borderwidth 0 -padx 0 -pady 0\
+                    -shadow {black 0}
+            update
+        } -body {
+            set widths [LegendCellWidths .graph1 21]
+            set font [.graph1 legend cget -font]
+            list [llength $widths] [expr {[lindex $widths 1]-[lindex $widths 0]==[font measure $font WWWWWWWWWW]-\
+                                                  [font measure $font i]}]
+        } -cleanup {
+            destroy .graph1
+        } -result {2 1}
+
+        test graph.legend.configure.24.[incr testCase(24)] {
+            multi-row legend retains equal-width columns after relayout
+        } -setup {
+            $widget .graph1 -width 800 -height 300
+            pack .graph1
+            foreach {name label} {a i b WW c iii d WWWWWWWWWW} {
+                .graph1 element create $name -label $label
+            }
+            .graph1 legend configure -position @20,20 -anchor nw -rows 1 -columns 0 -borderwidth 0 -padx 0 -pady 0
+            update
+        } -body {
+            .graph1 legend configure -rows 2
+            update
+            set widths [LegendCellWidths .graph1 21]
+            list [llength $widths] [expr {[lindex $widths 0] == [lindex $widths 1]}]
+        } -cleanup {
+            destroy .graph1
+        } -result {2 1}
+    }
+
+    test graph.legend.configure.25.1 {
+        external single-row geometry changes by the changed label width
+    } -setup {
+        graph .graph1
+        pack .graph1
+        .graph1 element create a -label i
+        .graph1 element create b -label WWWWWWWWWW
+        .graph1 legend configure -position .legend1 -rows 1 -shadow {black 0}
+        update
+    } -body {
+        set before [winfo reqwidth .legend1]
+        set font [.graph1 legend cget -font]
+        .graph1 element configure a -label iiiii
+        update
+        expr {[winfo reqwidth .legend1] - $before == [font measure $font iiiii] - [font measure $font i]}
+    } -cleanup {
+        destroy .graph1
+        catch {destroy .legend1}
+    } -result 1
+
+    foreach position {topmargin bottommargin} {
+        test graph.legend.configure.26.[incr testCase(26)] {
+            automatic horizontal layout fits the sum of individual widths
+        } -setup {
+            graph .graph1 -height 300
+            pack .graph1
+            set longLabel [string repeat W 30]
+            set font [.graph1 legend cget -font]
+            .graph1 configure -width [expr {[font measure $font $longLabel] + 250}]
+            .graph1 element create a -label i
+            .graph1 element create b -label $longLabel
+            .graph1 legend configure -position $position -rows 0 -columns 0
+            update
+        } -body {
+            set found 0
+            for {set y 0} {$y < [winfo height .graph1]} {incr y} {
+                if {[llength [LegendCellWidths .graph1 $y]] == 2} {
+                    set found 1
+                    break
+                }
+            }
+            return $found
+        } -cleanup {
+            destroy .graph1
+        } -result 1
+    }
+
+    test graph.legend.configure.27.1 {
+        SVG legend label spacing agrees with single-row hit regions
+    } -setup {
+        graph .graph1 -width 800 -height 300
+        pack .graph1
+        .graph1 element create a -label i
+        .graph1 element create b -label WWWWWWWWWW
+        .graph1 legend configure -position @20,20 -anchor nw -rows 1 -borderwidth 0 \
+                -padx 0 -pady 0 -shadow {black 0}
+        update
+    } -body {
+        set svg [.graph1 svg output]
+        set positions {}
+        foreach label {i WWWWWWWWWW} {
+            set pattern [format {<g transform="translate\(([-0-9.]+) [-0-9.]+\) rotate\([-0-9.]+\) translate\(([-0-9.]+) [-0-9.]+\)"[^>]*>\s*<text[^>]*>%s</text>} $label]
+            if {![regexp $pattern $svg -> center offset]} {
+                error "legend label missing from SVG: $label"
+            }
+            lappend positions [expr {$center + $offset}]
+        }
+        set widths [LegendCellWidths .graph1 21]
+        expr {abs([lindex $positions 1] - [lindex $positions 0]) == [lindex $widths 0]}
+    } -cleanup {
+        destroy .graph1
+    } -result 1
+
+    rename LegendCellWidths {}
+
+    test graph.legend.configure.28.1 {failed validation retains error state and permits later configuration} -setup {
+        graph .graph1
+        set before [.graph1 legend configure]
+    } -body {
+        set code [catch {.graph1 legend configure -foreground red -padx invalid} message options]
+        set result [list $code [expr {[.graph1 legend configure] eq $before}] \
+                [dict get $options -errorcode] \
+                [expr {[string first $message [dict get $options -errorinfo]] == 0}]]
+        .graph1 legend configure -foreground red
+        lappend result [.graph1 legend cget -foreground]
+        set result
+    } -cleanup {
+        destroy .graph1
+        unset -nocomplain before code message options result
+    } -result {1 1 {TK VALUE PIXELS} 1 red}
+
+	cleanupTests
+}

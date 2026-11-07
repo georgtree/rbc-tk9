@@ -125,7 +125,7 @@ use native geometry lookup. Visibility and platform capture behavior matter. Tes
 Maintenance checks
 ------------------
 
-Use the existing ``RBC.winop.*.A.test`` and ``RBC.winop.image.*.A.test`` families. Check direct and nested dispatch
+Use the existing ``winop.*.test`` and ``winop.image.*.test`` families. Check direct and nested dispatch
 separately, invalid kernels and regions, source/destination dimensions, and toplevel snapshots on both platforms. These
 tests need a Tk display. Pixel algorithms alone cannot validate native capture, wrapper handling or photo client
 notifications.

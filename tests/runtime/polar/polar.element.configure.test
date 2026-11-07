@@ -1,0 +1,689 @@
+# polar.element.configure.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element configure
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+###Package Definition
+package provide polar.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.element {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure PolarElement uses the graph-line option table rather than the
+	# stripchart option table.  -trace is present only for graph line elements.
+	# ------------------------------------------------------------------------------------
+	test polar.element.configure.1.1 {
+		polar element configure: graph-line option table
+	} -setup {
+		polar .polar1
+		.polar1 element create Element1
+	} -body {
+		.polar1 element configure Element1 -trace both
+		.polar1 element cget Element1 -trace
+	} -cleanup {
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {both}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure a line-type named pen created by a polar widget can be assigned to
+	# a PolarElement.
+	# ------------------------------------------------------------------------------------
+	test polar.element.configure.2.1 {
+		polar element configure: named line pen
+	} -setup {
+		polar .polar1
+		.polar1 pen create Pen1 -color blue
+		.polar1 element create Element1
+	} -body {
+		.polar1 element configure Element1 -pen Pen1
+		.polar1 element cget Element1 -pen
+	} -cleanup {
+		.polar1 pen delete Pen1
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {Pen1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure PolarElement palettes accept ordinary line pens.
+	# ------------------------------------------------------------------------------------
+	test polar.element.configure.2.2 {
+		polar element configure: styles use line pens
+	} -setup {
+		polar .polar1
+		.polar1 pen create Pen1 -color blue
+		.polar1 element create Element1
+	} -body {
+		.polar1 element configure Element1 -styles {Pen1}
+		.polar1 element cget Element1 -styles
+	} -cleanup {
+		.polar1 pen delete Pen1
+		.polar1 element delete Element1
+		destroy .polar1
+	} -result {Pen1}
+
+    test polar.element.configure.3.1 {
+        polar element configure: complex vector
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {0 -1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z
+    } -body {
+        list [.polar1 element type Element1] [.polar1 element cget Element1 -cdata]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {PolarElement z}
+
+    test polar.element.configure.4.1 {
+        polar element configure: reject real vector
+    } -setup {
+        vector create z
+        z set {1 2 3}
+        polar .polar1
+    } -body {
+        catch {.polar1 element create Element1 -cdata z} message
+        set message
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {vector "z" is real; -cdata requires a complex vector}
+
+    test polar.element.configure.5.1 {
+        graph line element does not expose -cdata
+    } -setup {
+        vector create z -type complex
+        graph .graph1
+        .graph1 element create Element1
+    } -body {
+        catch { .graph1 element configure Element1 -cdata z }
+    } -cleanup {
+        destroy .graph1
+        vector destroy z
+    } -result {1}
+
+    test polar.element.configure.6.1 {
+        polar element configure: later -cdata selects complex data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1
+    } -body {
+        .polar1 element configure Element1 -data {10 10 20 20} -cdata z
+        .polar1 element cget Element1 -cdata
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {z}
+
+    test polar.element.configure.7.1 {
+        polar element configure: later -data selects XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1
+    } -body {
+        .polar1 element configure Element1 -cdata z -data {10 10 20 20}
+        .polar1 element cget Element1 -cdata
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {}
+
+    test polar.element.configure.8.1 {
+        polar element configure: later -x selects XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1 -y {3 4}
+    } -body {
+        .polar1 element configure Element1 -cdata z -x {1 2}
+        .polar1 element cget Element1 -cdata
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {}
+
+    test polar.element.configure.9.1 {
+        polar element configure: later -y selects XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1 -x {3 4}
+    } -body {
+        .polar1 element configure Element1 -cdata z -y {1 2}
+        .polar1 element cget Element1 -cdata
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {}
+
+    test polar.element.configure.10.1 {
+        polar element configure: empty -cdata restores XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 10
+        .polar1 axis configure y -min -2 -max 10
+        .polar1 element create Element1 -data {8 8} -cdata z -symbol circle
+        update
+    } -body {
+        .polar1 element configure Element1 -cdata {}
+        set cdata [.polar1 element cget Element1 -cdata]
+        # This must be safe: the element must no longer have a client
+        # attached to z.
+        set destroyCode [catch {vector destroy z}]
+        update
+        lassign [.polar1 transform 8 8] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $cdata $destroyCode $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {{} 0 1 0 8.0 8.0}
+
+    test polar.element.configure.11.1 {
+        polar element configure: real vector failure rolls back
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        vector create r
+        r set {10 20}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        set code [catch {.polar1 element configure Element1 -cdata r}]
+        update
+        lassign [.polar1 transform 1 0] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $code [.polar1 element cget Element1 -cdata] $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z r
+    } -result {1 z 1 0 1.0 0.0}
+
+    test polar.element.configure.12.1 {
+        polar element configure: missing vector failure rolls back
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        set code [catch {.polar1 element configure Element1 -cdata noSuchVector}]
+        update
+        lassign [.polar1 transform 1 0] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $code [.polar1 element cget Element1 -cdata] $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 z 1 0 1.0 0.0}
+
+    test polar.element.configure.13.1 {
+        polar element configure: deleting element releases complex vector client
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z
+    } -body {
+        .polar1 element delete Element1
+        set updateCode [catch { z set {{2 0} {0 2}} }]
+        set destroyCode [catch { vector destroy z }]
+        list $updateCode $destroyCode
+    } -cleanup {
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {0 0}
+
+    test polar.element.configure.14.1 {
+        polar element configure: failed -cdata create leaves no element
+    } -setup {
+        vector create r
+        r set {1 2 3}
+        polar .polar1
+    } -body {
+        set code [catch {.polar1 element create Element1 -cdata r}]
+        list $code [.polar1 element exists Element1]
+    } -cleanup {
+        destroy .polar1
+        vector destroy r
+    } -result {1 0}
+
+    test polar.element.configure.15.1 {
+        polar element configure: complex data with parameter vector
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        vector create p
+        p set {10 20 30}
+        polar .polar1
+        .polar1 element create Element1 -cdata z -param p
+    } -body {
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z p
+    } -result {z p}
+
+    test polar.element.configure.16.1 {
+        polar element configure: parameter length mismatch on create
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        vector create p
+        p set {10 20}
+        polar .polar1
+    } -body {
+        set code [catch {.polar1 element create Element1 -cdata z -param p} message]
+        list $code [.polar1 element exists Element1] $message
+    } -cleanup {
+        destroy .polar1
+        vector destroy z p
+    } -result {1 0 {parameter vector has 2 values, but element has 3 data points}}
+
+    test polar.element.configure.17.1 {
+        polar element configure: complex data and parameter resize atomically
+    } -setup {
+        vector create z1 -type complex
+        z1 set {{1 0} {0 1}}
+        vector create z2 -type complex
+        z2 set {{1 0} {0 1} {-1 0}}
+        vector create p1
+        p1 set {10 20}
+        vector create p2
+        p2 set {10 20 30}
+        polar .polar1
+        .polar1 element create Element1 -cdata z1 -param p1
+    } -body {
+        .polar1 element configure Element1 -cdata z2 -param p2
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z1 z2 p1 p2
+    } -result {z2 p2}
+
+    test polar.element.configure.18.1 {
+        polar element configure: complex data length change alone rolls back
+    } -setup {
+        vector create z1 -type complex
+        z1 set {{1 0} {0 1}}
+        vector create z2 -type complex
+        z2 set {{1 0} {0 1} {-1 0}}
+        vector create p
+        p set {10 20}
+        polar .polar1
+        .polar1 element create Element1 -cdata z1 -param p
+    } -body {
+        set code [catch { .polar1 element configure Element1 -cdata z2 } message]
+        list $code $message [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z1 z2 p
+    } -result {1 {parameter vector has 2 values, but element has 3 data points} z1 p}
+
+    test polar.element.configure.19.1 {
+        polar element configure: switch complex to XY with matching parameter
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z -param {10 20}
+    } -body {
+        .polar1 element configure Element1 -data {8 8 9 9 10 10} -param {1 2 3}
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -data] [.polar1 element cget\
+        Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {{} {8 8 9 9 10 10} {1 2 3}}
+
+    test polar.element.configure.20.1 {
+        polar element configure: switch XY to complex with matching parameter
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1 -data {8 8 9 9} -param {1 2}
+    } -body {
+        .polar1 element configure Element1 -cdata z -param {10 20 30}
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z
+    } -result {z {10 20 30}}
+
+    test polar.element.configure.21.1 {
+        polar element configure: empty parameter allows later complex data length change
+    } -setup {
+        vector create z1 -type complex
+        z1 set {{1 0} {0 1}}
+        vector create z2 -type complex
+        z2 set {{1 0} {0 1} {-1 0}}
+        polar .polar1
+        .polar1 element create Element1 -cdata z1 -param {10 20}
+    } -body {
+        .polar1 element configure Element1 -param {}
+        .polar1 element configure Element1 -cdata z2
+        list [.polar1 element cget Element1 -cdata] [.polar1 element cget Element1 -param]
+    } -cleanup {
+        destroy .polar1
+        vector destroy z1 z2
+    } -result {z2 {}}
+
+    test polar.element.configure.22.1 {
+        polar complex data format: defaults
+    } -setup {
+        polar .polar1
+        .polar1 element create Element1
+    } -body {
+        list [.polar1 element cget Element1 -cdataformat] [expr {[.polar1 element cget Element1 -z0] == 50.0}]
+    } -cleanup {
+        destroy .polar1
+    } -result {gamma 1}
+
+    test polar.element.configure.23.1 {
+        polar complex data format: invalid format
+    } -setup {
+        polar .polar1
+        .polar1 element create Element1
+    } -body {
+        set code [catch {.polar1 element configure Element1 -cdataformat bad}]
+        list $code [.polar1 element cget Element1 -cdataformat]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 gamma}
+
+    test polar.element.configure.24.1 {
+        polar complex data format: invalid z0 rolls back
+    } -setup {
+        polar .polar1
+        .polar1 element create Element1
+    } -body {
+        set code [catch {.polar1 element configure Element1 -z0 0}]
+        list $code [expr {[.polar1 element cget Element1 -z0] == 50.0}]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 1}
+
+
+
+    test polar.element.configure.25.1 {
+        parameter validation: pending data resize matches new parameter, length 0
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        polar .w
+        .w element create a -cdata lengthZ -param lengthP
+        update
+    } -body {
+        lengthZ set {}
+        set code [catch {.w element configure a -param lengthP} msg]
+        set rejected [expr {$code == (0 != 3)}]
+        lengthP set {}
+        .w element configure a -param lengthP
+        list $rejected [.w element cget a -param]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {1 lengthP}
+
+    test polar.element.configure.25.2 {
+        parameter validation: pending parameter resize matches new data, length 0
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        polar .w
+        .w element create a -cdata lengthZ -param lengthP
+        update
+    } -body {
+        lengthP set {}
+        lengthZ set {}
+        .w element configure a -cdata lengthZ
+        list [.w element cget a -param] [lengthP length]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {lengthP 0}
+
+    test polar.element.configure.25.3 {
+        parameter validation: pending data resize matches new parameter, length 2
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        polar .w
+        .w element create a -cdata lengthZ -param lengthP
+        update
+    } -body {
+        lengthZ set {{0 0} {1 0}}
+        set code [catch {.w element configure a -param lengthP} msg]
+        set rejected [expr {$code == (2 != 3)}]
+        lengthP set {0 1}
+        .w element configure a -param lengthP
+        list $rejected [.w element cget a -param]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {1 lengthP}
+
+    test polar.element.configure.25.4 {
+        parameter validation: pending parameter resize matches new data, length 2
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        polar .w
+        .w element create a -cdata lengthZ -param lengthP
+        update
+    } -body {
+        lengthP set {0 1}
+        lengthZ set {{0 0} {1 0}}
+        .w element configure a -cdata lengthZ
+        list [.w element cget a -param] [lengthP length]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {lengthP 2}
+
+    test polar.element.configure.25.5 {
+        parameter validation: pending data resize matches new parameter, length 4
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        polar .w
+        .w element create a -cdata lengthZ -param lengthP
+        update
+    } -body {
+        lengthZ set {{0 0} {1 0} {2 0} {3 0}}
+        set code [catch {.w element configure a -param lengthP} msg]
+        set rejected [expr {$code == (4 != 3)}]
+        lengthP set {0 1 2 3}
+        .w element configure a -param lengthP
+        list $rejected [.w element cget a -param]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {1 lengthP}
+
+    test polar.element.configure.25.6 {
+        parameter validation: pending parameter resize matches new data, length 4
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        polar .w
+        .w element create a -cdata lengthZ -param lengthP
+        update
+    } -body {
+        lengthP set {0 1 2 3}
+        lengthZ set {{0 0} {1 0} {2 0} {3 0}}
+        .w element configure a -cdata lengthZ
+        list [.w element cget a -param] [lengthP length]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {lengthP 4}
+
+    test polar.element.configure.25.7 {
+        parameter validation: current mismatch rejects data change and preserves options
+    } -setup {
+        vector create lengthX lengthY lengthP
+        vector create lengthZ -type complex
+        lengthX set {0 1 2}
+        lengthY set {0 1 2}
+        lengthP set {10 20 30}
+        lengthZ set {{0 0} {1 0} {2 0}}
+        polar .w
+        .w element create a -cdata lengthZ -param lengthP
+        update
+    } -body {
+        lengthP set {10 20}
+        set before [.w element configure a]
+        set code [catch {.w element configure a -cdata lengthZ -color red} msg]
+        set unchanged [expr {$before eq [.w element configure a]}]
+        .w element configure a -color blue
+        list $code $msg $unchanged [.w element cget a -color]
+    } -cleanup {
+        destroy .w
+        vector destroy lengthX lengthY lengthP lengthZ
+    } -result {1 {parameter vector has 2 values, but element has 3 data points} 1 blue}
+
+    test polar.element.configure.26.1 {
+        smooth diagnostic lists all accepted names and retains the previous value
+    } -setup {
+        polar .w
+        .w element create a
+    } -body {
+        set accepted {}
+        foreach mode {linear step natural cubic quadratic catrom} {
+            .w element configure a -smooth $mode
+            lappend accepted [.w element cget a -smooth]
+        }
+        set code [catch {.w element configure a -smooth invalid} message]
+        list $accepted $code $message [.w element cget a -smooth]
+    } -cleanup {
+        destroy .w
+    } -result {{linear step natural cubic quadratic catrom} 1 {bad smooth value "invalid": should be linear, step, natural, cubic, quadratic, or catrom} catrom}
+
+
+    # Failed reference-impedance validation must preserve derived drawing state,
+    # not only the Tcl option values restored by Tk.
+    set testCase(27) 0
+    foreach invalidZ0 {0 -1 Inf -Inf} {
+        foreach change {{-smooth step} {-color red} {-pen Replacement}} {
+            test polar.element.configure.27.[incr testCase(27)] {
+                invalid z0 rejects combined updates without changing rendered geometry
+            } -setup {
+                polar .polar1 -width 400 -height 300
+                pack .polar1
+                .polar1 pen create Replacement -color blue -linewidth 4
+                .polar1 element create Element1 -data {0 0 0.5 0.7 0.8 0.2} \
+                    -symbol none -smooth linear -color black -linewidth 2
+                update
+            } -body {
+                set beforeOptions [.polar1 element configure Element1]
+                set beforeSvg [.polar1 svg output]
+                set code [catch {.polar1 element configure Element1 {*}$change -z0 $invalidZ0} message]
+                set restored [expr {$beforeOptions eq [.polar1 element configure Element1]}]
+                # SVG output remaps, revealing stale derived settings even when
+                # cget reports the restored option values.
+                set same [expr {$beforeSvg eq [.polar1 svg output]}]
+                .polar1 element configure Element1 {*}$change -z0 75
+                set changed [expr {$beforeSvg ne [.polar1 svg output]}]
+                list $code [string match {bad reference impedance *positive finite value} $message] \
+                    $restored $same $changed [.polar1 element cget Element1 -z0]
+            } -cleanup {
+                destroy .polar1
+            } -result {1 1 1 1 1 75.0}
+        }
+    }
+
+    test polar.element.configure.28.1 {
+        invalid z0 preserves data and smoothing; subsequent valid update commits both
+    } -setup {
+        polar .polar1 -width 400 -height 300
+        pack .polar1
+        .polar1 element create Element1 -data {0 0 0.5 0.7 0.8 0.2} -symbol none
+        update
+    } -body {
+        set beforeOptions [.polar1 element configure Element1]
+        set beforeSvg [.polar1 svg output]
+        set code [catch {.polar1 element configure Element1 -data {0 0 0.2 0.4 0.7 0.5} \
+            -smooth step -z0 0}]
+        set same [expr {$beforeOptions eq [.polar1 element configure Element1] &&
+            $beforeSvg eq [.polar1 svg output]}]
+        .polar1 element configure Element1 -data {0 0 0.2 0.4 0.7 0.5} -smooth step -z0 75
+        list $code $same [.polar1 element cget Element1 -smooth] \
+            [expr {$beforeSvg ne [.polar1 svg output]}]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 1 step 1}
+
+    test polar.element.configure.28.2 {
+        invalid initial z0 leaves no element and permits reuse of its name
+    } -setup {
+        polar .polar1
+        .polar1 pen create Replacement -color blue
+    } -body {
+        set code [catch {.polar1 element create Element1 -pen Replacement -smooth step -z0 0}]
+        set absent [expr {[lsearch -exact [.polar1 element names] Element1] < 0}]
+        .polar1 element create Element1 -pen Replacement -smooth step -z0 75
+        list $code $absent [.polar1 element cget Element1 -pen] [.polar1 element cget Element1 -z0]
+    } -cleanup {
+        destroy .polar1
+    } -result {1 1 Replacement 75.0}
+
+	cleanupTests
+}

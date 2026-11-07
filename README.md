@@ -431,7 +431,7 @@ from the repository's GitHub source archives.
 Packaging regression tests (no Tk or compiler needed):
 
 ```sh
-tclsh tests/build/RBC.build.installDist.A.test
+tclsh tests/build/build.installDist.test
 ```
 
 The tests use GNU make, a POSIX shell, `install` and `tar`; ZIP checks also require `zip` and `unzip`.
@@ -501,7 +501,7 @@ Run the internal C notification callback tests separately, without a display:
 make test-vector-notify
 ```
 
-This relinks RBC objects into a test-only library and runs `RBC.vector.notify.A.test` in a fresh Tcl interpreter.
+This relinks RBC objects into a test-only library and runs `vector.notify.test` in a fresh Tcl interpreter.
 It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.
 These private APIs are not added to the public stubs table. The aggregate target runs this file only in its dedicated harness process. The MSVC makefile provides the same target.
 
@@ -510,12 +510,12 @@ Pass `tcltest` selection options through `TESTFLAGS`. The `-file` and `-notfile`
 
 For example, run the line-decimation test file:
 ```sh
-make test TESTFLAGS="-file RBC.graph.element.decimate.A.test"
+make test TESTFLAGS="-file graph.element.decimate.test"
 ```
 
 Or select tests by name:
 ```sh
-make test TESTFLAGS="-match RBC.graph.element.decimate.*"
+make test TESTFLAGS="-match graph.element.decimate.*"
 ```
 
 On a headless Linux system, an X11 virtual display can be used if Xvfb is installed:
@@ -650,7 +650,7 @@ preambles and the README; it does not rewrite procedure bodies or TclOO method d
 The helper regression tests require only Tcl, Tcllib and `tcltest`:
 
 ```sh
-tclsh9.0 tests/RBC.docs.tables.A.test
+tclsh9.0 tests/docs.tables.test
 ```
 
 Select another Python executable with `make doc DOC_PYTHON=python3`; the developer builder uses

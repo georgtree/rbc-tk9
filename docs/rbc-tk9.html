@@ -1198,7 +1198,7 @@ requires matching platform, architecture, Tcl/Tk and any dynamically linked depe
 <p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">dist-clean</span></code> removes that distribution’s staging directory and archives. Source releases can be obtained
 from the repository’s GitHub source archives.</p>
 <p>Packaging regression tests (no Tk or compiler needed):</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>tclsh<span class="w"> </span>tests/build/RBC.build.installDist.A.test
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>tclsh<span class="w"> </span>tests/build/build.installDist.test
 </pre></div>
 </div>
 <p>The tests use GNU make, a POSIX shell, <code class="docutils literal notranslate"><span class="pre">install</span></code> and <code class="docutils literal notranslate"><span class="pre">tar</span></code>; ZIP checks also require <code class="docutils literal notranslate"><span class="pre">zip</span></code> and <code class="docutils literal notranslate"><span class="pre">unzip</span></code>.</p>
@@ -1257,17 +1257,17 @@ by the headless runner. Regenerate your Makefile with <code class="docutils lite
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>test-vector-notify
 </pre></div>
 </div>
-<p>This relinks RBC objects into a test-only library and runs <code class="docutils literal notranslate"><span class="pre">RBC.vector.notify.A.test</span></code> in a fresh Tcl interpreter.
+<p>This relinks RBC objects into a test-only library and runs <code class="docutils literal notranslate"><span class="pre">vector.notify.test</span></code> in a fresh Tcl interpreter.
 It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.
 These private APIs are not added to the public stubs table. The ordinary suite skips this file without the dedicated
 harness. The MSVC makefile provides the same target.</p>
 <p>The suite uses <code class="docutils literal notranslate"><span class="pre">tcltest</span></code>. Pass test selection options through <code class="docutils literal notranslate"><span class="pre">TESTFLAGS</span></code>.</p>
 <p>For example, run the line-decimation test file:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">"-file RBC.graph.element.decimate.A.test"</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">"-file graph.element.decimate.test"</span>
 </pre></div>
 </div>
 <p>Or select tests by name:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">"-match RBC.graph.element.decimate.*"</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">"-match graph.element.decimate.*"</span>
 </pre></div>
 </div>
 <p>On a headless Linux system, an X11 virtual display can be used if Xvfb is installed:</p>
@@ -1376,7 +1376,7 @@ wrap. Alignment markers are accepted, while the nroff cells are left-aligned. Es
 inside inline code. Table rows must have the same column count as the header. This preprocessing covers namespace
 preambles and the README; it does not rewrite procedure bodies or TclOO method documentation.</p>
 <p>The helper regression tests require only Tcl, Tcllib and <code class="docutils literal notranslate"><span class="pre">tcltest</span></code>:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>tclsh9.0<span class="w"> </span>tests/RBC.docs.tables.A.test
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>tclsh9.0<span class="w"> </span>tests/docs.tables.test
 </pre></div>
 </div>
 <p>Select another Python executable with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span> <span class="pre">DOC_PYTHON=python3</span></code>; the developer builder uses

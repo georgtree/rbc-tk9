@@ -1,0 +1,484 @@
+# vector.binread.test --
+#
+###Abstract
+# This file tests the binread function of the vector rbc component.
+# binread is an instance function of vector.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide vector.binread
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval vector.binread {
+	# ------------------------------------------------------------------------------------
+	#  Test Constraints
+	#  Some machines treat floating point numbers differently, so we set some
+	#  constraints here for various vector related routines
+	# ------------------------------------------------------------------------------------
+	tcltest::testConstraint twoDigitExponent   [expr {[format %1.0e 1e-20] eq "1e-20"}]
+	tcltest::testConstraint threeDigitExponent [expr {[format %1.0e 1e-20] eq "1e-020"}]
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command reads the entire contents of a file when
+# given no length parameter
+# ------------------------------------------------------------------------------------
+test vector.binread.1.1 {
+    vector binread entire file
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 4.678870346324924e+163}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command reads length number of items from the
+# channel
+# ------------------------------------------------------------------------------------
+test vector.binread.1.2 {
+    vector binread length items
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel 1
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command reads the entire contents of a file in
+# the default endianess of the host machine
+# ------------------------------------------------------------------------------------
+test vector.binread.2.1 {
+    vector binread default endianess
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 4.678870346324924e+163}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command reads the entire contents of a file in
+# the opposite endianess of the host machine
+# ------------------------------------------------------------------------------------
+test vector.binread.2.2 {
+    vector binread opposite endianess
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -swap
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 2.96444e-319}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command reads the entire contents of a file into
+# the vector starting at index# Purpose:
+# ------------------------------------------------------------------------------------
+test vector.binread.3.1 {
+    vector binread at index
+} -setup {
+    vector create Vector1
+    Vector1 set {1 2}
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -at 1
+    expr {$Vector1(1:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 4.678870346324924e+163}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command leaves all items preceding index
+# unchanged
+# ------------------------------------------------------------------------------------
+test vector.binread.3.2 {
+    vector binread at index
+} -setup {
+    vector create Vector1
+    Vector1 set {1 2}
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -at 1
+    expr {$Vector1(0)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {1.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command can read the i1 format
+# ------------------------------------------------------------------------------------
+test vector.binread.4.1 {
+    vector binread format i1
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -format i1
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 -22.0 97.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command can read the i2 format
+# ------------------------------------------------------------------------------------
+test vector.binread.4.2 {
+    vector binread format i2
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -format i2
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 0.0 0.0 0.0 0.0 0.0 0.0 25066.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command can read the i4 format
+# ------------------------------------------------------------------------------------
+test vector.binread.4.3 {
+    vector binread format i4
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -format i4
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 0.0 0.0 1642725376.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command can read the u1 format
+# ------------------------------------------------------------------------------------
+test vector.binread.4.4 {
+    vector binread format u1
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -format u1
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 234.0 97.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command can read the u2 format
+# ------------------------------------------------------------------------------------
+test vector.binread.4.5 {
+    vector binread format u2
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -format u2
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 0.0 0.0 0.0 0.0 0.0 0.0 25066.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command can read the u4 format
+# ------------------------------------------------------------------------------------
+test vector.binread.4.6 {
+    vector binread format u4
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -format u4
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 0.0 0.0 1642725376.0}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command can read the r4 format
+# ------------------------------------------------------------------------------------
+test vector.binread.7.1 {
+    vector binread format r4
+} -constraints twoDigitExponent -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -format r4
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 0.0 0.0 5.395672641560044e+20}
+
+test vector.binread.8.1 {
+    vector binread format r4 byte swap
+} -constraints threeDigitExponent -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -swap -format r4
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 0.0 0.0 8.407930915795335e-41}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure the vector binread command can read the r8 format
+# ------------------------------------------------------------------------------------
+test vector.binread.4.8 {
+    vector binread format r8
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -format r8
+    expr {$Vector1(:)}
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+    unset Channel
+} -result {0.0 4.678870346324924e+163}
+
+test vector.binread.5.1 {
+    vector binread: missing -format argument
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    catch {Vector1 binread $Channel -format} message
+    set message
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+} -result {option "-format" requires an additional argument}
+
+test vector.binread.5.2 {
+    vector binread: missing -at argument
+} -setup {
+    vector create Vector1
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    catch {Vector1 binread $Channel -at} message
+    set message
+} -cleanup {
+    vector destroy Vector1
+    close $Channel
+} -result {option "-at" requires an additional argument}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure binread interprets pairs of native values as real and imaginary
+# components of complex vector values.
+# ------------------------------------------------------------------------------------
+test vector.binread.6.1 {
+    vector binread: complex r8
+} -setup {
+    vector create Vector1 -type complex
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    set count [Vector1 binread $Channel]
+    list $count [Vector1 type] [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {1 complex {{0.0 4.678870346324924e+163}}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure numValues counts complex vector values rather than scalar
+# components.
+# ------------------------------------------------------------------------------------
+test vector.binread.6.2 {
+    vector binread: complex count
+} -setup {
+    vector create Vector1 -type complex
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    set count [Vector1 binread $Channel 1 -format i4]
+    list $count [Vector1 length] [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {1 1 {{0.0 0.0}}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure integer binary components are paired into complex values.
+# ------------------------------------------------------------------------------------
+test vector.binread.6.3 {
+    vector binread: complex i4
+} -setup {
+    vector create Vector1 -type complex
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    set count [Vector1 binread $Channel -format i4]
+    list $count [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {2 {{0.0 0.0} {0.0 1642725376.0}}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure -at indexes complex vector elements.
+# ------------------------------------------------------------------------------------
+test vector.binread.6.4 {
+    vector binread: complex at index
+} -setup {
+    vector create Vector1 -type complex
+    Vector1 set {{1 2} {3 4}}
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    set count [Vector1 binread $Channel -at 1]
+    list $count [Vector1 length] [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {1 2 {{1.0 2.0} {0.0 4.678870346324924e+163}}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure -swap reverses bytes within each real and imaginary component,
+# not the order of the two components.
+# ------------------------------------------------------------------------------------
+test vector.binread.6.5 {
+    vector binread: complex byte swap
+} -setup {
+    vector create Vector1 -type complex
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+} -body {
+    Vector1 binread $Channel -swap
+    Vector1 range 0 end
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {{0.0 2.96444e-319}}
+
+# ------------------------------------------------------------------------------------
+# Purpose: Ensure binary input must contain complete real/imaginary pairs.
+# ------------------------------------------------------------------------------------
+test vector.binread.6.6 {
+    vector binread: incomplete complex value
+} -setup {
+    vector create Vector1 -type complex
+    Vector1 set {{9 10}}
+    set Channel [open [file join [file dirname [info script]] .. .. assets binReadTestFile.txt] r]
+    seek $Channel 8 start
+} -body {
+    set code [catch {
+        Vector1 binread $Channel
+    } message]
+    list $code $message [Vector1 range 0 end]
+} -cleanup {
+    catch {vector destroy Vector1}
+    catch {close $Channel}
+} -result {1 {error reading channel: input ended inside a complex binary value} {{9.0 10.0}}}
+
+
+
+    foreach {case kind width} {1 real 1 2 complex 2} {
+        test vector.binread.7.$case "partial $kind binary input notifies and refreshes cached values" -setup {
+            vector create partial -type $kind
+            partial set [lrepeat 1024 [expr {$width == 1 ? 9 : {9 10}}]]
+            set cached [lindex [partial index 0] 0]
+            set channel [file tempfile path]
+            fconfigure $channel -translation binary
+            puts -nonewline $channel [binary format d* [lrepeat [expr {1024*$width}] 2.0]]
+            puts -nonewline $channel x
+            seek $channel 0
+        } -body {
+            set code [catch {partial binread $channel -at 0} message]
+            list $code [partial length] [lindex [partial index 0] 0] \
+                [string match {error reading channel:*} $message]
+        } -cleanup {
+            catch {close $channel}
+            catch {file delete $path}
+            catch {vector destroy partial}
+        } -result [list 1 1024 [expr {$width == 1 ? {2.0} : {2.0 2.0}}] 1]
+    }
+
+    proc reflectedRead {action operation channel args} {
+        switch -- $operation {
+            initialize {return {initialize finalize watch read}}
+            finalize - watch {return}
+            read {
+                if {!${::vector.binread::acted}} {
+                    set ::vector.binread::acted 1
+                    switch -- $action {
+                        lock {partial readonly true}
+                        destroy {vector destroy partial; vector create partial; partial set {77}}
+                        close {close $channel}
+                    }
+                    return [binary format d 2.0]
+                }
+                return {}
+            }
+        }
+    }
+    foreach {case action expected} {
+        1 lock {1 9.0}
+        2 destroy {1 77.0}
+        3 close {1 9.0}
+    } {
+        test vector.binread.8.$case "reflected read callback: $action" -setup {
+            vector create partial
+            partial set {9}
+            set ::vector.binread::acted 0
+            set channel [chan create read [list [namespace current]::reflectedRead $action]]
+        } -body {
+            set code [catch {partial binread $channel 1} message]
+            list $code [partial range 0 end]
+        } -cleanup {
+            catch {close $channel}
+            catch {vector destroy partial}
+        } -result $expected
+    }
+    rename reflectedRead {}
+
+    cleanupTests
+}

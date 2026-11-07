@@ -1,0 +1,176 @@
+# vector.split.test --
+#
+###Abstract
+# This file tests the split function of the vector rbc component.
+# Split is an instance function of vector.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide vector.split
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval vector.split {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the vector split command works correctly when given a single vector 
+	# name.
+	# ------------------------------------------------------------------------------------
+	test vector.split.1.1 {
+		vector split: one vector name
+	} -setup {
+		vector create foo
+		foo set {1.0 2.0 3.0 4.0}
+	} -body {
+		foo split goo
+		if {[expr {$goo(:)}] != {1.0 2.0 3.0 4.0}} {
+			return 1
+		} elseif {[expr {$foo(:)}] != {1.0 2.0 3.0 4.0}} {
+			return 2
+		} else {
+			return 0
+		}
+	} -cleanup {
+		vector destroy foo
+		vector destroy goo
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the vector split command works correctly when given multiple vector 
+	# names.
+	# ------------------------------------------------------------------------------------
+	test vector.split.1.2 {
+		vector split: multiple vector names
+	} -setup {
+		vector create foo
+		foo set {1.0 2.0 3.0 4.0 5.0 6.0}
+	} -body {
+		foo split goo moo too 
+		if {[expr {$goo(:)}] != {1.0 4.0} && [expr {$moo(:)}] != {2.0 5.0} && [expr {$too(:)}] != {3.0 6.0}} {
+			return 1
+		} elseif {[expr {$foo(:)}] != {1.0 2.0 3.0 4.0 5.0 6.0}} {
+			return 2
+		} else {
+			return 0
+		}
+	} -cleanup {
+		vector destroy foo
+		vector destroy goo
+		vector destroy moo
+		vector destroy too
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the vector split command works correctly when the components of the 
+	# vector cannot be evenly split into the given number of vector names.
+	# ------------------------------------------------------------------------------------
+	test vector.split.1.3 {
+		vector split: incorrect number of vector names
+	} -setup {
+		vector create foo
+		foo set {1.0 2.0 3.0 4.0}
+	} -body {
+		if {[catch {foo split goo moo too}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		vector destroy foo
+	} -result {0}
+
+    test vector.split.1.4 {
+        vector split: source is also a destination
+    } -setup {
+        vector create foo
+        foo set {1 2 3 4}
+    } -body {
+        foo split foo bar
+        list [foo range 0 end] [bar range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy bar}
+    } -result {{1.0 2.0 3.0 4.0 1.0 3.0} {2.0 4.0}}
+
+    test vector.split.2.1 {
+        vector split: complex destinations
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 10} {2 20} {3 30} {4 40} {5 50} {6 60}}
+    } -body {
+        foo split goo moo too
+        list [goo type] [goo range 0 end] [moo type] [moo range 0 end] [too type] [too range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy goo}
+        catch {vector destroy moo}
+        catch {vector destroy too}
+    } -result {complex {{1.0 10.0} {4.0 40.0}} complex {{2.0 20.0} {5.0 50.0}} complex {{3.0 30.0} {6.0 60.0}}}
+
+    test vector.split.2.2 {
+        vector split: complex source is also destination
+    } -setup {
+        vector create foo -type complex
+        foo set {{1 10} {2 20} {3 30} {4 40}}
+    } -body {
+        foo split foo bar
+        list [foo range 0 end] [bar range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy bar}
+    } -result {{{1.0 10.0} {2.0 20.0} {3.0 30.0} {4.0 40.0} {1.0 10.0} {3.0 30.0}} {{2.0 20.0} {4.0 40.0}}}
+
+    test vector.split.2.3 {
+        vector split: different destination type rejected
+    } -setup {
+        vector create foo -type complex
+        vector create bar
+        foo set {{1 10} {2 20}}
+        bar set {9}
+    } -body {
+        set code [catch {foo split bar}]
+        list $code [bar type] [bar range 0 end]
+    } -cleanup {
+        catch {vector destroy foo}
+        catch {vector destroy bar}
+    } -result {1 real 9.0}
+	
+
+    proc OutputTrace {action args} {
+        set ::outputSeen [::outputResult range 0 end]
+        if {$action eq "source"} {rbc::vector destroy ::outputSource}
+        if {$action eq "replace"} {
+            rbc::vector destroy ::outputResult
+            rbc::vector create ::outputResult
+            ::outputResult set {99}
+        }
+    }
+    foreach {case action expectedCode expectedValues} {
+        1 source 0 {1.0 3.0}
+        2 replace 1 99.0
+    } {
+        test vector.split.20.$case {mapping trace sees complete output and retains identity} -setup {
+            vector create ::outputSource
+            ::outputSource set {1 3}
+            set ::outputResult placeholder
+            trace add variable ::outputResult unset [namespace code [list OutputTrace $action]]
+        } -body {
+            set code [catch {::outputSource split ::outputResult}]
+            list $code $::outputSeen [::outputResult range 0 end]
+        } -cleanup {
+            foreach v {::outputSource ::outputResult} {catch {vector destroy $v}; catch {unset $v}}
+            unset -nocomplain ::outputSeen
+        } -result [list $expectedCode {1.0 3.0} $expectedValues]
+    }
+
+	cleanupTests
+}

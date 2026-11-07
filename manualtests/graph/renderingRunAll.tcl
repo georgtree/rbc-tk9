@@ -3,7 +3,7 @@ source [file join [file dirname [info script]] ../ManualRunAllSupportMethods.tcl
 ::rbcManual::RunRunner [info script] {
 set CommandName "rendering"
 
-source RBC.graph.$CommandName.M.tcl
+source graph.$CommandName.tcl
 source ../GraphRunAllSupportMethods.tcl
 
 ExecuteCommandSequenceNoCommand $CommandName

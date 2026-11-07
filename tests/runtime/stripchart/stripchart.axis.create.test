@@ -1,0 +1,86 @@
+# stripchart.axis.create.test --
+#
+###Abstract
+# This file tests the axis create function of the stripchart BLT component.
+# Axis create is an instance function of stripchart.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide stripchart.axis
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval stripchart.axis {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the axis create command works correctly when given a unique axis
+	# name.
+	# ------------------------------------------------------------------------------------
+	test stripchart.axis.create.1.1 {
+		Unique Name
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 axis create Axis1
+		.stripchart1 axis names Axis1
+	} -cleanup {
+		destroy .stripchart1
+	} -result {Axis1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the axis create command works correctly when given a unique axis
+	# name and a valid option and value.
+	# ------------------------------------------------------------------------------------
+	test stripchart.axis.create.1.2 {
+		Unique Name
+	} -setup {
+		stripchart .stripchart1
+	} -body {
+		.stripchart1 axis create Axis1 -color black
+		.stripchart1 axis names Axis1
+	} -cleanup {
+		destroy .stripchart1
+	} -result {Axis1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the axis create command works correctly when given an existing axis
+	# name.
+	# ------------------------------------------------------------------------------------
+	test stripchart.axis.create.1.3 {
+		Existing Name
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 axis create Axis1
+	} -body {
+		if {[catch {.stripchart1 axis create Axis1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		destroy .stripchart1
+	} -result {0}
+
+    test stripchart.axis.create.2.1 {
+        stripchart axis create: -title is not -titleshadow
+    } -setup {
+        stripchart .stripchart1
+    } -body {
+        set result [.stripchart1 axis create temp -title temp -limitscolor blue3 -limitsformat "%4.4g"\
+                            -titlecolor blue3]
+        list $result [.stripchart1 axis cget temp -title] [.stripchart1 axis cget temp -limitscolor]\
+                [.stripchart1 axis cget temp -titlecolor]
+    } -cleanup {
+        destroy .stripchart1
+    } -result {temp temp blue3 blue3}
+
+	cleanupTests
+}

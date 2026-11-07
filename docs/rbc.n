@@ -491,7 +491,7 @@ Packaging regression tests (no Tk or compiler needed):
 .PP
 .RS 4n
 .nf
-tclsh tests/build/RBC\&.build\&.installDist\&.A\&.test
+tclsh tests/build/build\&.installDist\&.test
 .fi
 .RE
 .PP
@@ -582,7 +582,7 @@ make test-vector-notify
 .fi
 .RE
 .PP
-This relinks RBC objects into a test-only library and runs RBC\&.vector\&.notify\&.A\&.test in a fresh Tcl interpreter\&.
+This relinks RBC objects into a test-only library and runs vector\&.notify\&.test in a fresh Tcl interpreter\&.
 It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks\&.
 These private APIs are not added to the public stubs table\&. The ordinary suite skips this file without the dedicated
 harness\&. The MSVC makefile provides the same target\&.
@@ -593,7 +593,7 @@ For example, run the line-decimation test file:
 .PP
 .RS 4n
 .nf
-make test TESTFLAGS="-file RBC\&.graph\&.element\&.decimate\&.A\&.test"
+make test TESTFLAGS="-file graph\&.element\&.decimate\&.test"
 .fi
 .RE
 .PP
@@ -601,7 +601,7 @@ Or select tests by name:
 .PP
 .RS 4n
 .nf
-make test TESTFLAGS="-match RBC\&.graph\&.element\&.decimate\&.*"
+make test TESTFLAGS="-match graph\&.element\&.decimate\&.*"
 .fi
 .RE
 .PP
@@ -783,7 +783,7 @@ The helper regression tests require only Tcl, Tcllib and tcltest:
 .PP
 .RS 4n
 .nf
-tclsh9\&.0 tests/RBC\&.docs\&.tables\&.A\&.test
+tclsh9\&.0 tests/docs\&.tables\&.test
 .fi
 .RE
 .PP

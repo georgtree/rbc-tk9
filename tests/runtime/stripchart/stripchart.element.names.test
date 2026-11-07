@@ -1,0 +1,95 @@
+# stripchart.element.names.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element names 
+# function of the stripchart BLT component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide stripchart.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval stripchart.element {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element names command works correctly when no pattern is given.
+	# ------------------------------------------------------------------------------------
+	test stripchart.element.names.1.1 {
+		element names: no pattern
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 element create Element1
+		.stripchart1 element create Element2
+	} -body {
+		.stripchart1 element names
+	} -cleanup {
+		.stripchart1 element delete Element2
+		.stripchart1 element delete Element1
+		destroy .stripchart1
+	} -result {Element2 Element1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element names command works correctly when an exact pattern is 
+	# given.
+	# ------------------------------------------------------------------------------------
+	test stripchart.element.names.2.1 {
+		element names: exact pattern
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 element create Element1
+		.stripchart1 element create Element2
+	} -body {
+		.stripchart1 element names Element2
+	} -cleanup {
+		.stripchart1 element delete Element2
+		.stripchart1 element delete Element1
+		destroy .stripchart1
+	} -result {Element2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element names command works correctly when a wildcard pattern is 
+	# given.
+	# ------------------------------------------------------------------------------------
+	test stripchart.element.names.3.1 {
+		element names: wildcard pattern
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 element create Element1
+		.stripchart1 element create Element2
+	} -body {
+		.stripchart1 element names *ment*
+	} -cleanup {
+		.stripchart1 element delete Element2
+		.stripchart1 element delete Element1
+		destroy .stripchart1
+	} -result {Element2 Element1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element names command works correctly when an incorrect pattern 
+	# is given.
+	# ------------------------------------------------------------------------------------
+	test stripchart.element.names.4.1 {
+		element names: incorrect pattern
+	} -setup {
+		stripchart .stripchart1
+		.stripchart1 element create Element1
+		.stripchart1 element create Element2
+	} -body {
+		.stripchart1 element names Element
+	} -cleanup {
+		.stripchart1 element delete Element2
+		.stripchart1 element delete Element1
+		destroy .stripchart1
+	} -result {}
+	
+	cleanupTests
+}

@@ -1,0 +1,29 @@
+# Private temporary-image lifecycle harness; run in a dedicated interpreter.
+package provide image.temporary
+package require tcltest
+namespace import tcltest::*
+set imageAvailable 0
+if {[info exists ::env(RBC_IMAGE_TEST_LIB)]} {
+    package require Tk
+    load $::env(RBC_IMAGE_TEST_LIB) Rbcimagetest
+    set imageAvailable 1
+}
+testConstraint imageHarness $imageAvailable
+namespace eval image.temporary {
+    test image.temporary.1.1 {failed instance acquisition removes the photo and retains the error} \
+        -constraints imageHarness -body {
+            ::rbcimagetest acquire-fail
+        } -result {0 0 {forced image acquisition failure}}
+    foreach {case scenario expected} {
+        1 normal {0 1 0 {retained result}}
+        2 blocked {0 1 0 {retained result}}
+        3 renamed {0 1 0 {retained result}}
+        4 deleted {0 1 0 {retained result}}
+        5 null {0 0 0 {retained result}}
+    } {
+        test image.temporary.2.$case "temporary image cleanup: $scenario" \
+            -constraints imageHarness -body [list ::rbcimagetest $scenario] -result $expected
+    }
+}
+cleanupTests
+if {$imageAvailable} {destroy .}

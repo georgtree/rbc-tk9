@@ -1,0 +1,135 @@
+# eps.file.test --
+#
+###Abstract
+# This file contains the automatic tests that test the file 
+# function of the eps BLT component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide eps.file
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval eps.file {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the file command works properly when given a 
+	# ------------------------------------------------------------------------------------ 
+	test eps.file.1.1 {
+	    eps file: postscript file
+	} -setup {
+	    canvas .canvas1
+	    .canvas1 create eps 0 0
+	    if {![file exists out.ps]} {
+		apply {{f} {
+		    set fd [open $f w]
+		    chan puts $fd "%!PS\n%%BoundingBox: 0 0 1 1"
+		    chan close $fd
+		}} out.ps
+		set out.ps {}
+	    }
+	} -body {
+	    .canvas1 itemconfigure 1 -file out.ps
+	    .canvas1 itemcget 1 -file
+	} -cleanup {
+		.canvas1 delete 1
+	    destroy .canvas1
+	    if {[info exists out.ps]} {
+		file delete out.ps
+		unset out.ps
+	    }
+	} -result {out.ps}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the file command works properly when given an invalid color name.
+	# ------------------------------------------------------------------------------------ 
+	test eps.file.1.2 {
+	    eps file: invalid color
+	} -setup {
+	    canvas .canvas1
+		.canvas1 create eps 0 0
+	} -body {
+		if {[catch {.canvas1 itemconfigure 1 -file invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.canvas1 delete 1
+	    destroy .canvas1
+	} -result {0}
+
+    test eps.file.2.1 {
+        eps file: preserve first body line after EndComments
+    } -setup {
+        canvas .canvas1
+        .canvas1 create eps 0 0
+        set fd [open out.ps w]
+        fconfigure $fd -translation lf
+        chan puts $fd "%!PS-Adobe-3.0 EPSF-3.0"
+        chan puts $fd "%%BoundingBox: 0 0 10 10"
+        chan puts $fd "%%EndComments"
+        chan puts $fd "FIRST_BODY_TOKEN"
+        chan puts $fd "SECOND_BODY_TOKEN"
+        chan close $fd
+    } -body {
+        .canvas1 itemconfigure 1 -file out.ps
+        set ps [.canvas1 postscript]
+        list [expr {[string first "FIRST_BODY_TOKEN" $ps] >= 0}] [expr {[string first "SECOND_BODY_TOKEN" $ps] >= 0}]
+    } -cleanup {
+        .canvas1 delete 1
+        destroy .canvas1
+        file delete -force out.ps
+    } -result {1 1}
+
+    test eps.file.2.2 {
+        eps file: preserve body without EndComments
+    } -setup {
+        canvas .canvas1
+        .canvas1 create eps 0 0
+        set fd [open out.ps w]
+        fconfigure $fd -translation lf
+        chan puts $fd "%!PS-Adobe-3.0 EPSF-3.0"
+        chan puts $fd "%%BoundingBox: 0 0 10 10"
+        chan puts $fd "FIRST_BODY_TOKEN"
+        chan puts $fd "SECOND_BODY_TOKEN"
+        chan close $fd
+    } -body {
+        .canvas1 itemconfigure 1 -file out.ps
+        set ps [.canvas1 postscript]
+        list [expr {[string first "FIRST_BODY_TOKEN" $ps] >= 0}] [expr {[string first "SECOND_BODY_TOKEN" $ps] >= 0}]
+    } -cleanup {
+        .canvas1 delete 1
+        destroy .canvas1
+        file delete -force out.ps
+    } -result {1 1}
+
+    test eps.file.2.3 {
+        eps file: reject zero-width BoundingBox
+    } -setup {
+        canvas .canvas1
+        .canvas1 create eps 0 0
+        set fd [open out.ps w]
+        fconfigure $fd -translation lf
+        chan puts $fd "%!PS-Adobe-3.0 EPSF-3.0"
+        chan puts $fd "%%BoundingBox: 0 0 0 10"
+        chan puts $fd "%%EndComments"
+        chan close $fd
+    } -body {
+        catch {.canvas1 itemconfigure 1 -file out.ps}
+    } -cleanup {
+        .canvas1 delete 1
+        destroy .canvas1
+        file delete -force out.ps
+    } -result {1}
+	
+	cleanupTests
+}

@@ -1,0 +1,43 @@
+# Private tile harness; run in a dedicated interpreter.
+package provide tile.notify
+package require tcltest
+namespace import tcltest::*
+set tileAvailable 0
+if {[info exists ::env(RBC_TILE_TEST_LIB)]} {
+    package require Tk
+    load $::env(RBC_TILE_TEST_LIB) Rbctiletest
+    set tileAvailable 1
+}
+testConstraint tileHarness $tileAvailable
+namespace eval tile.notify {
+    foreach {case scenario expected} {
+        1 self {0 1}
+        2 other 0
+        3 all 0
+        4 add {0 1 0 1 2}
+        5 disable 0
+        6 nested {0 0 1 1}
+        7 delete-interp 0
+        8 mask {0 1 1}
+        9 pending {0 1 1}
+    } {
+        test tile.notify.1.$case "tile lifetime: $scenario" \
+            -constraints tileHarness -body [list ::rbctiletest $scenario] -result $expected
+    }
+    foreach {case ox oy} {
+        1 2 2
+        2 1 2
+        3 2 1
+        4 1 1
+        5 -3 -2
+        6 5 6
+    } {
+        foreach transparent {0 1} {
+            test tile.notify.2.$case.$transparent "tile pixels: origin $ox,$oy transparency $transparent" \
+                -constraints {tileHarness win} \
+                -body [list ::rbctilepixels $ox $oy $transparent] -result 0
+        }
+    }
+}
+cleanupTests
+if {$tileAvailable} {destroy .}

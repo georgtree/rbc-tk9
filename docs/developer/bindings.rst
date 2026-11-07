@@ -190,7 +190,7 @@ that when moving between embedded and external presentation.
 Validation when changing behavior
 ---------------------------------
 
-Existing regression coverage includes ``RBC.trackgraph.bind.A.test`` and ``RBC.trackgraph.legend.A.test``, plus
+Existing regression coverage includes ``trackgraph.bind.test`` and ``trackgraph.legend.test``, plus
 graph/barchart/stripchart axis, element, marker and legend binding files. Exercise overlapping objects, tag isolation,
 button grabs, deleted Enter destinations, widget destruction from scripts, and stationary-pointer
 reorder/scroll. Include local legend padding and external legend windows when changing hit priority or event-handler

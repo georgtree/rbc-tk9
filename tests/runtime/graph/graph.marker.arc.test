@@ -1,0 +1,401 @@
+# Arc marker geometry, interaction, rendering and configuration regressions.
+# See license.terms for details.
+###Package Definition
+package provide graph.marker.arc
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.marker.arc {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {2 0 12 0 13 0 14 0 17 0}
+    proc Setup {{renderer native}} {
+        ::rbc::graph .arc -width 420 -height 320 -plotbackground white -renderer $renderer
+        .arc axis configure x y -min 0 -max 10
+        pack .arc
+        update
+        .arc marker create arc -name a -coords {2 2 8 8} -outline black -fill red
+    }
+    # A position in the mapped box: u increases right, v increases upward.
+    proc Point {u v} {
+        lassign [.arc transform 2 2] x1 y1
+        lassign [.arc transform 8 8] x2 y2
+        list [expr {round(($x1+$x2)/2.0+$u*abs($x2-$x1)/2.0)}] [expr {round(($y1+$y2)/2.0-$v*abs($y2-$y1)/2.0)}]
+    }
+    proc Find {u v} {
+        update
+        lassign [Point $u $v] x y
+        .arc marker find overlapping [expr {$x-2}] [expr {$y-2}] [expr {$x+2}] [expr {$y+2}]
+    }
+    proc Pixel {photo u v} {
+        lassign [Point $u $v] x y
+        $photo get $x $y
+    }
+
+    test graph.marker.arc.1.1 {defaults, type, and original box coordinates} -setup {
+        Setup
+    } -body {
+        list [.arc marker type a] [.arc marker cget a -coords] \
+            [expr {[.arc marker cget a -start] == 0}] \
+            [expr {[.arc marker cget a -extent] == 360}] \
+            [.arc marker cget a -style] [.arc marker cget a -bindtags]
+    } -cleanup {destroy .arc} -result {ArcMarker {2 2 8 8} 1 1 pieslice {Arc all}}
+
+    foreach {suffix options} {
+        short {-coords {1 2}} long {-coords {1 2 3 4 5 6}}
+        odd {-coords {1 2 3}} style {-style invalid}
+        start {-start Inf} extent {-extent -Inf} width {-linewidth -1}
+        color {-fill not-a-color}
+    } {
+        test graph.marker.arc.2.[incr testCase(2)] {failed configure restores geometry, name and options} -setup {
+            Setup
+            update
+        } -body {
+            set before [.arc marker configure a]
+            set failed [catch {.arc marker configure a -name changed -start 45 {*}$options}]
+            list $failed [.arc marker exists changed] [expr {$before eq [.arc marker configure a]}] [Find 0 0]
+        } -cleanup {destroy .arc} -result {1 0 1 a}
+    }
+
+    test graph.marker.arc.3.1 {positive and negative sweeps select opposite quadrants} -setup {
+        Setup
+        .arc marker configure a -extent 90
+    } -body {
+        set positive [list [Find .4 .4] [Find .4 -.4]]
+        .arc marker configure a -extent -90
+        list $positive [list [Find .4 .4] [Find .4 -.4]]
+    } -cleanup {destroy .arc} -result {{a {}} {{} a}}
+
+    test graph.marker.arc.4.1 {chord excludes the centre-side area included in a sector} -setup {
+        Setup
+        .arc marker configure a -extent 90 -style chord
+    } -body {
+        set chord [list [Find .2 .2] [Find .65 .65]]
+        .arc marker configure a -style pieslice
+        list $chord [Find .2 .2]
+    } -cleanup {destroy .arc} -result {{{} a} a}
+
+    test graph.marker.arc.5.1 {open arc ignores fill and has neither chord nor radii} -setup {
+        Setup
+        .arc marker configure a -extent 90 -style arc -fill red
+    } -body {
+        list [Find .5 .5] [Find .4 0] [Find 0 0] [Find .707 .707]
+    } -cleanup {destroy .arc} -result {{} {} {} a}
+
+    test graph.marker.arc.6.1 {empty fill leaves only the closed sector outline} -setup {
+        Setup
+        .arc marker configure a -extent 90 -fill {}
+    } -body {
+        list [Find .4 .4] [Find .4 0] [Find .707 .707]
+    } -cleanup {destroy .arc} -result {{} a a}
+
+    test graph.marker.arc.7.1 {full sweep has no radius seam; zero sweep and zero box hide} -setup {
+        Setup
+        .arc marker configure a -extent 720 -fill {}
+    } -body {
+        set full [list [Find .4 0] [Find -1 0]]
+        .arc marker configure a -extent 0
+        set empty [Find -1 0]
+        .arc marker configure a -extent 360 -coords {2 2 2 8}
+        list $full $empty [Find -1 0]
+    } -cleanup {destroy .arc} -result {{{} a} {} {}}
+
+    test graph.marker.arc.8.1 {empty coordinates discard interaction with previous geometry} -setup {
+        Setup
+        update
+    } -body {
+        .arc marker configure a -coords {}
+        Find 0 0
+    } -cleanup {destroy .arc} -result {}
+
+    test graph.marker.arc.9.1 {reversed box corners preserve screen geometry} -setup {Setup} -body {
+        set before [Find .6 .6]
+        .arc marker configure a -coords {8 8 2 2}
+        list $before [Find .6 .6]
+    } -cleanup {destroy .arc} -result {a a}
+
+    test graph.marker.arc.10.1 {enclosed uses curved geometry including sector centre} -setup {Setup} -body {
+        update
+        lassign [Point -1 -1] l b
+        lassign [Point 1 1] r t
+        list [.arc marker find enclosed [expr {$l-2}] [expr {$t-2}] [expr {$r+2}] [expr {$b+2}]] \
+             [.arc marker find enclosed [expr {$l+10}] $t $r $b]
+    } -cleanup {destroy .arc} -result {a {}}
+
+    test graph.marker.arc.11.1 {Arc binding tag and marker get current use the curved outline} -setup {
+        Setup
+        .arc marker configure a -style arc -extent 90
+        set ::arcPicked {}
+        .arc marker bind Arc <Motion> {set ::arcPicked [.arc marker get current]}
+        update
+    } -body {
+        lassign [Point .707 .707] x y
+        event generate .arc <Motion> -x $x -y $y
+        update
+        set ::arcPicked
+    } -cleanup {destroy .arc; unset ::arcPicked} -result a
+
+    ::rbc::graph .arcProbe
+    testConstraint arcCairo [expr {![catch {.arcProbe configure -renderer cairo}]}]
+    destroy .arcProbe
+    foreach renderer {native cairo} {
+        set constraints [expr {$renderer eq "cairo" ? "arcCairo" : ""}]
+        test graph.marker.arc.12.[incr testCase(12)] {fill and open-arc snapshots} -constraints $constraints -setup {
+            Setup $renderer
+            .arc marker configure a -extent 90
+            set photo [image create photo]
+        } -body {
+            update
+            .arc snap $photo
+            set sector [Pixel $photo .35 .35]
+            .arc marker configure a -style arc
+            update
+            .arc snap $photo
+            list $sector [Pixel $photo .35 .35]
+        } -cleanup {image delete $photo; destroy .arc} -result {{255 0 0} {255 255 255}}
+
+        test graph.marker.arc.13.[incr testCase(13)] {clip a filled ellipse crossing every plot boundary} -constraints $constraints -setup {
+            Setup $renderer
+            .arc marker configure a -coords {-10 -10 20 20} -outline {} -fill red
+            set photo [image create photo]
+        } -body {
+            update
+            .arc snap $photo
+            Pixel $photo 0 0
+        } -cleanup {image delete $photo; destroy .arc} -result {255 0 0}
+
+        test graph.marker.arc.14.[incr testCase(14)] {stipple color pair and dashed outline survive remapping} -constraints $constraints -setup {
+            Setup $renderer
+            .arc marker configure a -stipple gray50 -fill {red blue} -outline {black white} -dashes {4 4}
+        } -body {
+            foreach coords {{2 2 8 8} {1 1 9 9} {8 8 2 2}} {
+                .arc marker configure a -coords $coords
+                update
+            }
+            list [Find 0 0] [.arc marker cget a -fill] [.arc marker cget a -dashes]
+        } -cleanup {destroy .arc} -result {a {red blue} {4 4}}
+    }
+
+    test graph.marker.arc.15.1 {SVG and PostScript export include the arc's unique fill color} -setup {
+        Setup
+        .arc marker configure a -fill #123456 -outline {} -extent 120
+        update
+    } -body {
+        set svg [.arc svg output]
+        set ps [.arc postscript output]
+        .arc marker configure a -hide yes
+        set hidden [.arc svg output]
+        list [expr {[string first {#123456} $svg] >= 0}] \
+            [expr {[string first {#123456} $hidden] < 0}] \
+            [expr {[string first {% Marker "a" is a ArcMarker marker} $ps] >= 0}]
+    } -cleanup {destroy .arc} -result {1 1 1}
+
+    test graph.marker.arc.16.1 {logarithmic bounding box remains an ellipse in screen coordinates} -setup {
+        Setup
+        .arc axis configure x -min 1 -max 100 -logscale yes
+        .arc marker configure a -extent 90
+    } -body {
+        list [Find .4 .4] [Find -.4 .4]
+    } -cleanup {destroy .arc} -result {a {}}
+
+    foreach kind {barchart stripchart} {
+        test graph.marker.arc.17.[incr testCase(17)] {arc marker available to other Cartesian widgets} -body {
+            ::rbc::$kind .arc
+            .arc marker create arc -name a -coords {0 0 1 1}
+            .arc marker type a
+        } -cleanup {destroy .arc} -result ArcMarker
+    }
+
+
+    proc SvgArcPaths {svg} {
+        set paths {}
+        foreach path [regexp -all -inline {<path\s[^>]*>} $svg] {
+            if {[string first { A } $path] >= 0} {lappend paths $path}
+        }
+        return $paths
+    }
+    proc PsArcBody {ps} {
+        set start [string first {% Marker "a" is a ArcMarker marker} $ps]
+        if {$start < 0} {error {Arc marker missing from PostScript}}
+        set end [string first {% Unset clipping} $ps $start]
+        if {$end < 0} {error {End of plot clip missing from PostScript}}
+        string range $ps $start [expr {$end-1}]
+    }
+
+    test graph.marker.arc.18.1 {SVG full ellipses use two curved sections and no radial seam} -setup {
+        Setup
+        .arc marker configure a -fill {}
+    } -body {
+        set result {}
+        foreach style {arc chord pieslice} {
+            foreach extent {360 -360 720 -720} {
+                .arc marker configure a -style $style -extent $extent
+                set paths [SvgArcPaths [.arc svg output]]
+                set path [lindex $paths 0]
+                lappend result [expr {[llength $paths] == 1 && [regexp -all { A } $path] == 2 &&
+                    [string first { L } $path] < 0 && [string first { Z} $path] >= 0}]
+            }
+        }
+        lsort -unique $result
+    } -cleanup {destroy .arc} -result 1
+
+    test graph.marker.arc.19.1 {SVG sweep and large-arc flags preserve positive and negative sweeps} -setup {
+        Setup
+        .arc marker configure a -fill {} -style arc -start 30
+    } -body {
+        set result {}
+        foreach extent {90 -90 270 -270} {
+            .arc marker configure a -extent $extent
+            set path [lindex [SvgArcPaths [.arc svg output]] 0]
+            regexp { A \S+ \S+ 0 ([01]) ([01]) } $path -> large sweep
+            lappend result [list $large $sweep]
+        }
+        set result
+    } -cleanup {destroy .arc} -result {{0 0} {0 1} {1 0} {1 1}}
+
+    test graph.marker.arc.20.1 {SVG sector/chord closure and ignored open-arc fill} -setup {
+        Setup
+        .arc marker configure a -extent 120 -fill #123456 -outline {}
+    } -body {
+        set result {}
+        foreach style {pieslice chord arc} {
+            .arc marker configure a -style $style
+            set paths [SvgArcPaths [.arc svg output]]
+            set path [lindex $paths 0]
+            lappend result [list [llength $paths] [expr {[string first { L } $path] >= 0}] \
+                [expr {[string first { Z} $path] >= 0}]]
+        }
+        set result
+    } -cleanup {destroy .arc} -result {{1 1 1} {1 0 1} {0 0 0}}
+
+    test graph.marker.arc.21.1 {clipped SVG ellipse retains its original path and continuous two-color dashes} -setup {
+        Setup
+        .arc marker configure a -coords {-5 2 15 8} -fill {} -outline {red blue} -dashes {6 4}
+    } -body {
+        set svg [.arc svg output]
+        set paths [SvgArcPaths $svg]
+        set a [lindex $paths 0]
+        set b [lindex $paths 1]
+        regexp {d="([^"]+)"} $a -> geometryA
+        regexp {d="([^"]+)"} $b -> geometryB
+        list [llength $paths] [expr {$geometryA eq $geometryB}] \
+            [regexp -all { A } $a] [expr {[string first { L } $a] < 0}] \
+            [expr {[string first {clip-path="url(#rbcPlot)"} $svg] >= 0}] \
+            [expr {[string first {stroke-dasharray="6 4"} $b] >= 0}]
+    } -cleanup {destroy .arc} -result {2 1 2 1 1 1}
+
+    test graph.marker.arc.22.1 {PostScript uses arc/arcn, restores the CTM, and closes only closed styles} -setup {
+        Setup
+        .arc marker configure a -fill {} -extent 90 -start 30
+    } -body {
+        set result {}
+        foreach {style extent} {arc 90 chord -90 pieslice 270 pieslice 360} {
+            .arc marker configure a -style $style -extent $extent
+            set ps [PsArcBody [.arc postscript output]]
+            regexp {0 0 1 \S+ \S+ (arc|arcn)\nsetmatrix} $ps -> direction
+            lappend result [list $direction [regexp -all { lineto} $ps] \
+                [regexp -all {closepath} $ps] [expr {[string first {setmatrix} $ps] < [string first {DashesProc stroke} $ps]}]]
+        }
+        set result
+    } -cleanup {destroy .arc} -result {{arcn 0 0 1} {arc 0 1 1} {arcn 1 1 1} {arcn 0 1 1}}
+
+    test graph.marker.arc.23.1 {stipple exports retain curved fill paths in SVG and PostScript} -setup {
+        Setup
+        .arc marker configure a -fill {red blue} -stipple gray50 -outline {} -extent 250
+    } -body {
+        set svg [.arc svg output]
+        set paths [SvgArcPaths $svg]
+        set ps [PsArcBody [.arc postscript output]]
+        list [llength $paths] [expr {[string first {fill="url(#rbcPattern} [lindex $paths 0]] >= 0}] \
+            [regexp {arcn\nsetmatrix} $ps] [expr {[string first {StippleFill} $ps] >= 0}]
+    } -cleanup {destroy .arc} -result {1 1 1 1}
+
+    test graph.marker.arc.24.1 {resized SVG export remaps ellipse then restores screen geometry} -setup {
+        Setup
+        update
+    } -body {
+        set before [.arc transform 5 5]
+        set width [.arc svg cget -width]
+        set height [.arc svg cget -height]
+        set original [SvgArcPaths [.arc svg output]]
+        set enlarged [SvgArcPaths [.arc svg output -width 800 -height 600]]
+        update idletasks
+        set screenRestored [expr {$before eq [.arc transform 5 5]}]
+        set restored [SvgArcPaths [.arc svg output -width $width -height $height]]
+        update idletasks
+        list [expr {$original ne $enlarged}] [expr {$original eq $restored}]\
+                [expr {$screenRestored && $before eq [.arc transform 5 5]}]
+    } -cleanup {
+        destroy .arc
+    } -result {1 1 1}
+
+    test graph.marker.arc.25.1 {curved exports do not depend on the screen renderer} -constraints arcCairo -setup {
+        Setup native
+        .arc marker configure a -extent -270 -style chord -dashes {4 3}
+    } -body {
+        set svg [SvgArcPaths [.arc svg output]]
+        set ps [PsArcBody [.arc postscript output]]
+        .arc configure -renderer cairo
+        update
+        list [expr {$svg eq [SvgArcPaths [.arc svg output]]}] \
+            [expr {$ps eq [PsArcBody [.arc postscript output]]}]
+    } -cleanup {destroy .arc} -result {1 1}
+
+    test graph.marker.arc.26.1 {Cairo eccentric ellipse keeps constant stroke width} -constraints arcCairo -setup {
+        Setup cairo
+        .arc configure -antialias none
+        .arc marker configure a -coords {1 4 9 6} -fill {} -linewidth 6
+        set photo [image create photo]
+        update
+    } -body {
+        .arc snap $photo
+        lassign [.arc transform 9 5] right cy
+        lassign [.arc transform 5 6] cx top
+        set horizontal 0
+        set vertical 0
+        for {set d -8} {$d <= 8} {incr d} {
+            if {[$photo get [expr {round($right)+$d}] [expr {round($cy)}]] eq {0 0 0}} {incr horizontal}
+            if {[$photo get [expr {round($cx)}] [expr {round($top)+$d}]] eq {0 0 0}} {incr vertical}
+        }
+        expr {$horizontal >= 5 && $horizontal <= 7 && $vertical >= 5 && $vertical <= 7}
+    } -cleanup {image delete $photo; destroy .arc} -result 1
+
+    test graph.marker.arc.27.1 {Cairo clips the curve without outlining the clip rectangle} -constraints arcCairo -setup {
+        Setup cairo
+        .arc marker configure a -coords {-10 -10 20 20} -fill {} -linewidth 6
+        set photo [image create photo]
+        update
+    } -body {
+        .arc snap $photo
+        list [Pixel $photo 0 0] [Pixel $photo 1 0] [Pixel $photo -1 0]
+    } -cleanup {image delete $photo; destroy .arc} -result {{255 255 255} {255 255 255} {255 255 255}}
+
+    test graph.marker.arc.28.1 {Cairo stipple stays fixed in widget pixels when ellipse is stretched} -constraints arcCairo -setup {
+        Setup cairo
+        .arc marker configure a -fill {red blue} -stipple gray50 -outline {}
+        set photo [image create photo]
+        update
+    } -body {
+        lassign [.arc transform 5 5] cx cy
+        set samples {}
+        foreach coords {{2 2 8 8} {1 3 9 7}} {
+            .arc marker configure a -coords $coords
+            update
+            .arc snap $photo
+            set colors {}
+            for {set y -5} {$y <= 5} {incr y} {
+                for {set x -5} {$x <= 5} {incr x} {
+                    lappend colors [$photo get [expr {round($cx)+$x}] [expr {round($cy)+$y}]]
+                }
+            }
+            lappend samples $colors
+        }
+        list [expr {[lindex $samples 0] eq [lindex $samples 1]}] \
+            [lsort -unique [lindex $samples 0]]
+    } -cleanup {image delete $photo; destroy .arc} -result {1 {{0 0 255} {255 0 0}}}
+
+cleanupTests
+}

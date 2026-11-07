@@ -106,7 +106,7 @@ Maintenance checks
 
 Keep GC acquisition/release pairs explicit, preserve depth selection for unrealized windows, and review both platform
 branches when changing native identifiers. Run ``make test-headers`` after declaration changes. Window capture
-regressions belong in the existing ``RBC.winop.snap*.test`` files; renderer changes also need the appropriate component
+regressions belong in the existing ``winop.snap*.test`` files; renderer changes also need the appropriate component
 drawing tests.
 
 ``make test-resources`` exercises lookup/deletion before the first setter, payload replacement, repeated deletion and

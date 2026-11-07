@@ -1,0 +1,219 @@
+# winop.image.rotate.test --
+#
+###Abstract
+# This file contains the automatic tests that test the image rotate 
+# function of the winop BLT component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide winop.image
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval winop.image {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the rotate command works properly when given a positive integer.
+	# ------------------------------------------------------------------------------------ 
+	test winop.image.rotate.1.1 {
+	    winop image rotate: positive integer
+	} -setup {
+		set src [image create photo -file [file join [file dirname [info script]] .. .. assets rain.gif]]
+		set dest [image create photo]
+	} -body {
+	    if {[catch {winop image rotate $src $dest 90}]} {
+			return 1
+	    } else {
+			return 0
+	    }
+	} -cleanup {
+		image delete $src
+		image delete $dest
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the rotate command works properly when given a negative integer.
+	# ------------------------------------------------------------------------------------ 
+	test winop.image.rotate.1.2 {
+	    winop image rotate: negative integer
+	} -setup {
+		set src [image create photo -file [file join [file dirname [info script]] .. .. assets rain.gif]]
+		set dest [image create photo]
+	} -body {
+	    if {[catch {winop image rotate $src $dest -90}]} {
+			return 1
+	    } else {
+			return 0
+	    }
+	} -cleanup {
+		image delete $src
+		image delete $dest
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the rotate command works properly when given a positive decimal.
+	# ------------------------------------------------------------------------------------ 
+	test winop.image.rotate.1.3 {
+	    winop image rotate: positive decimal
+	} -setup {
+		set src [image create photo -file [file join [file dirname [info script]] .. .. assets rain.gif]]
+		set dest [image create photo]
+	} -body {
+	    if {[catch {winop image rotate $src $dest 90.5}]} {
+			return 1
+	    } else {
+			return 0
+	    }
+	} -cleanup {
+		image delete $src
+		image delete $dest
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the rotate command works properly when given a negative decimal.
+	# ------------------------------------------------------------------------------------ 
+	test winop.image.rotate.1.4 {
+	    winop image rotate: negative decimal
+	} -setup {
+		set src [image create photo -file [file join [file dirname [info script]] .. .. assets rain.gif]]
+		set dest [image create photo]
+	} -body {
+	    if {[catch {winop image rotate $src $dest -90.5}]} {
+			return 1
+	    } else {
+			return 0
+	    }
+	} -cleanup {
+		image delete $src
+		image delete $dest
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the rotate command works properly when given character input.
+	# ------------------------------------------------------------------------------------ 
+	test winop.image.rotate.1.5 {
+	    winop image rotate: character input
+	} -setup {
+		set src [image create photo -file [file join [file dirname [info script]] .. .. assets rain.gif]]
+		set dest [image create photo]
+	} -body {
+	    if {[catch {winop image rotate $src $dest invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+		image delete $src
+		image delete $dest
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the rotate command works properly when given a non-existent Tk
+	# photo as the source image.
+	# ------------------------------------------------------------------------------------ 
+	test winop.image.rotate.2.1 {
+	    winop image rotate: non-existent Tk photo source
+	} -setup {
+		set dest [image create photo -file [file join [file dirname [info script]] .. .. assets rain.gif]]
+	} -body {
+	    if {[catch {winop image rotate $src $dest 90}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+		image delete $dest
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the rotate command works properly when given a non-existent Tk
+	# photo as the destination image.
+	# ------------------------------------------------------------------------------------ 
+	test winop.image.rotate.2.2 {
+	    winop image rotate: non-existent Tk photo destination
+	} -setup {
+		set src [image create photo -file [file join [file dirname [info script]] .. .. assets rain.gif]]
+	} -body {
+	    if {[catch {winop image rotate $src $dest 90}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+		image delete $src
+	} -result {0}
+	
+    foreach {case target} {1 rbcRotateSrc 2 rbcRotateDst} {
+        test winop.image.rotate.3.$case {angle callback deletes a photo} -setup {
+            image create photo rbcRotateSrc -width 4 -height 4
+            image create photo rbcRotateDst -width 4 -height 4
+        } -body {
+            set angle [format {[image delete %s; expr {0}]} $target]
+            set code [catch {winop image rotate rbcRotateSrc rbcRotateDst $angle} message]
+            list $code [string match {*doesn't exist or is not a photo image} $message]
+        } -cleanup {
+            catch {image delete rbcRotateSrc}
+            catch {image delete rbcRotateDst}
+        } -result {1 1}
+    }
+    test winop.image.rotate.3.3 {angle callback replaces both photos by name} -setup {
+        image create photo rbcRotateSrc -width 4 -height 4
+        rbcRotateSrc put red -to 0 0 4 4
+        image create photo rbcRotateDst -width 4 -height 4
+    } -body {
+        winop image rotate rbcRotateSrc rbcRotateDst {
+            [image delete rbcRotateSrc rbcRotateDst;
+             image create photo rbcRotateSrc -width 3 -height 2;
+             rbcRotateSrc put blue -to 0 0 3 2;
+             image create photo rbcRotateDst;
+             expr {0}]
+        }
+        list [image width rbcRotateDst] [image height rbcRotateDst] [rbcRotateDst get 0 0]
+    } -cleanup {
+        catch {image delete rbcRotateSrc}
+        catch {image delete rbcRotateDst}
+    } -result {3 2 {0 0 255}}
+    test winop.image.rotate.3.4 {angle evaluation error preserves diagnostic and destination} -setup {
+        image create photo rbcRotateSrc -width 4 -height 4
+        image create photo rbcRotateDst -width 2 -height 2
+        rbcRotateDst put green -to 0 0 2 2
+    } -body {
+        set code [catch {winop image rotate rbcRotateSrc rbcRotateDst {[error angle-failed]}} message]
+        list $code $message [image width rbcRotateDst] [rbcRotateDst get 0 0]
+    } -cleanup {
+        image delete rbcRotateSrc rbcRotateDst
+    } -result {1 angle-failed 2 {0 128 0}}
+    test winop.image.rotate.3.5 {angle callback destroys Tk} -setup {
+        interp create rotateChild
+        rotateChild eval [list set auto_path $::auto_path]
+        rotateChild eval {package require rbc; image create photo src; image create photo dst}
+    } -body {
+        rotateChild eval {
+            set code [catch {rbc::winop image rotate src dst {[destroy .; expr {0}]}} message]
+            list $code $message
+        }
+    } -cleanup {
+        interp delete rotateChild
+    } -result {1 {Tk was destroyed while evaluating rotation angle}}
+    test winop.image.rotate.3.6 {angle callback deletes its interpreter} -setup {
+        interp create rotateChild
+        rotateChild eval [list set auto_path $::auto_path]
+        rotateChild eval {package require rbc; image create photo src; image create photo dst}
+        interp alias rotateChild deleteSelf {} interp delete rotateChild
+    } -body {
+        catch {rotateChild eval {rbc::winop image rotate src dst {[deleteSelf; expr {0}]}}}
+        interp exists rotateChild
+    } -cleanup {
+        catch {interp delete rotateChild}
+    } -result 0
+
+	cleanupTests
+}

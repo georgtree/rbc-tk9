@@ -1,0 +1,578 @@
+# graph.marker.configure.window.test --
+#
+###Abstract
+# This file contains the automatic tests that test the window marker configure
+# function of the graph BLT component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide graph.marker
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.marker {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {6 0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window
+	# markers when given 'n' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.1 {
+		graph marker configure window: anchor - n
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor n
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {n}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given 'ne' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.2 {
+		graph marker configure window: anchor - ne
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor ne
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {ne}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given 'e' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.3 {
+		graph marker configure window: anchor - e
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor e
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {e}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window
+	# markers when given 'se' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.4 {
+		graph marker configure window: anchor - se
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor se
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {se}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given 's' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.5 {
+		graph marker configure window: anchor - s
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor s
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {s}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given 'sw' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.6 {
+		graph marker configure window: anchor - sw
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor sw
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {sw}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given 'w' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.7 {
+		graph marker configure window: anchor - w
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor w
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {w}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given 'nw' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.8 {
+		graph marker configure window: anchor - nw
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor nw
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {nw}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given 'center' as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.9 {
+		graph marker configure window: anchor - center
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -anchor center
+		.graph1 marker cget Marker1 -anchor
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {center}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given invalid numerical input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.10 {
+		graph marker configure window: anchor - invalid numerical input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -anchor 3.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -anchor command works correctly for window 
+	# markers when given invalid character input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.1.11 {
+		graph marker configure window: anchor - invalid character input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -anchor invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -height command works correctly when given
+	# an integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.2.1 {
+		graph marker configure: height - integer input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -height 2
+		.graph1 marker cget Marker1 -height
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {2}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -height command works correctly when given
+	# an invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.2.2 {
+		graph marker configure: height - invalid integer input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -height -1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -height command works correctly when given
+	# a decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.2.3 {
+		graph marker configure: height - decimal input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -height 3.5
+		.graph1 marker cget Marker1 -height
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {3.5}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -height command works correctly when given
+	# an invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.2.4 {
+		graph marker configure: height - invalid decimal input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -height -1.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -height command works correctly when given
+	# a character as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.2.5 {
+		graph marker configure: height - character input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -height a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -height command works correctly when given 0
+	# as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.2.6 {
+		graph marker configure: height - zero
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -height 0}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -width command works correctly when given
+	# an integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.3.1 {
+		graph marker configure: width - integer input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -width 2
+		.graph1 marker cget Marker1 -width
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {2}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -width command works correctly when given
+	# an invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.3.2 {
+		graph marker configure: width - invalid integer input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -width -1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -width command works correctly when given
+	# a decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.3.3 {
+		graph marker configure: width - decimal input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -width 3.5
+		.graph1 marker cget Marker1 -width
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {3.5}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -width command works correctly when given
+	# an invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.3.4 {
+		graph marker configure: width - invalid decimal input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -width -1.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -width command works correctly when given
+	# a character as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.3.5 {
+		graph marker configure: width - character input
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -width a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -width command works correctly when given 0
+	# as input.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.3.6 {
+		graph marker configure: width - zero
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -width 0}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -window command works correctly when given a
+	# valid button name.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.4.1 {
+	    graph marker configure: window - valid button name
+	} -setup {
+		graph .graph1
+		button .graph1.button1 -text "foo"
+		.graph1 marker create window -name Marker1
+	} -body {
+		.graph1 marker configure Marker1 -window .graph1.button1
+		.graph1 marker cget Marker1 -window
+	} -cleanup {
+	    .graph1 marker delete Marker1
+		destroy .graph1
+	} -result {.graph1.button1}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker configure -window command works correctly when given a
+	# non-existent button name.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.configure.window.4.2 {
+	    graph marker configure: window - non-existent button name
+	} -setup {
+		graph .graph1
+		.graph1 marker create window -name Marker1
+	} -body {
+		if {[catch {.graph1 marker configure Marker1 -window .graph1.button1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+	    .graph1 marker delete Marker1
+		destroy .graph1
+	} -result {0}
+
+    test graph.marker.configure.window.5.1 {
+        window marker configuration is atomic
+    } -setup {
+        graph .graph1
+        button .graph1.child1 -text one
+        .graph1 marker create window -name Marker1 -coords {0 0} -window .graph1.child1 -width 20 -height 10
+        set oldCoords [.graph1 marker cget Marker1 -coords]
+        set oldWindow [ .graph1 marker cget Marker1 -window]
+        set oldWidth [.graph1 marker cget Marker1 -width]
+        set oldHeight [.graph1 marker cget Marker1 -height]
+    } -body {
+        set code [catch {.graph1 marker configure Marker1 -coords {1 1} -window .graph1.doesNotExist -width 30\
+                                 -height 15} message]
+        list $code [expr {[.graph1 marker cget Marker1 -coords] eq $oldCoords}]\
+                [expr {[.graph1 marker cget Marker1 -window] eq $oldWindow}]\
+                [expr {[.graph1 marker cget Marker1 -width] eq $oldWidth}]\
+                [expr {[.graph1 marker cget Marker1 -height] eq $oldHeight}] [winfo manager .graph1.child1]
+    } -cleanup {
+        catch {.graph1 marker delete Marker1}
+        catch {destroy .graph1}
+    } -result {1 1 1 1 1 graph}
+
+    foreach kind {graph barchart stripchart} {
+        foreach under {0 1} {
+            test graph.marker.configure.window.6.[incr testCase(6)] {live children unmap and remap with marker and element visibility} -setup {
+                ::rbc::$kind .graph1 -width 500 -height 400
+                .graph1 axis configure x -min 0 -max 10 -loose no
+                .graph1 axis configure y -min 0 -max 10 -loose no
+                .graph1 element create trace -data {0 0 10 10}
+                button .graph1.child -text Window
+                .graph1 marker create window -name w -window .graph1.child -coords {5 5} -under $under -element trace
+                pack .graph1
+                update
+            } -body {
+                set result [list [winfo ismapped .graph1.child]]
+                foreach options {
+                    {-hide yes} {-hide no} {-coords {}} {-coords {5 5}}
+                    {-coords {100 100}} {-coords {5 5}}
+                } {
+                    .graph1 marker configure w {*}$options
+                    update
+                    lappend result [winfo ismapped .graph1.child]
+                }
+                foreach hidden {yes no} {
+                    .graph1 element configure trace -hide $hidden
+                    update
+                    lappend result [winfo ismapped .graph1.child]
+                }
+                set result
+            } -cleanup {destroy .graph1} -result {1 0 1 0 1 0 1 0 1}
+        }
+    }
+    # Child geometry requests must trigger a remap without touching marker options.
+    set windowRequestCase 0
+    foreach under {0 1} {
+        foreach overrides {{} {-width 70} {-height 30} {-width 70 -height 30}} {
+            test graph.marker.configure.window.7.[incr windowRequestCase] \
+                    {requested child size updates placement and preserves explicit dimensions} -setup {
+                graph .graph1 -width 500 -height 400
+                pack .graph1
+                .graph1 axis configure x -min 0 -max 10
+                .graph1 axis configure y -min 0 -max 10
+                label .graph1.child -text Short
+                .graph1 marker create window -name w -window .graph1.child -coords {5 5} \
+                    -anchor se -under $under {*}$overrides
+                update
+                set right [expr {[winfo x .graph1.child]+[winfo width .graph1.child]}]
+                set bottom [expr {[winfo y .graph1.child]+[winfo height .graph1.child]}]
+            } -body {
+                set result {}
+                foreach text {{A much longer first line\nand a second line} Tiny} {
+                    .graph1.child configure -text [subst -nocommands -novariables $text]
+                    update
+                    set width [winfo reqwidth .graph1.child]
+                    set height [winfo reqheight .graph1.child]
+                    foreach {option value} $overrides {
+                        if {$option eq "-width"} {set width $value} else {set height $value}
+                    }
+                    lappend result [expr {[winfo width .graph1.child] == $width}] \
+                        [expr {[winfo height .graph1.child] == $height}] \
+                        [expr {[winfo x .graph1.child]+$width == $right}] \
+                        [expr {[winfo y .graph1.child]+$height == $bottom}]
+                }
+                set result
+            } -cleanup {
+                destroy .graph1
+            } -result {1 1 1 1 1 1 1 1}
+        }
+    }
+
+    cleanupTests
+
+}

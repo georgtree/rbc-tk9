@@ -1,0 +1,194 @@
+# graph.marker.names.test --
+#
+###Abstract
+# This file contains the automatic tests that test the marker names
+# function of the graph BLT component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide graph.marker
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval graph.marker {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker names command works correctly when no pattern is given.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.names.1.1 {
+	    Marker Names: No Pattern
+	} -setup {
+		graph .graph1
+		.graph1 marker create text -name marker1
+		.graph1 marker create polygon -name marker2
+	} -body {
+		.graph1 marker names
+	} -cleanup {
+	    .graph1 marker delete marker1 marker2
+		destroy .graph1
+	} -result {marker1 marker2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker names command works correctly when an exact pattern is 
+	# given.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.names.1.2 {
+	    Marker Names: Exact Pattern
+	} -setup {
+		graph .graph1
+		.graph1 marker create text -name marker1
+		.graph1 marker create polygon -name marker2
+	} -body {
+		.graph1 marker names marker1
+	} -cleanup {
+	    .graph1 marker delete marker1 marker2
+		destroy .graph1
+	} -result {marker1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker names command works correctly when a wildcard pattern is 
+	# given.
+	# ------------------------------------------------------------------------------------
+	test graph.marker.names.1.3 {
+	    Marker Names: Wildcard Pattern
+	} -setup {
+		graph .graph1
+		.graph1 marker create text -name marker1
+		.graph1 marker create polygon -name marker2
+	} -body {
+		.graph1 marker names marker*
+	} -cleanup {
+	    .graph1 marker delete marker1 marker2
+		destroy .graph1
+	} -result {marker1 marker2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the marker names command works correctly when an incorrect pattern
+	# is given
+	# ------------------------------------------------------------------------------------
+	test graph.marker.names.1.4 {
+	    Marker Names: Incorrect Pattern
+	} -setup {
+		graph .graph1
+		.graph1 marker create text -name marker1
+		.graph1 marker create polygon -name marker2
+	} -body {
+		.graph1 marker names marker
+	} -cleanup {
+	    .graph1 marker delete marker1 marker2
+		destroy .graph1
+	} -result {}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Relinking must preserve the registry and display list on errors or self-reference.
+	# ------------------------------------------------------------------------------------
+	foreach operation {before after} case {1 2} {
+		test graph.marker.names.2.$case.1 {
+		    Missing reference leaves the target in display order
+		} -setup {
+			graph .graph1
+			foreach name {a b c} {.graph1 marker create text -name $name}
+		} -body {
+			set status [catch {.graph1 marker $operation b missing} message]
+			list $status $message [.graph1 marker names] [.graph1 marker exists b]
+		} -cleanup {
+			destroy .graph1
+		} -result {1 {can't find marker "missing" in ".graph1"} {a b c} 1}
+
+		test graph.marker.names.2.$case.2 {
+		    Missing target leaves all markers in display order
+		} -setup {
+			graph .graph1
+			foreach name {a b c} {.graph1 marker create text -name $name}
+		} -body {
+			set status [catch {.graph1 marker $operation missing b}]
+			list $status [.graph1 marker names]
+		} -cleanup {
+			destroy .graph1
+		} -result {1 {a b c}}
+
+		test graph.marker.names.2.$case.3 {
+		    Self-reference is a no-op at every display-list position
+		} -setup {
+			graph .graph1
+			foreach name {a b c} {.graph1 marker create text -name $name}
+		} -body {
+			set result {}
+			foreach name {a b c} {
+				lappend result [.graph1 marker $operation $name $name] [.graph1 marker names]
+			}
+			set result
+		} -cleanup {
+			destroy .graph1
+		} -result {{} {a b c} {} {a b c} {} {a b c}}
+	}
+
+	test graph.marker.names.3.1 {
+	    Relinking retains explicit-reference and omitted-reference placement
+	} -setup {
+		graph .graph1
+		foreach name {a b c} {.graph1 marker create text -name $name}
+	} -body {
+		set result {}
+		foreach command {{before c a} {after c b} {before a} {after a}} {
+			.graph1 marker {*}$command
+			lappend result [.graph1 marker names]
+		}
+		set result
+	} -cleanup {
+		destroy .graph1
+	} -result {{c a b} {a b c} {b c a} {a b c}}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Moving an underlay past an overlay must invalidate cached underlay drawing.
+	# Capture the displayed window: graph snap redraws without the backing store.
+	# ------------------------------------------------------------------------------------
+	foreach operation {before after} case {1 2} {
+		test graph.marker.names.4.$case.1 {
+		    Mixed-layer relinking redraws the moved underlay
+		} -setup {
+			graph .graph1 -renderer native -width 400 -height 300
+			pack .graph1
+			.graph1 axis configure x -min 0 -max 10
+			.graph1 axis configure y -min 0 -max 10
+			.graph1 legend configure -hide yes
+			foreach name {a b} color {red blue} {
+				.graph1 marker create polygon -name $name -under yes \
+				    -coords {2 2 8 2 8 8 2 8} -fill $color -outline {}
+			}
+			.graph1 marker create text -name overlay -text {} -under no
+			if {$operation eq "before"} {
+				.graph1 marker before a b
+				set target a
+			} else {
+				.graph1 marker after overlay
+				set target b
+			}
+			set photo [image create photo]
+			update
+		} -body {
+			lassign [.graph1 transform 5 5] x y
+			set x [expr {int($x)}]
+			set y [expr {int($y)}]
+			winop snap .graph1 $photo
+			set before [$photo get $x $y]
+			.graph1 marker $operation $target overlay
+			update
+			winop snap .graph1 $photo
+			list $before [expr {[$photo get $x $y] eq {255 0 0}}]
+		} -cleanup {
+			image delete $photo
+			destroy .graph1
+		} -result {{0 0 255} 1}
+	}
+
+	cleanupTests
+}

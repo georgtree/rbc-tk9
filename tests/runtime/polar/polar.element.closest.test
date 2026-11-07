@@ -1,0 +1,1195 @@
+# polar.element.closest.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element closest
+# function of the polar RBC component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Package Definition
+package provide polar.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval polar.element {
+
+    test polar.element.closest.1.1 {
+        polar element closest: complex point maps real/imag
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {0 -1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 1 0] x y
+        set found [ .polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(name) $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 Element1 0 1.0 0.0}
+
+    test polar.element.closest.1.2 {
+        polar element closest: switching between complex and XY data
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 12
+        .polar1 axis configure y -min -2 -max 12
+        .polar1 element create Element1 -data {8 8} -cdata z -symbol circle
+        update
+    } -body {
+        # -cdata was last, so the element is complex.
+        lassign [.polar1 transform 1 0] px py
+        set found1 [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set first [list $found1 $info(index) $info(x) $info(y)]
+        unset info
+        # -data is now last, so switch back to ordinary XY.
+        .polar1 element configure Element1 -cdata z -data {8 8}
+        update
+        lassign [.polar1 transform 8 8] px py
+        set found2 [.polar1 element closest \
+            $px $py info -along both -interpolate 0 \
+            -halo 2 Element1]
+        set second [list $found2 $info(index) $info(x) $info(y)]
+        unset info
+        # And switch to complex again.
+        .polar1 element configure Element1 -data {8 8} -cdata z
+        update
+        lassign [.polar1 transform 0 1] px py
+        set found3 [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        set third [list $found3 $info(index) $info(x) $info(y)]
+        list $first $second $third
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {{1 0 1.0 0.0} {1 0 8.0 8.0} {1 1 0.0 1.0}}
+
+    test polar.element.closest.1.3 {
+        polar element closest: live complex vector update
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -10 -max 10
+        .polar1 axis configure y -min -10 -max 10
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        z set {{4 -3} {0 1}}
+        update
+        lassign [.polar1 transform 4 -3] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 4.0 -3.0}
+
+    test polar.element.closest.1.4 {
+        polar element closest: complex vector storage growth
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {1 -1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -150 -max 150
+        .polar1 axis configure y -min -150 -max 150
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        set values {}
+        for {set i 0} {$i < 128} {incr i} {
+            lappend values [list $i [expr {-$i}]]
+        }
+        z set $values
+        update
+        lassign [.polar1 transform 127 -127] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info values
+        destroy .polar1
+        vector destroy z
+    } -result {1 127 127.0 -127.0}
+
+    test polar.element.closest.1.5 {
+        polar element closest: complex vector shrink updates point count
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0} {7 -6}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -10 -max 10
+        .polar1 axis configure y -min -10 -max 10
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        z set {{1 0}}
+        update
+        lassign [.polar1 transform 7 -6] x y
+        .polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    test polar.element.closest.1.6 {
+        polar element closest: destroy and reattach complex vector
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        vector destroy z
+        update
+        lassign [.polar1 transform 1 0] x y
+        set afterDestroy [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        vector create z -type complex
+        z set {{-1 -1}}
+        # Deliberately configure the same vector name again.
+        .polar1 element configure Element1 -cdata z
+        update
+        lassign [.polar1 transform -1 -1] x y
+        set afterReattach [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $afterDestroy $afterReattach $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+    } -result {0 1 0 -1.0 -1.0}
+
+    test polar.element.closest.1.7 {
+        polar element closest: automatic search with complex points
+    } -setup {
+        vector create z -type complex
+        z set {{-1 0} {1 0}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 1 0] x y
+        .polar1 element closest $x $y info -interpolate 0 -halo 2 Element1
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1}
+
+    test polar.element.closest.1.8 {
+        polar element closest: complex data with inverted axes
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1} {-1 0}}
+        polar .polar1 -width 400 -height 400 -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 1 0] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1.0 0.0}
+
+    test polar.element.closest.1.9 {
+        polar element closest: replacing complex vector releases old client
+    } -setup {
+        vector create z1 -type complex
+        z1 set {{1 0}}
+        vector create z2 -type complex
+        z2 set {{5 -2}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -10 -max 10
+        .polar1 axis configure y -min -10 -max 10
+        .polar1 element create Element1 -cdata z1 -symbol circle
+        update
+    } -body {
+        .polar1 element configure Element1 -cdata z2
+        # z1 must no longer own a callback into Element1.
+        vector destroy z1
+        update
+        lassign [.polar1 transform 5 -2] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list [.polar1 element cget Element1 -cdata] $found $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z1}
+        catch {vector destroy z2}
+    } -result {z2 1 0 5.0 -2.0}
+
+    test polar.element.closest.1.10 {
+        polar element closest: complex vector shared by elements
+    } -setup {
+        vector create z -type complex
+        z set {{1 0}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -10 -max 10
+        .polar1 axis configure y -min -10 -max 10
+        .polar1 element create Element1 -cdata z
+        .polar1 element create Element2 -cdata z -symbol circle
+        update
+    } -body {
+        .polar1 element delete Element1
+        z set {{6 -4}}
+        update
+        lassign [.polar1 transform 6 -4] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element2]
+        list $found $info(name) $info(index) $info(x) $info(y)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 Element2 0 6.0 -4.0}
+
+    test polar.element.closest.2.1 {
+        polar complex impedance maps to gamma
+    } -setup {
+        vector create z -type complex
+        z set {{50 50}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0.2 0.4] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x) - 0.2) < 1e-12}] [expr {abs($info(y) - 0.4) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1 1}
+
+    test polar.element.closest.3.1 {
+        polar complex admittance maps to gamma
+    } -setup {
+        vector create y -type complex
+        y set {{0.02 0.02}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform -0.2 -0.4] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found [expr {abs($info(x) + 0.2) < 1e-12}] [expr {abs($info(y) + 0.4) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy y
+    } -result {1 1 1}
+
+    test polar.element.closest.4.1 {
+        polar impedance: changing z0 remaps complex data
+    } -setup {
+        vector create z -type complex
+        z set {{100 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        .polar1 element configure Element1 -z0 100
+        update
+        lassign [.polar1 transform 0 0] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found [expr {abs($info(x)) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 1 1}
+
+    test polar.element.closest.5.1 {
+        polar element closest: radius and angle
+    } -setup {
+        vector create z -type complex
+        z set {{3 4}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -6 -max 6
+        .polar1 axis configure y -min -6 -max 6
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 3 4] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(dataFormat) [expr {abs($info(radius) - 5.0) < 1e-12}]\
+                [expr {abs($info(angle) - atan2(4.0,3.0)) < 1e-10}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 gamma 1 1}
+
+    test polar.element.closest.6.1 {
+        polar element closest: angle is normalized to [0,2*pi) radians
+    } -setup {
+        vector create z -type complex
+        z set {{0 -2}}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -3 -max 3
+        .polar1 axis configure y -min -3 -max 3
+        .polar1 element create Element1 -cdata z -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0 -2] x y
+        .polar1 element closest $x $y info -interpolate 0 -halo 2 Element1
+        list $info(radius) [expr {abs($info(angle)-1.5*acos(-1.0)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {2.0 1}
+
+    test polar.element.closest.7.1 {
+        smith closest: gamma, impedance, and admittance information
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{0.2 0.4}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata gamma -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0.2 0.4] x y
+        set found [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        lassign $info(gamma) gr gi
+        lassign $info(normalizedImpedance) r x
+        lassign $info(normalizedAdmittance) g b
+        lassign $info(impedance) R X
+        lassign $info(admittance) G B
+        list $found $info(dataFormat) [expr {abs($gr - 0.2) < 1e-12}] [expr {abs($gi - 0.4) < 1e-12}]\
+            [expr {abs($r - 1.0) < 1e-12}] [expr {abs($x - 1.0) < 1e-12}] [expr {abs($g - 0.5) < 1e-12}]\
+            [expr {abs($b + 0.5) < 1e-12}] [expr {abs($R - 50.0) < 1e-12}] [expr {abs($X - 50.0) < 1e-12}]\
+            [expr {abs($G - 0.01) < 1e-12}] [expr {abs($B + 0.01) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 gamma 1 1 1 1 1 1 1 1 1 1}
+
+    test polar.element.closest.8.1 {
+        smith closest: impedance source round trip
+    } -setup {
+        vector create z -type complex
+        z set {{50 50}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0.2 0.4] px py
+        set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
+        lassign $info(gamma) gr gi
+        lassign $info(impedance) R X
+        lassign $info(admittance) G B
+        list $found $info(dataFormat) [expr {abs($gr - 0.2) < 1e-12}] [expr {abs($gi - 0.4) < 1e-12}]\
+            [expr {abs($R - 50.0) < 1e-12}] [expr {abs($X - 50.0) < 1e-12}] [expr {abs($G - 0.01) < 1e-12}]\
+            [expr {abs($B + 0.01) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 impedance 1 1 1 1 1 1}
+
+    test polar.element.closest.9.1 {
+        smith closest: admittance source round trip
+    } -setup {
+        vector create y -type complex
+        y set {{0.02 0.02}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform -0.2 -0.4] px py
+        set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
+        lassign $info(gamma) gr gi
+        lassign $info(admittance) G B
+        lassign $info(impedance) R X
+        list $found $info(dataFormat) [expr {abs($gr + 0.2) < 1e-12}] [expr {abs($gi + 0.4) < 1e-12}] \
+            [expr {abs($G - 0.02) < 1e-12}] [expr {abs($B - 0.02) < 1e-12}] [expr {abs($R - 25.0) < 1e-12}] \
+            [expr {abs($X + 25.0) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy y
+    } -result {1 admittance 1 1 1 1 1 1}
+
+    test polar.element.closest.10.1 {
+        smith closest: interpolated trace information uses plotted gamma
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{0 0} {0.8 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata gamma -z0 50 -linewidth 2 -symbol none
+        update
+    } -body {
+        lassign [.polar1 transform 0.4 0] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        lassign $info(gamma) gr gi
+        lassign $info(impedance) R X
+        #
+        # Determine approximately one screen pixel in X-axis units.
+        #
+        set x0 [.polar1 axis invtransform x $px]
+        set x1 [.polar1 axis invtransform x [expr {$px + 1}]]
+        set tolerance [expr {abs($x1 - $x0) + 1e-12}]
+        #
+        # Expected impedance must be calculated from the actual
+        # interpolated Gamma returned by closest, not from the
+        # pre-quantized requested value 0.4.
+        #
+        set expectedR [expr {50.0 * (1.0 + $info(x)) / (1.0 - $info(x))}]
+        list $found [expr {abs($info(x) - 0.4) <= $tolerance}] [expr {abs($info(y)) < 1e-12}]\
+                [expr {abs($gr - $info(x)) < 1e-12}] [expr {abs($gi - $info(y)) < 1e-12}] \
+                [expr {abs($R - $expectedR) < 1e-10}] [expr {abs($X) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 1 1 1 1 1 1}
+
+    test polar.element.closest.11.1 {
+        smith closest: gamma +1 open circuit
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{1 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata gamma -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 1 0] px py
+        set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
+        lassign $info(normalizedAdmittance) g b
+        lassign $info(admittance) G B
+        list $found $info(radius) $info(angle) [expr {$g == 0.0}] [expr {$b == 0.0}] [expr {$G == 0.0}]\
+                [expr {$B == 0.0}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 1.0 0.0 1 1 1 1}
+
+    test polar.element.closest.12.1 {
+        smith closest: gamma -1 short circuit
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{-1 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata gamma -z0 50 -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform -1 0] px py
+        set found [.polar1 element closest $px $py info -interpolate 0 -halo 2 Element1]
+        lassign $info(normalizedImpedance) r x
+        lassign $info(impedance) R X
+        list $found $info(radius) [expr {abs($info(angle)-acos(-1.0)) < 1e-12}] [expr {$r == 0.0}] [expr {$x == 0.0}] [expr {$R == 0.0}]\
+                [expr {$X == 0.0}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 1.0 1 1 1 1 1}
+
+    test polar.element.closest.13.1 {
+        smith impedance: Z=-Z0 singular point is skipped
+    } -setup {
+        vector create z -type complex
+        z set {{-50 0} {50 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # Z=50 -> normalized z=1 -> Gamma=0.
+        #
+        # The preceding Z=-50 point has z=-1, so z+1=0 and must
+        # have been omitted without disturbing the source index.
+        #
+        lassign [.polar1 transform 0 0] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x)) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 1 1 1}
+
+    test polar.element.closest.14.1 {
+        smith admittance: Y=-1/Z0 singular point is skipped
+    } -setup {
+        vector create y -type complex
+        y set {{-0.02 0} {0.02 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # Y=0.02 -> normalized y=1 -> Gamma=0.
+        #
+        # Y=-0.02 gives normalized y=-1, so 1+y=0 and the
+        # preceding source point must be omitted.
+        #
+        lassign [.polar1 transform 0 0] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x)) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy y
+    } -result {1 1 1 1}
+
+    test polar.element.closest.15.1 {
+        smith impedance: singular point breaks the trace
+    } -setup {
+        vector create z -type complex
+        z set {{50 0} {-50 0} {150 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol none -linewidth 2
+        update
+    } -body {
+        #
+        # Valid endpoints map to:
+        #
+        #     Z=50  -> Gamma=0
+        #     Z=150 -> Gamma=0.5
+        #
+        # Z=-50 between them is singular.  There must therefore be
+        # no interpolated segment joining Gamma=0 to Gamma=0.5.
+        #
+        lassign [.polar1 transform 0.25 0] px py
+        .polar1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {0}
+
+    test polar.element.closest.16.1 {
+        smith impedance: negative resistance may map outside unit circle
+    } -setup {
+        vector create z -type complex
+        z set {{-25 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -4 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # z = -25/50 = -0.5
+        #
+        # Gamma = (z-1)/(z+1)
+        #       = -1.5/0.5
+        #       = -3
+        #
+        lassign [.polar1 transform -3 0] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x) + 3.0) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1 1}
+
+    test polar.element.closest.17.1 {
+        smith complex element: alternate mapped axes
+    } -setup {
+        vector create gamma -type complex
+        gamma set {{0.5 0}}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 axis configure x2 -min -1.2 -max 1.2
+        .polar1 axis configure y2 -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata gamma -mapx x2 -mapy y2 -symbol circle
+        update
+    } -body {
+        set px [.polar1 axis transform x2 0.5]
+        set py [.polar1 axis transform y2 0.0]
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x) - 0.5) < 1e-12}] [expr {abs($info(y)) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy gamma
+    } -result {1 0 1 1}
+
+    test polar.element.closest.18.1 {
+        smith impedance: inverted axes preserve gamma mapping
+    } -setup {
+        vector create z -type complex
+        z set {{50 50}}
+        polar .polar1 -width 400 -height 400 -representation smith -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # 50+j50 at Z0=50 gives Gamma=0.2+j0.4.
+        #
+        lassign [.polar1 transform 0.2 0.4] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+
+        list $found $info(index) [expr {abs($info(x) - 0.2) < 1e-12}] [expr {abs($info(y) - 0.4) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z
+    } -result {1 0 1 1}
+
+    test polar.element.closest.19.1 {
+        smith admittance: inverted axes preserve gamma mapping
+    } -setup {
+        vector create y -type complex
+        y set {{0.02 0.02}}
+        polar .polar1 -width 400 -height 400 -representation smith -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -symbol circle
+        update
+    } -body {
+        #
+        # 0.02+j0.02 S at Z0=50 gives Gamma=-0.2-j0.4.
+        #
+        lassign [.polar1 transform -0.2 -0.4] px py
+        set found [.polar1 element closest $px $py info -along both -interpolate 0 -halo 2 Element1]
+        list $found $info(index) [expr {abs($info(x) + 0.2) < 1e-12}] [expr {abs($info(y) + 0.4) < 1e-12}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy y
+    } -result {1 0 1 1}
+
+    test polar.element.closest.20.1 {
+        polar element closest: natural smoothing is parametric and preserves interval indices
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {2 2} {0 4}}
+        # Generate reference points at:
+        #
+        #     source point 0
+        #     midpoint of interval 0
+        #     source point 1
+        #     midpoint of interval 1
+        #     source point 2
+        #
+        # The two source intervals have equal chord lengths.
+        spline parametric natural z ref 5
+
+        polar .polar1 -width 500 -height 500
+        pack .polar1
+        .polar1 axis configure x -min -1 -max 5
+        .polar1 axis configure y -min -1 -max 5
+        .polar1 element create Element1 -cdata z -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        set result {}
+
+        foreach {sample expectedIndex} {1 0 3 1} {
+            lassign [lindex [ref range 0 end] $sample] real imag
+            lassign [.polar1 transform $real $imag] x y
+            set found [.polar1 element closest $x $y info -along both -interpolate 1 -halo 4 Element1]
+            lappend result $found
+            if {$found} {
+                lappend result $info(index)
+            } else {
+                lappend result -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {1 0 1 1}
+
+    test polar.element.closest.21.1 {
+        polar element closest: quadratic smoothing is parametric and preserves interval indices
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {2 2} {0 4}}
+        spline parametric quadratic z ref 5
+        polar .polar1 -width 500 -height 500
+        pack .polar1
+        .polar1 axis configure x -min -1 -max 5
+        .polar1 axis configure y -min -1 -max 5
+        .polar1 element create Element1 -cdata z -smooth quadratic -symbol none -linewidth 2
+        update
+    } -body {
+        set result {}
+        foreach {sample expectedIndex} {1 0 3 1} {
+            lassign [lindex [ref range 0 end] $sample] real imag
+            lassign [.polar1 transform $real $imag] x y
+            set found [.polar1 element closest $x $y info -along both -interpolate 1 -halo 4 Element1]
+            lappend result $found
+            if {$found} {
+                lappend result $info(index)
+            } else {
+                lappend result -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {1 0 1 1}
+
+
+    test polar.element.closest.22.1 {
+        polar element closest: XY natural smoothing is also parametric
+    } -setup {
+        # The reference is generated from the identical 2-D path using
+        # the public complex parametric spline command.
+        vector create z -type complex
+        z set {{0 0} {2 2} {0 4}}
+        spline parametric natural z ref 5
+        polar .polar1 -width 500 -height 500
+        pack .polar1
+        .polar1 axis configure x -min -1 -max 5
+        .polar1 axis configure y -min -1 -max 5
+        # Deliberately use ordinary XY data rather than -cdata.  Polar
+        # elements must still use parametric natural smoothing.
+        .polar1 element create Element1 -data {0 0 2 2 0 4} -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        lassign [lindex [ref range 0 end] 1] real imag
+        lassign [.polar1 transform $real $imag] x y
+        set found [.polar1 element closest $x $y info -along both -interpolate 1 -halo 4 Element1]
+        if {$found} {
+            list $found $info(index)
+        } else {
+            list $found -1
+        }
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {1 0}
+
+    test polar.element.closest.23.1 {
+        polar smoothing: closed loop preserves interval indices
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {1 1} {0 2} {-1 1} {0 0}}
+        polar .polar1 -width 500 -height 500
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        set result {}
+        foreach smooth {natural quadratic} {
+            spline parametric $smooth z ref 17
+            .polar1 element configure Element1 -smooth $smooth
+            update
+            #
+            # With four equal-length intervals and 17 samples,
+            # sample 2 lies halfway through source interval 0 and
+            # sample 14 halfway through source interval 3.
+            #
+            foreach {sample expectedIndex} {2 0 14 3} {
+                lassign [lindex [ref range 0 end] $sample] real imag
+                lassign [.polar1 transform $real $imag] px py
+                set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+                if {$found} {
+                    lappend result $smooth $found $info(index)
+                } else {
+                    lappend result $smooth $found -1
+                }
+                unset -nocomplain info
+            }
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {natural 1 0 natural 1 3 quadratic 1 0 quadratic 1 3}
+
+    test polar.element.closest.24.1 {
+        smith impedance: natural smoothing occurs after gamma conversion
+    } -setup {
+        vector create z -type complex
+        z set {{50 0} {50 100} {0 50}}
+        vector create gamma -type complex
+        gamma set {{0 0} {0.5 0.5} {0 1}}
+        spline parametric natural gamma ref 5
+        polar .polar1 -width 500 -height 500 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -smooth natural -symbol none -linewidth\
+                2
+        update
+    } -body {
+        set result {}
+        foreach {sample expectedIndex} {1 0 3 1} {
+            lassign [lindex [ref range 0 end] $sample] real imag
+            lassign [.polar1 transform $real $imag] px py
+            set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+            if {$found} {
+                lappend result $found $info(index)
+            } else {
+                lappend result $found -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy gamma}
+        catch {vector destroy ref}
+    } -result {1 0 1 1}
+
+    test polar.element.closest.25.1 {
+        smith admittance: quadratic smoothing occurs after gamma conversion
+    } -setup {
+        vector create y -type complex
+        y set {{0.02 0} {0.004 -0.008} {0 -0.02}}
+        vector create gamma -type complex
+        gamma set {{0 0} {0.5 0.5} {0 1}}
+        spline parametric quadratic gamma ref 5
+        polar .polar1 -width 500 -height 500 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata y -cdataformat admittance -z0 50 -smooth quadratic -symbol none\
+                -linewidth 2
+        update
+    } -body {
+        set result {}
+        foreach {sample expectedIndex} {1 0 3 1} {
+            lassign [lindex [ref range 0 end] $sample] real imag
+            lassign [.polar1 transform $real $imag] px py
+            set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+            if {$found} {
+                lappend result $found $info(index)
+            } else {
+                lappend result $found -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy y}
+        catch {vector destroy gamma}
+        catch {vector destroy ref}
+    } -result {1 0 1 1}
+
+    test polar.element.closest.26.1 {
+        polar parametric smoothing works with inverted axes
+    } -setup {
+        vector create z -type complex
+        z set {{0 0} {2 2} {0 4}}
+        polar .polar1 -width 500 -height 500 -invertxy yes
+        pack .polar1
+        .polar1 axis configure x -min -1 -max 5
+        .polar1 axis configure y -min -1 -max 5
+        .polar1 element create Element1 -cdata z -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        set result {}
+        foreach smooth {natural quadratic} {
+            spline parametric $smooth z ref 5
+            .polar1 element configure Element1 -smooth $smooth
+            update
+            lassign [lindex [ref range 0 end] 1] real imag
+            lassign [.polar1 transform $real $imag] px py
+            set found [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+            if {$found} {
+                lappend result $smooth $found $info(index)
+            } else {
+                lappend result $smooth $found -1
+            }
+            unset -nocomplain info
+        }
+        set result
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy ref}
+    } -result {natural 1 0 quadratic 1 0}
+
+    test polar.element.closest.27.1 {
+        smith impedance: valid runs are smoothed across a singular gap
+    } -setup {
+        #
+        # Gamma paths:
+        #
+        #   run 1:  0,0 -> 0.5,0.5 -> 0,1
+        #
+        #   Z=-50 is singular and creates the gap.
+        #
+        #   run 2: -1,0 -> -0.5,-0.5 -> 0,-1
+        #
+        vector create z -type complex
+        z set {{50 0} {50 100} {0 50} {-50 0} {0 0} {10 -20} {0 -50}}
+        vector create gamma -type complex
+        gamma set {{0 0} {0.5 0.5} {0 1}}
+        spline parametric natural gamma ref 5
+        polar .polar1 -width 500 -height 500 -representation smith
+        pack .polar1
+        .polar1 axis configure x -min -1.2 -max 1.2
+        .polar1 axis configure y -min -1.2 -max 1.2
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -smooth natural -symbol none -linewidth 2
+        update
+    } -body {
+        #
+        # First run must actually be smoothed.
+        #
+        lassign [lindex [ref range 0 end] 1] real imag
+        lassign [.polar1 transform $real $imag] px py
+        set smoothed [.polar1 element closest $px $py info -along both -interpolate 1 -halo 4 Element1]
+        if {$smoothed} {
+            set smoothIndex $info(index)
+        } else {
+            set smoothIndex -1
+        }
+        unset -nocomplain info
+        #
+        # But there must still be no segment across the singular gap.
+        # This is the midpoint between the end of run 1, Gamma=(0,1),
+        # and the beginning of run 2, Gamma=(-1,0).
+        #
+        lassign [.polar1 transform -0.5 0.5] px py
+        set acrossGap [.polar1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
+        list $smoothed $smoothIndex $acrossGap
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        catch {vector destroy z}
+        catch {vector destroy gamma}
+        catch {vector destroy ref}
+    } -result {1 0 0}
+
+    test polar.element.closest.28.1 {
+        polar element closest: complex data parameter value
+    } -setup {
+        vector create z -type complex
+        z set {{3 4} {1 0}}
+        vector create p
+        p set {100 200}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -5 -max 5
+        .polar1 axis configure y -min -5 -max 5
+        .polar1 element create Element1 -cdata z -param p -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 3 4] x y
+        set found [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(param) [expr {[info exists info(radius)]}] [expr {[info exists info(angle)]}]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z p
+    } -result {1 0 100.0 1 1}
+
+    test polar.element.closest.29.1 {
+        smith closest: parameter coexists with Smith information
+    } -setup {
+        vector create z -type complex
+        z set {{50 50}}
+        vector create frequency
+        frequency set {2.45e9}
+        polar .polar1 -width 400 -height 400 -representation smith
+        pack .polar1
+        .polar1 element create Element1 -cdata z -cdataformat impedance -z0 50 -param frequency -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0.2 0.4] x y
+        set found [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $found [expr {$info(param) == 2.45e9}] [info exists info(gamma)] [info exists info(normalizedImpedance)]\
+                [info exists info(impedance)]
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z frequency
+    } -result {1 1 1 1 1}
+
+    test polar.element.closest.30.1 {
+        polar element closest: complex data resize mismatch and recovery
+    } -setup {
+        vector create z -type complex
+        z set {{1 0} {0 1}}
+        vector create p
+        p set {10 20}
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -cdata z -param p -symbol circle
+        update
+    } -body {
+        #
+        # Grow the plotted data independently.
+        #
+        z set {{1 0} {0 1} {-1 0}}
+        update
+        lassign [.polar1 transform -1 0] x y
+        set foundMismatch [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        set mismatchIndex $info(index)
+        set hasParamMismatch [info exists info(param)]
+        unset info
+        #
+        # Restore a one-to-one parameter mapping.
+        #
+        p set {10 20 30}
+        update
+        set foundRecovered [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $foundMismatch $mismatchIndex $hasParamMismatch $foundRecovered $info(index) $info(param)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+        vector destroy z p
+    } -result {1 2 0 1 2 30.0}
+
+    test polar.element.closest.31.1 {
+        polar element closest: XY data parameter value
+    } -setup {
+        polar .polar1 -width 400 -height 400
+        pack .polar1
+        .polar1 axis configure x -min -2 -max 2
+        .polar1 axis configure y -min -2 -max 2
+        .polar1 element create Element1 -data {1 0 0 1} -param {10 20} -symbol circle
+        update
+    } -body {
+        lassign [.polar1 transform 0 1] x y
+        set found [.polar1 element closest $x $y info -interpolate 0 -halo 2 Element1]
+        list $found $info(index) $info(param) $info(dataFormat)
+    } -cleanup {
+        unset -nocomplain info
+        destroy .polar1
+    } -result {1 1 20.0 xy}
+
+    foreach inverted {0 1} {
+        test polar.element.closest.32.[expr {$inverted + 1}] {
+            reduced polar-coordinate symbols still pick an omitted original sample
+        } -setup {
+            polar .polar1 -width 400 -height 400 -invertxy $inverted
+            pack .polar1
+            .polar1 axis configure x -min 0 -max 4
+            .polar1 axis configure y -min -2 -max 2
+            .polar1 element create Element1 -xdata {0 0 0} -ydata {1 2 3} \
+                -datacoordinates polar -symbol circle -symbolpoints reduced -reduce 1
+            update
+        } -body {
+            # The middle collinear point is absent from reduced symbol geometry.
+            # Its Cartesian X=2 differs from every raw angle (zero).
+            lassign [.polar1 transform 2 0] x y
+            set result {}
+            foreach along [list both [expr {$inverted ? "y" : "x"}]] {
+                unset -nocomplain info
+                set found [.polar1 element closest $x $y info -along $along \
+                    -interpolate no -halo 2 Element1]
+                lappend result [expr {$found && $info(index) == 1 && \
+                    abs($info(x)-2.0) < 1e-10 && abs($info(y)) < 1e-10}]
+            }
+            set result
+        } -cleanup {
+            unset -nocomplain info
+            destroy .polar1
+        } -result {1 1}
+
+        foreach retainedCount {1 3} {
+            test polar.element.closest.33.[expr {$inverted * 2 + ($retainedCount == 3) + 1}] {
+                reduced complex symbols never use retained XY arrays for source picking
+            } -setup {
+                vector create z -type complex
+                z set {{1 0} {2 0} {3 0}}
+                polar .polar1 -width 400 -height 400 -invertxy $inverted
+                pack .polar1
+                .polar1 axis configure x -min 0 -max 4
+                .polar1 axis configure y -min -2 -max 2
+                set xy [expr {$retainedCount == 1 ? {9 9} : {9 9 10 9 11 9}}]
+                # Ordinary arrays remain retained, but -cdata is the active source.
+                .polar1 element create Element1 -data $xy -cdata z -symbol circle \
+                    -symbolpoints reduced -reduce 1
+                update
+            } -body {
+                lassign [.polar1 transform 2 0] x y
+                set result {}
+                foreach along [list both [expr {$inverted ? "y" : "x"}]] {
+                    unset -nocomplain info
+                    set found [.polar1 element closest $x $y info -along $along \
+                        -interpolate no -halo 2 Element1]
+                    lappend result [expr {$found && $info(index) == 1 && \
+                        abs($info(x)-2.0) < 1e-10 && abs($info(y)) < 1e-10}]
+                }
+                set result
+            } -cleanup {
+                unset -nocomplain info
+                destroy .polar1
+                vector destroy z
+            } -result {1 1}
+        }
+    }
+
+	cleanupTests
+}

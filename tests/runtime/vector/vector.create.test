@@ -1,0 +1,426 @@
+# vector.create.test --
+#
+###Abstract
+# This file tests the different constructs for the create function of 
+# the vector rbc component when no switches are used.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide vector.create
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval vector.create {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that creating a vector with no size parameter creates a new vector
+	# with zero elements (i.e. a length of zero)
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.1.1 {
+	    Test default vector length
+	} -body {
+	    vector create Vector1
+	    Vector1 length
+	} -cleanup {
+	    vector destroy Vector1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that creating a vector with a size parameter create a new vector
+	# with the size parameter number of elements
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.1.2 {
+	    Test vector size
+	} -body {
+	    vector create Vector1(5)
+	    Vector1 length
+	} -cleanup {
+	    vector destroy Vector1
+	} -result {5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that creating a vector with a size parameter of zero creates a new
+	# vector with zero elements
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.1.3 {
+	    Test vector size
+	} -body {
+	    vector create Vector1(0)
+	    Vector1 length
+	} -cleanup {
+	    vector destroy Vector1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensures that creating a vector with a size parameter greater than zero
+	# creates a new vector with size components all initialized to 0
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.1.4 {
+	    Test vector component initialization  
+	} -body {
+	    vector create Vector1(5)
+	    for {set i 0} {$i < [Vector1 length]} {incr i} {
+	        if {[Vector1 index $i]} {
+	            return 1
+	        }
+	    }
+	    return 0
+	} -cleanup {
+	    vector destroy Vector1
+	    unset i
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensures that creating a vector with identical range parameters creates a 
+	# new vector with 1 element
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.1.5 {
+	    Test vector indexing size
+	} -body {
+	    vector create Vector1(4:4)
+	    Vector1 length
+	} -cleanup {
+	    vector destroy Vector1
+	} -result {1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensures that creating a vector with firstIndex and lastIndex range 
+	# parameters creates a new vector with lastIndex-firstIndex+1 items
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.1.6 {
+	    Test vector indexing size
+	} -body {
+	    vector create Vector1(6:10)
+	    Vector1 length
+	} -cleanup {
+	    vector destroy Vector1
+	} -result {5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensures that creating a vector with firstIndex and lastIndex range 
+	# parameters creates a new vector whose index starts at firstIndex
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.1.7 {
+	    Test vector indexing 
+	} -body {
+	    vector create Vector1(6:10)
+	    Vector1 offset
+	} -cleanup {
+	    vector destroy Vector1
+	} -result {6}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensures that creating a vector with firstIndex and lastIndex range 
+	# parameters creates a new vector with with lastIndex-firstIndex+1 components, all of
+	# which are initialized to 0
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.1.8 {
+	    Test vector indexing component initialization
+	} -body {
+	    vector create Vector1(6:10)
+	    for {set i [expr {[Vector1 offset]}]} {$i < [expr {[Vector1 offset] + [Vector1 length]}]} {incr i} {
+	        if {[Vector1 index $i]} {
+	            return 1
+	        }
+	    }
+	    return 0    
+	} -cleanup {
+	    vector destroy Vector1
+	    unset i
+	} -result {0}
+    
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensures that creating a vector also creates a command with the same name
+    # as the vector
+    # ------------------------------------------------------------------------------------
+    test vector.create.1.9 {
+        Test default command creation
+    } -body {
+        vector create Vector1
+        expr {[info commands Vector1] == "Vector1"}
+    } -cleanup {
+        vector destroy Vector1
+    } -result {1}
+    
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensures that creating a vector also creates a variable with the same name
+    # as the vector
+    # ------------------------------------------------------------------------------------
+    test vector.create.1.10 {
+        Test default variable creation
+    } -body {
+        vector create Vector1
+        expr {[info vars Vector1] == "Vector1"}
+    } -cleanup {
+        vector destroy Vector1
+    } -result {1}
+    
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensures that newly created vector shows up in the vector names command
+    # ------------------------------------------------------------------------------------
+    test vector.create.1.11 {
+        Test default vector creation
+    } -body {
+        vector create Vector1
+        expr {[vector names ::vector.create::Vector1] == [list ::vector.create::Vector1]}
+    } -cleanup {
+        vector destroy Vector1
+    } -result {1}
+    
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensures that creating a vector with the variable switch creates a variable
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.2.1 {
+	    Test vector variable switch
+	} -body {
+	    vector create Vector1 -variable Foo
+	    info exists Foo
+	} -cleanup {
+	    vector destroy Vector1
+	} -result {1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensures that creating a vector with the variable switch causes the vector
+	# name to not also be a variable reference
+	# ------------------------------------------------------------------------------------ 
+	test vector.create.2.2 {
+	    Test vector variable switch
+	} -body {
+	    vector create Vector1 -variable Foo
+	    info exists Vector1
+	} -cleanup {
+	    vector destroy Vector1
+	} -result {0}
+    
+	# ------------------------------------------------------------------------------------
+    # Purpose: Ensures that creating a vector with the command switch does not remove
+    # the variable reference that exists with the vector name
+    # ------------------------------------------------------------------------------------ 
+    test vector.create.3.1 {
+        Test vector command switch
+    } -body {
+        vector create Vector1 -command Foo
+        info exists Vector1
+    } -cleanup {
+        vector destroy Vector1
+    } -result {1}
+    
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensures that creating a vector with the command switch does not create
+    # a variable reference
+    # ------------------------------------------------------------------------------------ 
+    test vector.create.3.2 {
+        Test vector command switch
+    } -body {
+        vector create Vector1 -command Foo
+        info exists Foo
+    } -cleanup {
+        vector destroy Vector1
+    } -result {0}
+    
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensures that creating a vector with the command switch creates a Tcl 
+    # command
+    # ------------------------------------------------------------------------------------ 
+    test vector.create.3.3 {
+        Test vector command switch 
+    } -body {
+        vector create Vector1 -command Foo
+        info commands Foo
+    } -cleanup {
+        vector destroy Vector1
+    } -result {Foo}
+    
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensures that creating a vector with the watchunset switch set to true
+    # causes the vector to be destoyed when the variable name (in this case the same as
+    # the vector name) is unset
+    # ------------------------------------------------------------------------------------ 
+    test vector.create.4.1 {
+        Test vector watchunset true switch  
+    } -body {
+        vector create Vector1 -watchunset true
+        unset Vector1
+        expr -1 != [lsearch -glob [vector names] *Vector1]
+    } -cleanup {
+        # vector destroy Vector1
+    } -result {0}
+    
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensures that creating a vector with the watchunset switch set to false
+    # does not destroy the vector when the variable name (in this case the same as the 
+    # vector name) is unset
+    # ------------------------------------------------------------------------------------ 
+    test vector.create.4.2 {
+        Test vector watchunset false switch
+    } -body {
+        vector create Vector1 -watchunset false
+        unset Vector1
+        expr -1 != [lsearch -glob [vector names] *Vector1]
+    } -cleanup {
+        vector destroy Vector1
+    } -result {1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure a GENFUNC option can be followed by additional vector options.
+    # ------------------------------------------------------------------------------------
+    test vector.create.4.3 {
+        vector create: boolean option followed by another option
+    } -body {
+        vector create Vector1 -flush true -length 5
+        Vector1 length
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {5}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure a missing -length value reports an error safely.
+    # ------------------------------------------------------------------------------------
+    test vector.create.4.4 {
+        vector create: missing length argument
+    } -body {
+        catch {vector create Vector1 -length} message
+        set message
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {option "-length" requires an additional argument}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that vectors are real by default.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.1 {
+        vector create: default vector type
+    } -body {
+        vector create Vector1
+        Vector1 type
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {real}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that -type real explicitly creates a real vector.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.2 {
+        vector create: explicit real type
+    } -body {
+        vector create Vector1 -type real
+        Vector1 type
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {real}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that -type complex creates a complex vector.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.3 {
+        vector create: complex type
+    } -body {
+        vector create Vector1 -type complex
+        Vector1 type
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {complex}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an invalid vector type is rejected without creating anything.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.4 {
+        vector create: invalid type
+    } -body {
+        set code [catch {vector create Vector1 -type imaginary} message]
+        list $code $message [vector names ::vector.create::Vector1] [info commands Vector1] [info exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {1 {bad value "imaginary" for -type: must be real or complex} {} {} 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that complex vectors do not receive the legacy default Tcl array
+    # mapping while the complex variable interface is not implemented.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.5 {
+        vector create: complex vector has no default array variable
+    } -body {
+        vector create Vector1 -type complex
+        list [Vector1 type] [info commands Vector1] [info exists Vector1] [array exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {complex Vector1 0 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an explicit Tcl array mapping is rejected for complex vectors
+    # without leaving a partially created vector, command, or variable.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.6 {
+        vector create: explicit complex variable mapping
+    } -body {
+        vector create Vector1 -type complex -variable Foo
+        Vector1 set {{1 2} {3 -4}}
+        list [Vector1 type] [array exists Foo] $Foo(0) $Foo(1)
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {unset Foo}
+    } -result {complex 1 {1.0 2.0} {3.0 -4.0}}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an existing real vector cannot be changed to complex.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.7 {
+        vector create: real to complex type change rejected
+    } -body {
+        vector create Vector1
+        set code [catch { vector create Vector1 -type complex } message]
+        list $code $message [Vector1 type] [array exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {1 {can't change vector "::vector.create::Vector1" from type "real" to "complex"} real 1}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that an existing complex vector cannot be changed to real.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.8 {
+        vector create: complex to real type change rejected
+    } -body {
+        vector create Vector1 -type complex
+        set code [catch { vector create Vector1 -type real } message]
+        list $code $message [Vector1 type] [array exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {1 {can't change vector "::vector.create::Vector1" from type "complex" to "real"} complex 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that omitting -type when recreating an existing complex vector does
+    # not implicitly request a real vector.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.9 {
+        vector create: omitted type preserves existing complex type
+    } -body {
+        vector create Vector1 -type complex
+        vector create Vector1
+        list [Vector1 type] [array exists Vector1]
+    } -cleanup {
+        catch {vector destroy Vector1}
+    } -result {complex 0}
+
+    # ------------------------------------------------------------------------------------
+    # Purpose: Ensure that -type applies to every vector in a multiple-vector create.
+    # ------------------------------------------------------------------------------------
+    test vector.create.5.10 {
+        vector create: multiple complex vectors
+    } -body {
+        vector create Vector1 Vector2 -type complex
+        list [Vector1 type] [Vector2 type] [array exists Vector1] [array exists Vector2]
+    } -cleanup {
+        catch {vector destroy Vector1}
+        catch {vector destroy Vector2}
+    } -result {complex complex 0 0}
+	
+    cleanupTests
+}

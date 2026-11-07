@@ -1,0 +1,65 @@
+# Window snapshots must use Tk drawables, including for toplevels.
+# See license.terms for details.
+###Package Definition
+package provide winop.snap.toplevel
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+
+namespace eval winop.snap.toplevel {
+    # Numeric case IDs for loop-generated tests.
+    array set testCase {1 0 2 0 3 0}
+    foreach {name command} {direct {::rbc::winop snap} alias {::rbc::winop image snap}} {
+        test winop.snap.toplevel.1.[incr testCase(1)] {toplevel snapshots use client dimensions repeatedly} -setup {
+            toplevel .snapTop -background white
+            wm geometry .snapTop 160x100+20+20
+            frame .snapTop.child -background red -width 40 -height 30 -borderwidth 0
+            place .snapTop.child -x 20 -y 20
+            raise .snapTop
+            update
+            set photo [image create photo]
+        } -body {
+            set results {}
+            foreach target {.snapTop .snapTop.child .snapTop} {
+                {*}$command $target $photo
+                lappend results [expr {[image width $photo] == [winfo width $target]}] \
+                    [expr {[image height $photo] == [winfo height $target]}]
+            }
+            {*}$command .snapTop $photo 80 50
+            lappend results [image width $photo] [image height $photo]
+            set results
+        } -cleanup {
+            image delete $photo
+            destroy .snapTop
+        } -result {1 1 1 1 1 1 80 50}
+
+        test winop.snap.toplevel.2.[incr testCase(2)] {main window snapshot uses a valid Tk drawable} -setup {
+            set photo [image create photo]
+            set oldState [wm state .]
+            wm deiconify .
+            raise .
+            update
+        } -body {
+            {*}$command . $photo
+            list [expr {[image width $photo] == [winfo width .]}] \
+                [expr {[image height $photo] == [winfo height .]}]
+        } -cleanup {
+            image delete $photo
+            wm state . $oldState
+        } -result {1 1}
+
+        test winop.snap.toplevel.3.[incr testCase(3)] {missing photo reports an error rather than crashing} -setup {
+            toplevel .snapTop
+            update
+        } -body {
+            set code [catch {{*}$command .snapTop ::missingSnapPhoto} message]
+            list $code [string match {*can't find photo*} $message]
+        } -cleanup {
+            destroy .snapTop
+        } -result {1 1}
+    }
+::tcltest::cleanupTests
+}

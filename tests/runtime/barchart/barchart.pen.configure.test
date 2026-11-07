@@ -1,0 +1,1394 @@
+# barchart.pen.configure.test --
+#
+###Abstract
+# This file tests the configuration of pen component of a BLT barchart component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide barchart.pen
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval barchart.pen {    
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -background command works correctly when given a
+	# valid color name.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.1.1 {
+		barchart pen: configure - background - valid color name
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		.barchart1 pen configure Pen1 -background red
+		.barchart1 pen cget Pen1 -background
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {red}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -background command works correctly when given an
+	# invalid color name.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.1.2 {
+		barchart pen: configure - background - invalid color name
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -background invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -background command works correctly when given the
+	# empty string as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.1.3 {
+		barchart pen: configure - background - emtpy string
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		.barchart1 pen configure Pen1 -background ""
+		.barchart1 pen cget Pen1 -background
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -borderwidth command works correctly when given a
+	# valid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.2.1 {
+		barchart pen: configure - borderwidth - valid integer input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		.barchart1 pen configure Pen1 -borderwidth 2
+		.barchart1 pen cget Pen1 -borderwidth
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -borderwidth command works correctly when given an
+	# invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.2.2 {
+		barchart pen: configure - borderwidth - invalid integer input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -borderwidth -2}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -borderwidth command works correctly when given a
+	# decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.2.3 {
+		barchart pen: configure - borderwidth - decimal input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		.barchart1 pen configure Pen1 -borderwidth 3.5
+		.barchart1 pen cget Pen1 -borderwidth
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -borderwidth command works correctly when given an
+	# invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.2.4 {
+		barchart pen: configure - borderwidth - invalid decimal input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -borderwidth -2.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -borderwidth command works correctly when given a
+	# character value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.2.5 {
+		barchart pen: configure - borderwidth - character input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -borderwidth invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -borderwidth command works correctly when given 0 as
+	# input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.2.6 {
+		barchart pen: configure - borderwidth - zero
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		.barchart1 pen configure Pen1 -borderwidth 0
+		.barchart1 pen cget Pen1 -borderwidth
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the foreground configuration works for valid foreground colors
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.3.1 {
+	    Test pen configure foreground
+	} -setup {
+	    barchart .barchart1
+	    .barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+	    .barchart1 pen configure Pen1 -foreground black
+	    .barchart1 pen cget Pen1 -foreground
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the foreground configuration works for no foreground
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.3.2 {
+	    Test pen configure no foreground
+	} -setup {
+	    barchart .barchart1
+	    .barchart1 pen create Pen1
+		pack .barchart1 
+	} -body {
+	    .barchart1 pen configure Pen1 -foreground ""
+	    .barchart1 pen cget Pen1 -foreground
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the foreground configuration works for no foreground
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.3.3 {
+	    Test pen configure invalid color
+	} -setup {
+	    barchart .barchart1
+	    .barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+	    if {[catch {.barchart1 pen configure Pen1 -foreground invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element configure -relief command works correctly when 
+	# given 'flat' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.4.1 {
+		barchart element configure: relief - flat
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -relief flat
+		.barchart1 pen cget Pen1 -relief
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {flat}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element configure -relief command works correctly when 
+	# given 'groove' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.4.2 {
+		barchart element configure: relief - groove
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -relief groove
+		.barchart1 pen cget Pen1 -relief
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {groove}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element configure -relief command works correctly when 
+	# given 'raised' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.4.3 {
+		barchart element configure: relief - raised
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -relief raised
+		.barchart1 pen cget Pen1 -relief
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {raised}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element configure -relief command works correctly when 
+	# given 'ridge' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.4.4 {
+		barchart element configure: relief - ridge
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -relief ridge
+		.barchart1 pen cget Pen1 -relief
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {ridge}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element configure -relief command works correctly when 
+	# given 'solid' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.4.5 {
+		barchart element configure: relief - solid
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -relief solid
+		.barchart1 pen cget Pen1 -relief
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {solid}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element configure -relief command works correctly when 
+	# given 'sunken' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.4.6 {
+		barchart element configure: relief - sunken
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -relief sunken
+		.barchart1 pen cget Pen1 -relief
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {sunken}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element configure -relief command works correctly when 
+	# given invalid numerical input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.4.7 {
+		barchart element configure: relief - invalid numerical input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -relief 3.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element configure -relief command works correctly when 
+	# given invalid character input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.4.8 {
+		barchart element configure: relief - invalid character input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -relief invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure configuring stipple changes the corresponding option value pair
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.5.1 {
+	    Configure Stipple
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 \
+			-stipple @[file join [file dirname [info script]] .. .. assets greenback.xbm]
+		.barchart1 pen cget Pen1 -stipple
+	} -cleanup {
+	    .barchart1 pen delete Pen1
+		destroy .barchart1
+	} -match glob -result {@*greenback.xbm}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the default type of a pen is set
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.6.1 {
+	    Test pen configure default type
+	} -setup {
+	    barchart .barchart1
+		.barchart1 pen create Pen1
+	    pack .barchart1    
+	} -body {
+	    .barchart1 pen cget Pen1 -type
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {bar}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the type configuration works with valid input
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.6.2 {
+	    Test pen configure type
+	} -setup {
+	    barchart .barchart1
+	    pack .barchart1  
+		.barchart1 pen create Pen1 
+	} -body {
+	    .barchart1 pen configure Pen1 -type foobar
+	    .barchart1 pen cget Pen1 -type
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {foobar}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarcap command works correctly when given
+	# an integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.7.1 {
+		barchart pen: configure - errorbarcap - valid integer input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -errorbarcap 2
+		.barchart1 pen cget Pen1 -errorbarcap
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarcap command works correctly when given
+	# an invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.7.2 {
+		barchart pen: configure - errorbarcap - invalid integer input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -errorbarcap -1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarcap command works correctly when given
+	# a decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.7.3 {
+		barchart pen: configure - errorbarcap - valid decimal input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -errorbarcap 3.5
+		.barchart1 pen cget Pen1 -errorbarcap
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarcap command works correctly when given
+	# an invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.7.4 {
+		barchart pen: configure - errorbarcap - invalid decimal input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -errorbarcap -1.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarcap command works correctly when given
+	# a character as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.7.5 {
+		barchart pen: configure - errorbarcap - character input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -errorbarcap a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the errorbarcap configuration works for symbol size zero
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.7.6 {
+	    barchart pen: configure - no errorbarcap
+	} -setup {
+	    barchart .barchart1
+		.barchart1 pen create Pen1
+	    pack .barchart1    
+	} -body {
+	    .barchart1 pen configure Pen1 -errorbarcap 0
+	    .barchart1 pen cget Pen1 -errorbarcap
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {0}
+	
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the errorbarcolor configuration works for valid errorbarcolor colors
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.8.1 {
+	    Test pen configure errorbarcolor
+	} -setup {
+	    barchart .barchart1
+		.barchart1 pen create Pen1
+	    pack .barchart1    
+	} -body {
+	    .barchart1 pen configure Pen1 -errorbarcolor black
+	    .barchart1 pen cget Pen1 -errorbarcolor
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the errorbarcolor configuration works for no errorbarcolor
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.8.2 {
+	    Test pen configure errorbarcolor - invalid color
+	} -setup {
+	    barchart .barchart1
+		.barchart1 pen create Pen1
+	    pack .barchart1    
+	} -body {
+	    if {[catch {.barchart1 pen configure Pen1 -errorbarcolor invalid}]} {
+			return 0
+	    } else {
+			return 1
+	    }
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# an integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.9.1 {
+		barchart pen: configure - errorbarwidth - valid integer input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -errorbarwidth 2
+		.barchart1 pen cget Pen1 -errorbarwidth
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# an invalid integer pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.9.2 {
+		barchart pen: configure - errorbarwidth - invalid integer input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -errorbarwidth -1}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# a decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.9.3 {
+		barchart pen: configure - errorbarwidth - valid decimal input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -errorbarwidth 3.5
+		.barchart1 pen cget Pen1 -errorbarwidth
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {3.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# an invalid decimal pixel value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.9.4 {
+		barchart pen: configure - errorbarwidth - invalid decimal input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -errorbarwidth -1.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -errorbarwidth command works correctly when given
+	# a character as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.9.5 {
+		barchart pen: configure - errorbarwidth - character input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		if {[catch {.barchart1 pen configure Pen1 -errorbarwidth a}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure that the errorbarwidth configuration works for symbol size zero
+	# ------------------------------------------------------------------------------------ 
+	test barchart.pen.configure.9.6 {
+	    barchart pen: configure - no errorbarwidth
+	} -setup {
+	    barchart .barchart1
+		.barchart1 pen create Pen1
+	    pack .barchart1    
+	} -body {
+	    .barchart1 pen configure Pen1 -errorbarwidth 0
+	    .barchart1 pen cget Pen1 -errorbarwidth
+	} -cleanup {
+		.barchart1 pen delete Pen1
+	    destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# x.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.10.1 {
+		barchart pen configure: showvalues - x
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+		pack .barchart1
+	} -body {
+		.barchart1 pen configure Pen1 -showvalues x
+		.barchart1 pen cget Pen1 -showvalues
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {x}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# y.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.10.2 {
+		barchart pen configure: showvalues - y
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -showvalues y
+		.barchart1 pen cget Pen1 -showvalues
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {y}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# both.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.10.3 {
+		barchart pen configure: showvalues - both
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -showvalues both
+		.barchart1 pen cget Pen1 -showvalues
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {both}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# none.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.10.4 {
+		barchart pen configure: showvalues - none
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -showvalues none
+		.barchart1 pen cget Pen1 -showvalues
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {none}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -showvalues command works correctly when given 
+	# no.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.10.5 {
+		barchart pen configure: showvalues - no
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure Pen1 -showvalues no
+		.barchart1 pen cget Pen1 -showvalues
+	} -cleanup {
+		.barchart1 pen delete Pen1
+		destroy .barchart1
+	} -result {no}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'n' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.1 {
+		barchart pen configure: valueanchor - n
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+		.barchart1 pen create Pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor n
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {n}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'ne' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.2 {
+		barchart pen configure: valueanchor - ne
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor ne
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {ne}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'e' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.3 {
+		barchart pen configure: valueanchor - e
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor e
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {e}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'se' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.4 {
+		barchart pen configure: valueanchor - se
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor se
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {se}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'ne' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.5 {
+		barchart pen configure: valueanchor - s
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor s
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {s}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'sw' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.6 {
+		barchart pen configure: valueanchor - sw
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor sw
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {sw}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'w' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.7 {
+		barchart pen configure: valueanchor - w
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor w
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {w}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'nw' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.8 {
+		barchart pen configure: valueanchor - nw
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor nw
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {nw}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given 'center' as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.9 {
+		barchart pen configure: valueanchor - center
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueanchor center
+		.barchart1 pen cget pen1 -valueanchor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {center}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given invalid numerical input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.10 {
+		barchart pen configure: valueanchor - invalid numerical input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valueanchor 3.5}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueanchor command works correctly when 
+	# given invalid character input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.11.11 {
+		barchart pen configure: valueanchor - invalid character input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valueanchor invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuecolor command works correctly when given
+	# a valid color name.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.12.1 {
+		barchart pen configure: valuecolor - valid color name
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuecolor black
+		.barchart1 pen cget pen1 -valuecolor
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuecolor command works correctly when given
+	# an invalid color name.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.12.2 {
+		barchart pen configure: valuecolor - invalid color name
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valuecolor invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when 
+	# given an integer angle.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.13.1 {
+		barchart pen configure: valuerotate - integer input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuerotate 90
+		.barchart1 pen cget pen1 -valuerotate
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {90}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when 
+	# given a decimal angle.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.13.2 {
+		barchart pen configure: valuerotate - decimal input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuerotate 45.5
+		.barchart1 pen cget pen1 -valuerotate
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {45.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when 
+	# given a negative integer angle.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.13.3 {
+		barchart pen configure: valuerotate - negative integer input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuerotate -90
+		.barchart1 pen cget pen1 -valuerotate
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {-90}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when
+	# given a negative decimal angle.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.13.4 {
+		barchart pen configure: valuerotate - negative decimal input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuerotate -45.5
+		.barchart1 pen cget pen1 -valuerotate
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {-45.5}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuerotate command works correctly when
+	# given a character as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.13.5 {
+		barchart pen configure: valuerotate - character input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valuerotate invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when  
+	# given a valid color name.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.14.1 {
+		barchart pen configure: valueshadow - valid color name
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueshadow black
+		.barchart1 pen cget pen1 -valueshadow
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {black}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when 
+	# given an invalid color name.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.14.2 {
+		barchart pen configure: valueshadow - invalid color name
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valueshadow invalid}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when  
+	# given a valid color name and valid integer value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.14.3 {
+		barchart pen configure: valueshadow - valid color name, valid integer
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueshadow {black 2}
+		.barchart1 pen cget pen1 -valueshadow
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {black 2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when 
+	# given an invalid color name and valid integer value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.14.4 {
+		barchart pen configure: valueshadow - invalid color name, valid integer
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valueshadow {invalid 1}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueshadow command works correctly when 
+	# given a valid color name and invalid integer value.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.14.5 {
+		barchart pen configure: valueshadow - valid color name, invalid integer
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valueshadow {black -1}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valueformat command works correctly when an 
+	# input value is given.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.15.1 {
+		barchart pen configure: valueformat - input
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valueformat formatstring
+		.barchart1 pen cget pen1 -valueformat
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {formatstring}
+
+    test barchart.pen.configure.15.2 {
+        barchart pen configure: valueformat - rollback
+    } -setup {
+        barchart .barchart1
+        .barchart1 pen create pen1
+        .barchart1 pen configure pen1 -valueformat %.2f
+    } -body {
+        set code [catch {.barchart1 pen configure pen1 -valueformat {%g %g}}]
+        list $code [.barchart1 pen cget pen1 -valueformat]
+    } -cleanup {
+        .barchart1 pen delete pen1
+        destroy .barchart1
+    } -result {1 %.2f}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a string as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.16.1 {
+		barchart pen configure: valuefont - string
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuefont Times
+		.barchart1 pen cget pen1 -valuefont
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {Times}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with a string as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.16.2 {
+		barchart pen configure: valuefont - list with string
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuefont {Times}
+		.barchart1 pen cget pen1 -valuefont
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {Times}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with a string and positive integer as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.16.3 {
+		barchart pen configure: valuefont - list with string and positive integer
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuefont {Times 10}
+		.barchart1 pen cget pen1 -valuefont
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {Times 10}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with a string and negative integer as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.16.4 {
+		barchart pen configure: valuefont - list with string and negative integer
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		.barchart1 pen configure pen1 -valuefont {Times -10}
+		.barchart1 pen cget pen1 -valuefont
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {Times -10}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with a string and decimal as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.16.5 {
+		barchart pen configure: valuefont - list with string and decimal
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valuefont {Times 10.5}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the pen configure -valuefont command works correctly when given  
+	# a list with 2 strings as input.
+	# ------------------------------------------------------------------------------------
+	test barchart.pen.configure.16.6 {
+		barchart pen configure: valuefont - list with 2 strings
+	} -setup {
+		barchart .barchart1
+		.barchart1 pen create pen1
+	} -body {
+		if {[catch {.barchart1 pen configure pen1 -valuefont {Times Ten}}]} {
+			return 0
+		} else {
+			return 1
+		}
+	} -cleanup {
+		.barchart1 pen delete pen1
+		destroy .barchart1
+	} -result {0}
+
+    test barchart.pen.configure.17.1 {
+        barchart named bar pen: atomic rollback
+    } -setup {
+        barchart .barchart1
+        pack .barchart1
+        .barchart1 pen create Pen1 -background blue -borderwidth 2 -valueshadow {gray 2}
+        set oldBackground [.barchart1 pen cget Pen1 -background]
+        set oldBorderWidth [.barchart1 pen cget Pen1 -borderwidth]
+        set oldShadow [.barchart1 pen cget Pen1 -valueshadow]
+    } -body {
+        set code [catch {.barchart1 pen configure Pen1 -background red -borderwidth 3.5 -valueshadow {black -1}}\
+                          message]
+        list $code [expr {[.barchart1 pen cget Pen1 -background] eq $oldBackground}]\
+                [expr {[.barchart1 pen cget Pen1 -borderwidth] eq $oldBorderWidth}]\
+                [expr {[.barchart1 pen cget Pen1 -valueshadow] eq $oldShadow}]
+    } -cleanup {
+        destroy .barchart1
+        unset -nocomplain oldBackground oldBorderWidth oldShadow code message
+    } -result {1 1 1 1}
+
+    test barchart.pen.configure.18.1 {
+        embedded bar pen remains on legacy configuration
+    } -setup {
+        barchart .barchart1
+        .barchart1 bar create bar1
+    } -body {
+        .barchart1 bar configure bar1 -borderwidth 3.5
+        .barchart1 bar cget bar1 -borderwidth
+    } -cleanup {
+        destroy .barchart1
+    } -result 3.5
+
+    test barchart.pen.configure.19.1 {
+        modern named bar pen resource lifetime
+    } -body {
+        for {set i 0} {$i < 200} {incr i} {
+            barchart .barchart1
+            .barchart1 pen create Pen1 -type bar -background blue -foreground white -borderwidth 3.5 -errorbarcolor\
+            defcolor -errorbarwidth 2.5 -errorbarcap 4.5 -showerrorbars both -showvalues no -valuecolor black\
+                    -valuefont TkDefaultFont -valuerotate 45 -valueshadow {gray 2}
+            .barchart1 bar create bar1 -xdata {1 2 3} -ydata {3 2 1} -pen Pen1
+            .barchart1 pen configure Pen1 -background red -errorbarcolor black -showvalues y -valueshadow {blue 3}
+            .barchart1 pen delete Pen1
+            .barchart1 bar delete bar1
+            destroy .barchart1
+        }
+        update
+        return ok
+    } -cleanup {
+        catch {destroy .barchart1}
+    } -result ok
+	
+	cleanupTests
+}

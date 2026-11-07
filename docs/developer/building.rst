@@ -99,7 +99,7 @@ declarations and already-compatible XML are unchanged; no warning suppression or
 
 The helper's regression checks run without Tk, RBC or documentation tools::
 
-    tclsh tests/build/RBC.build.doxygenCompat.A.test
+    tclsh tests/build/build.doxygenCompat.test
 
 Theme and publishing
 --------------------
@@ -152,7 +152,7 @@ The build runner remains Tcl. The Python module is a Sphinx extension, using Sph
 reference sections and relative links. The optional regression test requires Sphinx and the RTD theme, but not Doxygen,
 Breathe, Tk or RBC::
 
-    tclsh tests/build/RBC.build.docNavigation.A.test
+    tclsh tests/build/build.docNavigation.test
 
 It checks main-page grouping and declaration suppression, full inactive groups, current-page
 functions/structures/members, and preserved declaration anchors. Use ``RBC_DOC_PYTHON`` to select another Python

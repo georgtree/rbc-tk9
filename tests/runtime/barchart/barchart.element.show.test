@@ -1,0 +1,151 @@
+# barchart.element.show.test --
+#
+###Abstract
+# This file contains the automatic tests that test the element show 
+# function of the barchart BLT component.
+#
+###Copyright
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+###Revision String
+# SVN: $Id$
+
+###Package Definition
+package provide barchart.element
+
+package require rbc
+namespace import rbc::*
+
+package require tcltest
+namespace import tcltest::*
+namespace eval barchart.element {
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element show command works correctly when given a single element
+	# name.
+	# ------------------------------------------------------------------------------------
+	test barchart.element.show.1.1 {
+		element show: single element name
+	} -setup {
+		barchart .barchart1
+		.barchart1 element create Element1
+		.barchart1 element create Element2
+	} -body {
+		.barchart1 element show Element1
+		.barchart1 element show
+	} -cleanup {
+		.barchart1 element delete Element2
+		.barchart1 element delete Element1
+		destroy .barchart1
+	} -result {Element1}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element show command works correctly when given multiple element
+	# names.
+	# ------------------------------------------------------------------------------------
+	test barchart.element.show.2.1 {
+		element show: multiple element names
+	} -setup {
+		barchart .barchart1
+		.barchart1 element create Element1
+		.barchart1 element create Element2
+	} -body {
+		.barchart1 element show {Element1 Element2}
+		.barchart1 element show
+	} -cleanup {
+		.barchart1 element delete Element2
+		.barchart1 element delete Element1
+		destroy .barchart1
+	} -result {Element1 Element2}
+	
+	# ------------------------------------------------------------------------------------
+	# Purpose: Ensure the element show command works correctly when given a non-existent 
+	# element name.
+	# ------------------------------------------------------------------------------------
+	test barchart.element.show.3.1 {
+		element show: non-existent element name
+	} -setup {
+		barchart .barchart1
+	} -body {
+		.barchart1 element show invalid
+		.barchart1 element show
+	} -cleanup {
+		destroy .barchart1
+	} -result {}
+	
+    test barchart.element.show.4.1 {
+        element show: duplicates retain first occurrence and ignore unknown names
+    } -setup {
+        barchart .w
+        foreach name {a b c d} {
+            .w element create $name -data {0 1 1 2}
+        }
+        pack .w
+        update
+    } -body {
+        set order [.w element show {b a b missing c a c}]
+        list $order [.w element show] [.w element cget d -hide]
+    } -cleanup {
+        destroy .w
+    } -result {{b a c} {b a c} 1}
+
+    test barchart.element.show.5.1 {
+        element show: deleting and recreating a duplicated name leaves no stale references
+    } -setup {
+        barchart .w
+        foreach name {a b c d} {
+            .w element create $name -data {0 1 1 2}
+        }
+        pack .w
+        update
+    } -body {
+        set order [.w element show {a b a c b a}]
+        .w element delete a
+        update
+        set remaining [.w element show]
+        .w element create a -data {0 4 1 5}
+        update
+        list $order $remaining [.w element show] [.w element exists a]
+    } -cleanup {
+        destroy .w
+    } -result {{a b c} {b c} {a b c} 1}
+
+    test barchart.element.show.6.1 {
+        element show: hide and unhide after duplicate input retains unique membership
+    } -setup {
+        barchart .w
+        foreach name {a b c d} {
+            .w element create $name -data {0 1 1 2}
+        }
+        pack .w
+        update
+    } -body {
+        set order [.w element show {b a b c a}]
+        .w element configure a -hide yes
+        set hidden [.w element show]
+        .w element configure a -hide no
+        set restored [.w element show]
+        list $order $hidden [llength $restored] [lsort $restored]
+    } -cleanup {
+        destroy .w
+    } -result {{b a c} {b c} 3 {a b c}}
+
+    test barchart.element.show.7.1 {
+        element show: malformed replacement preserves membership and visibility
+    } -setup {
+        barchart .w
+        foreach name {a b c d} {
+            .w element create $name -data {0 1 1 2}
+        }
+        pack .w
+        update
+    } -body {
+        set order [.w element show {b a b}]
+        set failed [catch {.w element show "\{"}]
+        list $failed $order [.w element show] [.w element cget c -hide]
+    } -cleanup {
+        destroy .w
+    } -result {1 {b a} {b a} 1}
+
+	cleanupTests
+}

@@ -87,8 +87,8 @@ services and :doc:`exports` for the separate graph export pipeline.
 Maintenance checks
 ------------------
 
-Keep parsing, display and export expectations separate. Existing ``RBC.eps.file.A.test``, ``RBC.eps.image.A.test`` and
-the other ``RBC.eps.*`` files cover canvas options and lifecycle cases. Review malformed headers, file/image
+Keep parsing, display and export expectations separate. Existing ``eps.file.test``, ``eps.image.test`` and
+the other ``eps.*`` files cover canvas options and lifecycle cases. Review malformed headers, file/image
 replacement, quick-mode cache invalidation, source-image deletion, anchor picking and PostScript body preservation when
 changing these paths. Use :doc:`image-compatibility` for temporary-photo acquisition and release.
 
