@@ -144,6 +144,10 @@ namespace eval graph.marker.arrowalignment {
             set filled 0
             for {set y 40} {$y <= 90} {incr y} {
                 for {set x 150} {$x <= 200} {incr x} {
+                    # Behind the notch, the OS strokes the exposed shaft.
+                    # Ignore its narrow center strip, but compare both wings
+                    # and the entire front of the head (tip at 180,60).
+                    if {$x - $y < 94 && abs($x + $y - 240) <= 4} {continue}
                     set pixel [$photo get $x $y]
                     incr filled [expr {$pixel eq {255 0 0}}]
                     if {$pixel ne [$photo get [expr {240-$y}] [expr {240-$x}]]} {

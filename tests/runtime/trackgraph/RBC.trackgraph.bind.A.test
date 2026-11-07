@@ -79,15 +79,16 @@ namespace eval trackgraph.bind {
             .tg track bind all <Enter> {lappend ::trackHits enter [%W track get current]}
             .tg track bind all <Leave> {lappend ::trackHits leave [%W track get current]}
         } -body {
+            # Run the layout repick without dispatching unrelated native pointer events.
             BackgroundMotion voltage
             .tg track view scroll 16 units
-            update
+            update idletasks
             set current [.tg track get current]
             set before $::trackHits
             .tg svg output -width 900 -height 700
             set unchanged [expr {$before eq $::trackHits}]
             .tg track view moveto 0
-            update
+            update idletasks
             list $current $unchanged [.tg track get current] $::trackHits
         } -cleanup {destroy .tg; unset ::trackHits} -result {current 1 voltage {enter voltage leave voltage enter current leave current enter voltage}}
     }

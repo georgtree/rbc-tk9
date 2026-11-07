@@ -15,68 +15,7 @@ set atol 1e-8
 set rtol 1e-10
 set defaultDelay 100
 
-proc containsNumber {value} {
-    if {[string is double -strict $value]} {
-        return true
-    }
-    if {[catch {llength $value} len]} {
-        return false
-    }
-    # Single-element and empty values are treated as atoms here.
-    if {$len<=1} {
-        return false
-    }
-    for {set i 0} {$i<$len} {incr i} {
-        if {[containsNumber [lindex $value $i]]} {
-            return true
-        }
-    }
-    return false
-}
-
-proc approxNestedEqual {a b} {
-    variable atol
-    variable rtol
-    set aIsNum [string is double -strict $a]
-    set bIsNum [string is double -strict $b]
-    # Numeric atoms: approximate comparison
-    if {$aIsNum && $bIsNum} {
-        return [expr {abs($a-$b)<=($atol+$rtol*abs($b))}]
-    }
-    # One numeric, one non-numeric
-    if {$aIsNum!=$bIsNum} {
-        return false
-    }
-    set aHasNum [containsNumber $a]
-    set bHasNum [containsNumber $b]
-    # If neither side contains numbers, compare as exact strings.
-    # This preserves spaces, tabs, etc.
-    if {!$aHasNum && !$bHasNum} {
-        return [string equal $a $b]
-    }
-    # If only one side contains numeric structure, they differ.
-    if {$aHasNum != $bHasNum} {
-        return false
-    }
-    # Both contain numbers somewhere, so compare structurally as lists.
-    if {[catch {llength $a} lenA]} {
-        return false
-    }
-    if {[catch {llength $b} lenB]} {
-        return false
-    }
-    if {$lenA != $lenB} {
-        return false
-    }
-    for {set i 0} {$i<$lenA} {incr i} {
-        set elemA [lindex $a $i]
-        set elemB [lindex $b $i]
-        if {![approxNestedEqual $elemA $elemB]} {
-            return false
-        }
-    }
-    return true
-}
+source [file join [file dirname [info script]] .. approxEqual.tcl]
 
 proc uniqkey {} {
 	set key [expr {pow(2,31)+[clock clicks]}]
@@ -181,6 +120,15 @@ proc GenerateGraphEvent {graph sequence x y time} {
         event generate $graph $sequence -x $x -y $y
     }
     update
+}
+
+proc MoveCrosshairsPointer {graph x y} {
+    # Motion bindings and asynchronous refresh/cleanup must see the same pixel.
+    set x [expr {round($x)}]
+    set y [expr {round($y)}]
+    event generate $graph <Motion> -warp 1 -x $x -y $y
+    update
+    return [list $x $y]
 }
 
 proc GenerateGraphWheelEvent {graph x y delta time {modifier {}}} {
@@ -2653,6 +2601,7 @@ test RBC.graphtoolbar.A.74.1 {pan uses common scroll constraint for mapped axes}
 #### crosshairs
 test RBC.graphtoolbar.A.75.1 {crosshairs with current coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     grid .gtb -row 0 -column 0 -sticky nsew
     pack .gtb -fill both -expand yes
@@ -2661,6 +2610,7 @@ test RBC.graphtoolbar.A.75.1 {crosshairs with current coordinate marker}\
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2672,16 +2622,18 @@ test RBC.graphtoolbar.A.75.1 {crosshairs with current coordinate marker}\
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set markerExistence 1
     foreach x $xlist y $ylist {
-        GenerateGraphEvent $graph <Motion> $x $y 5
+        MoveCrosshairsPointer $graph $x $y
         set markerExistence [expr {[$widget graph marker exists gtbCrosshairsText] && $markerExistence}]
     }
     return $markerExistence
 }  -result 1 -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.76.1 {crosshairs with closest element coordinate marker}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with closest element coordinate marker} {*}$titleFont
@@ -2689,6 +2641,7 @@ test RBC.graphtoolbar.A.76.1 {crosshairs with closest element coordinate marker}
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2700,8 +2653,8 @@ test RBC.graphtoolbar.A.76.1 {crosshairs with closest element coordinate marker}
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set failures [list]
     foreach x $xlist y $ylist {
+        lassign [MoveCrosshairsPointer $graph $x $y] x y
         set expected [$graph element closest $x $y pointVar -along both -interpolate yes -halo 10]
-        GenerateGraphEvent $graph <Motion> $x $y 5
         set actual [$graph marker exists gtbCrosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
@@ -2710,10 +2663,12 @@ test RBC.graphtoolbar.A.76.1 {crosshairs with closest element coordinate marker}
     return $failures
 }  -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.77.1 {crosshairs with no marker}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode none]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with no marker} {*}$titleFont
@@ -2721,6 +2676,7 @@ test RBC.graphtoolbar.A.77.1 {crosshairs with no marker}\
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2732,16 +2688,18 @@ test RBC.graphtoolbar.A.77.1 {crosshairs with no marker}\
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set markerExistence 1
     foreach x $xlist y $ylist {
-        GenerateGraphEvent $graph <Motion> $x $y 5
+        MoveCrosshairsPointer $graph $x $y
         set markerExistence [expr {[$widget graph marker exists gtbCrosshairsText] && $markerExistence}]
     }
     return $markerExistence
 }  -result 0 -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.78.1 {crosshairs with closest element coordinate marker, larger halo}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-halo 30 -hide no}]
     pack .gtb -fill both -expand yes
@@ -2751,6 +2709,7 @@ test RBC.graphtoolbar.A.78.1 {crosshairs with closest element coordinate marker,
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2762,8 +2721,8 @@ test RBC.graphtoolbar.A.78.1 {crosshairs with closest element coordinate marker,
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set failures [list]
     foreach x $xlist y $ylist {
+        lassign [MoveCrosshairsPointer $graph $x $y] x y
         set expected [$graph element closest $x $y pointVar -along both -interpolate yes -halo 30]
-        GenerateGraphEvent $graph <Motion> $x $y 5
         set actual [$graph marker exists gtbCrosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
@@ -2772,10 +2731,12 @@ test RBC.graphtoolbar.A.78.1 {crosshairs with closest element coordinate marker,
     return $failures
 }  -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.79.1 {crosshairs with closes element coordinate marker, multiple elements}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -hide no}]
     pack .gtb -fill both -expand yes
@@ -2785,6 +2746,7 @@ test RBC.graphtoolbar.A.79.1 {crosshairs with closes element coordinate marker, 
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2796,6 +2758,7 @@ test RBC.graphtoolbar.A.79.1 {crosshairs with closes element coordinate marker, 
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set failures [list]
     foreach x $xlist y $ylist {
+        lassign [MoveCrosshairsPointer $graph $x $y] x y
         set count 0
         foreach elem {line1 line2} {
             if {[$graph element closest $x $y pointVar -along both -interpolate yes -halo 10 $elem]} {
@@ -2803,7 +2766,6 @@ test RBC.graphtoolbar.A.79.1 {crosshairs with closes element coordinate marker, 
             }
         }
         set expected [list [expr {$count >= 1}] [expr {$count >= 2}]]
-        GenerateGraphEvent $graph <Motion> $x $y 5
         set actual [list [$graph marker exists gtbCrosshairsClosestText0] [$graph marker exists gtbCrosshairsClosestText1]]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
@@ -2812,10 +2774,12 @@ test RBC.graphtoolbar.A.79.1 {crosshairs with closes element coordinate marker, 
     return $failures
 }  -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.80.1 {crosshairs with closest element coordinate marker, no interpolaton}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-interpolate no -halo 30 -hide no}]
     pack .gtb -fill both -expand yes
@@ -2825,6 +2789,7 @@ test RBC.graphtoolbar.A.80.1 {crosshairs with closest element coordinate marker,
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2836,8 +2801,8 @@ test RBC.graphtoolbar.A.80.1 {crosshairs with closest element coordinate marker,
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set failures [list]
     foreach x $xlist y $ylist {
+        lassign [MoveCrosshairsPointer $graph $x $y] x y
         set expected [$graph element closest $x $y pointVar -along both -interpolate no -halo 30]
-        GenerateGraphEvent $graph <Motion> $x $y 5
         set actual [$graph marker exists gtbCrosshairsClosestText]
         if {$actual != $expected} {
             lappend failures [list $x $y $expected $actual]
@@ -2846,10 +2811,12 @@ test RBC.graphtoolbar.A.80.1 {crosshairs with closest element coordinate marker,
     return $failures
 }  -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.81.1 {crosshairs with current coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
@@ -2857,6 +2824,7 @@ test RBC.graphtoolbar.A.81.1 {crosshairs with current coordinate marker, check m
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2867,16 +2835,18 @@ test RBC.graphtoolbar.A.81.1 {crosshairs with current coordinate marker, check m
     set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     foreach x $xlist y $ylist {
-        GenerateGraphEvent $graph <Motion> $x $y 5
+        MoveCrosshairsPointer $graph $x $y
     }
     sleep $defaultDelay
     return [$graph marker cget gtbCrosshairsText -anchor]
 }  -result se -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.82.1 {crosshairs with closest coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker} {*}$titleFont
@@ -2884,6 +2854,7 @@ test RBC.graphtoolbar.A.82.1 {crosshairs with closest coordinate marker, check m
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2894,16 +2865,18 @@ test RBC.graphtoolbar.A.82.1 {crosshairs with closest coordinate marker, check m
     set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     foreach x $xlist y $ylist {
-        GenerateGraphEvent $graph <Motion> $x $y 5
+        MoveCrosshairsPointer $graph $x $y
     }
     sleep $defaultDelay
     return [$graph marker cget gtbCrosshairsClosestText -anchor]
 }  -result ne -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.83.1 {crosshairs with closest coordinate marker, check marker positioning near\
                                       the edge of plotting area} -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsclosestopts {-single no -halo 30 -hide no}]
     pack .gtb -fill both -expand yes
@@ -2912,6 +2885,7 @@ test RBC.graphtoolbar.A.83.1 {crosshairs with closest coordinate marker, check m
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2922,16 +2896,18 @@ test RBC.graphtoolbar.A.83.1 {crosshairs with closest coordinate marker, check m
     set xlist [lseq $aXPointBox to $bXPointBox by [expr {($bXPointBox-$aXPointBox)/double($steps)}]]
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     foreach x $xlist y $ylist {
-        GenerateGraphEvent $graph <Motion> $x $y 5
+        MoveCrosshairsPointer $graph $x $y
     }
     sleep $defaultDelay
     return [list [$graph marker cget gtbCrosshairsClosestText0 -anchor] [$graph marker cget gtbCrosshairsClosestText1 -anchor]]
 }  -result {ne ne} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.84.1 {crosshairs with current coordinate marker and no marker box}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkboxopts {-fill {} -outline {}}]
     pack .gtb -fill both -expand yes
@@ -2941,6 +2917,7 @@ test RBC.graphtoolbar.A.84.1 {crosshairs with current coordinate marker and no m
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2952,16 +2929,18 @@ test RBC.graphtoolbar.A.84.1 {crosshairs with current coordinate marker and no m
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set markerExistence 1
     foreach x $xlist y $ylist {
-        GenerateGraphEvent $graph <Motion> $x $y 5
+        MoveCrosshairsPointer $graph $x $y
         set markerExistence [expr {[$widget graph marker exists gtbCrosshairsTextBox] && $markerExistence}]
     }
     return $markerExistence
 }  -result 0 -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.85.1 {crosshairs with closest element coordinate marker and no marker box}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                        -crosshairsmarkboxopts {-fill {} -outline {}}]
     pack .gtb -fill both -expand yes
@@ -2971,6 +2950,7 @@ test RBC.graphtoolbar.A.85.1 {crosshairs with closest element coordinate marker 
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -2982,7 +2962,7 @@ test RBC.graphtoolbar.A.85.1 {crosshairs with closest element coordinate marker 
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set markerExistence 1
     foreach x $xlist y $ylist {
-        GenerateGraphEvent $graph <Motion> $x $y 5
+        MoveCrosshairsPointer $graph $x $y
         if {[$widget graph marker exists gtbCrosshairsClosestText]} {
             set markerExistence [expr {[$widget graph marker exists gtbCrosshairsClosestTextBox] && $markerExistence}]
         }
@@ -2990,10 +2970,12 @@ test RBC.graphtoolbar.A.85.1 {crosshairs with closest element coordinate marker 
     return $markerExistence
 }  -result 0 -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.86.1 {crosshairs with current coordinate marker and inverted axes}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {crosshairs with current coordinate marker and inverted axes}\
@@ -3003,6 +2985,7 @@ test RBC.graphtoolbar.A.86.1 {crosshairs with current coordinate marker and inve
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] leftMargin topMargin plotWidth plotHeight
     set aXPointBox [expr {$leftMargin+$plotWidth/3}]
@@ -3014,12 +2997,13 @@ test RBC.graphtoolbar.A.86.1 {crosshairs with current coordinate marker and inve
     set ylist [lseq $aYPointBox to $bYPointBox by [expr {($bYPointBox-$aYPointBox)/double($steps)}]]
     set markerExistence 1
     foreach x $xlist y $ylist {
-        GenerateGraphEvent $graph <Motion> $x $y 5
+        MoveCrosshairsPointer $graph $x $y
         set markerExistence [expr {[$widget graph marker exists gtbCrosshairsText] && $markerExistence}]
     }
     return $markerExistence
 }  -result 1 -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test RBC.graphtoolbar.A.87.1 {current crosshairs marker text with multiple axes}\
