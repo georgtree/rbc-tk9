@@ -352,12 +352,12 @@ test: binaries libraries $(TEST_CAPI_LIB) $(TEST_NOTIFY_LIB) $(TEST_TILE_LIB) $(
 	RBC_TILE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_TILE_LIB)`" \
 	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
 	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` all $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` all $(TESTFLAGS)
 
 # Compile header contracts without linking or opening a display.
 test-headers:
 	@rm -rf header-probes
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/headerProbes.tcl` header-probes auto
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/build/headerProbes.tcl` header-probes auto
 	@set -e; for source in header-probes/*.c; do \
 	    $(COMPILE) -I`@CYGPATH@ $(srcdir)/generic` \
 	        -c `@CYGPATH@ $$source` -o header-probes/probe.$(OBJEXT); \
@@ -366,16 +366,16 @@ test-headers:
 
 test-vector: binaries libraries $(TEST_CAPI_LIB)
 	RBC_CAPI_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_CAPI_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/vectorAll.tcl` $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` vector $(TESTFLAGS)
 
 # Private APIs are tested by relinking the implementation into a test-only DLL.
 # Run in a fresh Tcl process, separately from the installed/stubs consumer tests.
 test-vector-notify: $(TEST_NOTIFY_LIB)
 	RBC_NOTIFY_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_NOTIFY_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` notify $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` notify $(TESTFLAGS)
 
-rbcVectorNotifyTest.$(OBJEXT): $(srcdir)/tests/rbcVectorNotifyTest.c $(PKG_HEADERS) $(srcdir)/generic/rbcVectorInt.h
-	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcVectorNotifyTest.c` -o $@
+rbcVectorNotifyTest.$(OBJEXT): $(srcdir)/tests/runtime/vector/rbcVectorNotifyTest.c $(PKG_HEADERS) $(srcdir)/generic/rbcVectorInt.h
+	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/runtime/vector/rbcVectorNotifyTest.c` -o $@
 
 $(TEST_NOTIFY_LIB): $(PKG_OBJECTS) rbcVectorNotifyTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
@@ -384,10 +384,10 @@ $(TEST_NOTIFY_LIB): $(PKG_OBJECTS) rbcVectorNotifyTest.$(OBJEXT)
 # Include rbcTile.c in the harness to inspect private resource ownership.
 test-tile: $(TEST_TILE_LIB)
 	RBC_TILE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_TILE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` tile $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` tile $(TESTFLAGS)
 
-rbcTileTest.$(OBJEXT): $(srcdir)/tests/rbcTileTest.c $(srcdir)/generic/rbcTile.c $(PKG_HEADERS)
-	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcTileTest.c` -o $@
+rbcTileTest.$(OBJEXT): $(srcdir)/tests/runtime/tile/rbcTileTest.c $(srcdir)/generic/rbcTile.c $(PKG_HEADERS)
+	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/runtime/tile/rbcTileTest.c` -o $@
 
 $(TEST_TILE_LIB): $(PKG_OBJECTS) rbcTileTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
@@ -396,12 +396,12 @@ $(TEST_TILE_LIB): $(PKG_OBJECTS) rbcTileTest.$(OBJEXT)
 # Include rbcImage.c in the harness to inspect private resource ownership.
 test-image: $(TEST_IMAGE_LIB)
 	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` temporary $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` temporary $(TESTFLAGS)
 	RBC_IMAGE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_IMAGE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` photo $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` photo $(TESTFLAGS)
 
-rbcImageTest.$(OBJEXT): $(srcdir)/tests/rbcImageTest.c $(srcdir)/generic/rbcImage.c $(srcdir)/generic/rbcUnixImage.c $(PKG_HEADERS)
-	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcImageTest.c` -o $@
+rbcImageTest.$(OBJEXT): $(srcdir)/tests/runtime/image/rbcImageTest.c $(srcdir)/generic/rbcImage.c $(srcdir)/generic/rbcUnixImage.c $(PKG_HEADERS)
+	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/runtime/image/rbcImageTest.c` -o $@
 
 $(TEST_IMAGE_LIB): $(PKG_OBJECTS) rbcImageTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
@@ -410,12 +410,12 @@ $(TEST_IMAGE_LIB): $(PKG_OBJECTS) rbcImageTest.$(OBJEXT)
 # Inspect EPS/color releases and inject native parent-query failure.
 test-resources: $(TEST_RESOURCE_LIB)
 	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` resources $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` resources $(TESTFLAGS)
 	RBC_RESOURCE_TEST_LIB="`@CYGPATH@ $(top_builddir)/$(TEST_RESOURCE_LIB)`" \
-	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/runtimeTests.tcl` ps $(TESTFLAGS)
+	$(TCLSH) `@CYGPATH@ $(srcdir)/tests/all.tcl` ps $(TESTFLAGS)
 
-rbcResourceTest.$(OBJEXT): $(srcdir)/tests/rbcResourceTest.c $(srcdir)/generic/rbcCanvEps.c $(srcdir)/generic/rbcWindow.c $(srcdir)/generic/rbcGrMisc.c $(srcdir)/generic/rbcPs.c $(PKG_HEADERS)
-	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/rbcResourceTest.c` -o $@
+rbcResourceTest.$(OBJEXT): $(srcdir)/tests/runtime/resources/rbcResourceTest.c $(srcdir)/generic/rbcCanvEps.c $(srcdir)/generic/rbcWindow.c $(srcdir)/generic/rbcGrMisc.c $(srcdir)/generic/rbcPs.c $(PKG_HEADERS)
+	$(COMPILE) $(SHLIB_CFLAGS) -I`@CYGPATH@ $(srcdir)/generic` -c `@CYGPATH@ $(srcdir)/tests/runtime/resources/rbcResourceTest.c` -o $@
 
 $(TEST_RESOURCE_LIB): $(PKG_OBJECTS) rbcResourceTest.$(OBJEXT)
 	$(SHLIB_LD) $(LDFLAGS_DEFAULT) $(LDFLAGS) -o $@ \
@@ -471,7 +471,7 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 #
 # This intentionally builds as an external consumer:
 #
-#   tests/rbcVectorApiTest.c
+#   tests/runtime/vector/rbcVectorApiTest.c
 #       uses only public rbc.h / vector stubs
 #
 #   generic/rbcStubLib.c
@@ -482,13 +482,13 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 #========================================================================
 
 rbcVectorApiTest.$(OBJEXT): \
-		$(srcdir)/tests/rbcVectorApiTest.c \
+		$(srcdir)/tests/runtime/vector/rbcVectorApiTest.c \
 		$(srcdir)/generic/rbc.h \
 		$(srcdir)/generic/rbcVector.h \
 		$(srcdir)/generic/rbcDecls.h
 	$(COMPILE) $(SHLIB_CFLAGS) \
 		-I`@CYGPATH@ $(srcdir)/generic` \
-		-c `@CYGPATH@ $(srcdir)/tests/rbcVectorApiTest.c` \
+		-c `@CYGPATH@ $(srcdir)/tests/runtime/vector/rbcVectorApiTest.c` \
 		-o $@
 
 rbcCapiStubLib.$(OBJEXT): \

@@ -9,7 +9,7 @@ if {$platform ni {unix windows}} {
     error "unknown platform: $platform"
 }
 file mkdir $output
-set generic [file normalize [file join [file dirname [info script]] .. generic]]
+set generic [file normalize [file join [file dirname [info script]] .. .. generic]]
 set headers {}
 foreach path [lsort [glob -directory $generic *.h]] {
     set name [file tail $path]

@@ -140,8 +140,8 @@ install-demos: default-install-demos
 # Build the C API consumer independently of the RBC implementation DLL.
 CAPI_DLL = $(OUT_DIR)\rbccapitest.dll
 CAPI_OBJS = $(TMP_DIR)\rbcVectorApiTest.obj $(TMP_DIR)\rbcCapiStubLib.obj
-$(TMP_DIR)\rbcVectorApiTest.obj: $(TESTDIR)\rbcVectorApiTest.c $(PRJ_HEADERS)
-	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /Fo"$@" "$(TESTDIR)\rbcVectorApiTest.c"
+$(TMP_DIR)\rbcVectorApiTest.obj: $(TESTDIR)\runtime\vector\rbcVectorApiTest.c $(PRJ_HEADERS)
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /Fo"$@" "$(TESTDIR)\runtime\vector\rbcVectorApiTest.c"
 $(TMP_DIR)\rbcCapiStubLib.obj: $(GENERICDIR)\rbcStubLib.c $(PRJ_HEADERS)
 	$(cc32) $(appcflags) /Fo"$@" "$(GENERICDIR)\rbcStubLib.c"
 $(CAPI_OBJS): makefile.vc
@@ -154,57 +154,57 @@ IMAGE_DLL = $(OUT_DIR)\rbcimagetest.dll
 RESOURCE_DLL = $(OUT_DIR)\rbcresourcetest.dll
 
 test: $(PROJECT) $(CAPI_DLL) $(NOTIFY_DLL) $(TILE_DLL) $(IMAGE_DLL) $(RESOURCE_DLL)
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && set "RBC_NOTIFY_TEST_LIB=$(NOTIFY_DLL)" && set "RBC_TILE_TEST_LIB=$(TILE_DLL)" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" all $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && set "RBC_NOTIFY_TEST_LIB=$(NOTIFY_DLL)" && set "RBC_TILE_TEST_LIB=$(TILE_DLL)" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" all $(TESTFLAGS)"
 
 test-headers:
 	@if not exist "$(TMP_DIR)" mkdir "$(TMP_DIR)"
 	@if exist "$(TMP_DIR)\header-probes" rmdir /s /q "$(TMP_DIR)\header-probes"
-	@"$(TCLSH)" "$(TESTDIR)\headerProbes.tcl" "$(TMP_DIR)\header-probes" windows
+	@"$(TCLSH)" "$(TESTDIR)\build\headerProbes.tcl" "$(TMP_DIR)\header-probes" windows
 	@for %f in ("$(TMP_DIR)\header-probes\*.c") do @($(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$(TMP_DIR)\header-probes\probe.obj" "%f" || exit /b 1)
 	@echo Header inclusion checks passed.
 
 test-vector: $(PROJECT) $(CAPI_DLL)
 	@echo Running Tcl-only vector tests...
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\vectorAll.tcl" $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_CAPI_TEST_LIB=$(CAPI_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" vector $(TESTFLAGS)"
 
 # Relink private notification APIs into a dedicated test DLL, never installed.
 NOTIFY_OBJ = $(TMP_DIR)\rbcVectorNotifyTest.obj
-$(NOTIFY_OBJ): $(TESTDIR)\rbcVectorNotifyTest.c $(PRJ_HEADERS)
-	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcVectorNotifyTest.c"
+$(NOTIFY_OBJ): $(TESTDIR)\runtime\vector\rbcVectorNotifyTest.c $(PRJ_HEADERS)
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\runtime\vector\rbcVectorNotifyTest.c"
 $(NOTIFY_DLL): $(PRJ_OBJS) $(NOTIFY_OBJ)
 	$(DLLCMD) $(PRJ_OBJS) $(NOTIFY_OBJ)
 	$(_VC_MANIFEST_EMBED_DLL)
 test-vector-notify: $(PROJECT) $(NOTIFY_DLL)
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_NOTIFY_TEST_LIB=$(NOTIFY_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" notify $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_NOTIFY_TEST_LIB=$(NOTIFY_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" notify $(TESTFLAGS)"
 
 TILE_OBJ = $(TMP_DIR)\rbcTileTest.obj
-$(TILE_OBJ): $(TESTDIR)\rbcTileTest.c $(GENERICDIR)\rbcTile.c $(PRJ_HEADERS)
-	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcTileTest.c"
+$(TILE_OBJ): $(TESTDIR)\runtime\tile\rbcTileTest.c $(GENERICDIR)\rbcTile.c $(PRJ_HEADERS)
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\runtime\tile\rbcTileTest.c"
 $(TILE_DLL): $(PRJ_OBJS) $(TILE_OBJ)
 	$(DLLCMD) $(PRJ_OBJS:rbcTile.obj=rbcTileTest.obj)
 	$(_VC_MANIFEST_EMBED_DLL)
 test-tile: $(PROJECT) $(TILE_DLL)
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_TILE_TEST_LIB=$(TILE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" tile $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "RBC_TILE_TEST_LIB=$(TILE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" tile $(TESTFLAGS)"
 
 IMAGE_OBJ = $(TMP_DIR)\rbcImageTest.obj
-$(IMAGE_OBJ): $(TESTDIR)\rbcImageTest.c $(PRJ_HEADERS) $(GENERICDIR)\rbcImage.c
-	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcImageTest.c"
+$(IMAGE_OBJ): $(TESTDIR)\runtime\image\rbcImageTest.c $(PRJ_HEADERS) $(GENERICDIR)\rbcImage.c
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\runtime\image\rbcImageTest.c"
 $(IMAGE_DLL): $(PRJ_OBJS) $(IMAGE_OBJ)
 	$(DLLCMD) $(PRJ_OBJS:rbcImage.obj=rbcImageTest.obj)
 	$(_VC_MANIFEST_EMBED_DLL)
 test-image: $(PROJECT) $(IMAGE_DLL)
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" temporary $(TESTFLAGS)"
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" photo $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" temporary $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_IMAGE_TEST_LIB=$(IMAGE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" photo $(TESTFLAGS)"
 
 RESOURCE_OBJ = $(TMP_DIR)\rbcResourceTest.obj
-$(RESOURCE_OBJ): $(TESTDIR)\rbcResourceTest.c $(PRJ_HEADERS) $(GENERICDIR)\rbcCanvEps.c $(GENERICDIR)\rbcGrMisc.c $(GENERICDIR)\rbcPs.c $(GENERICDIR)\rbcWindow.c
-	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\rbcResourceTest.c"
+$(RESOURCE_OBJ): $(TESTDIR)\runtime\resources\rbcResourceTest.c $(PRJ_HEADERS) $(GENERICDIR)\rbcCanvEps.c $(GENERICDIR)\rbcGrMisc.c $(GENERICDIR)\rbcPs.c $(GENERICDIR)\rbcWindow.c
+	$(cc32) $(appcflags) $(PKGNAMEFLAGS) /I"$(GENERICDIR)" /Fo"$@" "$(TESTDIR)\runtime\resources\rbcResourceTest.c"
 $(RESOURCE_DLL): $(PRJ_OBJS) $(RESOURCE_OBJ)
 	$(DLLCMD) $(RBC_COMMON_OBJS) $(RESOURCE_OBJ)
 	$(_VC_MANIFEST_EMBED_DLL)
 test-resources: $(PROJECT) $(RESOURCE_DLL)
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" resources $(TESTFLAGS)"
-	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\runtimeTests.tcl" ps $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" resources $(TESTFLAGS)"
+	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && set "RBC_RESOURCE_TEST_LIB=$(RESOURCE_DLL)" && $(DEBUGGER) "$(TCLSH)" "$(TESTDIR)\all.tcl" ps $(TESTFLAGS)"
 
 shell: $(PROJECT)
 	@cmd /d /s /c "set "PATH=$(CAIRO_BINDIR);%PATH%" && set "TCLLIBPATH={$(OUT_DIR:\=/)}" && $(DEBUGGER) "$(TCLSH)""

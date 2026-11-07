@@ -17,7 +17,7 @@ static int TestXFreePixmap(Display *display, Pixmap pixmap) {
 #endif
 #undef Tk_FreePixmap
 #define Tk_FreePixmap TestFreePixmap
-#include "../generic/rbcTile.c"
+#include "rbcTile.c"
 
 typedef struct TileTest TileTest;
 typedef struct { TileTest *test; int index; } TestClient;

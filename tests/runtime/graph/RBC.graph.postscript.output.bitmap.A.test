@@ -12,7 +12,7 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.postscript.bitmap {
-    variable testDir [file join [file dirname [file normalize [info script]]] .. ..]
+    variable testDir [file join [file dirname [file normalize [info script]]] .. .. assets]
 
     proc BitmapPath {fileName} {
         variable testDir

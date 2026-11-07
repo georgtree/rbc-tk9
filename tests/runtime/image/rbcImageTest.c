@@ -37,14 +37,14 @@ static void TestFreeImage(Tk_Image image) {
 #define Tk_FreeImage TestFreeImage
 #undef Tk_PhotoGetImage
 #define Tk_PhotoGetImage TestPhotoGetImage
-#include "../generic/rbcImage.c"
+#include "rbcImage.c"
 #undef Tk_PhotoGetImage
 #undef Tk_GetImage
 #undef Tk_FreeImage
 
 /* Test the actual X11 capture masks without requiring a 30-bit X server. */
 #ifndef WIN32
-#include "../generic/rbcUnixImage.c"
+#include "rbcUnixImage.c"
 
 static int TrueColorTestCmd(ClientData data, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
     Visual visual;

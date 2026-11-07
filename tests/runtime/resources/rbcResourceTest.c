@@ -13,7 +13,7 @@ static XImage *TestPsGetImage(Display *display, Drawable drawable, int x, int y,
 #define XGetImage TestPsGetImage
 #endif
 #define ReverseBits PsTestReverseBits
-#include "../generic/rbcPs.c"
+#include "rbcPs.c"
 #undef ReverseBits
 #ifndef WIN32
 #undef XGetImage
@@ -26,7 +26,7 @@ static void TestFreeImage(Tk_Image image) {
 }
 #undef Tk_FreeImage
 #define Tk_FreeImage TestFreeImage
-#include "../generic/rbcCanvEps.c"
+#include "rbcCanvEps.c"
 #undef Tk_FreeImage
 
 #ifndef WIN32
@@ -40,7 +40,7 @@ static Status TestQueryTree(Display *display, Window window, Window *root, Windo
 }
 #define XQueryTree TestQueryTree
 #endif
-#include "../generic/rbcWindow.c"
+#include "rbcWindow.c"
 #ifndef WIN32
 #undef XQueryTree
 #endif
@@ -60,7 +60,7 @@ static void TestFreeColor(XColor *color) {
 #undef Tk_FreeColor
 #define Tk_GetColor TestGetColor
 #define Tk_FreeColor TestFreeColor
-#include "../generic/rbcGrMisc.c"
+#include "rbcGrMisc.c"
 #undef Tk_GetColor
 #undef Tk_FreeColor
 

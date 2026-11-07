@@ -1251,7 +1251,7 @@ without a display:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>test-vector
 </pre></div>
 </div>
-<p>This runs <code class="docutils literal notranslate"><span class="pre">tests/vectorAll.tcl</span></code>. GUI upgrade/load-order tests run in the normal <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> suite and are skipped
+<p>This runs <code class="docutils literal notranslate"><span class="pre">tests/all.tcl vector</span></code>. GUI upgrade/load-order tests run in the normal <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> suite and are skipped
 by the headless runner. Regenerate your Makefile with <code class="docutils literal notranslate"><span class="pre">./config.status</span></code> after updating <code class="docutils literal notranslate"><span class="pre">Makefile.in</span></code>.</p>
 <p>Run the internal C notification callback tests separately, without a display:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>test-vector-notify

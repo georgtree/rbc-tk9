@@ -493,7 +493,7 @@ without a display:
 make test-vector
 ```
 
-This runs `tests/vectorAll.tcl`. GUI upgrade/load-order tests run in the normal `make test` suite and are skipped
+This runs `tests/all.tcl vector`. GUI upgrade/load-order tests run in the normal `make test` suite and are skipped
 by the headless runner. Regenerate your Makefile with `./config.status` after updating `Makefile.in`.
 
 Run the internal C notification callback tests separately, without a display:

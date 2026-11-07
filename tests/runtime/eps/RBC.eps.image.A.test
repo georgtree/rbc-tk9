@@ -31,7 +31,7 @@ namespace eval eps.image {
 		.canvas1 create eps 0 0
 	} -body {
 		set img [image create photo image.a.1.1 \
-			-file [file join [file dirname [info script]] .. .. stopsign.gif]]
+			-file [file join [file dirname [info script]] .. .. assets stopsign.gif]]
 		.canvas1 itemconfigure 1 -image $img
 		.canvas1 itemcget 1 -image
 	} -cleanup {

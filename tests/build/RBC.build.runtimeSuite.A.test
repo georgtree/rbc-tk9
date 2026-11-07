@@ -4,7 +4,7 @@ package require tcltest 2
 namespace import tcltest::*
 
 namespace eval build.runtimeSuite {
-    set runner [file normalize [file join [file dirname [info script]] .. runtimeTests.tcl]]
+    set runner [file normalize [file join [file dirname [info script]] .. all.tcl]]
     test RBC.build.runtimeSuite.A.1.1 {filtered private suites run once in isolated children and propagate failure} -setup {
         set work [makeDirectory runtime-suite-[pid]]
         file copy $runner $work
@@ -32,7 +32,7 @@ namespace eval build.runtimeSuite {
         }
         foreach var {RBC_IMAGE_TEST_LIB RBC_RESOURCE_TEST_LIB} {set ::env($var) $runner}
     } -body {
-        set cmd [list [info nameofexecutable] [file join $work runtimeTests.tcl] all -file $files]
+        set cmd [list [info nameofexecutable] [file join $work all.tcl] all -file $files]
         exec {*}$cmd 2>@1
         set f [open $log]
         try {set entries [split [string trim [read $f]] \n]} finally {close $f}

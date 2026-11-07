@@ -309,7 +309,7 @@ namespace eval graph.marker {
 		.graph1 marker create polygon -name Marker1
 	} -body {
 		.graph1 marker configure Marker1 \
-			-stipple @[file join [file dirname [info script]] .. .. greenback.xbm]
+			-stipple @[file join [file dirname [info script]] .. .. assets greenback.xbm]
 		.graph1 marker cget Marker1 -stipple
 	} -cleanup {
 	    .graph1 marker delete Marker1

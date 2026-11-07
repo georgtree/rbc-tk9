@@ -309,7 +309,7 @@ namespace eval barchart.marker {
 		.barchart1 marker create polygon -name Marker1
 	} -body {
 		.barchart1 marker configure Marker1 \
-			-stipple @[file join [file dirname [info script]] .. .. greenback.xbm]
+			-stipple @[file join [file dirname [info script]] .. .. assets greenback.xbm]
 		.barchart1 marker cget Marker1 -stipple
 	} -cleanup {
 	    .barchart1 marker delete Marker1
