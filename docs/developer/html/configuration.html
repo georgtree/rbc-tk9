@@ -1092,6 +1092,7 @@
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html#shared-infrastructure">Shared infrastructure</a><ul>
 <li class="current toctree-l2"><a class="current reference internal" href="#">Component configuration and resources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#default-values-in-option-tables">Default values in option tables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#resource-identity">Resource identity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shared-value-parsers">Shared value parsers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#transactions">Transactions</a></li>
@@ -1236,6 +1237,19 @@
 option-database initialization and rollback; they do not own graph scheduling or component-derived resources. Their
 private declarations are in <code class="docutils literal notranslate"><span class="pre">rbcInt.h</span></code>. The similarly named <code class="docutils literal notranslate"><span class="pre">rbcConfig.h</span></code> contains legacy configuration macros, not
 this helper interface. See <a class="reference internal" href="configuration-reference.html"><span class="doc">Component configuration C reference</span></a> for the extracted contracts.</p>
+<section id="default-values-in-option-tables">
+<h2>Default values in option tables<a class="headerlink" href="#default-values-in-option-tables" title="Link to this heading"></a></h2>
+<p>Write simple component defaults directly in the option table, including string values and <code class="docutils literal notranslate"><span class="pre">NULL</span></code>. Use shared
+<code class="docutils literal notranslate"><span class="pre">STD_*</span></code> and <code class="docutils literal notranslate"><span class="pre">RGB_*</span></code> constants from <code class="docutils literal notranslate"><span class="pre">rbcDefaults.h</span></code> directly when applicable; avoid component-specific
+<code class="docutils literal notranslate"><span class="pre">DEF_*</span></code> aliases that only repeat those constants or literals. Shared option-entry macros can likewise contain
+these defaults directly.</p>
+<p>Keep named defaults when they select platform or build policy, such as <code class="docutils literal notranslate"><span class="pre">DEF_AXIS_TICK_FONT</span></code> and
+<code class="docutils literal notranslate"><span class="pre">DEF_GRAPH_RENDERER</span></code>. Preserve the shared colour and font selections in <code class="docutils literal notranslate"><span class="pre">rbcDefaults.h</span></code>, including Windows
+system resources. Algorithm constants such as <code class="docutils literal notranslate"><span class="pre">DEF_NUM_TICKS</span></code> and <code class="docutils literal notranslate"><span class="pre">DEF_ARRAY_SIZE</span></code> are separate from option-table
+defaults and remain named.</p>
+<p>Default strings are part of the configure metadata. Preserve their exact spelling, units and the distinction between
+<code class="docutils literal notranslate"><span class="pre">NULL</span></code> and an empty string when moving them into a table; do not normalize equivalent boolean or numeric spellings.</p>
+</section>
 <section id="resource-identity">
 <h2>Resource identity<a class="headerlink" href="#resource-identity" title="Link to this heading"></a></h2>
 <p>A component’s command name and its option-database resource name serve different

@@ -43,12 +43,6 @@ struct CrosshairsStruct {
     GC gc; /**< Graphics context for crosshairs. Set to GXxor to not require redraws of graph */
 };
 
-#define DEF_HAIRS_DASHES (char *)NULL
-#define DEF_HAIRS_FOREGROUND RGB_BLACK
-#define DEF_HAIRS_FG_MONO RGB_BLACK
-#define DEF_HAIRS_LINE_WIDTH "0"
-#define DEF_HAIRS_HIDE "yes"
-#define DEF_HAIRS_POSITION (char *)NULL
 #define HAIRS_GC_CHANGED (1U << 0)
 #define HAIRS_POSITION_CHANGED (1U << 1)
 #define HAIRS_STATE_CHANGED (1U << 2)
@@ -59,16 +53,15 @@ struct CrosshairsStruct {
  * @hideinitializer
  */
 static const Tk_OptionSpec crosshairsOptionSpecs[] = {
-    {TK_OPTION_COLOR, "-color", "color", "Color", DEF_HAIRS_FOREGROUND, -1, offsetof(Crosshairs, colorPtr), 0,
-     DEF_HAIRS_FG_MONO, HAIRS_GC_CHANGED},
-    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_HAIRS_DASHES, offsetof(Crosshairs, dashesObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, HAIRS_GC_CHANGED},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_HAIRS_HIDE, -1, offsetof(Crosshairs, hidden), 0, NULL,
-     HAIRS_STATE_CHANGED},
-    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_HAIRS_LINE_WIDTH,
-     offsetof(Crosshairs, lineWidthObjPtr), -1, 0, NULL, HAIRS_GC_CHANGED},
-    {TK_OPTION_STRING, "-position", "position", "Position", DEF_HAIRS_POSITION, offsetof(Crosshairs, positionObjPtr),
-     -1, TK_OPTION_NULL_OK, NULL, HAIRS_POSITION_CHANGED},
+    {TK_OPTION_COLOR, "-color", "color", "Color", RGB_BLACK, -1, offsetof(Crosshairs, colorPtr), 0, RGB_BLACK,
+     HAIRS_GC_CHANGED},
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", NULL, offsetof(Crosshairs, dashesObjPtr), -1, TK_OPTION_NULL_OK,
+     NULL, HAIRS_GC_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "yes", -1, offsetof(Crosshairs, hidden), 0, NULL, HAIRS_STATE_CHANGED},
+    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", "0", offsetof(Crosshairs, lineWidthObjPtr), -1, 0, NULL,
+     HAIRS_GC_CHANGED},
+    {TK_OPTION_STRING, "-position", "position", "Position", NULL, offsetof(Crosshairs, positionObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, HAIRS_POSITION_CHANGED},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 static void TurnOffHairs(Tk_Window tkwin, Crosshairs *chPtr);

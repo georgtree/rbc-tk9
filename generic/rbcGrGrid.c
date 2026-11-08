@@ -15,34 +15,11 @@
 #include "rbcGrTrack.h"
 #include "rbcRender.h"
 
-#define DEF_GRID_DASHES "dot"
-#define DEF_GRID_FOREGROUND RGB_GREY64
-#define DEF_GRID_FG_MONO RGB_BLACK
-#define DEF_GRID_LINE_WIDTH "0"
-#define DEF_GRID_HIDE_BARCHART "no"
-#define DEF_GRID_HIDE_GRAPH "yes"
-#define DEF_GRID_MINOR "yes"
-#define DEF_GRID_MAP_X_GRAPH "x"
-#define DEF_GRID_MAP_X_BARCHART (char *)NULL
-#define DEF_GRID_MAP_Y "y"
 #define GRID_REDRAW (1U << 0)
 #define GRID_GC_CHANGED (1U << 1)
 #define GRID_AXES_CHANGED (1U << 2)
 #define GRID_POLAR_CHANGED (1U << 3)
 #define GRID_INITIALIZE_MASK (GRID_GC_CHANGED | GRID_AXES_CHANGED | GRID_POLAR_CHANGED)
-
-#define DEF_GRID_RADIAL_LABEL_ANCHOR "se"
-#define DEF_GRID_ANGLE_LABEL_ANCHOR "center"
-#define DEF_GRID_SMITH_GRID "impedance"
-#define DEF_GRID_ANGLE_MAJOR_TICKS "0 30 60 90 120 150 180 210 240 270 300 330"
-#define DEF_GRID_ANGLE_MINOR_TICKS "15 45 75 105 135 165 195 225 255 285 315 345"
-#define DEF_GRID_ANGLE_COMMAND (char *)NULL
-#define DEF_GRID_SMITH_REAL_MAJOR_TICKS "0 0.2 0.5 1 2 5"
-#define DEF_GRID_SMITH_REAL_MINOR_TICKS "0.1 0.3 0.7 1.5 3 10"
-#define DEF_GRID_SMITH_IMAG_MAJOR_TICKS "0.2 0.5 1 2 5"
-#define DEF_GRID_SMITH_IMAG_MINOR_TICKS "0.1 0.3 0.7 1.5 3 10"
-#define DEF_GRID_SMITH_REAL_COMMAND (char *)NULL
-#define DEF_GRID_SMITH_IMAG_COMMAND (char *)NULL
 
 /**
  * @brief Owned staging buffers for the two angular tick options.
@@ -100,48 +77,45 @@ static const char *const smithGridNames[] = {"impedance", "admittance", "both", 
  * @hideinitializer
  */
 static const Tk_OptionSpec graphGridOptionSpecs[] = {
-    {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
+    {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", "center", -1,
      offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRID_ANGLE_COMMAND,
-     offsetof(Grid, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks", DEF_GRID_ANGLE_MAJOR_TICKS,
-     offsetof(Grid, angleMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks", DEF_GRID_ANGLE_MINOR_TICKS,
-     offsetof(Grid, angleMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRID_RADIAL_LABEL_ANCHOR, -1,
+    {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", NULL, offsetof(Grid, angleCommandObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks",
+     "0 30 60 90 120 150 180 210 240 270 300 330", offsetof(Grid, angleMajorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks",
+     "15 45 75 105 135 165 195 225 255 285 315 345", offsetof(Grid, angleMinorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", "se", -1,
      offsetof(Grid, radialLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRID_SMITH_GRID, -1, offsetof(Grid, smithGrid),
-     0, (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", DEF_GRID_SMITH_REAL_COMMAND,
+    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", "impedance", -1, offsetof(Grid, smithGrid), 0,
+     (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", NULL,
      offsetof(Grid, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", DEF_GRID_SMITH_IMAG_COMMAND,
+    {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", NULL,
      offsetof(Grid, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks",
-     DEF_GRID_SMITH_REAL_MAJOR_TICKS, offsetof(Grid, smithRealMajorTicksObjPtr), -1, 0, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithrealminorticks", "smithRealMinorTicks", "SmithRealMinorTicks",
-     DEF_GRID_SMITH_REAL_MINOR_TICKS, offsetof(Grid, smithRealMinorTicksObjPtr), -1, 0, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithimagmajorticks", "smithImagMajorTicks", "SmithImagMajorTicks",
-     DEF_GRID_SMITH_IMAG_MAJOR_TICKS, offsetof(Grid, smithImagMajorTicksObjPtr), -1, 0, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithimagminorticks", "smithImagMinorTicks", "SmithImagMinorTicks",
-     DEF_GRID_SMITH_IMAG_MINOR_TICKS, offsetof(Grid, smithImagMinorTicksObjPtr), -1, 0, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks", "0 0.2 0.5 1 2 5",
+     offsetof(Grid, smithRealMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealminorticks", "smithRealMinorTicks", "SmithRealMinorTicks", "0.1 0.3 0.7 1.5 3 10",
+     offsetof(Grid, smithRealMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagmajorticks", "smithImagMajorTicks", "SmithImagMajorTicks", "0.2 0.5 1 2 5",
+     offsetof(Grid, smithImagMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagminorticks", "smithImagMinorTicks", "SmithImagMinorTicks", "0.1 0.3 0.7 1.5 3 10",
+     offsetof(Grid, smithImagMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
 
-    {TK_OPTION_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, -1, offsetof(Grid, colorPtr), 0,
-     DEF_GRID_FG_MONO, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashesObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_GRAPH, -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
-    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidthObjPtr), -1,
-     0, NULL, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_GRAPH, offsetof(Grid, mapXObjPtr), -1, TK_OPTION_NULL_OK,
-     NULL, GRID_REDRAW | GRID_AXES_CHANGED},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_COLOR, "-color", "color", "Color", RGB_GREY64, -1, offsetof(Grid, colorPtr), 0, RGB_BLACK,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", "dot", offsetof(Grid, dashesObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "yes", -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
+    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", "0", offsetof(Grid, lineWidthObjPtr), -1, 0, NULL,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", offsetof(Grid, mapXObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      GRID_REDRAW | GRID_AXES_CHANGED},
-    {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, -1, offsetof(Grid, minorGrid), 0, NULL,
-     GRID_REDRAW},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_AXES_CHANGED},
+    {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", "yes", -1, offsetof(Grid, minorGrid), 0, NULL, GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* Track grids use the Cartesian options only. */
@@ -150,19 +124,18 @@ static const Tk_OptionSpec graphGridOptionSpecs[] = {
  * @hideinitializer
  */
 static const Tk_OptionSpec trackGridOptionSpecs[] = {
-    {TK_OPTION_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, -1, offsetof(Grid, colorPtr), 0,
-     DEF_GRID_FG_MONO, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashesObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_GRAPH, -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
-    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidthObjPtr), -1,
-     0, NULL, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_GRAPH, offsetof(Grid, mapXObjPtr), -1, TK_OPTION_NULL_OK,
-     NULL, GRID_REDRAW | GRID_AXES_CHANGED},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_COLOR, "-color", "color", "Color", RGB_GREY64, -1, offsetof(Grid, colorPtr), 0, RGB_BLACK,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", "dot", offsetof(Grid, dashesObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "yes", -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
+    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", "0", offsetof(Grid, lineWidthObjPtr), -1, 0, NULL,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", offsetof(Grid, mapXObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      GRID_REDRAW | GRID_AXES_CHANGED},
-    {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, -1, offsetof(Grid, minorGrid), 0, NULL,
-     GRID_REDRAW},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_AXES_CHANGED},
+    {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", "yes", -1, offsetof(Grid, minorGrid), 0, NULL, GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* Polar grids share graph options, but are visible by default. */
@@ -179,49 +152,45 @@ static const Tk_OptionSpec polarGridOptionSpecs[] = {
  * @hideinitializer
  */
 static const Tk_OptionSpec barGridOptionSpecs[] = {
-    {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", DEF_GRID_ANGLE_LABEL_ANCHOR, -1,
+    {TK_OPTION_CUSTOM, "-anglelabelanchor", "angleLabelAnchor", "AngleLabelAnchor", "center", -1,
      offsetof(Grid, angleLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", DEF_GRID_ANGLE_COMMAND,
-     offsetof(Grid, angleCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks", DEF_GRID_ANGLE_MAJOR_TICKS,
-     offsetof(Grid, angleMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks", DEF_GRID_ANGLE_MINOR_TICKS,
-     offsetof(Grid, angleMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", DEF_GRID_RADIAL_LABEL_ANCHOR, -1,
+    {TK_OPTION_STRING, "-anglecommand", "angleCommand", "AngleCommand", NULL, offsetof(Grid, angleCommandObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-anglemajorticks", "angleMajorTicks", "AngleMajorTicks",
+     "0 30 60 90 120 150 180 210 240 270 300 330", offsetof(Grid, angleMajorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-angleminorticks", "angleMinorTicks", "AngleMinorTicks",
+     "15 45 75 105 135 165 195 225 255 285 315 345", offsetof(Grid, angleMinorTicksObjPtr), -1, 0, NULL,
+     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_CUSTOM, "-radiallabelanchor", "radialLabelAnchor", "RadialLabelAnchor", "se", -1,
      offsetof(Grid, radialLabelAnchor), 0, &polarLabelAnchorOption, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", DEF_GRID_SMITH_GRID, -1, offsetof(Grid, smithGrid),
-     0, (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", DEF_GRID_SMITH_REAL_COMMAND,
+    {TK_OPTION_STRING_TABLE, "-smithgrid", "smithGrid", "SmithGrid", "impedance", -1, offsetof(Grid, smithGrid), 0,
+     (ClientData)smithGridNames, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealcommand", "smithRealCommand", "SmithRealCommand", NULL,
      offsetof(Grid, smithRealCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", DEF_GRID_SMITH_IMAG_COMMAND,
+    {TK_OPTION_STRING, "-smithimagcommand", "smithImagCommand", "SmithImagCommand", NULL,
      offsetof(Grid, smithImagCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks",
-     DEF_GRID_SMITH_REAL_MAJOR_TICKS, offsetof(Grid, smithRealMajorTicksObjPtr), -1, 0, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithrealminorticks", "smithRealMinorTicks", "SmithRealMinorTicks",
-     DEF_GRID_SMITH_REAL_MINOR_TICKS, offsetof(Grid, smithRealMinorTicksObjPtr), -1, 0, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithimagmajorticks", "smithImagMajorTicks", "SmithImagMajorTicks",
-     DEF_GRID_SMITH_IMAG_MAJOR_TICKS, offsetof(Grid, smithImagMajorTicksObjPtr), -1, 0, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
-    {TK_OPTION_STRING, "-smithimagminorticks", "smithImagMinorTicks", "SmithImagMinorTicks",
-     DEF_GRID_SMITH_IMAG_MINOR_TICKS, offsetof(Grid, smithImagMinorTicksObjPtr), -1, 0, NULL,
-     GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealmajorticks", "smithRealMajorTicks", "SmithRealMajorTicks", "0 0.2 0.5 1 2 5",
+     offsetof(Grid, smithRealMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithrealminorticks", "smithRealMinorTicks", "SmithRealMinorTicks", "0.1 0.3 0.7 1.5 3 10",
+     offsetof(Grid, smithRealMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagmajorticks", "smithImagMajorTicks", "SmithImagMajorTicks", "0.2 0.5 1 2 5",
+     offsetof(Grid, smithImagMajorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
+    {TK_OPTION_STRING, "-smithimagminorticks", "smithImagMinorTicks", "SmithImagMinorTicks", "0.1 0.3 0.7 1.5 3 10",
+     offsetof(Grid, smithImagMinorTicksObjPtr), -1, 0, NULL, GRID_POLAR_CHANGED | GRID_REDRAW},
 
-    {TK_OPTION_COLOR, "-color", "color", "Color", DEF_GRID_FOREGROUND, -1, offsetof(Grid, colorPtr), 0,
-     DEF_GRID_FG_MONO, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_GRID_DASHES, offsetof(Grid, dashesObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_GRID_HIDE_BARCHART, -1, offsetof(Grid, hidden), 0, NULL,
-     GRID_REDRAW},
-    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", DEF_GRID_LINE_WIDTH, offsetof(Grid, lineWidthObjPtr), -1,
-     0, NULL, GRID_REDRAW | GRID_GC_CHANGED},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_GRID_MAP_X_BARCHART, offsetof(Grid, mapXObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, GRID_REDRAW | GRID_AXES_CHANGED},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_GRID_MAP_Y, offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_COLOR, "-color", "color", "Color", RGB_GREY64, -1, offsetof(Grid, colorPtr), 0, RGB_BLACK,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", "dot", offsetof(Grid, dashesObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Grid, hidden), 0, NULL, GRID_REDRAW},
+    {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "Linewidth", "0", offsetof(Grid, lineWidthObjPtr), -1, 0, NULL,
+     GRID_REDRAW | GRID_GC_CHANGED},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", NULL, offsetof(Grid, mapXObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      GRID_REDRAW | GRID_AXES_CHANGED},
-    {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", DEF_GRID_MINOR, -1, offsetof(Grid, minorGrid), 0, NULL,
-     GRID_REDRAW},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Grid, mapYObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRID_REDRAW | GRID_AXES_CHANGED},
+    {TK_OPTION_BOOLEAN, "-minor", "minor", "Minor", "yes", -1, offsetof(Grid, minorGrid), 0, NULL, GRID_REDRAW},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /**

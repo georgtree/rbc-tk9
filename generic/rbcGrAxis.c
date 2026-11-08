@@ -71,33 +71,11 @@ typedef struct {
 
 /* Axis flags: */
 
-#define DEF_AXIS_COMMAND (char *)NULL
-#define DEF_AXIS_DESCENDING "no"
-#define DEF_AXIS_FOREGROUND RGB_BLACK
-#define DEF_AXIS_HIDE "no"
-#define DEF_AXIS_JUSTIFY "center"
-#define DEF_AXIS_LINE_WIDTH "1"
-#define DEF_AXIS_LOGSCALE "no"
-#define DEF_AXIS_LOOSE "no"
-#define DEF_AXIS_RANGE "0.0"
-#define DEF_AXIS_ROTATE "0.0"
-#define DEF_AXIS_SCROLL_INCREMENT "10"
-#define DEF_AXIS_SHIFTBY "0.0"
-#define DEF_AXIS_SHOWTICKS "yes"
-#define DEF_AXIS_STEP "0.0"
-#define DEF_AXIS_SUBDIVISIONS "2"
-#define DEF_AXIS_TAGS "all"
 #ifdef WIN32
 #define DEF_AXIS_TICK_FONT "{Arial Narrow} 8"
 #else
 #define DEF_AXIS_TICK_FONT "TkSmallCaptionFont"
 #endif
-#define DEF_AXIS_TICK_LENGTH "8"
-#define DEF_AXIS_TITLE_ALTERNATE "0"
-#define DEF_AXIS_TITLE_FONT STD_FONT
-#define DEF_AXIS_BACKGROUND (char *)NULL
-#define DEF_AXIS_BORDERWIDTH "0"
-#define DEF_AXIS_RELIEF "flat"
 
 /*
  * Axis option conversion masks.
@@ -261,45 +239,45 @@ typedef struct {
  * @hideinitializer
  */
 static const Tk_OptionSpec axisOptionSpecs[] = {
-    {TK_OPTION_DOUBLE, "-autorange", "autoRange", "AutoRange", DEF_AXIS_RANGE, -1, offsetof(Axis, windowSize), 0, NULL,
+    {TK_OPTION_DOUBLE, "-autorange", "autoRange", "AutoRange", "0.0", -1, offsetof(Axis, windowSize), 0, NULL,
      AXIS_RESET_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_BORDER, "-background", "background", "Background", DEF_AXIS_BACKGROUND, -1, offsetof(Axis, border),
-     TK_OPTION_NULL_OK, NULL, AXIS_REDRAW_MASK},
+    {TK_OPTION_BORDER, "-background", "background", "Background", NULL, -1, offsetof(Axis, border), TK_OPTION_NULL_OK,
+     NULL, AXIS_REDRAW_MASK},
     {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
-    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_AXIS_TAGS, offsetof(Axis, bindTagsObjPtr), -1,
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", "all", offsetof(Axis, bindTagsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_TAGS_MASK},
     {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
-    {TK_OPTION_STRING, "-borderwidth", "borderWidth", "BorderWidth", DEF_AXIS_BORDERWIDTH,
-     offsetof(Axis, borderWidthObjPtr), -1, 0, NULL, AXIS_PIXELS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-borderwidth", "borderWidth", "BorderWidth", "0", offsetof(Axis, borderWidthObjPtr), -1, 0,
+     NULL, AXIS_PIXELS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {/*
       * Tk_OptionSpec has no COLOR_ONLY/MONO_ONLY selection.
       * Use the standard colour-display default.
       */
-     TK_OPTION_COLOR, "-color", "color", "Color", DEF_AXIS_FOREGROUND, -1, offsetof(Axis, tickTextStyle.color), 0, NULL,
+     TK_OPTION_COLOR, "-color", "color", "Color", RGB_BLACK, -1, offsetof(Axis, tickTextStyle.color), 0, NULL,
      AXIS_REDRAW_MASK},
-    {TK_OPTION_STRING, "-command", "command", "Command", DEF_AXIS_COMMAND, offsetof(Axis, formatCmdObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, AXIS_FORMAT_COMMAND_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-descending", "descending", "Descending", DEF_AXIS_DESCENDING, -1, offsetof(Axis, descending),
-     0, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_STRING, "-command", "command", "Command", NULL, offsetof(Axis, formatCmdObjPtr), -1, TK_OPTION_NULL_OK,
+     NULL, AXIS_FORMAT_COMMAND_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-descending", "descending", "Descending", "no", -1, offsetof(Axis, descending), 0, NULL,
+     AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", NULL, -1, offsetof(Axis, hidden), 0, NULL,
      AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_AXIS_JUSTIFY, -1, offsetof(Axis, titleTextStyle.justify),
-     0, NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", "center", -1, offsetof(Axis, titleTextStyle.justify), 0, NULL,
+     AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_BOOLEAN, "-labeloffset", "labelOffset", "LabelOffset", NULL, -1, offsetof(Axis, labelOffset), 0, NULL,
      AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_COLOR, "-limitscolor", "limitsColor", "Color", DEF_AXIS_FOREGROUND, -1,
-     offsetof(Axis, limitsTextStyle.color), 0, NULL, AXIS_REDRAW_MASK},
+    {TK_OPTION_COLOR, "-limitscolor", "limitsColor", "Color", RGB_BLACK, -1, offsetof(Axis, limitsTextStyle.color), 0,
+     NULL, AXIS_REDRAW_MASK},
     {TK_OPTION_FONT, "-limitsfont", "limitsFont", "Font", DEF_AXIS_TICK_FONT, -1, offsetof(Axis, limitsTextStyle.font),
      0, NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-limitsformat", "limitsFormat", "LimitsFormat", NULL, offsetof(Axis, limitsFormatObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_LIMITS_FORMAT_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-limitsshadow", "limitsShadow", "Shadow", NULL, offsetof(Axis, limitsShadowObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_LIMITS_SHADOW_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_STRING, "-linewidth", "lineWidth", "LineWidth", DEF_AXIS_LINE_WIDTH, offsetof(Axis, lineWidthObjPtr), -1,
-     0, NULL, AXIS_PIXELS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-logscale", "logScale", "LogScale", DEF_AXIS_LOGSCALE, -1, offsetof(Axis, logScale), 0, NULL,
+    {TK_OPTION_STRING, "-linewidth", "lineWidth", "LineWidth", "1", offsetof(Axis, lineWidthObjPtr), -1, 0, NULL,
+     AXIS_PIXELS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-logscale", "logScale", "LogScale", "no", -1, offsetof(Axis, logScale), 0, NULL,
      AXIS_LOG_SCALE_MASK | AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_STRING, "-loose", "loose", "Loose", DEF_AXIS_LOOSE, offsetof(Axis, looseObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-loose", "loose", "Loose", "no", offsetof(Axis, looseObjPtr), -1, 0, NULL,
      AXIS_LOOSE_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-majorticks", "majorTicks", "MajorTicks", NULL, offsetof(Axis, majorTicksObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_MAJOR_TICKS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
@@ -309,40 +287,40 @@ static const Tk_OptionSpec axisOptionSpecs[] = {
      AXIS_LIMITS_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-minorticks", "minorTicks", "MinorTicks", NULL, offsetof(Axis, minorTicksObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_MINOR_TICKS_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_AXIS_RELIEF, -1, offsetof(Axis, relief), 0, NULL,
+    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", "flat", -1, offsetof(Axis, relief), 0, NULL,
      AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", DEF_AXIS_ROTATE, -1, offsetof(Axis, tickTextStyle.theta), 0, NULL,
+    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", "0.0", -1, offsetof(Axis, tickTextStyle.theta), 0, NULL,
      AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-scrollcommand", "scrollCommand", "ScrollCommand", NULL, offsetof(Axis, scrollCmdObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_SCROLL_COMMAND_MASK},
-    {TK_OPTION_STRING, "-scrollincrement", "scrollIncrement", "ScrollIncrement", DEF_AXIS_SCROLL_INCREMENT,
+    {TK_OPTION_STRING, "-scrollincrement", "scrollIncrement", "ScrollIncrement", "10",
      offsetof(Axis, scrollIncrementObjPtr), -1, 0, NULL, AXIS_PIXELS_MASK},
     {TK_OPTION_STRING, "-scrollmax", "scrollMax", "ScrollMax", NULL, offsetof(Axis, scrollMaxObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_SCROLL_LIMITS_MASK},
     {TK_OPTION_STRING, "-scrollmin", "scrollMin", "ScrollMin", NULL, offsetof(Axis, scrollMinObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_SCROLL_LIMITS_MASK},
-    {TK_OPTION_DOUBLE, "-shiftby", "shiftBy", "ShiftBy", DEF_AXIS_SHIFTBY, -1, offsetof(Axis, shiftBy), 0, NULL,
+    {TK_OPTION_DOUBLE, "-shiftby", "shiftBy", "ShiftBy", "0.0", -1, offsetof(Axis, shiftBy), 0, NULL,
      AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-showticks", "showTicks", "ShowTicks", DEF_AXIS_SHOWTICKS, -1, offsetof(Axis, showTicks), 0,
-     NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-showticks", "showTicks", "ShowTicks", "yes", -1, offsetof(Axis, showTicks), 0, NULL,
+     AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_DOUBLE, "-stepsize", "stepSize", "StepSize", NULL, -1, offsetof(Axis, reqStep), 0, NULL,
      AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_INT, "-subdivisions", "subdivisions", "Subdivisions", DEF_AXIS_SUBDIVISIONS, -1,
-     offsetof(Axis, reqNumMinorTicks), 0, NULL, AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_INT, "-subdivisions", "subdivisions", "Subdivisions", "2", -1, offsetof(Axis, reqNumMinorTicks), 0, NULL,
+     AXIS_MAP_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_FONT, "-tickfont", "tickFont", "Font", DEF_AXIS_TICK_FONT, -1, offsetof(Axis, tickTextStyle.font), 0,
      NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_PIXELS, "-ticklength", "tickLength", "TickLength", DEF_AXIS_TICK_LENGTH, -1, offsetof(Axis, tickLength),
-     TK_OPTION_NEG_OK, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_PIXELS, "-ticklength", "tickLength", "TickLength", "8", -1, offsetof(Axis, tickLength), TK_OPTION_NEG_OK,
+     NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-tickshadow", "tickShadow", "Shadow", NULL, offsetof(Axis, tickShadowObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_TICK_SHADOW_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-title", "title", "Title", NULL, -1, offsetof(Axis, title), TK_OPTION_NULL_OK, NULL,
      AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-titlealternate", "titleAlternate", "TitleAlternate", DEF_AXIS_TITLE_ALTERNATE, -1,
-     offsetof(Axis, titleAlternate), 0, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
-    {TK_OPTION_COLOR, "-titlecolor", "titleColor", "Color", DEF_AXIS_FOREGROUND, -1,
-     offsetof(Axis, titleTextStyle.color), 0, NULL, AXIS_REDRAW_MASK},
-    {TK_OPTION_FONT, "-titlefont", "titleFont", "Font", DEF_AXIS_TITLE_FONT, -1, offsetof(Axis, titleTextStyle.font), 0,
-     NULL, AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-titlealternate", "titleAlternate", "TitleAlternate", "0", -1, offsetof(Axis, titleAlternate),
+     0, NULL, AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
+    {TK_OPTION_COLOR, "-titlecolor", "titleColor", "Color", RGB_BLACK, -1, offsetof(Axis, titleTextStyle.color), 0,
+     NULL, AXIS_REDRAW_MASK},
+    {TK_OPTION_FONT, "-titlefont", "titleFont", "Font", STD_FONT, -1, offsetof(Axis, titleTextStyle.font), 0, NULL,
+     AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_STRING, "-titleshadow", "titleShadow", "Shadow", NULL, offsetof(Axis, titleShadowObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, AXIS_TITLE_SHADOW_MASK | AXIS_TEXT_STYLE_MASK | AXIS_LAYOUT_MASK | AXIS_REDRAW_MASK},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};

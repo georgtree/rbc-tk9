@@ -66,52 +66,7 @@
 /* Map graph coordinates to normalized coordinates [0..1] */
 #define NORMALIZE(A, x) (((x) - (A)->axisRange.min) / (A)->axisRange.range)
 
-#define DEF_MARKER_ANCHOR "center"
-#define DEF_MARKER_BACKGROUND RGB_WHITE
-#define DEF_MARKER_BG_MONO RGB_WHITE
-#define DEF_MARKER_BITMAP (char *)NULL
-#define DEF_MARKER_MASK (char *)NULL
-#define DEF_MARKER_CAP_STYLE "butt"
-#define DEF_MARKER_COORDS (char *)NULL
-#define DEF_MARKER_DASHES (char *)NULL
-#define DEF_MARKER_DASH_OFFSET "0"
-#define DEF_MARKER_ELEMENT (char *)NULL
-#define DEF_MARKER_FOREGROUND RGB_BLACK
-#define DEF_MARKER_FG_MONO RGB_BLACK
-#define DEF_MARKER_FILL_COLOR RGB_RED
-#define DEF_MARKER_FILL_MONO RGB_WHITE
-#define DEF_MARKER_FONT STD_FONT
-#define DEF_MARKER_HEIGHT "0"
-#define DEF_MARKER_HIDE "no"
-#define DEF_MARKER_JOIN_STYLE "miter"
-#define DEF_MARKER_JUSTIFY "left"
-#define DEF_MARKER_LINE_WIDTH "1"
-#define DEF_MARKER_MAP_X "x"
-#define DEF_MARKER_MAP_Y "y"
-#define DEF_MARKER_NAME (char *)NULL
-#define DEF_MARKER_OUTLINE_COLOR RGB_BLACK
-#define DEF_MARKER_OUTLINE_MONO RGB_BLACK
-#define DEF_MARKER_PAD "4"
-#define DEF_MARKER_ROTATE "0.0"
-#define DEF_MARKER_SHADOW_COLOR (char *)NULL
-#define DEF_MARKER_STATE "normal"
-#define DEF_MARKER_STIPPLE (char *)NULL
-#define DEF_MARKER_TEXT (char *)NULL
-#define DEF_MARKER_UNDER "no"
-#define DEF_MARKER_WIDTH "0"
-#define DEF_MARKER_WINDOW (char *)NULL
-#define DEF_MARKER_XOR "no"
-#define DEF_MARKER_X_OFFSET "0"
-#define DEF_MARKER_Y_OFFSET "0"
-#define DEF_MARKER_ARROW "none"
-#define DEF_MARKER_ARROW_SHAPE "8 10 3"
 #define PTS_IN_ARROW RBC_RENDER_ARROW_POINTS
-#define DEF_MARKER_TEXT_TAGS "Text all"
-#define DEF_MARKER_IMAGE_TAGS "Image all"
-#define DEF_MARKER_BITMAP_TAGS "Bitmap all"
-#define DEF_MARKER_WINDOW_TAGS "Window all"
-#define DEF_MARKER_POLYGON_TAGS "Polygon all"
-#define DEF_MARKER_LINE_TAGS "Line all"
 
 #define WINDOW_HEIGHT_CHANGED (1 << 0)
 #define WINDOW_WIDTH_CHANGED (1 << 1)
@@ -218,42 +173,39 @@ typedef struct {
  * @hideinitializer
  */
 static const Tk_OptionSpec textMarkerOptionSpecs[] = {
-    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(TextMarker, anchor), 0, NULL, 0},
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", "center", -1, offsetof(TextMarker, anchor), 0, NULL, 0},
     {TK_OPTION_COLOR, "-background", "background", "MarkerBackground", NULL, -1, offsetof(TextMarker, fillColor),
      TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_SYNONYM, "-bg", "background", NULL, NULL, 0, -1, 0, (ClientData) "-background", 0},
-    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_TEXT_TAGS, offsetof(Marker, bindTagsObjPtr), -1,
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", "Text all", offsetof(Marker, bindTagsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
-     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", NULL, offsetof(Marker, coordsObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     0},
+    {TK_OPTION_STRING, "-element", "element", "Element", NULL, -1, offsetof(Marker, elemName), TK_OPTION_NULL_OK, NULL,
+     0},
     {TK_OPTION_SYNONYM, "-fg", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
     {TK_OPTION_SYNONYM, "-fill", "background", NULL, NULL, 0, -1, 0, (ClientData) "-background", 0},
-    {TK_OPTION_FONT, "-font", "font", "Font", DEF_MARKER_FONT, -1, offsetof(TextMarker, style.font), 0, NULL, 0},
-    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_MARKER_FOREGROUND, -1,
-     offsetof(TextMarker, style.color), 0, (ClientData)DEF_MARKER_FG_MONO, 0},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
-    {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_MARKER_JUSTIFY, -1, offsetof(TextMarker, style.justify),
-     0, NULL, 0},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_FONT, "-font", "font", "Font", STD_FONT, -1, offsetof(TextMarker, style.font), 0, NULL, 0},
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", RGB_BLACK, -1, offsetof(TextMarker, style.color), 0,
+     (ClientData)RGB_BLACK, 0},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", "left", -1, offsetof(TextMarker, style.justify), 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-name", NULL, NULL, NULL, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_SYNONYM, "-outline", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
-    {TK_OPTION_STRING, "-padx", "padX", "PadX", DEF_MARKER_PAD, offsetof(TextMarker, padXObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-pady", "padY", "PadY", DEF_MARKER_PAD, offsetof(TextMarker, padYObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", DEF_MARKER_ROTATE, -1, offsetof(TextMarker, style.theta), 0, NULL,
-     0},
-    {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", DEF_MARKER_SHADOW_COLOR, offsetof(TextMarker, shadowObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-text", "text", "Text", DEF_MARKER_TEXT, -1, offsetof(TextMarker, string), TK_OPTION_NULL_OK,
+    {TK_OPTION_STRING, "-padx", "padX", "PadX", "4", offsetof(TextMarker, padXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-pady", "padY", "PadY", "4", offsetof(TextMarker, padYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", "0.0", -1, offsetof(TextMarker, style.theta), 0, NULL, 0},
+    {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", NULL, offsetof(TextMarker, shadowObjPtr), -1, TK_OPTION_NULL_OK,
      NULL, 0},
-    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
-    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+    {TK_OPTION_STRING, "-state", "state", "State", "normal", offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-text", "text", "Text", NULL, -1, offsetof(TextMarker, string), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", "no", -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", "0", offsetof(Marker, xOffsetObjPtr),
      offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
-    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", "0", offsetof(Marker, yOffsetObjPtr),
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -291,30 +243,29 @@ typedef struct {
  * @hideinitializer
  */
 static const Tk_OptionSpec windowMarkerOptionSpecs[] = {
-    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(WindowMarker, anchor), 0, NULL,
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", "center", -1, offsetof(WindowMarker, anchor), 0, NULL, 0},
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", "Window all", offsetof(Marker, bindTagsObjPtr), -1,
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", NULL, offsetof(Marker, coordsObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      0},
-    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_WINDOW_TAGS, offsetof(Marker, bindTagsObjPtr),
-     -1, TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-height", "height", "Height", DEF_MARKER_HEIGHT, offsetof(WindowMarker, reqHeightObjPtr), -1, 0,
-     NULL, WINDOW_HEIGHT_CHANGED},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-element", "element", "Element", NULL, -1, offsetof(Marker, elemName), TK_OPTION_NULL_OK, NULL,
+     0},
+    {TK_OPTION_STRING, "-height", "height", "Height", "0", offsetof(WindowMarker, reqHeightObjPtr), -1, 0, NULL,
+     WINDOW_HEIGHT_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
-    {TK_OPTION_STRING, "-width", "width", "Width", DEF_MARKER_WIDTH, offsetof(WindowMarker, reqWidthObjPtr), -1, 0,
-     NULL, WINDOW_WIDTH_CHANGED},
-    {TK_OPTION_STRING, "-window", "window", "Window", DEF_MARKER_WINDOW, -1, offsetof(WindowMarker, pathName),
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+    {TK_OPTION_STRING, "-name", NULL, NULL, NULL, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-state", "state", "State", "normal", offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", "no", -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_STRING, "-width", "width", "Width", "0", offsetof(WindowMarker, reqWidthObjPtr), -1, 0, NULL,
+     WINDOW_WIDTH_CHANGED},
+    {TK_OPTION_STRING, "-window", "window", "Window", NULL, -1, offsetof(WindowMarker, pathName), TK_OPTION_NULL_OK,
+     NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", "0", offsetof(Marker, xOffsetObjPtr),
      offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
-    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", "0", offsetof(Marker, yOffsetObjPtr),
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -356,38 +307,35 @@ typedef struct {
  * @hideinitializer
  */
 static const Tk_OptionSpec bitmapMarkerOptionSpecs[] = {
-    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(BitmapMarker, anchor), 0, NULL,
-     0},
-    {TK_OPTION_COLOR, "-background", "background", "Background", DEF_MARKER_BACKGROUND, -1,
-     offsetof(BitmapMarker, fillColor), TK_OPTION_NULL_OK, (ClientData)DEF_MARKER_BG_MONO, 0},
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", "center", -1, offsetof(BitmapMarker, anchor), 0, NULL, 0},
+    {TK_OPTION_COLOR, "-background", "background", "Background", RGB_WHITE, -1, offsetof(BitmapMarker, fillColor),
+     TK_OPTION_NULL_OK, (ClientData)RGB_WHITE, 0},
     {TK_OPTION_SYNONYM, "-bg", "background", NULL, NULL, 0, -1, 0, (ClientData) "-background", 0},
-    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_BITMAP_TAGS, offsetof(Marker, bindTagsObjPtr),
-     -1, TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_BITMAP, "-bitmap", "bitmap", "Bitmap", DEF_MARKER_BITMAP, -1, offsetof(BitmapMarker, srcBitmap),
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", "Bitmap all", offsetof(Marker, bindTagsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
-     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_BITMAP, "-bitmap", "bitmap", "Bitmap", NULL, -1, offsetof(BitmapMarker, srcBitmap), TK_OPTION_NULL_OK,
+     NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", NULL, offsetof(Marker, coordsObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     0},
+    {TK_OPTION_STRING, "-element", "element", "Element", NULL, -1, offsetof(Marker, elemName), TK_OPTION_NULL_OK, NULL,
+     0},
     {TK_OPTION_SYNONYM, "-fg", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
     {TK_OPTION_SYNONYM, "-fill", "background", NULL, NULL, 0, -1, 0, (ClientData) "-background", 0},
-    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_MARKER_FOREGROUND, -1,
-     offsetof(BitmapMarker, outlineColor), TK_OPTION_NULL_OK, (ClientData)DEF_MARKER_FG_MONO, 0},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", RGB_BLACK, -1, offsetof(BitmapMarker, outlineColor),
+     TK_OPTION_NULL_OK, (ClientData)RGB_BLACK, 0},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_BITMAP, "-mask", "mask", "Mask", DEF_MARKER_MASK, -1, offsetof(BitmapMarker, srcMask), TK_OPTION_NULL_OK,
-     NULL, 0},
-    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_BITMAP, "-mask", "mask", "Mask", NULL, -1, offsetof(BitmapMarker, srcMask), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-name", NULL, NULL, NULL, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
     {TK_OPTION_SYNONYM, "-outline", "foreground", NULL, NULL, 0, -1, 0, (ClientData) "-foreground", 0},
-    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", DEF_MARKER_ROTATE, -1, offsetof(BitmapMarker, rotate), 0, NULL,
-     0},
-    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
-    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+    {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", "0.0", -1, offsetof(BitmapMarker, rotate), 0, NULL, 0},
+    {TK_OPTION_STRING, "-state", "state", "State", "normal", offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", "no", -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", "0", offsetof(Marker, xOffsetObjPtr),
      offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
-    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", "0", offsetof(Marker, yOffsetObjPtr),
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -431,25 +379,25 @@ typedef struct {
  * @hideinitializer
  */
 static const Tk_OptionSpec imageMarkerOptionSpecs[] = {
-    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_MARKER_ANCHOR, -1, offsetof(ImageMarker, anchor), 0, NULL, 0},
-    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_IMAGE_TAGS, offsetof(Marker, bindTagsObjPtr), -1,
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", "center", -1, offsetof(ImageMarker, anchor), 0, NULL, 0},
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", "Image all", offsetof(Marker, bindTagsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", NULL, offsetof(Marker, coordsObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     0},
+    {TK_OPTION_STRING, "-element", "element", "Element", NULL, -1, offsetof(Marker, elemName), TK_OPTION_NULL_OK, NULL,
+     0},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Marker, hidden), 0, NULL, 0},
     {TK_OPTION_STRING, "-image", "image", "Image", NULL, offsetof(ImageMarker, imageObjPtr), -1, TK_OPTION_NULL_OK,
      NULL, 0},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
-    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+    {TK_OPTION_STRING, "-name", NULL, NULL, NULL, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-state", "state", "State", "normal", offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", "no", -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", "0", offsetof(Marker, xOffsetObjPtr),
      offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
-    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", "0", offsetof(Marker, yOffsetObjPtr),
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -520,39 +468,38 @@ typedef struct {
  * @hideinitializer
  */
 static const Tk_OptionSpec lineMarkerOptionSpecs[] = {
-    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_MARKER_LINE_TAGS, offsetof(Marker, bindTagsObjPtr), -1,
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", "Line all", offsetof(Marker, bindTagsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING_TABLE, "-arrow", "arrow", "Arrow", DEF_MARKER_ARROW, -1, offsetof(LineMarker, arrow), 0,
+    {TK_OPTION_STRING_TABLE, "-arrow", "arrow", "Arrow", "none", -1, offsetof(LineMarker, arrow), 0,
      (ClientData)arrowStrings, 0},
-    {TK_OPTION_STRING, "-arrowshape", "arrowShape", "ArrowShape", DEF_MARKER_ARROW_SHAPE,
-     offsetof(LineMarker, arrowShapeObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-cap", "cap", "Cap", DEF_MARKER_CAP_STYLE, offsetof(LineMarker, capObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", DEF_MARKER_DASHES, offsetof(LineMarker, dashesObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-dashoffset", "dashOffset", "DashOffset", DEF_MARKER_DASH_OFFSET,
-     offsetof(LineMarker, dashOffsetObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-element", "element", "Element", DEF_MARKER_ELEMENT, -1, offsetof(Marker, elemName),
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_COLOR, "-fill", "fill", "Fill", NULL, -1, offsetof(LineMarker, fillColor), TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-join", "join", "Join", DEF_MARKER_JOIN_STYLE, offsetof(LineMarker, joinObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-arrowshape", "arrowShape", "ArrowShape", "8 10 3", offsetof(LineMarker, arrowShapeObjPtr), -1,
+     0, NULL, 0},
+    {TK_OPTION_STRING, "-cap", "cap", "Cap", "butt", offsetof(LineMarker, capObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-coords", "coords", "Coords", NULL, offsetof(Marker, coordsObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      0},
-    {TK_OPTION_STRING, "-linewidth", "lineWidth", "LineWidth", DEF_MARKER_LINE_WIDTH,
-     offsetof(LineMarker, lineWidthObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-dashes", "dashes", "Dashes", NULL, offsetof(LineMarker, dashesObjPtr), -1, TK_OPTION_NULL_OK,
+     NULL, 0},
+    {TK_OPTION_STRING, "-dashoffset", "dashOffset", "DashOffset", "0", offsetof(LineMarker, dashOffsetObjPtr), -1, 0,
+     NULL, 0},
+    {TK_OPTION_STRING, "-element", "element", "Element", NULL, -1, offsetof(Marker, elemName), TK_OPTION_NULL_OK, NULL,
+     0},
+    {TK_OPTION_COLOR, "-fill", "fill", "Fill", NULL, -1, offsetof(LineMarker, fillColor), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-join", "join", "Join", "miter", offsetof(LineMarker, joinObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-linewidth", "lineWidth", "LineWidth", "1", offsetof(LineMarker, lineWidthObjPtr), -1, 0, NULL,
+     0},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Marker, hidden), 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},
     {TK_OPTION_STRING, "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-name", NULL, NULL, DEF_MARKER_NAME, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_COLOR, "-outline", "outline", "Outline", DEF_MARKER_OUTLINE_COLOR, -1,
-     offsetof(LineMarker, outlineColor), TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},
-    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", DEF_MARKER_X_OFFSET, offsetof(Marker, xOffsetObjPtr),
+    {TK_OPTION_STRING, "-name", NULL, NULL, NULL, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_COLOR, "-outline", "outline", "Outline", RGB_BLACK, -1, offsetof(LineMarker, outlineColor),
+     TK_OPTION_NULL_OK, NULL, 0},
+    {TK_OPTION_STRING, "-state", "state", "State", "normal", offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-under", "under", "Under", "no", -1, offsetof(Marker, drawUnder), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset", "0", offsetof(Marker, xOffsetObjPtr),
      offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR, -1, offsetof(LineMarker, xor), 0, NULL, 0},
-    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", DEF_MARKER_Y_OFFSET, offsetof(Marker, yOffsetObjPtr),
+    {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", "no", -1, offsetof(LineMarker, xor), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset", "0", offsetof(Marker, yOffsetObjPtr),
      offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL, 0},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -615,96 +562,61 @@ typedef struct {
 enum { ARC_OPEN = RBC_RENDER_ARC_OPEN, ARC_CHORD = RBC_RENDER_ARC_CHORD, ARC_PIESLICE = RBC_RENDER_ARC_PIESLICE };
 static const char *const arcStyles[] = {"arc", "chord", "pieslice", NULL};
 
-#define POLYGON_MARKER_OPTION_ENTRIES(FILL_DEFAULT, OUTLINE_DEFAULT, TAGS_DEFAULT)                                       \
-    {TK_OPTION_STRING,  "-bindtags", "bindTags", "BindTags", TAGS_DEFAULT, offsetof(Marker, bindTagsObjPtr), -1,         \
-     TK_OPTION_NULL_OK, NULL,        0},                                                                                 \
-        {TK_OPTION_STRING,                                                                                               \
-         "-cap",                                                                                                         \
-         "cap",                                                                                                          \
-         "Cap",                                                                                                          \
-         DEF_MARKER_CAP_STYLE,                                                                                           \
-         offsetof(PolygonMarker, capObjPtr),                                                                             \
-         -1,                                                                                                             \
-         0,                                                                                                              \
-         NULL,                                                                                                           \
-         0},                                                                                                             \
-        {TK_OPTION_STRING,  "-coords", "coords", "Coords", DEF_MARKER_COORDS, offsetof(Marker, coordsObjPtr), -1,        \
-         TK_OPTION_NULL_OK, NULL,      0},                                                                               \
-        {TK_OPTION_STRING,  "-dashes", "dashes", "Dashes", DEF_MARKER_DASHES, offsetof(PolygonMarker, dashesObjPtr), -1, \
-         TK_OPTION_NULL_OK, NULL,      0},                                                                               \
-        {TK_OPTION_STRING,           "-element",        "element", "Element", DEF_MARKER_ELEMENT, -1,                    \
-         offsetof(Marker, elemName), TK_OPTION_NULL_OK, NULL,      0},                                                   \
-        {TK_OPTION_STRING,  "-fill", "fill", "Fill", FILL_DEFAULT, offsetof(PolygonMarker, fillObjPtr), -1,              \
-         TK_OPTION_NULL_OK, NULL,    0},                                                                                 \
-        {TK_OPTION_STRING,                                                                                               \
-         "-join",                                                                                                        \
-         "join",                                                                                                         \
-         "Join",                                                                                                         \
-         DEF_MARKER_JOIN_STYLE,                                                                                          \
-         offsetof(PolygonMarker, joinObjPtr),                                                                            \
-         -1,                                                                                                             \
-         0,                                                                                                              \
-         NULL,                                                                                                           \
-         0},                                                                                                             \
-        {TK_OPTION_STRING,                                                                                               \
-         "-linewidth",                                                                                                   \
-         "lineWidth",                                                                                                    \
-         "LineWidth",                                                                                                    \
-         DEF_MARKER_LINE_WIDTH,                                                                                          \
-         offsetof(PolygonMarker, lineWidthObjPtr),                                                                       \
-         -1,                                                                                                             \
-         0,                                                                                                              \
-         NULL,                                                                                                           \
-         0},                                                                                                             \
-        {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_MARKER_HIDE, -1, offsetof(Marker, hidden), 0, NULL, 0},         \
-        {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_MARKER_MAP_X, offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},     \
-        {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_MARKER_MAP_Y, offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},     \
-        {TK_OPTION_STRING,  "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1,                           \
-         TK_OPTION_NULL_OK, NULL,     0},                                                                                \
-        {TK_OPTION_STRING,       "-name",           NULL, NULL, DEF_MARKER_NAME, -1,                                     \
-         offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},                                                            \
-        {TK_OPTION_STRING,                                                                                               \
-         "-outline",                                                                                                     \
-         "outline",                                                                                                      \
-         "Outline",                                                                                                      \
-         OUTLINE_DEFAULT,                                                                                                \
-         offsetof(PolygonMarker, outlineObjPtr),                                                                         \
-         -1,                                                                                                             \
-         TK_OPTION_NULL_OK,                                                                                              \
-         NULL,                                                                                                           \
-         0},                                                                                                             \
-        {TK_OPTION_STRING, "-state", "state", "State", DEF_MARKER_STATE, offsetof(Marker, stateObjPtr), -1, 0, NULL, 0}, \
-        {TK_OPTION_BITMAP,  "-stipple", "stipple", "Stipple", DEF_MARKER_STIPPLE, -1, offsetof(PolygonMarker, stipple),  \
-         TK_OPTION_NULL_OK, NULL,       0},                                                                              \
-        {TK_OPTION_BOOLEAN, "-under", "under", "Under", DEF_MARKER_UNDER, -1, offsetof(Marker, drawUnder), 0, NULL, 0},  \
-        {TK_OPTION_PIXELS,                                                                                               \
-         "-xoffset",                                                                                                     \
-         "xOffset",                                                                                                      \
-         "XOffset",                                                                                                      \
-         DEF_MARKER_X_OFFSET,                                                                                            \
-         offsetof(Marker, xOffsetObjPtr),                                                                                \
-         offsetof(Marker, xOffset),                                                                                      \
-         TK_OPTION_NEG_OK,                                                                                               \
-         NULL,                                                                                                           \
-         0},                                                                                                             \
-        {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", DEF_MARKER_XOR, -1, offsetof(PolygonMarker, xor), 0, NULL, 0},         \
-        {TK_OPTION_PIXELS,                                                                                               \
-         "-yoffset",                                                                                                     \
-         "yOffset",                                                                                                      \
-         "YOffset",                                                                                                      \
-         DEF_MARKER_Y_OFFSET,                                                                                            \
-         offsetof(Marker, yOffsetObjPtr),                                                                                \
-         offsetof(Marker, yOffset),                                                                                      \
-         TK_OPTION_NEG_OK,                                                                                               \
-         NULL,                                                                                                           \
-         0}
+#define POLYGON_MARKER_OPTION_ENTRIES(FILL_DEFAULT, OUTLINE_DEFAULT, TAGS_DEFAULT)                                     \
+    {TK_OPTION_STRING,  "-bindtags", "bindTags", "BindTags", TAGS_DEFAULT, offsetof(Marker, bindTagsObjPtr), -1,       \
+     TK_OPTION_NULL_OK, NULL,        0},                                                                               \
+        {TK_OPTION_STRING, "-cap", "cap", "Cap", "butt", offsetof(PolygonMarker, capObjPtr), -1, 0, NULL, 0},          \
+        {TK_OPTION_STRING,  "-coords", "coords", "Coords", NULL, offsetof(Marker, coordsObjPtr), -1,                   \
+         TK_OPTION_NULL_OK, NULL,      0},                                                                             \
+        {TK_OPTION_STRING,  "-dashes", "dashes", "Dashes", NULL, offsetof(PolygonMarker, dashesObjPtr), -1,            \
+         TK_OPTION_NULL_OK, NULL,      0},                                                                             \
+        {TK_OPTION_STRING,           "-element",        "element", "Element", NULL, -1,                                \
+         offsetof(Marker, elemName), TK_OPTION_NULL_OK, NULL,      0},                                                 \
+        {TK_OPTION_STRING,  "-fill", "fill", "Fill", FILL_DEFAULT, offsetof(PolygonMarker, fillObjPtr), -1,            \
+         TK_OPTION_NULL_OK, NULL,    0},                                                                               \
+        {TK_OPTION_STRING, "-join", "join", "Join", "miter", offsetof(PolygonMarker, joinObjPtr), -1, 0, NULL, 0},     \
+        {TK_OPTION_STRING,                                                                                             \
+         "-linewidth",                                                                                                 \
+         "lineWidth",                                                                                                  \
+         "LineWidth",                                                                                                  \
+         "1",                                                                                                          \
+         offsetof(PolygonMarker, lineWidthObjPtr),                                                                     \
+         -1,                                                                                                           \
+         0,                                                                                                            \
+         NULL,                                                                                                         \
+         0},                                                                                                           \
+        {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Marker, hidden), 0, NULL, 0},                  \
+        {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", offsetof(Marker, mapXObjPtr), -1, 0, NULL, 0},                \
+        {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", offsetof(Marker, mapYObjPtr), -1, 0, NULL, 0},                \
+        {TK_OPTION_STRING,  "-track", "track", "Track", "", offsetof(Marker, trackObjPtr), -1,                         \
+         TK_OPTION_NULL_OK, NULL,     0},                                                                              \
+        {TK_OPTION_STRING, "-name", NULL, NULL, NULL, -1, offsetof(Marker, name), TK_OPTION_NULL_OK, NULL, 0},         \
+        {TK_OPTION_STRING,                                                                                             \
+         "-outline",                                                                                                   \
+         "outline",                                                                                                    \
+         "Outline",                                                                                                    \
+         OUTLINE_DEFAULT,                                                                                              \
+         offsetof(PolygonMarker, outlineObjPtr),                                                                       \
+         -1,                                                                                                           \
+         TK_OPTION_NULL_OK,                                                                                            \
+         NULL,                                                                                                         \
+         0},                                                                                                           \
+        {TK_OPTION_STRING, "-state", "state", "State", "normal", offsetof(Marker, stateObjPtr), -1, 0, NULL, 0},       \
+        {TK_OPTION_BITMAP,  "-stipple", "stipple", "Stipple", NULL, -1, offsetof(PolygonMarker, stipple),              \
+         TK_OPTION_NULL_OK, NULL,       0},                                                                            \
+        {TK_OPTION_BOOLEAN, "-under", "under", "Under", "no", -1, offsetof(Marker, drawUnder), 0, NULL, 0},            \
+        {TK_OPTION_PIXELS,          "-xoffset",       "xOffset", "XOffset", "0", offsetof(Marker, xOffsetObjPtr),      \
+         offsetof(Marker, xOffset), TK_OPTION_NEG_OK, NULL,      0},                                                   \
+        {TK_OPTION_BOOLEAN, "-xor", "xor", "Xor", "no", -1, offsetof(PolygonMarker, xor), 0, NULL, 0},                 \
+        {TK_OPTION_PIXELS,          "-yoffset",       "yOffset", "YOffset", "0", offsetof(Marker, yOffsetObjPtr),      \
+         offsetof(Marker, yOffset), TK_OPTION_NEG_OK, NULL,      0}
 
 /** @ingroup component_option_tables
  * @brief Polygon marker boundary and interior options for a colour display.
  * @hideinitializer
  */
 static const Tk_OptionSpec polygonMarkerOptionSpecs[] = {
-    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR, DEF_MARKER_POLYGON_TAGS),
+    POLYGON_MARKER_OPTION_ENTRIES(RGB_RED, RGB_BLACK, "Polygon all"),
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /** @ingroup component_option_tables
@@ -712,7 +624,7 @@ static const Tk_OptionSpec polygonMarkerOptionSpecs[] = {
  * @hideinitializer
  */
 static const Tk_OptionSpec polygonMarkerMonoOptionSpecs[] = {
-    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, DEF_MARKER_POLYGON_TAGS),
+    POLYGON_MARKER_OPTION_ENTRIES(RGB_WHITE, RGB_BLACK, "Polygon all"),
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 #define ARC_MARKER_OPTION_ENTRIES                                                                                      \
@@ -727,14 +639,14 @@ static const Tk_OptionSpec polygonMarkerMonoOptionSpecs[] = {
  * @hideinitializer
  */
 static const Tk_OptionSpec arcMarkerOptionSpecs[] = {
-    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_COLOR, DEF_MARKER_OUTLINE_COLOR, "Arc all"),
+    POLYGON_MARKER_OPTION_ENTRIES(RGB_RED, RGB_BLACK, "Arc all"),
     ARC_MARKER_OPTION_ENTRIES};
 /** @ingroup component_option_tables
  * @brief Monochrome arc marker defaults for the same marker record layout.
  * @hideinitializer
  */
 static const Tk_OptionSpec arcMarkerMonoOptionSpecs[] = {
-    POLYGON_MARKER_OPTION_ENTRIES(DEF_MARKER_FILL_MONO, DEF_MARKER_OUTLINE_MONO, "Arc all"), ARC_MARKER_OPTION_ENTRIES};
+    POLYGON_MARKER_OPTION_ENTRIES(RGB_WHITE, RGB_BLACK, "Arc all"), ARC_MARKER_OPTION_ENTRIES};
 #undef ARC_MARKER_OPTION_ENTRIES
 #undef POLYGON_MARKER_OPTION_ENTRIES
 
@@ -774,8 +686,8 @@ static MarkerFreeProc FreeBitmapMarker, FreeLineMarker, FreeImageMarker, FreePol
 static MarkerConfigProc ConfigureBitmapMarker, ConfigureLineMarker, ConfigureImageMarker, ConfigurePolygonMarker,
     ConfigureTextMarker, ConfigureWindowMarker;
 static MarkerMapProc MapBitmapMarker, MapLineMarker, MapImageMarker, MapPolygonMarker, MapTextMarker, MapWindowMarker;
-static MarkerExportProc BitmapMarkerExport, LineMarkerExport, ImageMarkerExport,
-    PolygonMarkerExport, TextMarkerExport, WindowMarkerExport;
+static MarkerExportProc BitmapMarkerExport, LineMarkerExport, ImageMarkerExport, PolygonMarkerExport, TextMarkerExport,
+    WindowMarkerExport;
 static MarkerPointProc PointInBitmapMarker, PointInLineMarker, PointInImageMarker, PointInPolygonMarker,
     PointInTextMarker, PointInWindowMarker;
 static MarkerRegionProc RegionInBitmapMarker, RegionInLineMarker, RegionInImageMarker, RegionInPolygonMarker,
@@ -4253,7 +4165,6 @@ static int DrawRenderedArrowHead(Graph *graphPtr, Drawable drawable, const Point
     }
     return Rbc_RenderArea(graphPtr, drawable, points, PTS_IN_ARROW - 1, color, NULL, None);
 }
-
 
 /**
  * @ingroup marker_shape_output

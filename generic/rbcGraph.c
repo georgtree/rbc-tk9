@@ -15,13 +15,7 @@
 /*
  * To do:
  *
- * 2) Update manual pages.
- *
- * 3) Update comments.
- *
  * 5) Surface, contour, and flow graphs
- *
- * 7) Arrows for line markers
  *
  */
 
@@ -58,44 +52,6 @@ Rbc_Uid rbcPolygonMarkerUid;
 Rbc_Uid rbcArcMarkerUid;
 Rbc_Uid rbcWindowMarkerUid;
 
-#define DEF_GRAPH_ASPECT_RATIO "0.0"
-#define DEF_GRAPH_BAR_BASELINE "0.0"
-#define DEF_GRAPH_BAR_MODE "normal"
-#define DEF_GRAPH_BAR_WIDTH "0.8"
-#define DEF_GRAPH_BACKGROUND STD_NORMAL_BACKGROUND
-#define DEF_GRAPH_BG_MONO STD_NORMAL_BG_MONO
-#define DEF_GRAPH_BORDERWIDTH STD_BORDERWIDTH
-#define DEF_GRAPH_BUFFER_ELEMENTS "1"
-#define DEF_GRAPH_BUFFER_GRAPH "1"
-#define DEF_GRAPH_CURSOR "crosshair"
-#define DEF_GRAPH_FONT STD_FONT_LARGE
-#define DEF_GRAPH_HALO "2m"
-#define DEF_GRAPH_HEIGHT "4i"
-#define DEF_GRAPH_HIGHLIGHT_BACKGROUND STD_NORMAL_BACKGROUND
-#define DEF_GRAPH_HIGHLIGHT_BG_MONO STD_NORMAL_BG_MONO
-#define DEF_GRAPH_HIGHLIGHT_COLOR RGB_BLACK
-#define DEF_GRAPH_HIGHLIGHT_WIDTH "2"
-#define DEF_GRAPH_INVERT_XY "0"
-#define DEF_GRAPH_JUSTIFY "center"
-#define DEF_GRAPH_MARGIN "0"
-#define DEF_GRAPH_MARGIN_VAR (char *)NULL
-#define DEF_GRAPH_PLOT_BACKGROUND RGB_WHITE
-#define DEF_GRAPH_PLOT_BG_MONO RGB_WHITE
-#define DEF_GRAPH_PLOT_BW_COLOR STD_BORDERWIDTH
-#define DEF_GRAPH_PLOT_PADX "8"
-#define DEF_GRAPH_PLOT_PADY "8"
-#define DEF_GRAPH_PLOT_RELIEF "sunken"
-#define DEF_GRAPH_RELIEF "flat"
-#define DEF_GRAPH_SHADOW_COLOR (char *)NULL
-#define DEF_GRAPH_TAKE_FOCUS ""
-#define DEF_GRAPH_TITLE (char *)NULL
-#define DEF_GRAPH_TITLE_COLOR STD_NORMAL_FOREGROUND
-#define DEF_GRAPH_TITLE_MONO STD_NORMAL_FG_MONO
-#define DEF_GRAPH_WIDTH "5i"
-#define DEF_GRAPH_DATA (char *)NULL
-#define DEF_GRAPH_DATA_COMMAND (char *)NULL
-#define DEF_GRAPH_REPRESENTATION "polar"
-
 /*
  * Graph option conversion and update masks.
  *
@@ -130,8 +86,6 @@ Rbc_Uid rbcWindowMarkerUid;
     (GRAPH_TRANSACTION_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_GEOMETRY_MASK | GRAPH_INVERT_XY_MASK |     \
      GRAPH_LAYOUT_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK | GRAPH_PLOT_BACKGROUND_MASK |                   \
      GRAPH_POLAR_REPRESENTATION_MASK)
-
-
 
 /**
  * @defgroup graph_option_transactions Graph option transactions
@@ -238,98 +192,95 @@ static const Tk_OptionSpec graphOptionSpecs[] = {
      (ClientData)graphAntialiasNames, GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING_TABLE, "-renderer", "renderer", "Renderer", DEF_GRAPH_RENDERER, -1, offsetof(Graph, renderer), 0,
      (ClientData)graphRendererNames, GRAPH_RENDERER_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_DOUBLE, "-aspect", "aspect", "Aspect", DEF_GRAPH_ASPECT_RATIO, -1, offsetof(Graph, aspect), 0, NULL,
+    {TK_OPTION_DOUBLE, "-aspect", "aspect", "Aspect", "0.0", -1, offsetof(Graph, aspect), 0, NULL,
      GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_BORDER, "-background", "background", "Background", DEF_GRAPH_BACKGROUND, -1, offsetof(Graph, border), 0,
-     DEF_GRAPH_BG_MONO, GRAPH_GC_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-barmode", "barMode", "BarMode", DEF_GRAPH_BAR_MODE, offsetof(Graph, barModeObjPtr), -1, 0,
-     NULL, GRAPH_BAR_MODE_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_DOUBLE, "-barwidth", "barWidth", "BarWidth", DEF_GRAPH_BAR_WIDTH, -1, offsetof(Graph, barWidth), 0, NULL,
+    {TK_OPTION_BORDER, "-background", "background", "Background", STD_NORMAL_BACKGROUND, -1, offsetof(Graph, border), 0,
+     STD_NORMAL_BG_MONO, GRAPH_GC_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-barmode", "barMode", "BarMode", "normal", offsetof(Graph, barModeObjPtr), -1, 0, NULL,
+     GRAPH_BAR_MODE_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_DOUBLE, "-barwidth", "barWidth", "BarWidth", "0.8", -1, offsetof(Graph, barWidth), 0, NULL,
      GRAPH_BAR_WIDTH_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_DOUBLE, "-baseline", "baseline", "Baseline", DEF_GRAPH_BAR_BASELINE, -1, offsetof(Graph, baseline), 0,
-     NULL, GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_DOUBLE, "-baseline", "baseline", "Baseline", "0.0", -1, offsetof(Graph, baseline), 0, NULL,
+     GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
     {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
     {TK_OPTION_SYNONYM, "-bm", NULL, NULL, NULL, -1, -1, 0, "-bottommargin", 0},
-    {TK_OPTION_STRING, "-borderwidth", "borderWidth", "BorderWidth", DEF_GRAPH_BORDERWIDTH,
+    {TK_OPTION_STRING, "-borderwidth", "borderWidth", "BorderWidth", STD_BORDERWIDTH,
      offsetof(Graph, borderWidthObjPtr), -1, 0, NULL,
      GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-bottommargin", "bottomMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, bottomMarginObjPtr),
-     -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-bottomvariable", "bottomVariable", "BottomVariable", DEF_GRAPH_MARGIN_VAR, -1,
+    {TK_OPTION_STRING, "-bottommargin", "bottomMargin", "Margin", "0", offsetof(Graph, bottomMarginObjPtr), -1, 0, NULL,
+     GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-bottomvariable", "bottomVariable", "BottomVariable", NULL, -1,
      offsetof(Graph, bottomMargin.varName), TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-bufferelements", "bufferElements", "BufferElements", DEF_GRAPH_BUFFER_ELEMENTS, -1,
-     offsetof(Graph, backingStore), 0, NULL, GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-buffergraph", "bufferGraph", "BufferGraph", DEF_GRAPH_BUFFER_GRAPH, -1,
-     offsetof(Graph, doubleBuffer), 0, NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_CURSOR, "-cursor", "cursor", "Cursor", DEF_GRAPH_CURSOR, -1, offsetof(Graph, cursor), TK_OPTION_NULL_OK,
-     NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-data", "data", "Data", DEF_GRAPH_DATA, -1, offsetof(Graph, data), 0, NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-datacommand", "dataCommand", "DataCommand", DEF_GRAPH_DATA_COMMAND, -1,
-     offsetof(Graph, dataCmd), 0, NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
-    {TK_OPTION_FONT, "-font", "font", "Font", DEF_GRAPH_FONT, -1, offsetof(Graph, titleTextStyle.font), 0, NULL,
-     GRAPH_TEXT_STYLE_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_GRAPH_TITLE_COLOR, -1,
-     offsetof(Graph, titleTextStyle.color), 0, DEF_GRAPH_TITLE_MONO,
-     GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-halo", "halo", "Halo", DEF_GRAPH_HALO, offsetof(Graph, haloObjPtr), -1, 0, NULL,
-     GRAPH_PIXELS_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-height", "height", "Height", DEF_GRAPH_HEIGHT, offsetof(Graph, heightObjPtr), -1, 0, NULL,
-     GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_COLOR, "-highlightbackground", "highlightBackground", "HighlightBackground",
-     DEF_GRAPH_HIGHLIGHT_BACKGROUND, -1, offsetof(Graph, highlightBgColor), 0, DEF_GRAPH_HIGHLIGHT_BG_MONO,
+    {TK_OPTION_BOOLEAN, "-bufferelements", "bufferElements", "BufferElements", "1", -1, offsetof(Graph, backingStore),
+     0, NULL, GRAPH_BACKING_STORE_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-buffergraph", "bufferGraph", "BufferGraph", "1", -1, offsetof(Graph, doubleBuffer), 0, NULL,
      GRAPH_REDRAW_MASK},
-    {TK_OPTION_COLOR, "-highlightcolor", "highlightColor", "HighlightColor", DEF_GRAPH_HIGHLIGHT_COLOR, -1,
+    {TK_OPTION_CURSOR, "-cursor", "cursor", "Cursor", "crosshair", -1, offsetof(Graph, cursor), TK_OPTION_NULL_OK, NULL,
+     GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-data", "data", "Data", NULL, -1, offsetof(Graph, data), 0, NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-datacommand", "dataCommand", "DataCommand", NULL, -1, offsetof(Graph, dataCmd), 0, NULL,
+     GRAPH_REDRAW_MASK},
+    {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
+    {TK_OPTION_FONT, "-font", "font", "Font", STD_FONT_LARGE, -1, offsetof(Graph, titleTextStyle.font), 0, NULL,
+     GRAPH_TEXT_STYLE_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", STD_NORMAL_FOREGROUND, -1,
+     offsetof(Graph, titleTextStyle.color), 0, STD_NORMAL_FG_MONO,
+     GRAPH_TEXT_STYLE_MASK | GRAPH_GC_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-halo", "halo", "Halo", "2m", offsetof(Graph, haloObjPtr), -1, 0, NULL,
+     GRAPH_PIXELS_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-height", "height", "Height", "4i", offsetof(Graph, heightObjPtr), -1, 0, NULL,
+     GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_COLOR, "-highlightbackground", "highlightBackground", "HighlightBackground", STD_NORMAL_BACKGROUND, -1,
+     offsetof(Graph, highlightBgColor), 0, STD_NORMAL_BG_MONO, GRAPH_REDRAW_MASK},
+    {TK_OPTION_COLOR, "-highlightcolor", "highlightColor", "HighlightColor", RGB_BLACK, -1,
      offsetof(Graph, highlightColor), 0, NULL, GRAPH_REDRAW_MASK},
     /* Preserve historical signed values on Tk 9.1 as well as Tk 9.0. */
-    {TK_OPTION_PIXELS, "-highlightthickness", "highlightThickness", "HighlightThickness", DEF_GRAPH_HIGHLIGHT_WIDTH,
+    {TK_OPTION_PIXELS, "-highlightthickness", "highlightThickness", "HighlightThickness", "2",
      offsetof(Graph, highlightWidthObjPtr), -1, TK_OPTION_NEG_OK, NULL,
      GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_BOOLEAN, "-invertxy", "invertXY", "InvertXY", DEF_GRAPH_INVERT_XY, -1, offsetof(Graph, inverted), 0,
-     NULL, GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", DEF_GRAPH_JUSTIFY, -1,
-     offsetof(Graph, titleTextStyle.justify), 0, NULL, GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-leftmargin", "leftMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, leftMarginObjPtr), -1,
-     0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-leftvariable", "leftVariable", "LeftVariable", DEF_GRAPH_MARGIN_VAR, -1,
-     offsetof(Graph, leftMargin.varName), TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_BOOLEAN, "-invertxy", "invertXY", "InvertXY", "0", -1, offsetof(Graph, inverted), 0, NULL,
+     GRAPH_INVERT_XY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify", "center", -1, offsetof(Graph, titleTextStyle.justify), 0,
+     NULL, GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-leftmargin", "leftMargin", "Margin", "0", offsetof(Graph, leftMarginObjPtr), -1, 0, NULL,
+     GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-leftvariable", "leftVariable", "LeftVariable", NULL, -1, offsetof(Graph, leftMargin.varName),
+     TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_SYNONYM, "-lm", NULL, NULL, NULL, -1, -1, 0, "-leftmargin", 0},
-    {TK_OPTION_COLOR, "-plotbackground", "plotBackground", "Background", DEF_GRAPH_PLOT_BACKGROUND, -1,
-     offsetof(Graph, plotBg), 0, DEF_GRAPH_PLOT_BG_MONO,
-     GRAPH_GC_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_PLOT_BACKGROUND_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-plotborderwidth", "plotBorderWidth", "BorderWidth", DEF_GRAPH_PLOT_BW_COLOR,
+    {TK_OPTION_COLOR, "-plotbackground", "plotBackground", "Background", RGB_WHITE, -1, offsetof(Graph, plotBg), 0,
+     RGB_WHITE, GRAPH_GC_MASK | GRAPH_BACKING_STORE_MASK | GRAPH_PLOT_BACKGROUND_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-plotborderwidth", "plotBorderWidth", "BorderWidth", STD_BORDERWIDTH,
      offsetof(Graph, plotBorderWidthObjPtr), -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-plotpadx", "plotPadX", "PlotPad", DEF_GRAPH_PLOT_PADX, offsetof(Graph, plotPadXObjPtr), -1, 0,
-     NULL, GRAPH_PADDING_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-plotpady", "plotPadY", "PlotPad", DEF_GRAPH_PLOT_PADY, offsetof(Graph, plotPadYObjPtr), -1, 0,
-     NULL, GRAPH_PADDING_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_RELIEF, "-plotrelief", "plotRelief", "Relief", DEF_GRAPH_PLOT_RELIEF, -1, offsetof(Graph, plotRelief), 0,
-     NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_GRAPH_RELIEF, -1, offsetof(Graph, relief), 0, NULL,
+    {TK_OPTION_STRING, "-plotpadx", "plotPadX", "PlotPad", "8", offsetof(Graph, plotPadXObjPtr), -1, 0, NULL,
+     GRAPH_PADDING_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-plotpady", "plotPadY", "PlotPad", "8", offsetof(Graph, plotPadYObjPtr), -1, 0, NULL,
+     GRAPH_PADDING_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_RELIEF, "-plotrelief", "plotRelief", "Relief", "sunken", -1, offsetof(Graph, plotRelief), 0, NULL,
      GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING_TABLE, "-representation", "representation", "Representation", DEF_GRAPH_REPRESENTATION, -1,
+    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", "flat", -1, offsetof(Graph, relief), 0, NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING_TABLE, "-representation", "representation", "Representation", "polar", -1,
      offsetof(Graph, representation), 0, (ClientData)polarRepresentationNames,
      GRAPH_POLAR_REPRESENTATION_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-rightmargin", "rightMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, rightMarginObjPtr),
-     -1, 0, NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-rightvariable", "rightVariable", "RightVariable", DEF_GRAPH_MARGIN_VAR, -1,
+    {TK_OPTION_STRING, "-rightmargin", "rightMargin", "Margin", "0", offsetof(Graph, rightMarginObjPtr), -1, 0, NULL,
+     GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-rightvariable", "rightVariable", "RightVariable", NULL, -1,
      offsetof(Graph, rightMargin.varName), TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_SYNONYM, "-rm", NULL, NULL, NULL, -1, -1, 0, "-rightmargin", 0},
-    {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", DEF_GRAPH_SHADOW_COLOR, offsetof(Graph, shadowObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, GRAPH_SHADOW_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-takefocus", "takeFocus", "TakeFocus", DEF_GRAPH_TAKE_FOCUS, -1, offsetof(Graph, takeFocus),
-     TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", NULL, offsetof(Graph, shadowObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     GRAPH_SHADOW_MASK | GRAPH_TEXT_STYLE_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-takefocus", "takeFocus", "TakeFocus", "", -1, offsetof(Graph, takeFocus), TK_OPTION_NULL_OK,
+     NULL, GRAPH_REDRAW_MASK},
     {TK_OPTION_STRING, "-tile", "tile", "Tile", NULL, offsetof(Graph, tileObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      GRAPH_TILE_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-title", "title", "Title", DEF_GRAPH_TITLE, -1, offsetof(Graph, title), TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_STRING, "-title", "title", "Title", NULL, -1, offsetof(Graph, title), TK_OPTION_NULL_OK, NULL,
      GRAPH_TEXT_STYLE_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_SYNONYM, "-tm", NULL, NULL, NULL, -1, -1, 0, "-topmargin", 0},
-    {TK_OPTION_STRING, "-topmargin", "topMargin", "Margin", DEF_GRAPH_MARGIN, offsetof(Graph, topMarginObjPtr), -1, 0,
-     NULL, GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-topvariable", "topVariable", "TopVariable", DEF_GRAPH_MARGIN_VAR, -1,
-     offsetof(Graph, topMargin.varName), TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
-    {TK_OPTION_STRING, "-width", "width", "Width", DEF_GRAPH_WIDTH, offsetof(Graph, widthObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-topmargin", "topMargin", "Margin", "0", offsetof(Graph, topMarginObjPtr), -1, 0, NULL,
+     GRAPH_PIXELS_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-topvariable", "topVariable", "TopVariable", NULL, -1, offsetof(Graph, topMargin.varName),
+     TK_OPTION_NULL_OK, NULL, GRAPH_REDRAW_MASK},
+    {TK_OPTION_STRING, "-width", "width", "Width", "5i", offsetof(Graph, widthObjPtr), -1, 0, NULL,
      GRAPH_PIXELS_MASK | GRAPH_GEOMETRY_MASK | GRAPH_LAYOUT_MASK | GRAPH_REDRAW_MASK},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -1217,7 +1168,6 @@ static void CommitGraphTileTransaction(Graph *graphPtr, GraphTileTransaction *tr
         Rbc_FreeTile(oldTile);
     }
 }
-
 
 /**
  * @defgroup graph_lifecycle_support Graph construction and redraw support
@@ -3604,7 +3554,6 @@ int Rbc_GraphCallbackValid(Graph *graphPtr) {
     }
     return TRUE;
 }
-
 
 int Rbc_LayoutGraph(Graph *graphPtr) {
     if (graphPtr->axisFormatActive) {

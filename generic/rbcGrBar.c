@@ -132,42 +132,6 @@ _Static_assert(offsetof(Bar, core) == 0, "Element core must be the first Bar mem
 #define BAR_CORE_OFFSET(member) (offsetof(Bar, core) + offsetof(Element, member))
 #define BAR_BUILTIN_PEN_OFFSET(member) (offsetof(Bar, builtinPen) + offsetof(BarPen, member))
 
-#define DEF_BAR_ACTIVE_PEN "activeBar"
-#define DEF_BAR_AXIS_X "x"
-#define DEF_BAR_AXIS_Y "y"
-#define DEF_BAR_BACKGROUND "navyblue"
-#define DEF_BAR_BORDERWIDTH "2"
-#define DEF_BAR_DATA (char *)NULL
-#define DEF_BAR_ERRORBAR_COLOR "defcolor"
-#define DEF_BAR_ERRORBAR_LINE_WIDTH "1"
-#define DEF_BAR_ERRORBAR_CAP_WIDTH "1"
-#define DEF_BAR_FOREGROUND "blue"
-#define DEF_BAR_HIDE "no"
-#define DEF_BAR_HIDE_PLOT "no"
-#define DEF_BAR_LABEL (char *)NULL
-#define DEF_BAR_LABEL_RELIEF "flat"
-#define DEF_BAR_NORMAL_STIPPLE ""
-#define DEF_BAR_RELIEF "raised"
-#define DEF_BAR_SHOW_ERRORBARS "both"
-#define DEF_BAR_STATE "normal"
-#define DEF_BAR_STYLES ""
-#define DEF_BAR_TAGS "all"
-#define DEF_BAR_WIDTH "0.0"
-#define DEF_PEN_ACTIVE_BACKGROUND "red"
-#define DEF_PEN_ACTIVE_FOREGROUND "pink"
-#define DEF_PEN_BORDERWIDTH "2"
-#define DEF_PEN_NORMAL_BACKGROUND "navyblue"
-#define DEF_PEN_NORMAL_FOREGROUND "blue"
-#define DEF_PEN_RELIEF "raised"
-#define DEF_PEN_STIPPLE ""
-#define DEF_PEN_TYPE "bar"
-#define DEF_PEN_VALUE_ANCHOR "s"
-#define DEF_PEN_VALUE_COLOR RGB_BLACK
-#define DEF_PEN_VALUE_FONT STD_FONT_SMALL
-#define DEF_PEN_VALUE_FORMAT "%g"
-#define DEF_PEN_VALUE_SHADOW (char *)NULL
-#define DEF_PEN_SHOW_VALUES "no"
-
 /*
  * Bar-element option conversion masks.
  *
@@ -194,100 +158,99 @@ static const char *const barAlignNames[] = {"center", "left", "right", NULL};
  * @hideinitializer
  */
 static const Tk_OptionSpec barElemOptionSpecs[] = {
-    {TK_OPTION_STRING, "-activepen", "activePen", "ActivePen", DEF_BAR_ACTIVE_PEN, BAR_CORE_OFFSET(activePenObjPtr), -1,
-     0, NULL, BAR_ELEM_PEN_MASK},
-    {TK_OPTION_BORDER, "-background", "background", "Background", DEF_BAR_BACKGROUND, -1,
-     BAR_BUILTIN_PEN_OFFSET(border), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING_TABLE, "-baralign", "barAlign", "BarAlign", "center", -1,
-     offsetof(Bar, barAlign), 0, barAlignNames, BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_DOUBLE, "-baroffset", "barOffset", "BarOffset", "0.0", -1,
-     offsetof(Bar, barOffset), 0, NULL, BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_DOUBLE, "-barwidth", "barWidth", "BarWidth", DEF_BAR_WIDTH, -1, offsetof(Bar, barWidth), 0, NULL,
+    {TK_OPTION_STRING, "-activepen", "activePen", "ActivePen", "activeBar", BAR_CORE_OFFSET(activePenObjPtr), -1, 0,
+     NULL, BAR_ELEM_PEN_MASK},
+    {TK_OPTION_BORDER, "-background", "background", "Background", "navyblue", -1, BAR_BUILTIN_PEN_OFFSET(border),
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING_TABLE, "-baralign", "barAlign", "BarAlign", "center", -1, offsetof(Bar, barAlign), 0,
+     barAlignNames, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_DOUBLE, "-baroffset", "barOffset", "BarOffset", "0.0", -1, offsetof(Bar, barOffset), 0, NULL,
+     BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_DOUBLE, "-barwidth", "barWidth", "BarWidth", "0.0", -1, offsetof(Bar, barWidth), 0, NULL,
      BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
     {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
-    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", DEF_BAR_TAGS, BAR_CORE_OFFSET(bindTagsObjPtr), -1,
+    {TK_OPTION_STRING, "-bindtags", "bindTags", "BindTags", "all", BAR_CORE_OFFSET(bindTagsObjPtr), -1,
      TK_OPTION_NULL_OK, NULL, BAR_ELEM_TAGS_MASK},
-    {TK_OPTION_PIXELS, "-borderwidth", "borderWidth", "BorderWidth", DEF_BAR_BORDERWIDTH,
-     BAR_BUILTIN_PEN_OFFSET(borderWidthObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING, "-errorbarcolor", "errorBarColor", "ErrorBarColor", DEF_BAR_ERRORBAR_COLOR,
+    {TK_OPTION_PIXELS, "-borderwidth", "borderWidth", "BorderWidth", "2", BAR_BUILTIN_PEN_OFFSET(borderWidthObjPtr), -1,
+     0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-errorbarcolor", "errorBarColor", "ErrorBarColor", "defcolor",
      BAR_BUILTIN_PEN_OFFSET(errorBarColorObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING_TABLE, "-errorbarposition", "errorBarPosition", "ErrorBarPosition", "data", -1,
      offsetof(Bar, errorBarPosition), 0, errorBarPositionNames, BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_PIXELS, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", DEF_BAR_ERRORBAR_LINE_WIDTH,
+    {TK_OPTION_PIXELS, "-errorbarwidth", "errorBarWidth", "ErrorBarWidth", "1",
      BAR_BUILTIN_PEN_OFFSET(errorBarWidthObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_PIXELS, "-errorbarcap", "errorBarCap", "ErrorBarCap", DEF_BAR_ERRORBAR_CAP_WIDTH,
-     BAR_BUILTIN_PEN_OFFSET(errorBarCapObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_PIXELS, "-errorbarcap", "errorBarCap", "ErrorBarCap", "1", BAR_BUILTIN_PEN_OFFSET(errorBarCapObjPtr), -1,
+     0, NULL, BAR_ELEM_BUILTIN_PEN_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-data", "data", "Data", NULL, BAR_CORE_OFFSET(dataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_DOUBLE, "-fillopacity", "fillOpacity", "FillOpacity", "1.0", -1,
-     BAR_BUILTIN_PEN_OFFSET(fillOpacity), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_DOUBLE, "-fillopacity", "fillOpacity", "FillOpacity", "1.0", -1, BAR_BUILTIN_PEN_OFFSET(fillOpacity), 0,
+     NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
-    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_BAR_FOREGROUND, -1,
-     BAR_BUILTIN_PEN_OFFSET(fgColor), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_BAR_HIDE, -1, BAR_CORE_OFFSET(hidden), 0, NULL,
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", "blue", -1, BAR_BUILTIN_PEN_OFFSET(fgColor),
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, BAR_CORE_OFFSET(hidden), 0, NULL, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_BOOLEAN, "-hideplot", "hidePlot", "HidePlot", "no", -1, BAR_CORE_OFFSET(plotHidden), 0, NULL,
      BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_BOOLEAN, "-hideplot", "hidePlot", "HidePlot", DEF_BAR_HIDE_PLOT, -1, BAR_CORE_OFFSET(plotHidden), 0,
-     NULL, BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-label", "label", "Label", DEF_BAR_LABEL, -1, BAR_CORE_OFFSET(label), TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_STRING, "-label", "label", "Label", NULL, -1, BAR_CORE_OFFSET(label), TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", DEF_BAR_LABEL_RELIEF, -1,
-     BAR_CORE_OFFSET(labelRelief), 0, NULL, BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_RELIEF, "-labelrelief", "labelRelief", "LabelRelief", "flat", -1, BAR_CORE_OFFSET(labelRelief), 0, NULL,
+     BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-track", "track", "Track", "", BAR_CORE_OFFSET(trackObjPtr), -1, 0, NULL,
      BAR_ELEM_AXES_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", DEF_BAR_AXIS_X, BAR_CORE_OFFSET(mapXObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-mapx", "mapX", "MapX", "x", BAR_CORE_OFFSET(mapXObjPtr), -1, 0, NULL,
      BAR_ELEM_AXES_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", DEF_BAR_AXIS_Y, BAR_CORE_OFFSET(mapYObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-mapy", "mapY", "MapY", "y", BAR_CORE_OFFSET(mapYObjPtr), -1, 0, NULL,
      BAR_ELEM_AXES_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-pen", "pen", "Pen", NULL, BAR_CORE_OFFSET(normalPenObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_PEN_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_BAR_RELIEF, -1, BAR_BUILTIN_PEN_OFFSET(relief), 0, NULL,
+    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", "raised", -1, BAR_BUILTIN_PEN_OFFSET(relief), 0, NULL,
      BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING, "-showerrorbars", "showErrorBars", "ShowErrorBars", DEF_BAR_SHOW_ERRORBARS,
+    {TK_OPTION_STRING, "-showerrorbars", "showErrorBars", "ShowErrorBars", "both",
      BAR_BUILTIN_PEN_OFFSET(showErrorBarsObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING, "-showvalues", "showValues", "ShowValues", DEF_PEN_SHOW_VALUES,
-     BAR_BUILTIN_PEN_OFFSET(showValuesObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING, "-state", "state", "State", DEF_BAR_STATE, BAR_CORE_OFFSET(stateObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-showvalues", "showValues", "ShowValues", "no", BAR_BUILTIN_PEN_OFFSET(showValuesObjPtr), -1, 0,
+     NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-state", "state", "State", "normal", BAR_CORE_OFFSET(stateObjPtr), -1, 0, NULL,
      BAR_ELEM_STATE_MASK},
-    {TK_OPTION_BITMAP, "-stipple", "stipple", "Stipple", DEF_BAR_NORMAL_STIPPLE, -1, BAR_BUILTIN_PEN_OFFSET(stipple),
-     TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING, "-styles", "styles", "Styles", DEF_BAR_STYLES, BAR_CORE_OFFSET(stylesObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, BAR_ELEM_STYLES_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", DEF_PEN_VALUE_ANCHOR, -1,
-     BAR_BUILTIN_PEN_OFFSET(valueStyle.anchor), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_COLOR, "-valuecolor", "valueColor", "ValueColor", DEF_PEN_VALUE_COLOR, -1,
+    {TK_OPTION_BITMAP, "-stipple", "stipple", "Stipple", "", -1, BAR_BUILTIN_PEN_OFFSET(stipple), TK_OPTION_NULL_OK,
+     NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-styles", "styles", "Styles", "", BAR_CORE_OFFSET(stylesObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_STYLES_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor", "s", -1, BAR_BUILTIN_PEN_OFFSET(valueStyle.anchor),
+     0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_COLOR, "-valuecolor", "valueColor", "ValueColor", RGB_BLACK, -1,
      BAR_BUILTIN_PEN_OFFSET(valueStyle.color), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_FONT, "-valuefont", "valueFont", "ValueFont", DEF_PEN_VALUE_FONT, -1,
+    {TK_OPTION_FONT, "-valuefont", "valueFont", "ValueFont", STD_FONT_SMALL, -1,
      BAR_BUILTIN_PEN_OFFSET(valueStyle.font), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING, "-valueoffset", "valueOffset", "ValueOffset", "0 0",
-     BAR_BUILTIN_PEN_OFFSET(valueOffsetObjPtr), -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-valueoffset", "valueOffset", "ValueOffset", "0 0", BAR_BUILTIN_PEN_OFFSET(valueOffsetObjPtr),
+     -1, 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL,
      BAR_BUILTIN_PEN_OFFSET(valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING, "-valueformat", "valueFormat", "ValueFormat", DEF_PEN_VALUE_FORMAT, -1,
-     BAR_BUILTIN_PEN_OFFSET(valueFormat), TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-valueformat", "valueFormat", "ValueFormat", "%g", -1, BAR_BUILTIN_PEN_OFFSET(valueFormat),
+     TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate", "0.0", BAR_BUILTIN_PEN_OFFSET(valueRotateObjPtr),
      BAR_BUILTIN_PEN_OFFSET(valueStyle.theta), 0, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
-    {TK_OPTION_STRING, "-valueshadow", "valueShadow", "ValueShadow", DEF_PEN_VALUE_SHADOW,
-     BAR_BUILTIN_PEN_OFFSET(valueShadowObjPtr), -1, TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
+    {TK_OPTION_STRING, "-valueshadow", "valueShadow", "ValueShadow", NULL, BAR_BUILTIN_PEN_OFFSET(valueShadowObjPtr),
+     -1, TK_OPTION_NULL_OK, NULL, BAR_ELEM_BUILTIN_PEN_MASK},
     {TK_OPTION_STRING, "-weights", "weights", "Weights", NULL, BAR_CORE_OFFSET(weightsObjPtr), -1, TK_OPTION_NULL_OK,
      NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-x", "xdata", "Xdata", DEF_BAR_DATA, BAR_CORE_OFFSET(xObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_STRING, "-x", "xdata", "Xdata", NULL, BAR_CORE_OFFSET(xObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_SYNONYM, "-xdata", NULL, NULL, NULL, -1, -1, 0, "-x", 0},
-    {TK_OPTION_STRING, "-y", "ydata", "Ydata", DEF_BAR_DATA, BAR_CORE_OFFSET(yObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_STRING, "-y", "ydata", "Ydata", NULL, BAR_CORE_OFFSET(yObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_SYNONYM, "-ydata", NULL, NULL, NULL, -1, -1, 0, "-y", 0},
-    {TK_OPTION_STRING, "-xerror", "xError", "XError", DEF_BAR_DATA, BAR_CORE_OFFSET(xErrorObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-xhigh", "xHigh", "XHigh", DEF_BAR_DATA, BAR_CORE_OFFSET(xHighObjPtr), -1, TK_OPTION_NULL_OK,
-     NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-xlow", "xLow", "XLow", DEF_BAR_DATA, BAR_CORE_OFFSET(xLowObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_STRING, "-xerror", "xError", "XError", NULL, BAR_CORE_OFFSET(xErrorObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-yerror", "yError", "YError", DEF_BAR_DATA, BAR_CORE_OFFSET(yErrorObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-yhigh", "yHigh", "YHigh", DEF_BAR_DATA, BAR_CORE_OFFSET(yHighObjPtr), -1, TK_OPTION_NULL_OK,
-     NULL, BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING, "-ylow", "yLow", "YLow", DEF_BAR_DATA, BAR_CORE_OFFSET(yLowObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+    {TK_OPTION_STRING, "-xhigh", "xHigh", "XHigh", NULL, BAR_CORE_OFFSET(xHighObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-xlow", "xLow", "XLow", NULL, BAR_CORE_OFFSET(xLowObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-yerror", "yError", "YError", NULL, BAR_CORE_OFFSET(yErrorObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-yhigh", "yHigh", "YHigh", NULL, BAR_CORE_OFFSET(yHighObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_STRING, "-ylow", "yLow", "YLow", NULL, BAR_CORE_OFFSET(yLowObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      BAR_ELEM_DATA_MASK | BAR_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -307,7 +270,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          "-borderwidth",                                                                                               \
          "borderWidth",                                                                                                \
          "BorderWidth",                                                                                                \
-         DEF_PEN_BORDERWIDTH,                                                                                          \
+         "2",                                                                                                          \
          offsetof(BarPen, borderWidthObjPtr),                                                                          \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -318,7 +281,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          "-errorbarcolor",                                                                                             \
          "errorBarColor",                                                                                              \
          "ErrorBarColor",                                                                                              \
-         DEF_BAR_ERRORBAR_COLOR,                                                                                       \
+         "defcolor",                                                                                                   \
          offsetof(BarPen, errorBarColorObjPtr),                                                                        \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -328,7 +291,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          "-errorbarwidth",                                                                                             \
          "errorBarWidth",                                                                                              \
          "ErrorBarWidth",                                                                                              \
-         DEF_BAR_ERRORBAR_LINE_WIDTH,                                                                                  \
+         "1",                                                                                                          \
          offsetof(BarPen, errorBarWidthObjPtr),                                                                        \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -338,7 +301,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          "-errorbarcap",                                                                                               \
          "errorBarCap",                                                                                                \
          "ErrorBarCap",                                                                                                \
-         DEF_BAR_ERRORBAR_CAP_WIDTH,                                                                                   \
+         "1",                                                                                                          \
          offsetof(BarPen, errorBarCapObjPtr),                                                                          \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -354,15 +317,23 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          TK_OPTION_NULL_OK,                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
-        {TK_OPTION_DOUBLE, "-fillopacity", "fillOpacity", "FillOpacity", "1.0", -1,                                  \
-         offsetof(BarPen, fillOpacity), 0, NULL, 0},                                                                   \
+        {TK_OPTION_DOUBLE,                                                                                             \
+         "-fillopacity",                                                                                               \
+         "fillOpacity",                                                                                                \
+         "FillOpacity",                                                                                                \
+         "1.0",                                                                                                        \
+         -1,                                                                                                           \
+         offsetof(BarPen, fillOpacity),                                                                                \
+         0,                                                                                                            \
+         NULL,                                                                                                         \
+         0},                                                                                                           \
         {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},                                     \
-        {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_PEN_RELIEF, -1, offsetof(BarPen, relief), 0, NULL, 0},   \
+        {TK_OPTION_RELIEF, "-relief", "relief", "Relief", "raised", -1, offsetof(BarPen, relief), 0, NULL, 0},         \
         {TK_OPTION_STRING,                                                                                             \
          "-showerrorbars",                                                                                             \
          "showErrorBars",                                                                                              \
          "ShowErrorBars",                                                                                              \
-         DEF_BAR_SHOW_ERRORBARS,                                                                                       \
+         "both",                                                                                                       \
          offsetof(BarPen, showErrorBarsObjPtr),                                                                        \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -372,21 +343,20 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          "-showvalues",                                                                                                \
          "showValues",                                                                                                 \
          "ShowValues",                                                                                                 \
-         DEF_PEN_SHOW_VALUES,                                                                                          \
+         "no",                                                                                                         \
          offsetof(BarPen, showValuesObjPtr),                                                                           \
          -1,                                                                                                           \
          0,                                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
-        {TK_OPTION_BITMAP,          "-stipple",        "stipple", "Stipple", DEF_PEN_STIPPLE, -1,                      \
+        {TK_OPTION_BITMAP,          "-stipple",        "stipple", "Stipple", "", -1,                                   \
          offsetof(BarPen, stipple), TK_OPTION_NULL_OK, NULL,      0},                                                  \
-        {TK_OPTION_STRING,  "-type", NULL, NULL, DEF_PEN_TYPE, -1, BAR_PEN_CORE_OFFSET(typeId),                        \
-         TK_OPTION_NULL_OK, NULL,    0},                                                                               \
+        {TK_OPTION_STRING, "-type", NULL, NULL, "bar", -1, BAR_PEN_CORE_OFFSET(typeId), TK_OPTION_NULL_OK, NULL, 0},   \
         {TK_OPTION_ANCHOR,                                                                                             \
          "-valueanchor",                                                                                               \
          "valueAnchor",                                                                                                \
          "ValueAnchor",                                                                                                \
-         DEF_PEN_VALUE_ANCHOR,                                                                                         \
+         "s",                                                                                                          \
          -1,                                                                                                           \
          offsetof(BarPen, valueStyle.anchor),                                                                          \
          0,                                                                                                            \
@@ -396,7 +366,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          "-valuecolor",                                                                                                \
          "valueColor",                                                                                                 \
          "ValueColor",                                                                                                 \
-         DEF_PEN_VALUE_COLOR,                                                                                          \
+         RGB_BLACK,                                                                                                    \
          -1,                                                                                                           \
          offsetof(BarPen, valueStyle.color),                                                                           \
          0,                                                                                                            \
@@ -406,21 +376,37 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          "-valuefont",                                                                                                 \
          "valueFont",                                                                                                  \
          "ValueFont",                                                                                                  \
-         DEF_PEN_VALUE_FONT,                                                                                           \
+         STD_FONT_SMALL,                                                                                               \
          -1,                                                                                                           \
          offsetof(BarPen, valueStyle.font),                                                                            \
          0,                                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
-        {TK_OPTION_STRING, "-valueoffset", "valueOffset", "ValueOffset", "0 0", \
-         offsetof(BarPen, valueOffsetObjPtr), -1, 0, NULL, 0}, \
-        {TK_OPTION_STRING, "-valuecommand", "valueCommand", "ValueCommand", NULL, \
-         offsetof(BarPen, valueCommandObjPtr), -1, TK_OPTION_NULL_OK, NULL, 0}, \
+        {TK_OPTION_STRING,                                                                                             \
+         "-valueoffset",                                                                                               \
+         "valueOffset",                                                                                                \
+         "ValueOffset",                                                                                                \
+         "0 0",                                                                                                        \
+         offsetof(BarPen, valueOffsetObjPtr),                                                                          \
+         -1,                                                                                                           \
+         0,                                                                                                            \
+         NULL,                                                                                                         \
+         0},                                                                                                           \
+        {TK_OPTION_STRING,                                                                                             \
+         "-valuecommand",                                                                                              \
+         "valueCommand",                                                                                               \
+         "ValueCommand",                                                                                               \
+         NULL,                                                                                                         \
+         offsetof(BarPen, valueCommandObjPtr),                                                                         \
+         -1,                                                                                                           \
+         TK_OPTION_NULL_OK,                                                                                            \
+         NULL,                                                                                                         \
+         0},                                                                                                           \
         {TK_OPTION_STRING,                                                                                             \
          "-valueformat",                                                                                               \
          "valueFormat",                                                                                                \
          "ValueFormat",                                                                                                \
-         DEF_PEN_VALUE_FORMAT,                                                                                         \
+         "%g",                                                                                                         \
          -1,                                                                                                           \
          offsetof(BarPen, valueFormat),                                                                                \
          TK_OPTION_NULL_OK,                                                                                            \
@@ -440,7 +426,7 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
          "-valueshadow",                                                                                               \
          "valueShadow",                                                                                                \
          "ValueShadow",                                                                                                \
-         DEF_PEN_VALUE_SHADOW,                                                                                         \
+         NULL,                                                                                                         \
          offsetof(BarPen, valueShadowObjPtr),                                                                          \
          -1,                                                                                                           \
          TK_OPTION_NULL_OK,                                                                                            \
@@ -453,13 +439,13 @@ static const Tk_OptionSpec barElemOptionSpecs[] = {
  * @hideinitializer
  */
 static const Tk_OptionSpec normalBarPenOptionSpecs[] = {
-    BAR_PEN_OPTION_ENTRIES(DEF_PEN_NORMAL_BACKGROUND, DEF_PEN_NORMAL_FOREGROUND)};
+    BAR_PEN_OPTION_ENTRIES("navyblue", "blue")};
 /** @ingroup component_option_tables
  * @brief The same bar pen entries instantiated with active foreground and background defaults.
  * @hideinitializer
  */
 static const Tk_OptionSpec activeBarPenOptionSpecs[] = {
-    BAR_PEN_OPTION_ENTRIES(DEF_PEN_ACTIVE_BACKGROUND, DEF_PEN_ACTIVE_FOREGROUND)};
+    BAR_PEN_OPTION_ENTRIES("red", "pink")};
 
 /* Forward declarations */
 static PenConfigureProc ConfigurePen;

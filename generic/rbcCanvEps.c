@@ -73,30 +73,6 @@ typedef struct {
     FILE *f; /**< Borrowed open input stream. */
 } EpsParseInfo;
 
-#define DEF_EPS_ANCHOR "nw"
-#define DEF_EPS_OUTLINE_COLOR RGB_BLACK
-#define DEF_EPS_OUTLINE_MONO RGB_BLACK
-#define DEF_EPS_BORDERWIDTH STD_BORDERWIDTH
-#define DEF_EPS_FILE_NAME (char *)NULL
-#define DEF_EPS_FONT STD_FONT
-#define DEF_EPS_FILL_COLOR STD_NORMAL_FOREGROUND
-#define DEF_EPS_FILL_MONO STD_NORMAL_FG_MONO
-#define DEF_EPS_HEIGHT "0"
-#define DEF_EPS_IMAGE_NAME (char *)NULL
-#define DEF_EPS_JUSTIFY "center"
-#define DEF_EPS_QUICK_RESIZE "no"
-#define DEF_EPS_RELIEF "sunken"
-#define DEF_EPS_SHADOW_COLOR (char *)NULL
-#define DEF_EPS_SHADOW_MONO (char *)NULL
-#define DEF_EPS_SHOW_IMAGE "yes"
-#define DEF_EPS_STIPPLE (char *)NULL
-#define DEF_EPS_TAGS (char *)NULL
-#define DEF_EPS_TITLE (char *)NULL
-#define DEF_EPS_TITLE_ANCHOR "center"
-#define DEF_EPS_TITLE_COLOR RGB_BLACK
-#define DEF_EPS_TITLE_ROTATE "0"
-#define DEF_EPS_WIDTH "0"
-
 /*
  * Information used for parsing configuration specs:
  */
@@ -199,51 +175,45 @@ typedef struct {
  * @hideinitializer
  */
 static Tk_ConfigSpec configSpecs[] = {
-    {TK_CONFIG_ANCHOR, "-anchor", (char *)NULL, (char *)NULL, DEF_EPS_ANCHOR, offsetof(EpsItem, anchor),
+    {TK_CONFIG_ANCHOR, "-anchor", (char *)NULL, (char *)NULL, "nw", offsetof(EpsItem, anchor),
      TK_CONFIG_DONT_SET_DEFAULT},
     {TK_CONFIG_SYNONYM, "-bd", "borderWidth", (char *)NULL, (char *)NULL, 0, 0},
-    {TK_CONFIG_CUSTOM, "-borderwidth", "borderWidth", (char *)NULL, DEF_EPS_BORDERWIDTH, offsetof(EpsItem, borderWidth),
+    {TK_CONFIG_CUSTOM, "-borderwidth", "borderWidth", (char *)NULL, STD_BORDERWIDTH, offsetof(EpsItem, borderWidth),
      TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_STRING, "-file", (char *)NULL, (char *)NULL, DEF_EPS_FILE_NAME, offsetof(EpsItem, fileName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_FONT, "-font", "font", "Font", DEF_EPS_FONT, offsetof(EpsItem, titleStyle.font), 0},
-    {TK_CONFIG_COLOR, "-fill", "fill", (char *)NULL, DEF_EPS_FILL_COLOR, offsetof(EpsItem, fillColor),
+    {TK_CONFIG_STRING, "-file", (char *)NULL, (char *)NULL, NULL, offsetof(EpsItem, fileName), TK_CONFIG_NULL_OK},
+    {TK_CONFIG_FONT, "-font", "font", "Font", STD_FONT, offsetof(EpsItem, titleStyle.font), 0},
+    {TK_CONFIG_COLOR, "-fill", "fill", (char *)NULL, STD_NORMAL_FOREGROUND, offsetof(EpsItem, fillColor),
      TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_COLOR, "-fill", "fill", (char *)NULL, DEF_EPS_FILL_MONO, offsetof(EpsItem, fillColor),
+    {TK_CONFIG_COLOR, "-fill", "fill", (char *)NULL, STD_NORMAL_FG_MONO, offsetof(EpsItem, fillColor),
      TK_CONFIG_MONO_ONLY},
-    {TK_CONFIG_CUSTOM, "-height", (char *)NULL, (char *)NULL, DEF_EPS_HEIGHT, offsetof(EpsItem, height),
+    {TK_CONFIG_CUSTOM, "-height", (char *)NULL, (char *)NULL, "0", offsetof(EpsItem, height),
      TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
-    {TK_CONFIG_STRING, "-image", (char *)NULL, (char *)NULL, DEF_EPS_IMAGE_NAME, offsetof(EpsItem, previewName),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_JUSTIFY, "-justify", "justify", "Justify", DEF_EPS_JUSTIFY, offsetof(EpsItem, titleStyle.justify),
+    {TK_CONFIG_STRING, "-image", (char *)NULL, (char *)NULL, NULL, offsetof(EpsItem, previewName), TK_CONFIG_NULL_OK},
+    {TK_CONFIG_JUSTIFY, "-justify", "justify", "Justify", "center", offsetof(EpsItem, titleStyle.justify),
      TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BORDER, "-outline", "outline", (char *)NULL, DEF_EPS_OUTLINE_COLOR, offsetof(EpsItem, border),
+    {TK_CONFIG_BORDER, "-outline", "outline", (char *)NULL, RGB_BLACK, offsetof(EpsItem, border),
      TK_CONFIG_COLOR_ONLY | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_BORDER, "-outline", "outline", (char *)NULL, DEF_EPS_OUTLINE_MONO, offsetof(EpsItem, border),
+    {TK_CONFIG_BORDER, "-outline", "outline", (char *)NULL, RGB_BLACK, offsetof(EpsItem, border),
      TK_CONFIG_MONO_ONLY | TK_CONFIG_NULL_OK},
-    {TK_CONFIG_BOOLEAN, "-quick", "quick", "Quick", DEF_EPS_QUICK_RESIZE, offsetof(EpsItem, quick),
+    {TK_CONFIG_BOOLEAN, "-quick", "quick", "Quick", "no", offsetof(EpsItem, quick), TK_CONFIG_DONT_SET_DEFAULT},
+    {TK_CONFIG_RELIEF, "-relief", (char *)NULL, (char *)NULL, "sunken", offsetof(EpsItem, relief),
      TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_RELIEF, "-relief", (char *)NULL, (char *)NULL, DEF_EPS_RELIEF, offsetof(EpsItem, relief),
+    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", NULL, offsetof(EpsItem, titleStyle.shadow), TK_CONFIG_COLOR_ONLY,
+     &rbcShadowOption},
+    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", NULL, offsetof(EpsItem, titleStyle.shadow), TK_CONFIG_MONO_ONLY,
+     &rbcShadowOption},
+    {TK_CONFIG_BOOLEAN, "-showimage", "showImage", "ShowImage", "yes", offsetof(EpsItem, showImage),
      TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", DEF_EPS_SHADOW_COLOR, offsetof(EpsItem, titleStyle.shadow),
-     TK_CONFIG_COLOR_ONLY, &rbcShadowOption},
-    {TK_CONFIG_CUSTOM, "-shadow", "shadow", "Shadow", DEF_EPS_SHADOW_MONO, offsetof(EpsItem, titleStyle.shadow),
-     TK_CONFIG_MONO_ONLY, &rbcShadowOption},
-    {TK_CONFIG_BOOLEAN, "-showimage", "showImage", "ShowImage", DEF_EPS_SHOW_IMAGE, offsetof(EpsItem, showImage),
+    {TK_CONFIG_BITMAP, "-stipple", (char *)NULL, (char *)NULL, NULL, offsetof(EpsItem, stipple), TK_CONFIG_NULL_OK},
+    {TK_CONFIG_CUSTOM, "-tags", (char *)NULL, (char *)NULL, NULL, 0, TK_CONFIG_NULL_OK, &tagsOption},
+    {TK_CONFIG_STRING, "-title", (char *)NULL, (char *)NULL, NULL, offsetof(EpsItem, reqTitle), TK_CONFIG_NULL_OK},
+    {TK_CONFIG_ANCHOR, "-titleanchor", (char *)NULL, (char *)NULL, "center", offsetof(EpsItem, titleStyle.anchor), 0},
+    {TK_CONFIG_COLOR, "-titlecolor", (char *)NULL, (char *)NULL, RGB_BLACK, offsetof(EpsItem, titleStyle.color),
+     TK_CONFIG_COLOR_ONLY},
+    {TK_CONFIG_DOUBLE, "-titlerotate", "titleRotate", "TitleRotate", "0", offsetof(EpsItem, titleStyle.theta),
      TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_BITMAP, "-stipple", (char *)NULL, (char *)NULL, DEF_EPS_STIPPLE, offsetof(EpsItem, stipple),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_CUSTOM, "-tags", (char *)NULL, (char *)NULL, DEF_EPS_TAGS, 0, TK_CONFIG_NULL_OK, &tagsOption},
-    {TK_CONFIG_STRING, "-title", (char *)NULL, (char *)NULL, DEF_EPS_TITLE, offsetof(EpsItem, reqTitle),
-     TK_CONFIG_NULL_OK},
-    {TK_CONFIG_ANCHOR, "-titleanchor", (char *)NULL, (char *)NULL, DEF_EPS_TITLE_ANCHOR,
-     offsetof(EpsItem, titleStyle.anchor), 0},
-    {TK_CONFIG_COLOR, "-titlecolor", (char *)NULL, (char *)NULL, DEF_EPS_TITLE_COLOR,
-     offsetof(EpsItem, titleStyle.color), TK_CONFIG_COLOR_ONLY},
-    {TK_CONFIG_DOUBLE, "-titlerotate", "titleRotate", "TitleRotate", DEF_EPS_TITLE_ROTATE,
-     offsetof(EpsItem, titleStyle.theta), TK_CONFIG_DONT_SET_DEFAULT},
-    {TK_CONFIG_CUSTOM, "-width", (char *)NULL, (char *)NULL, DEF_EPS_WIDTH, offsetof(EpsItem, width),
-     TK_CONFIG_DONT_SET_DEFAULT, &rbcDistanceOption},
+    {TK_CONFIG_CUSTOM, "-width", (char *)NULL, (char *)NULL, "0", offsetof(EpsItem, width), TK_CONFIG_DONT_SET_DEFAULT,
+     &rbcDistanceOption},
     {TK_CONFIG_END, (char *)NULL, (char *)NULL, (char *)NULL, (char *)NULL, 0, 0}};
 
 /*

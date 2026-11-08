@@ -84,7 +84,6 @@
 #define BROKEN_TRACE(dir, last, next)                                                                                  \
     (((((dir) & PEN_DECREASING) == 0) && ((next) < (last))) || ((((dir) & PEN_INCREASING) == 0) && ((next) > (last))))
 
-
 /** @ingroup selector_element
  * @brief Selects construction of the mapped trace; the final value terminates the smoothing-name map. */
 typedef enum {
@@ -452,73 +451,6 @@ _Static_assert(offsetof(Line, core) == 0, "Element core must be the first Line m
 #define LINE_CORE_OFFSET(member) (offsetof(Line, core) + offsetof(Element, member))
 #define LINE_BUILTIN_PEN_OFFSET(member) (offsetof(Line, builtinPen) + offsetof(LinePen, member))
 
-#define DEF_LINE_ACTIVE_PEN "activeLine"
-#define DEF_LINE_AXIS_X "x"
-#define DEF_LINE_AXIS_Y "y"
-#define DEF_LINE_DASHES (char *)NULL
-#define DEF_LINE_DATA (char *)NULL
-#define DEF_LINE_FILL_COLOR "defcolor"
-#define DEF_LINE_FILL_MONO "defcolor"
-#define DEF_LINE_HIDE "no"
-#define DEF_LINE_HIDE_PLOT "no"
-#define DEF_LINE_LABEL (char *)NULL
-#define DEF_LINE_LABEL_RELIEF "flat"
-#define DEF_LINE_MAX_SYMBOLS "0"
-#define DEF_LINE_OFFDASH_COLOR (char *)NULL
-#define DEF_LINE_OFFDASH_MONO (char *)NULL
-#define DEF_LINE_OUTLINE_COLOR "defcolor"
-#define DEF_LINE_OUTLINE_MONO "defcolor"
-#define DEF_LINE_OUTLINE_WIDTH "1"
-#define DEF_LINE_PATTERN (char *)NULL
-#define DEF_LINE_PATTERN_BG "white"
-#define DEF_LINE_PATTERN_FG "black"
-#define DEF_LINE_PATTERN_TILE (char *)NULL
-#define DEF_LINE_PEN_COLOR RGB_NAVYBLUE
-#define DEF_LINE_PEN_DIRECTION "both"
-#define DEF_LINE_PEN_MONO RGB_BLACK
-#define DEF_LINE_PEN_WIDTH "1"
-#define DEF_LINE_PIXELS "0.125i"
-#define DEF_LINE_REDUCE "0.0"
-#define DEF_LINE_SCALE_SYMBOLS "no"
-#define DEF_LINE_SMOOTH "linear"
-#define DEF_LINE_STATE "normal"
-#define DEF_LINE_STIPPLE (char *)NULL
-#define DEF_LINE_STYLES ""
-#define DEF_LINE_SYMBOL "circle"
-#define DEF_LINE_TAGS "all"
-#define DEF_LINE_X_DATA (char *)NULL
-#define DEF_LINE_Y_DATA (char *)NULL
-#define DEF_LINE_ERRORBAR_COLOR "defcolor"
-#define DEF_LINE_ERRORBAR_LINE_WIDTH "1"
-#define DEF_LINE_ERRORBAR_CAP_WIDTH "1"
-#define DEF_LINE_SHOW_ERRORBARS "both"
-#define DEF_PEN_ACTIVE_COLOR RGB_BLUE
-#define DEF_PEN_ACTIVE_MONO RGB_BLACK
-#define DEF_PEN_DASHES (char *)NULL
-#define DEF_PEN_FILL_COLOR "defcolor"
-#define DEF_PEN_FILL_MONO "defcolor"
-#define DEF_PEN_LINE_WIDTH "1"
-#define DEF_PEN_NORMAL_COLOR RGB_NAVYBLUE
-#define DEF_PEN_NORMAL_MONO RGB_BLACK
-#define DEF_PEN_OFFDASH_COLOR (char *)NULL
-#define DEF_PEN_OFFDASH_MONO (char *)NULL
-#define DEF_PEN_OUTLINE_COLOR "defcolor"
-#define DEF_PEN_OUTLINE_MONO "defcolor"
-#define DEF_PEN_OUTLINE_WIDTH "1"
-#define DEF_PEN_PIXELS "0.125i"
-#define DEF_PEN_SYMBOL "circle"
-#define DEF_PEN_TYPE "line"
-#define DEF_PEN_VALUE_ANCHOR "s"
-#define DEF_PEN_VALUE_COLOR RGB_BLACK
-#define DEF_PEN_VALUE_FONT STD_FONT_SMALL
-#define DEF_PEN_VALUE_FORMAT "%g"
-#define DEF_PEN_VALUE_ROTATE (char *)NULL
-#define DEF_PEN_VALUE_SHADOW (char *)NULL
-#define DEF_PEN_SHOW_VALUES "no"
-#define DEF_LINE_CDATA_FORMAT "gamma"
-#define DEF_LINE_Z0 "50.0"
-#define DEF_LINE_DECIMATE "none"
-
 /*
  * Line and strip-element option conversion masks.
  *
@@ -587,548 +519,516 @@ typedef struct {
 /*
  * Options present only for graph line elements.
  */
-#define LINE_ELEMENT_AREA_OPTION_ENTRIES                                      \
-    {                                                                         \
-        TK_OPTION_STRING_TABLE,                                               \
-        "-areaclose", "areaClose", "AreaClose",                               \
-        "baseline",                                                           \
-        -1,                                                                   \
-        offsetof(Line, areaClose),                                            \
-        0,                                                                    \
-        (ClientData)lineAreaCloseNames,                                       \
-        LINE_ELEM_MAP_ITEM_MASK                                               \
-    },                                                                        \
-    {                                                                         \
-        TK_OPTION_DOUBLE,                                                     \
-        "-areaopacity", "areaOpacity", "AreaOpacity",                         \
-        "1.0",                                                                \
-        -1,                                                                   \
-        offsetof(Line, areaOpacity),                                         \
-        0,                                                                    \
-        NULL,                                                                 \
-        LINE_ELEM_AREA_MASK                                                   \
-    },                                                                        \
-    {                                                                         \
-        TK_OPTION_STRING,                                                     \
-        "-areapattern", "areaPattern", "AreaPattern",                         \
-        DEF_LINE_PATTERN,                                                     \
-        offsetof(Line, areaPatternObjPtr),                                    \
-        -1,                                                                   \
-        TK_OPTION_NULL_OK,                                                    \
-        NULL,                                                                 \
-        LINE_ELEM_AREA_MASK | LINE_ELEM_MAP_ITEM_MASK                         \
-    },                                                                        \
-    {                                                                         \
-        TK_OPTION_COLOR,                                                      \
-        "-areaforeground", "areaForeground", "areaForeground",                 \
-        DEF_LINE_PATTERN_FG,                                                  \
-        -1,                                                                   \
-        offsetof(Line, fillFgColor),                                          \
-        TK_OPTION_NULL_OK,                                                    \
-        NULL,                                                                 \
-        LINE_ELEM_AREA_MASK                                                   \
-    },                                                                        \
-    {                                                                         \
-        TK_OPTION_COLOR,                                                      \
-        "-areabackground", "areaBackground", "areaBackground",                 \
-        DEF_LINE_PATTERN_BG,                                                  \
-        -1,                                                                   \
-        offsetof(Line, fillBgColor),                                          \
-        TK_OPTION_NULL_OK,                                                    \
-        NULL,                                                                 \
-        LINE_ELEM_AREA_MASK                                                   \
-    },                                                                        \
-    {                                                                         \
-        TK_OPTION_STRING,                                                     \
-        "-areatile", "areaTile", "AreaTile",                                  \
-        DEF_LINE_PATTERN_TILE,                                                \
-        offsetof(Line, areaTileObjPtr),                                       \
-        -1,                                                                   \
-        TK_OPTION_NULL_OK,                                                    \
-        NULL,                                                                 \
-        LINE_ELEM_AREA_MASK | LINE_ELEM_MAP_ITEM_MASK                         \
-    },
+#define LINE_ELEMENT_AREA_OPTION_ENTRIES                                                                               \
+    {TK_OPTION_STRING_TABLE,                                                                                           \
+     "-areaclose",                                                                                                     \
+     "areaClose",                                                                                                      \
+     "AreaClose",                                                                                                      \
+     "baseline",                                                                                                       \
+     -1,                                                                                                               \
+     offsetof(Line, areaClose),                                                                                        \
+     0,                                                                                                                \
+     (ClientData)lineAreaCloseNames,                                                                                   \
+     LINE_ELEM_MAP_ITEM_MASK},                                                                                         \
+        {TK_OPTION_DOUBLE,                                                                                             \
+         "-areaopacity",                                                                                               \
+         "areaOpacity",                                                                                                \
+         "AreaOpacity",                                                                                                \
+         "1.0",                                                                                                        \
+         -1,                                                                                                           \
+         offsetof(Line, areaOpacity),                                                                                  \
+         0,                                                                                                            \
+         NULL,                                                                                                         \
+         LINE_ELEM_AREA_MASK},                                                                                         \
+        {TK_OPTION_STRING,                                                                                             \
+         "-areapattern",                                                                                               \
+         "areaPattern",                                                                                                \
+         "AreaPattern",                                                                                                \
+         NULL,                                                                                                         \
+         offsetof(Line, areaPatternObjPtr),                                                                            \
+         -1,                                                                                                           \
+         TK_OPTION_NULL_OK,                                                                                            \
+         NULL,                                                                                                         \
+         LINE_ELEM_AREA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
+        {TK_OPTION_COLOR,                                                                                              \
+         "-areaforeground",                                                                                            \
+         "areaForeground",                                                                                             \
+         "areaForeground",                                                                                             \
+         "black",                                                                                                      \
+         -1,                                                                                                           \
+         offsetof(Line, fillFgColor),                                                                                  \
+         TK_OPTION_NULL_OK,                                                                                            \
+         NULL,                                                                                                         \
+         LINE_ELEM_AREA_MASK},                                                                                         \
+        {TK_OPTION_COLOR,                                                                                              \
+         "-areabackground",                                                                                            \
+         "areaBackground",                                                                                             \
+         "areaBackground",                                                                                             \
+         "white",                                                                                                      \
+         -1,                                                                                                           \
+         offsetof(Line, fillBgColor),                                                                                  \
+         TK_OPTION_NULL_OK,                                                                                            \
+         NULL,                                                                                                         \
+         LINE_ELEM_AREA_MASK},                                                                                         \
+        {TK_OPTION_STRING,                                                                                             \
+         "-areatile",                                                                                                  \
+         "areaTile",                                                                                                   \
+         "AreaTile",                                                                                                   \
+         NULL,                                                                                                         \
+         offsetof(Line, areaTileObjPtr),                                                                               \
+         -1,                                                                                                           \
+         TK_OPTION_NULL_OK,                                                                                            \
+         NULL,                                                                                                         \
+         LINE_ELEM_AREA_MASK | LINE_ELEM_MAP_ITEM_MASK},
 
-#define LINE_ELEMENT_REDUCE_OPTION_ENTRY                                      \
-    {                                                                         \
-        TK_OPTION_DOUBLE,                                                     \
-        "-reduce", "reduce", "Reduce",                                        \
-        DEF_LINE_REDUCE,                                                      \
-        -1,                                                                   \
-        offsetof(Line, rTolerance),                                           \
-        0,                                                                    \
-        NULL,                                                                 \
-        LINE_ELEM_MAP_ITEM_MASK                                               \
-    },
+#define LINE_ELEMENT_REDUCE_OPTION_ENTRY                                                                               \
+    {TK_OPTION_DOUBLE,       "-reduce", "reduce", "Reduce", "0.0", -1, offsetof(Line, rTolerance), 0, NULL,            \
+     LINE_ELEM_MAP_ITEM_MASK},
 
-#define LINE_ELEMENT_STATE_OPTION_ENTRY                                       \
-    {                                                                         \
-        TK_OPTION_STRING,                                                     \
-        "-state", "state", "State",                                           \
-        DEF_LINE_STATE,                                                       \
-        LINE_CORE_OFFSET(stateObjPtr),                                        \
-        -1,                                                                   \
-        0,                                                                    \
-        NULL,                                                                 \
-        LINE_ELEM_STATE_MASK                                                  \
-    },
+#define LINE_ELEMENT_STATE_OPTION_ENTRY                                                                                \
+    {TK_OPTION_STRING,    "-state", "state", "State", "normal", LINE_CORE_OFFSET(stateObjPtr), -1, 0, NULL,            \
+     LINE_ELEM_STATE_MASK},
 
-#define LINE_ELEMENT_TRACE_OPTION_ENTRY                                       \
-    {                                                                         \
-        TK_OPTION_STRING,                                                     \
-        "-trace", "trace", "Trace",                                           \
-        DEF_LINE_PEN_DIRECTION,                                               \
-        offsetof(Line, traceObjPtr),                                          \
-        -1,                                                                   \
-        0,                                                                    \
-        NULL,                                                                 \
-        LINE_ELEM_TRACE_MASK | LINE_ELEM_MAP_ITEM_MASK                        \
-    },
+#define LINE_ELEMENT_TRACE_OPTION_ENTRY                                                                                \
+    {TK_OPTION_STRING,                                                                                                 \
+     "-trace",                                                                                                         \
+     "trace",                                                                                                          \
+     "Trace",                                                                                                          \
+     "both",                                                                                                           \
+     offsetof(Line, traceObjPtr),                                                                                      \
+     -1,                                                                                                               \
+     0,                                                                                                                \
+     NULL,                                                                                                             \
+     LINE_ELEM_TRACE_MASK | LINE_ELEM_MAP_ITEM_MASK},
 
 #define LINE_ELEMENT_NO_OPTION_ENTRIES
 
-#define LINE_ELEMENT_OPTION_ENTRIES(AREA_ENTRIES, REDUCE_ENTRY, STATE_ENTRY, TRACE_ENTRY)                              \
-    {TK_OPTION_STRING,                                                                                                 \
-     "-activepen",                                                                                                     \
-     "activePen",                                                                                                      \
-     "ActivePen",                                                                                                      \
-     DEF_LINE_ACTIVE_PEN,                                                                                              \
-     LINE_CORE_OFFSET(activePenObjPtr),                                                                                \
-     -1,                                                                                                               \
-     TK_OPTION_NULL_OK,                                                                                                \
-     NULL,                                                                                                             \
-     LINE_ELEM_PEN_MASK},                                                                                              \
-        AREA_ENTRIES{TK_OPTION_STRING,                                                                                 \
-                     "-bindtags",                                                                                      \
-                     "bindTags",                                                                                       \
-                     "BindTags",                                                                                       \
-                     DEF_LINE_TAGS,                                                                                    \
-                     LINE_CORE_OFFSET(bindTagsObjPtr),                                                                 \
-                     -1,                                                                                               \
-                     TK_OPTION_NULL_OK,                                                                                \
-                     NULL,                                                                                             \
-                     LINE_ELEM_TAGS_MASK},                                                                             \
-        {TK_OPTION_COLOR,                                                                                              \
-         "-color",                                                                                                     \
-         "color",                                                                                                      \
-         "Color",                                                                                                      \
-         DEF_LINE_PEN_COLOR,                                                                                           \
-         -1,                                                                                                           \
-         LINE_BUILTIN_PEN_OFFSET(traceColor),                                                                          \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-dashes",                                                                                                    \
-         "dashes",                                                                                                     \
-         "Dashes",                                                                                                     \
-         DEF_LINE_DASHES,                                                                                              \
-         LINE_BUILTIN_PEN_OFFSET(dashesObjPtr),                                                                        \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-data",                                                                                                      \
-         "data",                                                                                                       \
-         "Data",                                                                                                       \
-         DEF_LINE_DATA,                                                                                                \
-         LINE_CORE_OFFSET(dataObjPtr),                                                                                 \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-        {TK_OPTION_STRING,                                                                                             \
-         "-errorbarcolor",                                                                                             \
-         "errorBarColor",                                                                                              \
-         "ErrorBarColor",                                                                                              \
-         DEF_LINE_ERRORBAR_COLOR,                                                                                      \
-         LINE_BUILTIN_PEN_OFFSET(errorBarColorObjPtr),                                                                 \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-errorbarwidth",                                                                                             \
-         "errorBarWidth",                                                                                              \
-         "ErrorBarWidth",                                                                                              \
-         DEF_LINE_ERRORBAR_LINE_WIDTH,                                                                                 \
-         LINE_BUILTIN_PEN_OFFSET(errorBarWidthObjPtr),                                                                 \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-errorbarcap",                                                                                               \
-         "errorBarCap",                                                                                                \
-         "ErrorBarCap",                                                                                                \
-         DEF_LINE_ERRORBAR_CAP_WIDTH,                                                                                  \
-         LINE_BUILTIN_PEN_OFFSET(errorBarCapObjPtr),                                                                   \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                        \
-        {TK_OPTION_STRING,                                                                                             \
-         "-fill",                                                                                                      \
-         "fill",                                                                                                       \
-         "Fill",                                                                                                       \
-         DEF_LINE_FILL_COLOR,                                                                                          \
-         LINE_BUILTIN_PEN_OFFSET(fillObjPtr),                                                                          \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_BOOLEAN,      "-hide", "hide", "Hide", DEF_LINE_HIDE, -1, LINE_CORE_OFFSET(hidden), 0, NULL,        \
-         LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
-        {TK_OPTION_BOOLEAN,                                                                                            \
-         "-hideplot",                                                                                                  \
-         "hidePlot",                                                                                                   \
-         "HidePlot",                                                                                                   \
-         DEF_LINE_HIDE_PLOT,                                                                                           \
-         -1,                                                                                                           \
-         LINE_CORE_OFFSET(plotHidden),                                                                                 \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
-        {TK_OPTION_STRING,                                                                                             \
-         "-label",                                                                                                     \
-         "label",                                                                                                      \
-         "Label",                                                                                                      \
-         DEF_LINE_LABEL,                                                                                               \
-         -1,                                                                                                           \
-         LINE_CORE_OFFSET(label),                                                                                      \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
-        {TK_OPTION_RELIEF,                                                                                             \
-         "-labelrelief",                                                                                               \
-         "labelRelief",                                                                                                \
-         "LabelRelief",                                                                                                \
-         DEF_LINE_LABEL_RELIEF,                                                                                        \
-         -1,                                                                                                           \
-         LINE_CORE_OFFSET(labelRelief),                                                                                \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
-        {TK_OPTION_STRING,                                                                                             \
-         "-linewidth",                                                                                                 \
-         "lineWidth",                                                                                                  \
-         "LineWidth",                                                                                                  \
-         DEF_LINE_PEN_WIDTH,                                                                                           \
-         LINE_BUILTIN_PEN_OFFSET(lineWidthObjPtr),                                                                     \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-mapx",                                                                                                      \
-         "mapX",                                                                                                       \
-         "MapX",                                                                                                       \
-         DEF_LINE_AXIS_X,                                                                                              \
-         LINE_CORE_OFFSET(mapXObjPtr),                                                                                 \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_AXES_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-        {TK_OPTION_STRING,                                                                                             \
-         "-mapy",                                                                                                      \
-         "mapY",                                                                                                       \
-         "MapY",                                                                                                       \
-         DEF_LINE_AXIS_Y,                                                                                              \
-         LINE_CORE_OFFSET(mapYObjPtr),                                                                                 \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_AXES_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-        {TK_OPTION_STRING,                                                                                             \
-         "-track",                                                                                                     \
-         "track",                                                                                                      \
-         "Track",                                                                                                      \
-         "",                                                                                                           \
-         LINE_CORE_OFFSET(trackObjPtr),                                                                                \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
-        {TK_OPTION_STRING_TABLE,                                                                                       \
-         "-symbolpoints",                                                                                              \
-         "symbolPoints",                                                                                               \
-         "SymbolPoints",                                                                                               \
-         "all",                                                                                                        \
-         -1,                                                                                                           \
-         offsetof(Line, symbolPoints),                                                                                 \
-         0,                                                                                                            \
-         (ClientData)lineSymbolPointNames,                                                                             \
-         LINE_ELEM_MAP_ITEM_MASK},                                                                                     \
-        {TK_OPTION_STRING,                                                                                             \
-         "-maxsymbols",                                                                                                \
-         "maxSymbols",                                                                                                 \
-         "MaxSymbols",                                                                                                 \
-         DEF_LINE_MAX_SYMBOLS,                                                                                         \
-         offsetof(Line, maxSymbolsObjPtr),                                                                             \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                        \
-        {TK_OPTION_STRING,                                                                                             \
-         "-offdash",                                                                                                   \
-         "offDash",                                                                                                    \
-         "OffDash",                                                                                                    \
-         DEF_LINE_OFFDASH_COLOR,                                                                                       \
-         LINE_BUILTIN_PEN_OFFSET(offDashObjPtr),                                                                       \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-outline",                                                                                                   \
-         "outline",                                                                                                    \
-         "Outline",                                                                                                    \
-         DEF_LINE_OUTLINE_COLOR,                                                                                       \
-         LINE_BUILTIN_PEN_OFFSET(outlineObjPtr),                                                                       \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-outlinewidth",                                                                                              \
-         "outlineWidth",                                                                                               \
-         "OutlineWidth",                                                                                               \
-         DEF_LINE_OUTLINE_WIDTH,                                                                                       \
-         LINE_BUILTIN_PEN_OFFSET(outlineWidthObjPtr),                                                                  \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-pen",                                                                                                       \
-         "pen",                                                                                                        \
-         "Pen",                                                                                                        \
-         NULL,                                                                                                         \
-         LINE_CORE_OFFSET(normalPenObjPtr),                                                                            \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_PEN_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                \
-        {TK_OPTION_STRING,                                                                                             \
-         "-pixels",                                                                                                    \
-         "pixels",                                                                                                     \
-         "Pixels",                                                                                                     \
-         DEF_LINE_PIXELS,                                                                                              \
-         LINE_BUILTIN_PEN_OFFSET(pixelsObjPtr),                                                                        \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                        \
-        REDUCE_ENTRY{TK_OPTION_BOOLEAN,                                                                                \
-                     "-scalesymbols",                                                                                  \
-                     "scaleSymbols",                                                                                   \
-                     "ScaleSymbols",                                                                                   \
-                     DEF_LINE_SCALE_SYMBOLS,                                                                           \
-                     -1,                                                                                               \
-                     LINE_CORE_OFFSET(scaleSymbols),                                                                   \
-                     0,                                                                                                \
-                     NULL,                                                                                             \
-                     LINE_ELEM_SCALE_SYMBOL_MASK},                                                                     \
-        {TK_OPTION_STRING,                                                                                             \
-         "-showerrorbars",                                                                                             \
-         "showErrorBars",                                                                                              \
-         "ShowErrorBars",                                                                                              \
-         DEF_LINE_SHOW_ERRORBARS,                                                                                      \
-         LINE_BUILTIN_PEN_OFFSET(showErrorBarsObjPtr),                                                                 \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-showvalues",                                                                                                \
-         "showValues",                                                                                                 \
-         "ShowValues",                                                                                                 \
-         DEF_PEN_SHOW_VALUES,                                                                                          \
-         LINE_BUILTIN_PEN_OFFSET(showValuesObjPtr),                                                                    \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-smooth",                                                                                                    \
-         "smooth",                                                                                                     \
-         "Smooth",                                                                                                     \
-         DEF_LINE_SMOOTH,                                                                                              \
-         offsetof(Line, smoothObjPtr),                                                                                 \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_SMOOTH_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                             \
-        STATE_ENTRY{TK_OPTION_STRING,                                                                                  \
-                    "-styles",                                                                                         \
-                    "styles",                                                                                          \
-                    "Styles",                                                                                          \
-                    DEF_LINE_STYLES,                                                                                   \
-                    LINE_CORE_OFFSET(stylesObjPtr),                                                                    \
-                    -1,                                                                                                \
-                    TK_OPTION_NULL_OK,                                                                                 \
-                    NULL,                                                                                              \
-                    LINE_ELEM_STYLES_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-symbol",                                                                                                    \
-         "symbol",                                                                                                     \
-         "Symbol",                                                                                                     \
-         DEF_LINE_SYMBOL,                                                                                              \
-         LINE_BUILTIN_PEN_OFFSET(symbolObjPtr),                                                                        \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        TRACE_ENTRY{TK_OPTION_ANCHOR,                                                                                  \
-                    "-valueanchor",                                                                                    \
-                    "valueAnchor",                                                                                     \
-                    "ValueAnchor",                                                                                     \
-                    DEF_PEN_VALUE_ANCHOR,                                                                              \
-                    -1,                                                                                                \
-                    LINE_BUILTIN_PEN_OFFSET(valueStyle.anchor),                                                        \
-                    0,                                                                                                 \
-                    NULL,                                                                                              \
-                    LINE_ELEM_BUILTIN_PEN_MASK},                                                                       \
-        {TK_OPTION_COLOR,                                                                                              \
-         "-valuecolor",                                                                                                \
-         "valueColor",                                                                                                 \
-         "ValueColor",                                                                                                 \
-         DEF_PEN_VALUE_COLOR,                                                                                          \
-         -1,                                                                                                           \
-         LINE_BUILTIN_PEN_OFFSET(valueStyle.color),                                                                    \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_FONT,                                                                                               \
-         "-valuefont",                                                                                                 \
-         "valueFont",                                                                                                  \
-         "ValueFont",                                                                                                  \
-         DEF_PEN_VALUE_FONT,                                                                                           \
-         -1,                                                                                                           \
-         LINE_BUILTIN_PEN_OFFSET(valueStyle.font),                                                                     \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-valueoffset",                                                                                               \
-         "valueOffset",                                                                                                \
-         "ValueOffset",                                                                                                \
-         "0 0",                                                                                                        \
-         LINE_BUILTIN_PEN_OFFSET(valueOffsetObjPtr),                                                                   \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-valuecommand",                                                                                              \
-         "valueCommand",                                                                                               \
-         "ValueCommand",                                                                                               \
-         NULL,                                                                                                         \
-         LINE_BUILTIN_PEN_OFFSET(valueCommandObjPtr),                                                                  \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-valueformat",                                                                                               \
-         "valueFormat",                                                                                                \
-         "ValueFormat",                                                                                                \
-         DEF_PEN_VALUE_FORMAT,                                                                                         \
-         -1,                                                                                                           \
-         LINE_BUILTIN_PEN_OFFSET(valueFormat),                                                                         \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_DOUBLE,                                                                                             \
-         "-valuerotate",                                                                                               \
-         "valueRotate",                                                                                                \
-         "ValueRotate",                                                                                                \
-         "0.0",                                                                                                        \
-         LINE_BUILTIN_PEN_OFFSET(valueRotateObjPtr),                                                                   \
-         LINE_BUILTIN_PEN_OFFSET(valueStyle.theta),                                                                    \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-valueshadow",                                                                                               \
-         "valueShadow",                                                                                                \
-         "ValueShadow",                                                                                                \
-         DEF_PEN_VALUE_SHADOW,                                                                                         \
-         LINE_BUILTIN_PEN_OFFSET(valueShadowObjPtr),                                                                   \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                  \
-        {TK_OPTION_STRING,                                                                                             \
-         "-weights",                                                                                                   \
-         "weights",                                                                                                    \
-         "Weights",                                                                                                    \
-         NULL,                                                                                                         \
-         LINE_CORE_OFFSET(weightsObjPtr),                                                                              \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-        {TK_OPTION_STRING,          "-x", "xData",           "XData", DEF_LINE_X_DATA,                                 \
-         LINE_CORE_OFFSET(xObjPtr), -1,   TK_OPTION_NULL_OK, NULL,    LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},  \
-        {TK_OPTION_SYNONYM, "-xdata", NULL, NULL, NULL, -1, -1, 0, "-x", 0},                                           \
-        {TK_OPTION_STRING,                                                                                             \
-         "-xerror",                                                                                                    \
-         "xError",                                                                                                     \
-         "XError",                                                                                                     \
-         NULL,                                                                                                         \
-         LINE_CORE_OFFSET(xErrorObjPtr),                                                                               \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-        {TK_OPTION_STRING,                                                                                             \
-         "-xhigh",                                                                                                     \
-         "xHigh",                                                                                                      \
-         "XHigh",                                                                                                      \
-         NULL,                                                                                                         \
-         LINE_CORE_OFFSET(xHighObjPtr),                                                                                \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-        {TK_OPTION_STRING,                                                                                             \
-         "-xlow",                                                                                                      \
-         "xLow",                                                                                                       \
-         "XLow",                                                                                                       \
-         NULL,                                                                                                         \
-         LINE_CORE_OFFSET(xLowObjPtr),                                                                                 \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-        {TK_OPTION_STRING,          "-y", "yData",           "YData", DEF_LINE_Y_DATA,                                 \
-         LINE_CORE_OFFSET(yObjPtr), -1,   TK_OPTION_NULL_OK, NULL,    LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},  \
-        {TK_OPTION_SYNONYM, "-ydata", NULL, NULL, NULL, -1, -1, 0, "-y", 0},                                           \
-        {TK_OPTION_STRING,                                                                                             \
-         "-yerror",                                                                                                    \
-         "yError",                                                                                                     \
-         "YError",                                                                                                     \
-         NULL,                                                                                                         \
-         LINE_CORE_OFFSET(yErrorObjPtr),                                                                               \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-        {TK_OPTION_STRING,                                                                                             \
-         "-yhigh",                                                                                                     \
-         "yHigh",                                                                                                      \
-         "YHigh",                                                                                                      \
-         NULL,                                                                                                         \
-         LINE_CORE_OFFSET(yHighObjPtr),                                                                                \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
-    {                                                                                                                  \
-        TK_OPTION_STRING, "-ylow", "yLow", "YLow", NULL, LINE_CORE_OFFSET(yLowObjPtr), -1, TK_OPTION_NULL_OK, NULL,    \
-            LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK                                                              \
+#define LINE_ELEMENT_OPTION_ENTRIES(AREA_ENTRIES, REDUCE_ENTRY, STATE_ENTRY, TRACE_ENTRY)                                \
+    {TK_OPTION_STRING,                                                                                                   \
+     "-activepen",                                                                                                       \
+     "activePen",                                                                                                        \
+     "ActivePen",                                                                                                        \
+     "activeLine",                                                                                                       \
+     LINE_CORE_OFFSET(activePenObjPtr),                                                                                  \
+     -1,                                                                                                                 \
+     TK_OPTION_NULL_OK,                                                                                                  \
+     NULL,                                                                                                               \
+     LINE_ELEM_PEN_MASK},                                                                                                \
+        AREA_ENTRIES{TK_OPTION_STRING,                                                                                   \
+                     "-bindtags",                                                                                        \
+                     "bindTags",                                                                                         \
+                     "BindTags",                                                                                         \
+                     "all",                                                                                              \
+                     LINE_CORE_OFFSET(bindTagsObjPtr),                                                                   \
+                     -1,                                                                                                 \
+                     TK_OPTION_NULL_OK,                                                                                  \
+                     NULL,                                                                                               \
+                     LINE_ELEM_TAGS_MASK},                                                                               \
+        {TK_OPTION_COLOR,                                                                                                \
+         "-color",                                                                                                       \
+         "color",                                                                                                        \
+         "Color",                                                                                                        \
+         RGB_NAVYBLUE,                                                                                                   \
+         -1,                                                                                                             \
+         LINE_BUILTIN_PEN_OFFSET(traceColor),                                                                            \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-dashes",                                                                                                      \
+         "dashes",                                                                                                       \
+         "Dashes",                                                                                                       \
+         NULL,                                                                                                           \
+         LINE_BUILTIN_PEN_OFFSET(dashesObjPtr),                                                                          \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-data",                                                                                                        \
+         "data",                                                                                                         \
+         "Data",                                                                                                         \
+         NULL,                                                                                                           \
+         LINE_CORE_OFFSET(dataObjPtr),                                                                                   \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+        {TK_OPTION_STRING,                                                                                               \
+         "-errorbarcolor",                                                                                               \
+         "errorBarColor",                                                                                                \
+         "ErrorBarColor",                                                                                                \
+         "defcolor",                                                                                                     \
+         LINE_BUILTIN_PEN_OFFSET(errorBarColorObjPtr),                                                                   \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-errorbarwidth",                                                                                               \
+         "errorBarWidth",                                                                                                \
+         "ErrorBarWidth",                                                                                                \
+         "1",                                                                                                            \
+         LINE_BUILTIN_PEN_OFFSET(errorBarWidthObjPtr),                                                                   \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-errorbarcap",                                                                                                 \
+         "errorBarCap",                                                                                                  \
+         "ErrorBarCap",                                                                                                  \
+         "1",                                                                                                            \
+         LINE_BUILTIN_PEN_OFFSET(errorBarCapObjPtr),                                                                     \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                          \
+        {TK_OPTION_STRING,                                                                                               \
+         "-fill",                                                                                                        \
+         "fill",                                                                                                         \
+         "Fill",                                                                                                         \
+         "defcolor",                                                                                                     \
+         LINE_BUILTIN_PEN_OFFSET(fillObjPtr),                                                                            \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_BOOLEAN,      "-hide", "hide", "Hide", "no", -1, LINE_CORE_OFFSET(hidden), 0, NULL,                   \
+         LINE_ELEM_MAP_ITEM_MASK},                                                                                       \
+        {TK_OPTION_BOOLEAN,      "-hideplot", "hidePlot", "HidePlot", "no", -1, LINE_CORE_OFFSET(plotHidden), 0, NULL,   \
+         LINE_ELEM_MAP_ITEM_MASK},                                                                                       \
+        {TK_OPTION_STRING,       "-label", "label", "Label", NULL, -1, LINE_CORE_OFFSET(label), TK_OPTION_NULL_OK, NULL, \
+         LINE_ELEM_MAP_ITEM_MASK},                                                                                       \
+        {TK_OPTION_RELIEF,                                                                                               \
+         "-labelrelief",                                                                                                 \
+         "labelRelief",                                                                                                  \
+         "LabelRelief",                                                                                                  \
+         "flat",                                                                                                         \
+         -1,                                                                                                             \
+         LINE_CORE_OFFSET(labelRelief),                                                                                  \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_MAP_ITEM_MASK},                                                                                       \
+        {TK_OPTION_STRING,                                                                                               \
+         "-linewidth",                                                                                                   \
+         "lineWidth",                                                                                                    \
+         "LineWidth",                                                                                                    \
+         "1",                                                                                                            \
+         LINE_BUILTIN_PEN_OFFSET(lineWidthObjPtr),                                                                       \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-mapx",                                                                                                        \
+         "mapX",                                                                                                         \
+         "MapX",                                                                                                         \
+         "x",                                                                                                            \
+         LINE_CORE_OFFSET(mapXObjPtr),                                                                                   \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_AXES_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+        {TK_OPTION_STRING,                                                                                               \
+         "-mapy",                                                                                                        \
+         "mapY",                                                                                                         \
+         "MapY",                                                                                                         \
+         "y",                                                                                                            \
+         LINE_CORE_OFFSET(mapYObjPtr),                                                                                   \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_AXES_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+        {TK_OPTION_STRING,                                                                                               \
+         "-track",                                                                                                       \
+         "track",                                                                                                        \
+         "Track",                                                                                                        \
+         "",                                                                                                             \
+         LINE_CORE_OFFSET(trackObjPtr),                                                                                  \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_MAP_ITEM_MASK},                                                                                       \
+        {TK_OPTION_STRING_TABLE,                                                                                         \
+         "-symbolpoints",                                                                                                \
+         "symbolPoints",                                                                                                 \
+         "SymbolPoints",                                                                                                 \
+         "all",                                                                                                          \
+         -1,                                                                                                             \
+         offsetof(Line, symbolPoints),                                                                                   \
+         0,                                                                                                              \
+         (ClientData)lineSymbolPointNames,                                                                               \
+         LINE_ELEM_MAP_ITEM_MASK},                                                                                       \
+        {TK_OPTION_STRING,                                                                                               \
+         "-maxsymbols",                                                                                                  \
+         "maxSymbols",                                                                                                   \
+         "MaxSymbols",                                                                                                   \
+         "0",                                                                                                            \
+         offsetof(Line, maxSymbolsObjPtr),                                                                               \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_MAX_SYMBOLS_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                          \
+        {TK_OPTION_STRING,                                                                                               \
+         "-offdash",                                                                                                     \
+         "offDash",                                                                                                      \
+         "OffDash",                                                                                                      \
+         NULL,                                                                                                           \
+         LINE_BUILTIN_PEN_OFFSET(offDashObjPtr),                                                                         \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-outline",                                                                                                     \
+         "outline",                                                                                                      \
+         "Outline",                                                                                                      \
+         "defcolor",                                                                                                     \
+         LINE_BUILTIN_PEN_OFFSET(outlineObjPtr),                                                                         \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-outlinewidth",                                                                                                \
+         "outlineWidth",                                                                                                 \
+         "OutlineWidth",                                                                                                 \
+         "1",                                                                                                            \
+         LINE_BUILTIN_PEN_OFFSET(outlineWidthObjPtr),                                                                    \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-pen",                                                                                                         \
+         "pen",                                                                                                          \
+         "Pen",                                                                                                          \
+         NULL,                                                                                                           \
+         LINE_CORE_OFFSET(normalPenObjPtr),                                                                              \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_PEN_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                  \
+        {TK_OPTION_STRING,                                                                                               \
+         "-pixels",                                                                                                      \
+         "pixels",                                                                                                       \
+         "Pixels",                                                                                                       \
+         "0.125i",                                                                                                       \
+         LINE_BUILTIN_PEN_OFFSET(pixelsObjPtr),                                                                          \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                          \
+        REDUCE_ENTRY{TK_OPTION_BOOLEAN,                                                                                  \
+                     "-scalesymbols",                                                                                    \
+                     "scaleSymbols",                                                                                     \
+                     "ScaleSymbols",                                                                                     \
+                     "no",                                                                                               \
+                     -1,                                                                                                 \
+                     LINE_CORE_OFFSET(scaleSymbols),                                                                     \
+                     0,                                                                                                  \
+                     NULL,                                                                                               \
+                     LINE_ELEM_SCALE_SYMBOL_MASK},                                                                       \
+        {TK_OPTION_STRING,                                                                                               \
+         "-showerrorbars",                                                                                               \
+         "showErrorBars",                                                                                                \
+         "ShowErrorBars",                                                                                                \
+         "both",                                                                                                         \
+         LINE_BUILTIN_PEN_OFFSET(showErrorBarsObjPtr),                                                                   \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-showvalues",                                                                                                  \
+         "showValues",                                                                                                   \
+         "ShowValues",                                                                                                   \
+         "no",                                                                                                           \
+         LINE_BUILTIN_PEN_OFFSET(showValuesObjPtr),                                                                      \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-smooth",                                                                                                      \
+         "smooth",                                                                                                       \
+         "Smooth",                                                                                                       \
+         "linear",                                                                                                       \
+         offsetof(Line, smoothObjPtr),                                                                                   \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_SMOOTH_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                               \
+        STATE_ENTRY{TK_OPTION_STRING,                                                                                    \
+                    "-styles",                                                                                           \
+                    "styles",                                                                                            \
+                    "Styles",                                                                                            \
+                    "",                                                                                                  \
+                    LINE_CORE_OFFSET(stylesObjPtr),                                                                      \
+                    -1,                                                                                                  \
+                    TK_OPTION_NULL_OK,                                                                                   \
+                    NULL,                                                                                                \
+                    LINE_ELEM_STYLES_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-symbol",                                                                                                      \
+         "symbol",                                                                                                       \
+         "Symbol",                                                                                                       \
+         "circle",                                                                                                       \
+         LINE_BUILTIN_PEN_OFFSET(symbolObjPtr),                                                                          \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        TRACE_ENTRY{TK_OPTION_ANCHOR,                                                                                    \
+                    "-valueanchor",                                                                                      \
+                    "valueAnchor",                                                                                       \
+                    "ValueAnchor",                                                                                       \
+                    "s",                                                                                                 \
+                    -1,                                                                                                  \
+                    LINE_BUILTIN_PEN_OFFSET(valueStyle.anchor),                                                          \
+                    0,                                                                                                   \
+                    NULL,                                                                                                \
+                    LINE_ELEM_BUILTIN_PEN_MASK},                                                                         \
+        {TK_OPTION_COLOR,                                                                                                \
+         "-valuecolor",                                                                                                  \
+         "valueColor",                                                                                                   \
+         "ValueColor",                                                                                                   \
+         RGB_BLACK,                                                                                                      \
+         -1,                                                                                                             \
+         LINE_BUILTIN_PEN_OFFSET(valueStyle.color),                                                                      \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_FONT,                                                                                                 \
+         "-valuefont",                                                                                                   \
+         "valueFont",                                                                                                    \
+         "ValueFont",                                                                                                    \
+         STD_FONT_SMALL,                                                                                                 \
+         -1,                                                                                                             \
+         LINE_BUILTIN_PEN_OFFSET(valueStyle.font),                                                                       \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-valueoffset",                                                                                                 \
+         "valueOffset",                                                                                                  \
+         "ValueOffset",                                                                                                  \
+         "0 0",                                                                                                          \
+         LINE_BUILTIN_PEN_OFFSET(valueOffsetObjPtr),                                                                     \
+         -1,                                                                                                             \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-valuecommand",                                                                                                \
+         "valueCommand",                                                                                                 \
+         "ValueCommand",                                                                                                 \
+         NULL,                                                                                                           \
+         LINE_BUILTIN_PEN_OFFSET(valueCommandObjPtr),                                                                    \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-valueformat",                                                                                                 \
+         "valueFormat",                                                                                                  \
+         "ValueFormat",                                                                                                  \
+         "%g",                                                                                                           \
+         -1,                                                                                                             \
+         LINE_BUILTIN_PEN_OFFSET(valueFormat),                                                                           \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_DOUBLE,                                                                                               \
+         "-valuerotate",                                                                                                 \
+         "valueRotate",                                                                                                  \
+         "ValueRotate",                                                                                                  \
+         "0.0",                                                                                                          \
+         LINE_BUILTIN_PEN_OFFSET(valueRotateObjPtr),                                                                     \
+         LINE_BUILTIN_PEN_OFFSET(valueStyle.theta),                                                                      \
+         0,                                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-valueshadow",                                                                                                 \
+         "valueShadow",                                                                                                  \
+         "ValueShadow",                                                                                                  \
+         NULL,                                                                                                           \
+         LINE_BUILTIN_PEN_OFFSET(valueShadowObjPtr),                                                                     \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_BUILTIN_PEN_MASK},                                                                                    \
+        {TK_OPTION_STRING,                                                                                               \
+         "-weights",                                                                                                     \
+         "weights",                                                                                                      \
+         "Weights",                                                                                                      \
+         NULL,                                                                                                           \
+         LINE_CORE_OFFSET(weightsObjPtr),                                                                                \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+        {TK_OPTION_STRING,          "-x", "xData",           "XData", NULL,                                              \
+         LINE_CORE_OFFSET(xObjPtr), -1,   TK_OPTION_NULL_OK, NULL,    LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},    \
+        {TK_OPTION_SYNONYM, "-xdata", NULL, NULL, NULL, -1, -1, 0, "-x", 0},                                             \
+        {TK_OPTION_STRING,                                                                                               \
+         "-xerror",                                                                                                      \
+         "xError",                                                                                                       \
+         "XError",                                                                                                       \
+         NULL,                                                                                                           \
+         LINE_CORE_OFFSET(xErrorObjPtr),                                                                                 \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+        {TK_OPTION_STRING,                                                                                               \
+         "-xhigh",                                                                                                       \
+         "xHigh",                                                                                                        \
+         "XHigh",                                                                                                        \
+         NULL,                                                                                                           \
+         LINE_CORE_OFFSET(xHighObjPtr),                                                                                  \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+        {TK_OPTION_STRING,                                                                                               \
+         "-xlow",                                                                                                        \
+         "xLow",                                                                                                         \
+         "XLow",                                                                                                         \
+         NULL,                                                                                                           \
+         LINE_CORE_OFFSET(xLowObjPtr),                                                                                   \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+        {TK_OPTION_STRING,          "-y", "yData",           "YData", NULL,                                              \
+         LINE_CORE_OFFSET(yObjPtr), -1,   TK_OPTION_NULL_OK, NULL,    LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},    \
+        {TK_OPTION_SYNONYM, "-ydata", NULL, NULL, NULL, -1, -1, 0, "-y", 0},                                             \
+        {TK_OPTION_STRING,                                                                                               \
+         "-yerror",                                                                                                      \
+         "yError",                                                                                                       \
+         "YError",                                                                                                       \
+         NULL,                                                                                                           \
+         LINE_CORE_OFFSET(yErrorObjPtr),                                                                                 \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+        {TK_OPTION_STRING,                                                                                               \
+         "-yhigh",                                                                                                       \
+         "yHigh",                                                                                                        \
+         "YHigh",                                                                                                        \
+         NULL,                                                                                                           \
+         LINE_CORE_OFFSET(yHighObjPtr),                                                                                  \
+         -1,                                                                                                             \
+         TK_OPTION_NULL_OK,                                                                                              \
+         NULL,                                                                                                           \
+         LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK},                                                                 \
+    {                                                                                                                    \
+        TK_OPTION_STRING, "-ylow", "yLow", "YLow", NULL, LINE_CORE_OFFSET(yLowObjPtr), -1, TK_OPTION_NULL_OK, NULL,      \
+            LINE_ELEM_DATA_MASK | LINE_ELEM_MAP_ITEM_MASK                                                                \
     }
 
 #define LINE_BAND_OFFSET(member) (offsetof(Line, errorBand) + offsetof(LineErrorBand, member))
@@ -1167,7 +1067,7 @@ typedef struct {
          "-errorbandforeground",                                                                                       \
          "errorBandForeground",                                                                                        \
          "ErrorBandForeground",                                                                                        \
-         DEF_LINE_PATTERN_FG,                                                                                          \
+         "black",                                                                                                      \
          -1,                                                                                                           \
          LINE_BAND_OFFSET(foreground),                                                                                 \
          TK_OPTION_NULL_OK,                                                                                            \
@@ -1177,7 +1077,7 @@ typedef struct {
          "-errorbandbackground",                                                                                       \
          "errorBandBackground",                                                                                        \
          "ErrorBandBackground",                                                                                        \
-         DEF_LINE_PATTERN_BG,                                                                                          \
+         "white",                                                                                                      \
          -1,                                                                                                           \
          LINE_BAND_OFFSET(background),                                                                                 \
          TK_OPTION_NULL_OK,                                                                                            \
@@ -1202,7 +1102,7 @@ static const Tk_OptionSpec lineElemOptionSpecs[] = {
     LINE_ELEMENT_ERROR_BAND_OPTION_ENTRIES LINE_ELEMENT_OPTION_ENTRIES(
         LINE_ELEMENT_AREA_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY, LINE_ELEMENT_STATE_OPTION_ENTRY,
         LINE_ELEMENT_TRACE_OPTION_ENTRY),
-    {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
+    {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", "none", -1, offsetof(Line, decimate), 0,
      (ClientData)lineDecimateNames, LINE_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_STRING, "-param", "param", "Param", NULL, offsetof(Line, paramObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      LINE_ELEM_PARAM_MASK},
@@ -1216,19 +1116,19 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
     LINE_ELEMENT_ERROR_BAND_OPTION_ENTRIES LINE_ELEMENT_OPTION_ENTRIES(
         LINE_ELEMENT_NO_OPTION_ENTRIES, LINE_ELEMENT_REDUCE_OPTION_ENTRY, LINE_ELEMENT_NO_OPTION_ENTRIES,
         LINE_ELEMENT_NO_OPTION_ENTRIES),
-    {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", DEF_LINE_DECIMATE, -1, offsetof(Line, decimate), 0,
+    {TK_OPTION_STRING_TABLE, "-decimate", "decimate", "Decimate", "none", -1, offsetof(Line, decimate), 0,
      (ClientData)lineDecimateNames, LINE_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 #define LINE_PEN_OPTION_ENTRIES(DEFAULT_COLOR)                                                                         \
     {TK_OPTION_COLOR, "-color", "color", "Color", DEFAULT_COLOR, -1, offsetof(LinePen, traceColor), 0, NULL, 0},       \
-        {TK_OPTION_STRING,  "-dashes", "dashes", "Dashes", DEF_PEN_DASHES, offsetof(LinePen, dashesObjPtr), -1,        \
+        {TK_OPTION_STRING,  "-dashes", "dashes", "Dashes", NULL, offsetof(LinePen, dashesObjPtr), -1,                  \
          TK_OPTION_NULL_OK, NULL,      0},                                                                             \
         {TK_OPTION_STRING,                                                                                             \
          "-errorbarcolor",                                                                                             \
          "errorBarColor",                                                                                              \
          "ErrorBarColor",                                                                                              \
-         DEF_LINE_ERRORBAR_COLOR,                                                                                      \
+         "defcolor",                                                                                                   \
          offsetof(LinePen, errorBarColorObjPtr),                                                                       \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -1238,7 +1138,7 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          "-errorbarwidth",                                                                                             \
          "errorBarWidth",                                                                                              \
          "ErrorBarWidth",                                                                                              \
-         DEF_LINE_ERRORBAR_LINE_WIDTH,                                                                                 \
+         "1",                                                                                                          \
          offsetof(LinePen, errorBarWidthObjPtr),                                                                       \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -1248,39 +1148,31 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          "-errorbarcap",                                                                                               \
          "errorBarCap",                                                                                                \
          "ErrorBarCap",                                                                                                \
-         DEF_LINE_ERRORBAR_CAP_WIDTH,                                                                                  \
+         "1",                                                                                                          \
          offsetof(LinePen, errorBarCapObjPtr),                                                                         \
          -1,                                                                                                           \
          0,                                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
-        {TK_OPTION_STRING,  "-fill", "fill", "Fill", DEF_PEN_FILL_COLOR, offsetof(LinePen, fillObjPtr), -1,            \
+        {TK_OPTION_STRING,  "-fill", "fill", "Fill", "defcolor", offsetof(LinePen, fillObjPtr), -1,                    \
          TK_OPTION_NULL_OK, NULL,    0},                                                                               \
         {TK_OPTION_STRING,                                                                                             \
          "-linewidth",                                                                                                 \
          "lineWidth",                                                                                                  \
          "LineWidth",                                                                                                  \
-         DEF_PEN_LINE_WIDTH,                                                                                           \
+         "1",                                                                                                          \
          offsetof(LinePen, lineWidthObjPtr),                                                                           \
          -1,                                                                                                           \
          0,                                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
-        {TK_OPTION_STRING,                                                                                             \
-         "-offdash",                                                                                                   \
-         "offDash",                                                                                                    \
-         "OffDash",                                                                                                    \
-         DEF_PEN_OFFDASH_COLOR,                                                                                        \
-         offsetof(LinePen, offDashObjPtr),                                                                             \
-         -1,                                                                                                           \
-         TK_OPTION_NULL_OK,                                                                                            \
-         NULL,                                                                                                         \
-         0},                                                                                                           \
+        {TK_OPTION_STRING,  "-offdash", "offDash", "OffDash", NULL, offsetof(LinePen, offDashObjPtr), -1,              \
+         TK_OPTION_NULL_OK, NULL,       0},                                                                            \
         {TK_OPTION_STRING,                                                                                             \
          "-outline",                                                                                                   \
          "outline",                                                                                                    \
          "Outline",                                                                                                    \
-         DEF_PEN_OUTLINE_COLOR,                                                                                        \
+         "defcolor",                                                                                                   \
          offsetof(LinePen, outlineObjPtr),                                                                             \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -1290,27 +1182,18 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          "-outlinewidth",                                                                                              \
          "outlineWidth",                                                                                               \
          "OutlineWidth",                                                                                               \
-         DEF_PEN_OUTLINE_WIDTH,                                                                                        \
+         "1",                                                                                                          \
          offsetof(LinePen, outlineWidthObjPtr),                                                                        \
          -1,                                                                                                           \
          0,                                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
-        {TK_OPTION_STRING,                                                                                             \
-         "-pixels",                                                                                                    \
-         "pixels",                                                                                                     \
-         "Pixels",                                                                                                     \
-         DEF_PEN_PIXELS,                                                                                               \
-         offsetof(LinePen, pixelsObjPtr),                                                                              \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         0},                                                                                                           \
+        {TK_OPTION_STRING, "-pixels", "pixels", "Pixels", "0.125i", offsetof(LinePen, pixelsObjPtr), -1, 0, NULL, 0},  \
         {TK_OPTION_STRING,                                                                                             \
          "-showerrorbars",                                                                                             \
          "showErrorBars",                                                                                              \
          "ShowErrorBars",                                                                                              \
-         DEF_LINE_SHOW_ERRORBARS,                                                                                      \
+         "both",                                                                                                       \
          offsetof(LinePen, showErrorBarsObjPtr),                                                                       \
          -1,                                                                                                           \
          0,                                                                                                            \
@@ -1320,29 +1203,19 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          "-showvalues",                                                                                                \
          "showValues",                                                                                                 \
          "ShowValues",                                                                                                 \
-         DEF_PEN_SHOW_VALUES,                                                                                          \
+         "no",                                                                                                         \
          offsetof(LinePen, showValuesObjPtr),                                                                          \
          -1,                                                                                                           \
          0,                                                                                                            \
          NULL,                                                                                                         \
          0},                                                                                                           \
-        {TK_OPTION_STRING,                                                                                             \
-         "-symbol",                                                                                                    \
-         "symbol",                                                                                                     \
-         "Symbol",                                                                                                     \
-         DEF_PEN_SYMBOL,                                                                                               \
-         offsetof(LinePen, symbolObjPtr),                                                                              \
-         -1,                                                                                                           \
-         0,                                                                                                            \
-         NULL,                                                                                                         \
-         0},                                                                                                           \
-        {TK_OPTION_STRING,  "-type", NULL, NULL, DEF_PEN_TYPE, -1, LINE_PEN_CORE_OFFSET(typeId),                       \
-         TK_OPTION_NULL_OK, NULL,    0},                                                                               \
+        {TK_OPTION_STRING, "-symbol", "symbol", "Symbol", "circle", offsetof(LinePen, symbolObjPtr), -1, 0, NULL, 0},  \
+        {TK_OPTION_STRING, "-type", NULL, NULL, "line", -1, LINE_PEN_CORE_OFFSET(typeId), TK_OPTION_NULL_OK, NULL, 0}, \
         {TK_OPTION_ANCHOR,                                                                                             \
          "-valueanchor",                                                                                               \
          "valueAnchor",                                                                                                \
          "ValueAnchor",                                                                                                \
-         DEF_PEN_VALUE_ANCHOR,                                                                                         \
+         "s",                                                                                                          \
          -1,                                                                                                           \
          offsetof(LinePen, valueStyle.anchor),                                                                         \
          0,                                                                                                            \
@@ -1352,7 +1225,7 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          "-valuecolor",                                                                                                \
          "valueColor",                                                                                                 \
          "ValueColor",                                                                                                 \
-         DEF_PEN_VALUE_COLOR,                                                                                          \
+         RGB_BLACK,                                                                                                    \
          -1,                                                                                                           \
          offsetof(LinePen, valueStyle.color),                                                                          \
          0,                                                                                                            \
@@ -1362,7 +1235,7 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          "-valuefont",                                                                                                 \
          "valueFont",                                                                                                  \
          "ValueFont",                                                                                                  \
-         DEF_PEN_VALUE_FONT,                                                                                           \
+         STD_FONT_SMALL,                                                                                               \
          -1,                                                                                                           \
          offsetof(LinePen, valueStyle.font),                                                                           \
          0,                                                                                                            \
@@ -1392,7 +1265,7 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          "-valueformat",                                                                                               \
          "valueFormat",                                                                                                \
          "ValueFormat",                                                                                                \
-         DEF_PEN_VALUE_FORMAT,                                                                                         \
+         "%g",                                                                                                         \
          -1,                                                                                                           \
          offsetof(LinePen, valueFormat),                                                                               \
          TK_OPTION_NULL_OK,                                                                                            \
@@ -1412,7 +1285,7 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
          "-valueshadow",                                                                                               \
          "valueShadow",                                                                                                \
          "ValueShadow",                                                                                                \
-         DEF_PEN_VALUE_SHADOW,                                                                                         \
+         NULL,                                                                                                         \
          offsetof(LinePen, valueShadowObjPtr),                                                                         \
          -1,                                                                                                           \
          TK_OPTION_NULL_OK,                                                                                            \
@@ -1424,13 +1297,13 @@ static const Tk_OptionSpec stripElemOptionSpecs[] = {
  * @brief Line pen stroke and symbol entries using the normal colour default.
  * @hideinitializer
  */
-static const Tk_OptionSpec normalLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(DEF_PEN_NORMAL_COLOR)};
+static const Tk_OptionSpec normalLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(RGB_NAVYBLUE)};
 
 /** @ingroup component_option_tables
  * @brief Line pen entries using the active colour default.
  * @hideinitializer
  */
-static const Tk_OptionSpec activeLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(DEF_PEN_ACTIVE_COLOR)};
+static const Tk_OptionSpec activeLinePenOptionSpecs[] = {LINE_PEN_OPTION_ENTRIES(RGB_BLUE)};
 
 /** @ingroup component_option_tables
  * @brief Polar element data and presentation options, including complex-data interpretation.
@@ -1445,10 +1318,9 @@ static const Tk_OptionSpec polarElemOptionSpecs[] = {
      LINE_ELEM_PARAM_MASK},
     {TK_OPTION_STRING, "-cdata", "cData", "CData", NULL, offsetof(Line, cDataObjPtr), -1, TK_OPTION_NULL_OK, NULL,
      LINE_ELEM_CDATA_MASK | LINE_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_STRING_TABLE, "-cdataformat", "cDataFormat", "CDataFormat", DEF_LINE_CDATA_FORMAT, -1,
-     offsetof(Line, cDataFormat), 0, (ClientData)lineComplexDataFormatNames,
-     LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_MAP_ITEM_MASK},
-    {TK_OPTION_DOUBLE, "-z0", "z0", "Z0", DEF_LINE_Z0, -1, offsetof(Line, z0), 0, NULL,
+    {TK_OPTION_STRING_TABLE, "-cdataformat", "cDataFormat", "CDataFormat", "gamma", -1, offsetof(Line, cDataFormat), 0,
+     (ClientData)lineComplexDataFormatNames, LINE_ELEM_CDATA_FORMAT_MASK | LINE_ELEM_MAP_ITEM_MASK},
+    {TK_OPTION_DOUBLE, "-z0", "z0", "Z0", "50.0", -1, offsetof(Line, z0), 0, NULL,
      LINE_ELEM_Z0_MASK | LINE_ELEM_MAP_ITEM_MASK},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
@@ -1874,7 +1746,6 @@ static void FreeLinePenColor(XColor *colorPtr) {
         Tk_FreeColor(colorPtr);
     }
 }
-
 
 /**
  * @ingroup line_data_transactions

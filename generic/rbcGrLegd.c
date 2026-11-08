@@ -181,31 +181,6 @@ static int GetLegendPixelDimension(Tcl_Size count, int entrySize, int borderWidt
     return TCL_OK;
 }
 
-#define DEF_LEGEND_ACTIVE_BACKGROUND STD_ACTIVE_BACKGROUND
-#define DEF_LEGEND_ACTIVE_BG_MONO STD_ACTIVE_BG_MONO
-#define DEF_LEGEND_ACTIVE_BORDERWIDTH "2"
-#define DEF_LEGEND_ACTIVE_FOREGROUND STD_ACTIVE_FOREGROUND
-#define DEF_LEGEND_ACTIVE_FG_MONO STD_ACTIVE_FG_MONO
-#define DEF_LEGEND_ACTIVE_RELIEF "flat"
-#define DEF_LEGEND_ANCHOR "n"
-#define DEF_LEGEND_BACKGROUND (char *)NULL
-#define DEF_LEGEND_BG_MONO (char *)NULL
-#define DEF_LEGEND_BORDERWIDTH STD_BORDERWIDTH
-#define DEF_LEGEND_FOREGROUND STD_NORMAL_FOREGROUND
-#define DEF_LEGEND_FG_MONO STD_NORMAL_FG_MONO
-#define DEF_LEGEND_FONT STD_FONT_SMALL
-#define DEF_LEGEND_HIDE "no"
-#define DEF_LEGEND_IPAD_X "1"
-#define DEF_LEGEND_IPAD_Y "1"
-#define DEF_LEGEND_PAD_X "1"
-#define DEF_LEGEND_PAD_Y "1"
-#define DEF_LEGEND_POSITION "rightmargin"
-#define DEF_LEGEND_RAISED "no"
-#define DEF_LEGEND_RELIEF "sunken"
-#define DEF_LEGEND_SHADOW_COLOR (char *)NULL
-#define DEF_LEGEND_ROWS "0"
-#define DEF_LEGEND_COLUMNS "0"
-
 #define LEGEND_REDRAW_CHANGED (1U << 0)
 #define LEGEND_LAYOUT_CHANGED (1U << 1)
 #define LEGEND_STYLE_CHANGED (1U << 2)
@@ -223,51 +198,51 @@ static int GetLegendPixelDimension(Tcl_Size count, int entrySize, int borderWidt
  * @hideinitializer
  */
 static const Tk_OptionSpec legendOptionSpecs[] = {
-    {TK_OPTION_BORDER, "-activebackground", "activeBackground", "ActiveBackground", DEF_LEGEND_ACTIVE_BACKGROUND, -1,
-     offsetof(Legend, activeBorder), 0, DEF_LEGEND_ACTIVE_BG_MONO, LEGEND_REDRAW_CHANGED},
-    {TK_OPTION_PIXELS, "-activeborderwidth", "activeBorderWidth", "BorderWidth", DEF_LEGEND_ACTIVE_BORDERWIDTH,
+    {TK_OPTION_BORDER, "-activebackground", "activeBackground", "ActiveBackground", STD_ACTIVE_BACKGROUND, -1,
+     offsetof(Legend, activeBorder), 0, STD_ACTIVE_BG_MONO, LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_PIXELS, "-activeborderwidth", "activeBorderWidth", "BorderWidth", "2",
      offsetof(Legend, activeBorderWidthObjPtr), offsetof(Legend, entryBorderWidth), 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
-    {TK_OPTION_COLOR, "-activeforeground", "activeForeground", "ActiveForeground", DEF_LEGEND_ACTIVE_FOREGROUND, -1,
-     offsetof(Legend, style.activeColor), 0, DEF_LEGEND_ACTIVE_FG_MONO, LEGEND_REDRAW_CHANGED},
-    {TK_OPTION_RELIEF, "-activerelief", "activeRelief", "Relief", DEF_LEGEND_ACTIVE_RELIEF, -1,
-     offsetof(Legend, activeRelief), 0, NULL, LEGEND_REDRAW_CHANGED},
-    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", DEF_LEGEND_ANCHOR, -1, offsetof(Legend, anchor), 0, NULL,
+    {TK_OPTION_COLOR, "-activeforeground", "activeForeground", "ActiveForeground", STD_ACTIVE_FOREGROUND, -1,
+     offsetof(Legend, style.activeColor), 0, STD_ACTIVE_FG_MONO, LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_RELIEF, "-activerelief", "activeRelief", "Relief", "flat", -1, offsetof(Legend, activeRelief), 0, NULL,
+     LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", "n", -1, offsetof(Legend, anchor), 0, NULL,
      LEGEND_REDRAW_CHANGED},
     {TK_OPTION_SYNONYM, "-bg", NULL, NULL, NULL, -1, -1, 0, "-background", 0},
-    {TK_OPTION_BORDER, "-background", "background", "Background", DEF_LEGEND_BACKGROUND, -1, offsetof(Legend, border),
-     TK_OPTION_NULL_OK, DEF_LEGEND_BG_MONO, LEGEND_REDRAW_CHANGED},
-    {TK_OPTION_PIXELS, "-borderwidth", "borderWidth", "BorderWidth", DEF_LEGEND_BORDERWIDTH,
+    {TK_OPTION_BORDER, "-background", "background", "Background", NULL, -1, offsetof(Legend, border), TK_OPTION_NULL_OK,
+     NULL, LEGEND_REDRAW_CHANGED},
+    {TK_OPTION_PIXELS, "-borderwidth", "borderWidth", "BorderWidth", STD_BORDERWIDTH,
      offsetof(Legend, borderWidthObjPtr), offsetof(Legend, borderWidth), 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
     {TK_OPTION_SYNONYM, "-bd", NULL, NULL, NULL, -1, -1, 0, "-borderwidth", 0},
-    {TK_OPTION_INT, "-columns", "columns", "Columns", DEF_LEGEND_COLUMNS, offsetof(Legend, columnsObjPtr),
+    {TK_OPTION_INT, "-columns", "columns", "Columns", "0", offsetof(Legend, columnsObjPtr),
      offsetof(Legend, reqColumns), 0, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
-    {TK_OPTION_FONT, "-font", "font", "Font", DEF_LEGEND_FONT, -1, offsetof(Legend, style.font), 0, NULL,
+    {TK_OPTION_FONT, "-font", "font", "Font", STD_FONT_SMALL, -1, offsetof(Legend, style.font), 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_STYLE_CHANGED},
     {TK_OPTION_SYNONYM, "-fg", NULL, NULL, NULL, -1, -1, 0, "-foreground", 0},
-    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", DEF_LEGEND_FOREGROUND, -1,
-     offsetof(Legend, style.color), 0, DEF_LEGEND_FG_MONO, LEGEND_REDRAW_CHANGED | LEGEND_STYLE_CHANGED},
-    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", DEF_LEGEND_HIDE, -1, offsetof(Legend, hidden), 0, NULL,
+    {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground", STD_NORMAL_FOREGROUND, -1,
+     offsetof(Legend, style.color), 0, STD_NORMAL_FG_MONO, LEGEND_REDRAW_CHANGED | LEGEND_STYLE_CHANGED},
+    {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", "no", -1, offsetof(Legend, hidden), 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED},
-    {TK_OPTION_STRING, "-ipadx", "iPadX", "Pad", DEF_LEGEND_IPAD_X, offsetof(Legend, ipadXObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-ipadx", "iPadX", "Pad", "1", offsetof(Legend, ipadXObjPtr), -1, 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_PADDING_CHANGED},
-    {TK_OPTION_STRING, "-ipady", "iPadY", "Pad", DEF_LEGEND_IPAD_Y, offsetof(Legend, ipadYObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-ipady", "iPadY", "Pad", "1", offsetof(Legend, ipadYObjPtr), -1, 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_PADDING_CHANGED},
-    {TK_OPTION_STRING, "-padx", "padX", "Pad", DEF_LEGEND_PAD_X, offsetof(Legend, padXObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-padx", "padX", "Pad", "1", offsetof(Legend, padXObjPtr), -1, 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_PADDING_CHANGED},
-    {TK_OPTION_STRING, "-pady", "padY", "Pad", DEF_LEGEND_PAD_Y, offsetof(Legend, padYObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-pady", "padY", "Pad", "1", offsetof(Legend, padYObjPtr), -1, 0, NULL,
      LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_PADDING_CHANGED},
-    {TK_OPTION_STRING, "-position", "position", "Position", DEF_LEGEND_POSITION, offsetof(Legend, positionObjPtr), -1,
-     0, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_POSITION_CHANGED},
-    {TK_OPTION_BOOLEAN, "-raised", "raised", "Raised", DEF_LEGEND_RAISED, -1, offsetof(Legend, raised), 0, NULL,
+    {TK_OPTION_STRING, "-position", "position", "Position", "rightmargin", offsetof(Legend, positionObjPtr), -1, 0,
+     NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_POSITION_CHANGED},
+    {TK_OPTION_BOOLEAN, "-raised", "raised", "Raised", "no", -1, offsetof(Legend, raised), 0, NULL,
      LEGEND_REDRAW_CHANGED},
-    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", DEF_LEGEND_RELIEF, -1, offsetof(Legend, relief), 0, NULL,
+    {TK_OPTION_RELIEF, "-relief", "relief", "Relief", "sunken", -1, offsetof(Legend, relief), 0, NULL,
      LEGEND_REDRAW_CHANGED},
-    {TK_OPTION_INT, "-rows", "rows", "Rows", DEF_LEGEND_ROWS, offsetof(Legend, rowsObjPtr), offsetof(Legend, reqRows),
-     0, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
-    {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", DEF_LEGEND_SHADOW_COLOR, offsetof(Legend, shadowObjPtr), -1,
-     TK_OPTION_NULL_OK, NULL, LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_SHADOW_CHANGED},
+    {TK_OPTION_INT, "-rows", "rows", "Rows", "0", offsetof(Legend, rowsObjPtr), offsetof(Legend, reqRows), 0, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_VALIDATE_CHANGED},
+    {TK_OPTION_STRING, "-shadow", "shadow", "Shadow", NULL, offsetof(Legend, shadowObjPtr), -1, TK_OPTION_NULL_OK, NULL,
+     LEGEND_REDRAW_CHANGED | LEGEND_LAYOUT_CHANGED | LEGEND_SHADOW_CHANGED},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
 /* Inherit styling while keeping local legends opt-in and inside their row. */

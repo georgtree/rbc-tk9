@@ -6,6 +6,22 @@ option-database initialization and rollback; they do not own graph scheduling or
 private declarations are in ``rbcInt.h``. The similarly named ``rbcConfig.h`` contains legacy configuration macros, not
 this helper interface. See :doc:`configuration-reference` for the extracted contracts.
 
+Default values in option tables
+-------------------------------
+
+Write simple component defaults directly in the option table, including string values and ``NULL``. Use shared
+``STD_*`` and ``RGB_*`` constants from ``rbcDefaults.h`` directly when applicable; avoid component-specific
+``DEF_*`` aliases that only repeat those constants or literals. Shared option-entry macros can likewise contain
+these defaults directly.
+
+Keep named defaults when they select platform or build policy, such as ``DEF_AXIS_TICK_FONT`` and
+``DEF_GRAPH_RENDERER``. Preserve the shared colour and font selections in ``rbcDefaults.h``, including Windows
+system resources. Algorithm constants such as ``DEF_NUM_TICKS`` and ``DEF_ARRAY_SIZE`` are separate from option-table
+defaults and remain named.
+
+Default strings are part of the configure metadata. Preserve their exact spelling, units and the distinction between
+``NULL`` and an empty string when moving them into a table; do not normalize equivalent boolean or numeric spellings.
+
 Resource identity
 -----------------
 

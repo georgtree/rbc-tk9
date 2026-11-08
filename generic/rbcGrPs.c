@@ -22,23 +22,6 @@
 #define PS_PREVIEW_EPSI 0
 #define PS_PREVIEW_WMF 1
 
-#define DEF_PS_CENTER "yes"
-#define DEF_PS_COLOR_MAP (char *)NULL
-#define DEF_PS_COLOR_MODE "color"
-#define DEF_PS_DECORATIONS "yes"
-#define DEF_PS_FONT_MAP (char *)NULL
-#define DEF_PS_FOOTER "no"
-#define DEF_PS_HEIGHT "0"
-#define DEF_PS_LANDSCAPE "no"
-#define DEF_PS_MAXPECT "no"
-#define DEF_PS_PADX "1.0i"
-#define DEF_PS_PADY "1.0i"
-#define DEF_PS_PAPERHEIGHT "11.0i"
-#define DEF_PS_PAPERWIDTH "8.5i"
-#define DEF_PS_PREVIEW "no"
-#define DEF_PS_PREVIEW_FORMAT "epsi"
-#define DEF_PS_WIDTH "0"
-
 #define PS_DIMENSIONS_CHANGED (1U << 0)
 #define PS_PADDING_CHANGED (1U << 1)
 #define PS_COLOR_MODE_CHANGED (1U << 2)
@@ -51,35 +34,32 @@
  * @hideinitializer
  */
 static const Tk_OptionSpec postScriptOptionSpecs[] = {
-    {TK_OPTION_BOOLEAN, "-center", "center", "Center", DEF_PS_CENTER, -1, offsetof(PostScript, center), 0, NULL, 0},
-    {TK_OPTION_STRING, "-colormap", "colorMap", "ColorMap", DEF_PS_COLOR_MAP, -1, offsetof(PostScript, colorVarName),
+    {TK_OPTION_BOOLEAN, "-center", "center", "Center", "yes", -1, offsetof(PostScript, center), 0, NULL, 0},
+    {TK_OPTION_STRING, "-colormap", "colorMap", "ColorMap", NULL, -1, offsetof(PostScript, colorVarName),
      TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_STRING, "-colormode", "colorMode", "ColorMode", DEF_PS_COLOR_MODE, offsetof(PostScript, colorModeObjPtr),
-     -1, 0, NULL, PS_COLOR_MODE_CHANGED},
-    {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", DEF_PS_DECORATIONS, -1,
-     offsetof(PostScript, decorations), 0, NULL, 0},
-    {TK_OPTION_STRING, "-fontmap", "fontMap", "FontMap", DEF_PS_FONT_MAP, -1, offsetof(PostScript, fontVarName),
-     TK_OPTION_NULL_OK, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-footer", "footer", "Footer", DEF_PS_FOOTER, -1, offsetof(PostScript, footer), 0, NULL, 0},
-    {TK_OPTION_PIXELS, "-height", "height", "Height", DEF_PS_HEIGHT, offsetof(PostScript, heightObjPtr),
+    {TK_OPTION_STRING, "-colormode", "colorMode", "ColorMode", "color", offsetof(PostScript, colorModeObjPtr), -1, 0,
+     NULL, PS_COLOR_MODE_CHANGED},
+    {TK_OPTION_BOOLEAN, "-decorations", "decorations", "Decorations", "yes", -1, offsetof(PostScript, decorations), 0,
+     NULL, 0},
+    {TK_OPTION_STRING, "-fontmap", "fontMap", "FontMap", NULL, -1, offsetof(PostScript, fontVarName), TK_OPTION_NULL_OK,
+     NULL, 0},
+    {TK_OPTION_BOOLEAN, "-footer", "footer", "Footer", "no", -1, offsetof(PostScript, footer), 0, NULL, 0},
+    {TK_OPTION_PIXELS, "-height", "height", "Height", "0", offsetof(PostScript, heightObjPtr),
      offsetof(PostScript, reqHeight), 0, NULL, PS_DIMENSIONS_CHANGED},
-    {TK_OPTION_BOOLEAN, "-landscape", "landscape", "Landscape", DEF_PS_LANDSCAPE, -1, offsetof(PostScript, landscape),
-     0, NULL, 0},
-    {TK_OPTION_BOOLEAN, "-maxpect", "maxpect", "Maxpect", DEF_PS_MAXPECT, -1, offsetof(PostScript, maxpect), 0, NULL,
-     0},
-    {TK_OPTION_STRING, "-padx", "padX", "PadX", DEF_PS_PADX, offsetof(PostScript, padXObjPtr), -1, 0, NULL,
+    {TK_OPTION_BOOLEAN, "-landscape", "landscape", "Landscape", "no", -1, offsetof(PostScript, landscape), 0, NULL, 0},
+    {TK_OPTION_BOOLEAN, "-maxpect", "maxpect", "Maxpect", "no", -1, offsetof(PostScript, maxpect), 0, NULL, 0},
+    {TK_OPTION_STRING, "-padx", "padX", "PadX", "1.0i", offsetof(PostScript, padXObjPtr), -1, 0, NULL,
      PS_PADDING_CHANGED},
-    {TK_OPTION_STRING, "-pady", "padY", "PadY", DEF_PS_PADY, offsetof(PostScript, padYObjPtr), -1, 0, NULL,
+    {TK_OPTION_STRING, "-pady", "padY", "PadY", "1.0i", offsetof(PostScript, padYObjPtr), -1, 0, NULL,
      PS_PADDING_CHANGED},
-    {TK_OPTION_PIXELS, "-paperheight", "paperHeight", "PaperHeight", DEF_PS_PAPERHEIGHT,
-     offsetof(PostScript, paperHeightObjPtr), offsetof(PostScript, reqPaperHeight), 0, NULL, PS_DIMENSIONS_CHANGED},
-    {TK_OPTION_PIXELS, "-paperwidth", "paperWidth", "PaperWidth", DEF_PS_PAPERWIDTH,
-     offsetof(PostScript, paperWidthObjPtr), offsetof(PostScript, reqPaperWidth), 0, NULL, PS_DIMENSIONS_CHANGED},
-    {TK_OPTION_BOOLEAN, "-preview", "preview", "Preview", DEF_PS_PREVIEW, -1, offsetof(PostScript, addPreview), 0, NULL,
-     0},
-    {TK_OPTION_STRING, "-previewformat", "previewFormat", "PreviewFormat", DEF_PS_PREVIEW_FORMAT,
+    {TK_OPTION_PIXELS, "-paperheight", "paperHeight", "PaperHeight", "11.0i", offsetof(PostScript, paperHeightObjPtr),
+     offsetof(PostScript, reqPaperHeight), 0, NULL, PS_DIMENSIONS_CHANGED},
+    {TK_OPTION_PIXELS, "-paperwidth", "paperWidth", "PaperWidth", "8.5i", offsetof(PostScript, paperWidthObjPtr),
+     offsetof(PostScript, reqPaperWidth), 0, NULL, PS_DIMENSIONS_CHANGED},
+    {TK_OPTION_BOOLEAN, "-preview", "preview", "Preview", "no", -1, offsetof(PostScript, addPreview), 0, NULL, 0},
+    {TK_OPTION_STRING, "-previewformat", "previewFormat", "PreviewFormat", "epsi",
      offsetof(PostScript, previewFormatObjPtr), -1, 0, NULL, PS_PREVIEW_FORMAT_CHANGED},
-    {TK_OPTION_PIXELS, "-width", "width", "Width", DEF_PS_WIDTH, offsetof(PostScript, widthObjPtr),
+    {TK_OPTION_PIXELS, "-width", "width", "Width", "0", offsetof(PostScript, widthObjPtr),
      offsetof(PostScript, reqWidth), 0, NULL, PS_DIMENSIONS_CHANGED},
     {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, 0}};
 
