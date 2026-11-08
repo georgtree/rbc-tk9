@@ -1245,6 +1245,11 @@ pointer types through a shared generic signature.</p>
 <p><code class="docutils literal notranslate"><span class="pre">Tcl_GetIndexFromObjStruct</span></code> accepts unique operation-name abbreviations and caches lookup information in the Tcl
 object. Tables and their name strings must outlive objects that can reuse that information. Function-local temporary
 arrays are not suitable replacements for the usual static const tables.</p>
+<p>Declare operation tables at file scope as <code class="docutils literal notranslate"><span class="pre">static</span> <span class="pre">const</span></code>, near their dispatchers and after any handler declarations
+needed by their initializers. Use a descriptive component name, such as <code class="docutils literal notranslate"><span class="pre">graphOps</span></code>, <code class="docutils literal notranslate"><span class="pre">virtualAxisOps</span></code> or <code class="docutils literal notranslate"><span class="pre">trackOps</span></code>.
+This keeps command definitions easy to find and allows multiple dispatchers in one file to use distinct table names.
+Function-local <code class="docutils literal notranslate"><span class="pre">static</span> <span class="pre">const</span></code> arrays have the same static storage duration, but RBC uses file scope consistently for
+operation tables. Keep table entry order aligned with any enum values used for index-based dispatch.</p>
 </section>
 <section id="argument-counts-and-diagnostics">
 <h2>Argument counts and diagnostics<a class="headerlink" href="#argument-counts-and-diagnostics" title="Link to this heading"></a></h2>

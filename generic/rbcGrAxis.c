@@ -6682,6 +6682,23 @@ usage:
     return TCL_ERROR;
 }
 
+static const AxisVirtualOpSpec virtualAxisOps[] = {
+    {{"bind", 3, 6, "axisName sequence command"}, BindVirtualOp},
+    {{"cget", 5, 5, "axisName option"}, CgetVirtualOp},
+    {{"configure", 4, 0, "axisName ?axisName?... ?option value?..."}, ConfigureVirtualOp},
+    {{"create", 4, 0, "axisName ?option value?..."}, CreateVirtualOp},
+    {{"delete", 3, 0, "?axisName?..."}, DeleteVirtualOp},
+    {{"get", 4, 4, "name"}, GetOp},
+    {{"invtransform", 5, 5, "axisName value"}, InvTransformVirtualOp},
+    {{"limits", 4, 4, "axisName"}, LimitsVirtualOp},
+    {{"names", 3, 0, "?pattern?..."}, NamesVirtualOp},
+    {{"transform", 5, 5, "axisName value"}, TransformVirtualOp},
+    {{"view", 4, 7,
+      "axisName ?moveto fract? "
+      "?scroll number what?"},
+     ViewOp},
+    {{NULL, 0, 0, NULL}, NULL}};
+
 /**
  * @ingroup axis_commands
  * @brief Dispatch the named-axis command family.
@@ -6697,30 +6714,24 @@ usage:
  * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const AxisVirtualOpSpec axisOps[] = {
-        {{"bind", 3, 6, "axisName sequence command"}, BindVirtualOp},
-        {{"cget", 5, 5, "axisName option"}, CgetVirtualOp},
-        {{"configure", 4, 0, "axisName ?axisName?... ?option value?..."}, ConfigureVirtualOp},
-        {{"create", 4, 0, "axisName ?option value?..."}, CreateVirtualOp},
-        {{"delete", 3, 0, "?axisName?..."}, DeleteVirtualOp},
-        {{"get", 4, 4, "name"}, GetOp},
-        {{"invtransform", 5, 5, "axisName value"}, InvTransformVirtualOp},
-        {{"limits", 4, 4, "axisName"}, LimitsVirtualOp},
-        {{"names", 3, 0, "?pattern?..."}, NamesVirtualOp},
-        {{"transform", 5, 5, "axisName value"}, TransformVirtualOp},
-        {{"view", 4, 7,
-          "axisName ?moveto fract? "
-          "?scroll number what?"},
-         ViewOp},
-        {{NULL, 0, 0, NULL}, NULL}};
     int index;
 
-    if (Rbc_GetOpIndexFromObj(interp, axisOps, (Tcl_Size)sizeof(axisOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
+    if (Rbc_GetOpIndexFromObj(interp, virtualAxisOps, (Tcl_Size)sizeof(virtualAxisOps[0]), RBC_OP_ARG2, objc, objv, &index) !=
         TCL_OK) {
         return TCL_ERROR;
     }
-    return axisOps[index].proc(graphPtr, objc, objv);
+    return virtualAxisOps[index].proc(graphPtr, objc, objv);
 }
+
+static const AxisOpSpec axisOps[] = {
+    {{"bind", 2, 5, "sequence command"}, BindOp},
+    {{"cget", 4, 4, "option"}, CgetOp},
+    {{"configure", 3, 0, "?option value?..."}, ConfigureOp},
+    {{"invtransform", 4, 4, "value"}, InvTransformOp},
+    {{"limits", 3, 3, ""}, LimitsOp},
+    {{"transform", 4, 4, "value"}, TransformOp},
+    {{"use", 3, 4, "?axisName?"}, UseOp},
+    {{NULL, 0, 0, NULL}, NULL}};
 
 /**
  * @ingroup axis_commands
@@ -6738,15 +6749,6 @@ int Rbc_VirtualAxisOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Ob
  * @param[in] objv Borrowed full widget command vector; operation is at index 2 and operands begin at index 3.
  */
 int Rbc_AxisOp(Graph *graphPtr, int margin, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const AxisOpSpec axisOps[] = {{{"bind", 2, 5, "sequence command"}, BindOp},
-                                         {{"cget", 4, 4, "option"}, CgetOp},
-                                         {{"configure", 3, 0, "?option value?..."}, ConfigureOp},
-                                         {{"invtransform", 4, 4, "value"}, InvTransformOp},
-                                         {{"limits", 3, 3, ""}, LimitsOp},
-                                         {{"transform", 4, 4, "value"}, TransformOp},
-                                         {{"use", 3, 4, "?axisName?"}, UseOp},
-                                         {{NULL, 0, 0, NULL}, NULL}};
-
     Axis *axisPtr;
     int index;
 

@@ -964,28 +964,29 @@ error:
     return TCL_ERROR;
 }
 
+static const Rbc_OpSpecHeader trackOps[] = {
+    {"create", 4, 0, "name ?option value ...?"},
+    {"configure", 4, 0, "name ?option ?value ...??"},
+    {"cget", 5, 5, "name option"},
+    {"delete", 3, 0, "?name ...?"},
+    {"names", 3, 0, "?pattern ...?"},
+    {"bbox", 4, 4, "name"},
+    {"identify", 4, 4, "coordinate"},
+    {"transform", 6, 10, "name x y ?-mapx axis? ?-mapy axis?"},
+    {"invtransform", 6, 10, "name x y ?-mapx axis? ?-mapy axis?"},
+    {"order", 3, 4, "?nameList?"},
+    {"sashpos", 4, 5, "name ?coordinate?"},
+    {"separator", 5, 5, "x y"},
+    {"legend", 5, 0, "name operation ?arg ...?"},
+    {"grid", 5, 0, "name operation ?arg ...?"},
+    {"view", 3, 6, "?moveto fraction|scroll number units|pages?"},
+    {"yview", 4, 9, "name ?-mapy axis? ?moveto fraction|scroll number units|pages?"},
+    {"exists", 4, 4, "name"},
+    {"bind", 4, 6, "name|all ?sequence ?command??"},
+    {"get", 4, 4, "current"},
+    {NULL, 0, 0, NULL}};
+
 int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv[]) {
-    static const Rbc_OpSpecHeader operations[] = {
-        {"create", 4, 0, "name ?option value ...?"},
-        {"configure", 4, 0, "name ?option ?value ...??"},
-        {"cget", 5, 5, "name option"},
-        {"delete", 3, 0, "?name ...?"},
-        {"names", 3, 0, "?pattern ...?"},
-        {"bbox", 4, 4, "name"},
-        {"identify", 4, 4, "coordinate"},
-        {"transform", 6, 10, "name x y ?-mapx axis? ?-mapy axis?"},
-        {"invtransform", 6, 10, "name x y ?-mapx axis? ?-mapy axis?"},
-        {"order", 3, 4, "?nameList?"},
-        {"sashpos", 4, 5, "name ?coordinate?"},
-        {"separator", 5, 5, "x y"},
-        {"legend", 5, 0, "name operation ?arg ...?"},
-        {"grid", 5, 0, "name operation ?arg ...?"},
-        {"view", 3, 6, "?moveto fraction|scroll number units|pages?"},
-        {"yview", 4, 9, "name ?-mapy axis? ?moveto fraction|scroll number units|pages?"},
-        {"exists", 4, 4, "name"},
-        {"bind", 4, 6, "name|all ?sequence ?command??"},
-        {"get", 4, 4, "current"},
-        {NULL, 0, 0, NULL}};
     enum {
         TRACK_OP_CREATE,
         TRACK_OP_CONFIGURE,
@@ -1014,7 +1015,7 @@ int Rbc_TrackOp(Graph *graphPtr, Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *con
         Tcl_SetObjResult(interp, Tcl_NewStringObj("track operations require a trackgraph widget", -1));
         return TCL_ERROR;
     }
-    if (Rbc_GetOpIndexFromObj(interp, operations, sizeof(operations[0]), RBC_OP_ARG2, objc, objv, &operation) !=
+    if (Rbc_GetOpIndexFromObj(interp, trackOps, sizeof(trackOps[0]), RBC_OP_ARG2, objc, objv, &operation) !=
         TCL_OK) {
         return TCL_ERROR;
     }

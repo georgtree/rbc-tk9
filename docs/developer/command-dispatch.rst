@@ -18,6 +18,12 @@ pointer types through a shared generic signature.
 object. Tables and their name strings must outlive objects that can reuse that information. Function-local temporary
 arrays are not suitable replacements for the usual static const tables.
 
+Declare operation tables at file scope as ``static const``, near their dispatchers and after any handler declarations
+needed by their initializers. Use a descriptive component name, such as ``graphOps``, ``virtualAxisOps`` or ``trackOps``.
+This keeps command definitions easy to find and allows multiple dispatchers in one file to use distinct table names.
+Function-local ``static const`` arrays have the same static storage duration, but RBC uses file scope consistently for
+operation tables. Keep table entry order aligned with any enum values used for index-based dispatch.
+
 Argument counts and diagnostics
 -------------------------------
 
