@@ -15,12 +15,18 @@ set private [dict create notify {RBC_NOTIFY_TEST_LIB vector.notify.test}\
                      ps {RBC_RESOURCE_TEST_LIB postscript.primitives.test}]
 
 if {$suite eq {all}} {
+    set failedPhases {}
     foreach phase [list widgets vector {*}[dict keys $private]] {
-        try {
+        if {[catch {
             exec -- [info nameofexecutable] [info script] $phase {*}$argv >@stdout 2>@stderr
-        } trap CHILDSTATUS {message options} {
-            exit [lindex [dict get $options -errorcode] 2]
+        } message]} {
+            lappend failedPhases $phase
+            puts stderr "RBC test phase '$phase' failed: $message"
         }
+    }
+    if {[llength $failedPhases]} {
+        puts stderr "Failed RBC test phases: [join $failedPhases {, }]"
+        exit 1
     }
     exit 0
 }

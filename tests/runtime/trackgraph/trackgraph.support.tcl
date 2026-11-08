@@ -11,6 +11,8 @@
 # that namespace for vector names, callbacks and calls to other helpers.
 # Each test file removes its namespace after cleanup to avoid shared variables.
 
+source [file join [file dirname [info script]] .. focusSupport.tcl]
+
 proc Create {{inverted 0}} {
     ::rbc::trackgraph .tg -width 640 -height 480 -invertxy $inverted
     .tg legend configure -hide yes
@@ -49,8 +51,7 @@ proc FocusSetup {} {
     entry .trackOther
     pack .trackFocus .trackOther
     update
-    focus -force .trackFocus
-    update
+    ::rbcTest::focus::Acquire .trackFocus
 }
 
 proc LocalLegendSetup {} {

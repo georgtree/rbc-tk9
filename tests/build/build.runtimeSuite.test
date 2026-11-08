@@ -5,7 +5,7 @@ namespace import tcltest::*
 
 namespace eval build.runtimeSuite {
     set runner [file normalize [file join [file dirname [info script]] .. all.tcl]]
-    test build.runtimeSuite.1.1 {filtered private suites run once in isolated children and propagate failure} -setup {
+    test build.runtimeSuite.1.1 {filtered private suites run in isolated children and continue after failure} -setup {
         set work [makeDirectory runtime-suite-[pid]]
         file copy $runner $work
         set log [file join $work seen]
@@ -15,7 +15,7 @@ namespace eval build.runtimeSuite {
             set f [open [file join [file dirname [info script]] .. .. seen] a]
             puts $f [list [file tail [info script]] [pid] [lsort [array names ::env RBC_*_TEST_LIB]]]
             close $f
-            test fixture-1 {} -body {file exists [file join [file dirname [info script]] .. .. fail]} -result 0
+            test fixture-1 {} -body {file exists [file join [file dirname [info script]] .. .. [file tail [info script]].fail]} -result 0
             cleanupTests
         }
         set files {image.photo.test resources.lifecycle.test}
@@ -37,14 +37,18 @@ namespace eval build.runtimeSuite {
         set f [open $log]
         try {set entries [split [string trim [read $f]] \n]} finally {close $f}
         lassign $entries img res
-        makeFile {} [file join $work fail]
+        makeFile {} [file join $work image.photo.test.fail]
         set failed [catch {exec {*}$cmd 2>@1} msg options]
+        set f [open $log]
+        try {set allEntries [split [string trim [read $f]] \n]} finally {close $f}
+        set continued [lmap entry [lrange $allEntries 2 end] {lindex $entry 0}]
+        set summary [string match {*Failed RBC test phases: photo*} $msg]
         list [lmap entry $entries {lindex $entry 0}] [expr {[lindex $img 1] != [lindex $res 1]}] \
-            [lindex $img 2] [lindex $res 2] $failed [lindex [dict get $options -errorcode] 2]
+            [lindex $img 2] [lindex $res 2] $failed [lindex [dict get $options -errorcode] 2] $continued $summary
     } -cleanup {
         foreach var $vars {unset -nocomplain ::env($var)}
         dict for {var value} $saved {set ::env($var) $value}
         removeDirectory $work
-    } -result {{image.photo.test resources.lifecycle.test} 1 RBC_IMAGE_TEST_LIB RBC_RESOURCE_TEST_LIB 1 1}
+    } -result {{image.photo.test resources.lifecycle.test} 1 RBC_IMAGE_TEST_LIB RBC_RESOURCE_TEST_LIB 1 1 {image.photo.test resources.lifecycle.test} 1}
 }
 cleanupTests

@@ -19,6 +19,7 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
+source [file join [file dirname [info script]] .. focusSupport.tcl]
 namespace eval graph.legend {    
 
     proc FindLegendEntryPoint {graph name} {
@@ -199,8 +200,7 @@ namespace eval graph.legend {
 			set ::legendKeyBindingResult Line1
 		}
         set point [FindLegendEntryPoint .graph1 Line1]
-        focus -force .graph1
-        update
+        ::rbcTest::focus::Acquire .graph1
     } -body {
         lassign $point x y
         event generate .graph1 <Motion> -x $x -y $y

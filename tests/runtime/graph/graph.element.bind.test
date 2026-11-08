@@ -19,6 +19,7 @@ namespace import rbc::*
 
 package require tcltest
 namespace import tcltest::*
+source [file join [file dirname [info script]] .. focusSupport.tcl]
 namespace eval graph.element {	
 	# ------------------------------------------------------------------------------------
 	# Purpose: Ensure the element bind command works correctly when given a tag name, an
@@ -93,8 +94,7 @@ namespace eval graph.element {
 		}
         update
         lassign [.graph1 transform 5 5] x y
-        focus -force .graph1
-        update
+        ::rbcTest::focus::Acquire .graph1
     } -body {
         event generate .graph1 <Motion> -x $x -y $y
         update
