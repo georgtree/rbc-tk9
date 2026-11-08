@@ -19,7 +19,7 @@ GRAPHINST marker
 Markers are graph annotations\&. They are independent of graph elements and do not contribute to the calculation
 of axis limits\&.
 .PP
-Rbc provides seven marker types:
+RBC provides seven marker types:
 .PP
 .nf
 ┌─────────┬────────────────────────────────────────────────┐
@@ -47,7 +47,7 @@ graph \&.g
 .RE
 .PP
 Unlike elements and pens, the marker name is not a positional argument of MARKER create\&. Use -name to
-select an explicit name\&. If -name is omitted, Rbc generates a marker name\&.
+select an explicit name\&. If -name is omitted, RBC generates a marker name\&.
 .PP
 Cairo rendering provides next features:
 .TP

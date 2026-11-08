@@ -49,7 +49,7 @@ X and Y coordinates may be supplied separately with -x and -y:
 .PP
 -xdata and -ydata are synonyms for -x and -y\&.
 .PP
-Each coordinate option may also name an existing Rbc vector:
+Each coordinate option may also name an existing RBC vector:
 .PP
 .RS 4n
 .nf
@@ -62,7 +62,7 @@ yValues set {10 15 8 20}
 .fi
 .RE
 .PP
-When an Rbc vector is used, changes to the vector automatically invalidate and update the element\&.
+When an RBC vector is used, changes to the vector automatically invalidate and update the element\&.
 .PP
 The number of usable data points is the smaller of the X and Y vector lengths\&.
 .PP
@@ -451,7 +451,7 @@ Absolute asymmetric limits may instead be supplied with:
 When symmetric error data are present for an axis, they take precedence over the corresponding low/high
 vectors\&.
 .PP
-Error data may be Tcl lists or Rbc vector names\&.
+Error data may be Tcl lists or RBC vector names\&.
 .SS "ERROR-BAR POSITION"
 .PP
 -errorbarposition data|bar is a bar-element option, not a pen option\&. The default data preserves the
@@ -518,7 +518,7 @@ Their appearance is controlled by:
 
 .fi
 .PP
-If -errorbarcap is 0, Rbc chooses a cap size from the rendered bar width\&.
+If -errorbarcap is 0, RBC chooses a cap size from the rendered bar width\&.
 .PP
 Error-bar values also participate in automatic graph extents\&.
 .SH "VALUE LABELS OF BAR ELEMENTS"
@@ -566,7 +566,7 @@ whose screen geometry has been aligned, overlapped, or stacked\&.
 a, A, e, E, f, F, g, or G; dynamic width or precision using * is not permitted\&.
 .SH "WEIGHTS AND STYLES"
 .PP
--weights associates numeric weights with data points\&. The value may be a Tcl list or an Rbc vector\&.
+-weights associates numeric weights with data points\&. The value may be a Tcl list or an RBC vector\&.
 .PP
 -styles maps ranges of those weights to named bar pens\&.
 .PP
@@ -631,7 +631,7 @@ or beyond zero\&.
 .PP
 Bar elements are searched using their rendered rectangles\&.
 .PP
-If the requested window point lies inside a bar rectangle, its distance is zero\&. Otherwise Rbc measures the
+If the requested window point lies inside a bar rectangle, its distance is zero\&. Otherwise RBC measures the
 distance to the rectangle boundary\&.
 .PP
 The result index and graph coordinates identify the original source data point represented by the selected
@@ -733,30 +733,30 @@ See ELEMENT closest in \fIELEMENT\fP for the common search syntax and result arr
 │ -weights weights       │ weights          │ Weights          │ Supplies per-point numeric weights used to select     │
 │                        │                  │                  │ pens through -styles\&. Each literal list item accepts  │
 │                        │                  │                  │ a Tcl numeric expression\&.                             │
-│ -x data                │ xdata            │ Xdata            │ Supplies the element's X coordinates as a list or Rbc │
+│ -x data                │ xdata            │ Xdata            │ Supplies the element's X coordinates as a list or RBC │
 │                        │                  │                  │ vector\&. Each literal list item accepts a Tcl numeric  │
 │                        │                  │                  │ expression\&.                                           │
 │ -xdata data            │ —                │ —                │ Synonym for -x\&.                                       │
 │ -xerror data           │ xError           │ XError           │ Supplies symmetric X error magnitudes as a list or    │
-│                        │                  │                  │ Rbc vector\&. Each literal list item accepts a Tcl      │
+│                        │                  │                  │ RBC vector\&. Each literal list item accepts a Tcl      │
 │                        │                  │                  │ numeric expression\&.                                   │
-│ -xhigh data            │ xHigh            │ XHigh            │ Supplies the upper X error endpoints as a list or Rbc │
+│ -xhigh data            │ xHigh            │ XHigh            │ Supplies the upper X error endpoints as a list or RBC │
 │                        │                  │                  │ vector\&. Each literal list item accepts a Tcl numeric  │
 │                        │                  │                  │ expression\&.                                           │
-│ -xlow data             │ xLow             │ XLow             │ Supplies the lower X error endpoints as a list or Rbc │
+│ -xlow data             │ xLow             │ XLow             │ Supplies the lower X error endpoints as a list or RBC │
 │                        │                  │                  │ vector\&. Each literal list item accepts a Tcl numeric  │
 │                        │                  │                  │ expression\&.                                           │
-│ -y data                │ ydata            │ Ydata            │ Supplies the element's Y coordinates as a list or Rbc │
+│ -y data                │ ydata            │ Ydata            │ Supplies the element's Y coordinates as a list or RBC │
 │                        │                  │                  │ vector\&. Each literal list item accepts a Tcl numeric  │
 │                        │                  │                  │ expression\&.                                           │
 │ -ydata data            │ —                │ —                │ Synonym for -y\&.                                       │
 │ -yerror data           │ yError           │ YError           │ Supplies symmetric Y error magnitudes as a list or    │
-│                        │                  │                  │ Rbc vector\&. Each literal list item accepts a Tcl      │
+│                        │                  │                  │ RBC vector\&. Each literal list item accepts a Tcl      │
 │                        │                  │                  │ numeric expression\&.                                   │
-│ -yhigh data            │ yHigh            │ YHigh            │ Supplies the upper Y error endpoints as a list or Rbc │
+│ -yhigh data            │ yHigh            │ YHigh            │ Supplies the upper Y error endpoints as a list or RBC │
 │                        │                  │                  │ vector\&. Each literal list item accepts a Tcl numeric  │
 │                        │                  │                  │ expression\&.                                           │
-│ -ylow data             │ yLow             │ YLow             │ Supplies the lower Y error endpoints as a list or Rbc │
+│ -ylow data             │ yLow             │ YLow             │ Supplies the lower Y error endpoints as a list or RBC │
 │                        │                  │                  │ vector\&. Each literal list item accepts a Tcl numeric  │
 │                        │                  │                  │ expression\&.                                           │
 └────────────────────────┴──────────────────┴──────────────────┴───────────────────────────────────────────────────────┘

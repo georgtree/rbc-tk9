@@ -242,7 +242,7 @@ image create photo picture
 .fi
 .RE
 .PP
-JPEG support is optional at build time\&. If Rbc was built without JPEG support, the operation returns an error\&.
+JPEG support is optional at build time\&. If RBC was built without JPEG support, the operation returns an error\&.
 .PP
 Tk's normal image facilities or an image extension may be preferable when they already provide the required
 JPEG support\&.
@@ -288,7 +288,7 @@ The available filters are:
 │ box      │ Box filter                                    │
 │ bspline  │ B-spline filter                               │
 │ catrom   │ Catmull-Rom filter                            │
-│ default  │ Rbc default resampling filter                 │
+│ default  │ RBC default resampling filter                 │
 │ dummy    │ Dummy filter                                  │
 │ gauss8   │ Wide Gaussian filter                          │
 │ gaussian │ Gaussian filter                               │

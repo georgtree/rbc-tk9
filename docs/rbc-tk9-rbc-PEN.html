@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -842,7 +842,7 @@ active pen, or select several pens through its <code class="docutils literal not
 <p>See <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-namespaceqz3a3arbc3a3aelement"><span class="std std-ref">ELEMENT</span></a>, <a class="reference internal" href="rbc-tk9-rbc-LINEELEMENT.html#r-namespaceqz3a3arbc3a3alineelement"><span class="std std-ref">LINEELEMENT</span></a>, <a class="reference internal" href="rbc-tk9-rbc-STRIPELEMENT.html#r-namespaceqz3a3arbc3a3astripelement"><span class="std std-ref">STRIPELEMENT</span></a>, and <a class="reference internal" href="rbc-tk9-rbc-BARELEMENT.html#r-namespaceqz3a3arbc3a3abarelement"><span class="std std-ref">BARELEMENT</span></a> for how elements select and use pens.</p>
 <section id="pen-types">
 <span id="r-rbc-pen-pen-types"></span><span id="r-3a3arbc3a3apenqzpen20types"></span><h2>Pen types<a class="headerlink" href="#pen-types" title="Link to this heading"></a></h2>
-<p>Rbc has two concrete pen implementations:</p>
+<p>RBC has two concrete pen implementations:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 50.0%" />
@@ -893,7 +893,7 @@ elements.</p>
 </tbody>
 </table>
 <p>The actual concrete pen type may be queried with <code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">type</span></code>.</p>
-<p>Line pens may be assigned to line and strip elements. Bar pens may be assigned only to bar elements. Rbc
+<p>Line pens may be assigned to line and strip elements. Bar pens may be assigned only to bar elements. RBC
 rejects attempts to use a pen with an incompatible element type.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-type</span></code> is a creation-time selector. Changing it after a pen has been created does not convert the existing
 pen to another concrete type. Use <code class="docutils literal notranslate"><span class="pre">PEN</span> <span class="pre">type</span></code> to determine the actual type of an existing pen.</p>

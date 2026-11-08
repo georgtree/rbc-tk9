@@ -23,10 +23,10 @@ namespace eval ::rbc::graphtoolbar {
     }
 
     variable _ruff_preamble {
-        The `graphtoolbar` command creates an Rbc graph megawidget with an optional toolbar or context-menu control
+        The `graphtoolbar` command creates an RBC graph megawidget with an optional toolbar or context-menu control
         surface and a set of coordinated interactive graph-navigation facilities.
 
-        The graph itself is a normal Rbc `graph`, `barchart`, `stripchart`, or `polar` widget. The megawidget adds:
+        The graph itself is a normal RBC `graph`, `barchart`, `stripchart`, or `polar` widget. The megawidget adds:
 
         - Drag-selection zoom.
         - Mouse-wheel zoom.
@@ -52,7 +52,7 @@ namespace eval ::rbc::graphtoolbar {
         ::rbc::graphtoolbar .gtb ?option ...?
         ```
 
-        or, after importing the Rbc commands:
+        or, after importing the RBC commands:
         ```tcl
         package require rbc::graphtoolbar
         namespace import ::rbc::*
@@ -75,7 +75,7 @@ namespace eval ::rbc::graphtoolbar {
         .gtb graph element create trace -data {0 0 1 1 2 4 3 9 4 16}
         ```
 
-        `graph` forwards the remaining arguments directly to the embedded Rbc graph widget. The graph pathname can
+        `graph` forwards the remaining arguments directly to the embedded RBC graph widget. The graph pathname can
         alternatively be obtained with:
         ```tcl
         set graph [.gtb subwidget graph]
@@ -268,7 +268,7 @@ namespace eval ::rbc::graphtoolbar {
         If several used axes belong to the same data dimension, their scrolling constraints are combined. The most
         restrictive axis limits the common physical drag displacement, so all mapped axes remain synchronized.
 
-        When `-scrollcommand` is configured without explicit `-scrollmin` or `-scrollmax`, Rbc uses the complete data
+        When `-scrollcommand` is configured without explicit `-scrollmin` or `-scrollmax`, RBC uses the complete data
         range of the axis as the scrolling region.
 
         If the current viewport already covers that complete range, `axis view` reports the full interval `0.0 1.0`.
@@ -343,9 +343,9 @@ namespace eval ::rbc::graphtoolbar {
 
         ## Crosshairs
         `-crosshairs` enables the enhanced crosshair system. The `-crosshairsmode` property selects one of four modes:
-        - `current` - show Rbc crosshair lines and annotate the current pointer coordinates.
+        - `current` - show RBC crosshair lines and annotate the current pointer coordinates.
         - `closest` - find plotted data near the pointer and annotate the selected point or points.
-        - `none` - show ordinary Rbc crosshair lines without an annotation marker.
+        - `none` - show ordinary RBC crosshair lines without an annotation marker.
         - `disabled` - disable both the lines and the annotation marker.
 
         The default is `closest`.
@@ -355,7 +355,7 @@ namespace eval ::rbc::graphtoolbar {
         - `-halo 10` sets the search halo in pixels.
         - `-single yes` displays the globally closest result. With `-single no`, each visible element is searched
           independently.
-        - `-hide yes` hides the ordinary Rbc crosshair lines while closest annotations are displayed.
+        - `-hide yes` hides the ordinary RBC crosshair lines while closest annotations are displayed.
 
         Elements configured with `-hideplot yes` do not participate in closest searches.
 
@@ -670,7 +670,7 @@ namespace eval ::rbc::graphtoolbar {
         The most common access forms are:
 
         ```tcl
-        # Forward directly to the Rbc graph.
+        # Forward directly to the RBC graph.
         .gtb graph axis configure x -min 0 -max 10
         .gtb graph element create e1 -data {0 0 1 1}
 
@@ -687,12 +687,12 @@ namespace eval ::rbc::graphtoolbar {
         The exact subwidget set depends on `-controlmode` and on which optional facilities were enabled.
 
         ## Reserved internal names
-        `graphtoolbar` installs private binding tags and graph markers in the embedded Rbc graph.
+        `graphtoolbar` installs private binding tags and graph markers in the embedded RBC graph.
 
         Binding tags whose names begin with `gtb-` are reserved for `graphtoolbar`. Applications should not create,
         modify, remove, or attach their own bindings to tags using this prefix.
 
-        Rbc graph marker names beginning with `gtb` are likewise reserved for `graphtoolbar`. Applications using the
+        RBC graph marker names beginning with `gtb` are likewise reserved for `graphtoolbar`. Applications using the
         embedded graph should choose marker names that do not begin with `gtb`.
 
         The exact private names are implementation details and may change. Applications should rely only on the
@@ -700,7 +700,7 @@ namespace eval ::rbc::graphtoolbar {
         bindings or markers.
 
         Graphtoolbar-created markers are visual overlays only. They are created with `-state disabled`, which keeps
-        them visible but excludes them from Rbc graph hit testing and binding dispatch. As a result, internal markers
+        them visible but excludes them from RBC graph hit testing and binding dispatch. As a result, internal markers
         such as closest-point symbols, annotation text, annotation backgrounds, zoom outlines, and zoom titles do not
         become the graph's current marker and do not interfere with application element bindings.
 
@@ -955,7 +955,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 Options such as `-type`, `-controlmode`, `-zoom`, `-pan`, and `-crosshairs` select structural features
                 when the megawidget is created and are not configurable properties afterward.
 
-                Private binding tags created by the class use the reserved `gtb-` prefix. Private Rbc graph markers
+                Private binding tags created by the class use the reserved `gtb-` prefix. Private RBC graph markers
                 use the reserved `gtb` prefix. Applications should not use either prefix for objects they create in
                 the embedded graph.
             }
@@ -964,11 +964,11 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 -interactive - Enables zoom, pan, wheel zoom, crosshairs, active legend and scale toggling on
                  axes `x` and `y`, with their default options. Explicit feature options, including `-scaletoggle`,
                  override these defaults regardless of argument order. This is a construction-time switch.
-                -width pixels - Initial requested width of the embedded Rbc graph. The default is `800`.
-                -height pixels - Initial requested height of the embedded Rbc graph. The default is `600`.
+                -width pixels - Initial requested width of the embedded RBC graph. The default is `800`.
+                -height pixels - Initial requested height of the embedded RBC graph. The default is `600`.
                 -controlmode mode - Selects the user-interface control surface. Must be `toolbar`, `contextmenu`, or\
                  `both`. The default is `both`.
-                -type type - Selects the embedded Rbc widget. Must be `graph`, `barchart`, `stripchart`,
+                -type type - Selects the embedded RBC widget. Must be `graph`, `barchart`, `stripchart`,
                  `polar`, or `trackgraph`. The default is `graph`.
                 -representation mode - For `-type polar`, selects `polar` or `smith` representation. The default is
                  `polar`. It is ignored by the other graph types.
@@ -1010,7 +1010,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                  closest line, strip, and Polar points. Recognized keys are `-outline` and `-rotate`.
                 -crosshairsmode mode - Initial crosshair mode. Must be `current`, `closest`, `none`, or `disabled`. The
                  default is `closest`. Requires `-crosshairs`.
-                -crosshairsopts dictionary - Initial Rbc crosshair line options. Requires `-crosshairs`.
+                -crosshairsopts dictionary - Initial RBC crosshair line options. Requires `-crosshairs`.
                 -crosshairsmarkopts dictionary - Initial text-marker and numeric-format options used by current and
                  closest annotations. Requires `-crosshairs`.
                 -crosshairsmarkboxopts dictionary - Initial background-box options for crosshair annotations. Requires
@@ -1032,7 +1032,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     Accepted values are `current`, `closest`, `none`, and `disabled`.
 
                     `current` annotates the current pointer coordinates. `closest` annotates nearby plotted\
-                    data. `none` leaves only ordinary Rbc crosshair lines. `disabled` suppresses both lines and\
+                    data. `none` leaves only ordinary RBC crosshair lines. `disabled` suppresses both lines and\
                     annotation markers.
 
                     This property is intended for an instance created with `-crosshairs`.
@@ -1074,7 +1074,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 }
 
                 -zoomtitleopts {
-                    Dictionary of Rbc text-marker options used for the transient zoom-level title.
+                    Dictionary of RBC text-marker options used for the transient zoom-level title.
 
                     Recognized keys are `-font`, `-foreground`, `-shadow`, `-anchor`, and `-coords`.
 
@@ -1112,7 +1112,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                 }
 
                 -crosshairsopts {
-                    Dictionary configuring the underlying Rbc crosshair lines.
+                    Dictionary configuring the underlying RBC crosshair lines.
 
                     Recognized keys are `-linewidth`, `-color`, and `-dashes`.
 
@@ -1144,7 +1144,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
                     `-halo` is the search distance in pixels.
                     `-single yes` selects one globally closest result;
                     `-single no` searches every visible element separately.
-                    `-hide` controls visibility of the ordinary Rbc crosshair lines while closest annotations are
+                    `-hide` controls visibility of the ordinary RBC crosshair lines while closest annotations are
                      displayed.
                 }
 
@@ -1175,7 +1175,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
 
                     Recognized keys are `-outline`, `-linewidth`, and `-arrowshape`.
 
-                    `-arrowshape` contains the three screen distances used by an Rbc line-marker arrowhead.
+                    `-arrowshape` contains the three screen distances used by an RBC line-marker arrowhead.
 
                     Initial values come from the `gtbCrosshairsBarLine*` Tk option-database resources.
                 }
@@ -1799,7 +1799,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         }
     }
     method graph {args} {
-        # Forwards a command directly to the embedded Rbc graph widget.
+        # Forwards a command directly to the embedded RBC graph widget.
         #  args - graph widget command and arguments.
         #
         # For example:
@@ -2175,7 +2175,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         # If no candidate fits completely inside the plotting area, the preferred anchor is returned.
         #
-        # Returns: Selected Tk/Rbc anchor name.
+        # Returns: Selected Tk/RBC anchor name.
         set graph $Subwidgets(graph)
         lassign [$graph extents plotarea] plotLeft plotTop plotWidth plotHeight
         set plotRight [expr {$plotLeft+$plotWidth-1}]
@@ -2601,10 +2601,10 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method AxisMarkerName {axis dimension} {
         # Returns the semantic name used for an axis in coordinate annotations.
-        #  axis - Rbc axis name.
+        #  axis - RBC axis name.
         #  dimension - `x` or `y`.
         #
-        # Polar/Smith grid axes are displayed as `real` and `imag`; auxiliary axes retain their actual Rbc axis names.
+        # Polar/Smith grid axes are displayed as `real` and `imag`; auxiliary axes retain their actual RBC axis names.
         #
         # Returns: Display name.
         set graph $Subwidgets(graph)
@@ -2976,7 +2976,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     #### axes toggle methods
     method ToggleAxisScale {graph} {
         # Toggles the scale type of the currently active axis.
-        #  graph - embedded Rbc graph pathname.
+        #  graph - embedded RBC graph pathname.
         #
         # A visible Polar/Smith grid axis cannot be switched from linear to logarithmic because the specialized grid
         # requires linear Cartesian axes. The reverse transition is permitted.
@@ -3887,7 +3887,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method ClosestAxisFormattedValue {axis value formatSpec} {
         # Formats a closest-point value using the mapped axis formatter.
-        #  axis - Rbc axis name.
+        #  axis - RBC axis name.
         #  value - numeric graph value.
         #  formatSpec - graphtoolbar fallback format body.
         #
@@ -3910,7 +3910,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         #
         if {[$graph axis cget $axis -logscale]} {
             #
-            # Rbc formats logarithmic tick coordinates as 1E<n>.
+            # RBC formats logarithmic tick coordinates as 1E<n>.
             # The value here is the actual graph value, so convert it
             # back to logarithmic coordinate space first.
             #
@@ -3921,7 +3921,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
             set defaultLabel [format "1E%d" $exponent]
         } else {
             #
-            # Keep this consistent with Rbc's NUMDIGITS == 15
+            # Keep this consistent with RBC's NUMDIGITS == 15
             # standard linear-axis label.
             #
             set defaultLabel [format %.15g $value]
@@ -4951,7 +4951,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     }
     method ScaledAxisLimits {axis factor {center {}}} {
         # Calculates axis limits after scaling around a selected centre.
-        #  axis - Rbc axis name.
+        #  axis - RBC axis name.
         #  factor - positive scale factor; values below `1.0` zoom in and values above `1.0` zoom out.
         #  center - optional graph value which remains fixed during scaling. An empty value uses the centre of the
         #   current axis range.
@@ -5989,7 +5989,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
     method PrintPostScript {} {
         # Applies values from the PostScript dialog and writes PostScript output.
         #
-        # Individual invalid option values are rolled back to their previous Rbc value. A save-file dialog selects
+        # Individual invalid option values are rolled back to their previous RBC value. A save-file dialog selects
         # the final destination.
         #
         # Returns: Nothing.
@@ -6128,7 +6128,7 @@ oo::configurable create ::rbc::graphtoolbar::graphtoolbar {
         # Applies SVG or PDF dialog values and writes the selected output format.
         #  format - svg or pdf.
         #
-        # Individual invalid option values are rolled back to their previous Rbc value. A save-file dialog selects
+        # Individual invalid option values are rolled back to their previous RBC value. A save-file dialog selects
         # the final destination.
         #
         # Returns: Nothing.

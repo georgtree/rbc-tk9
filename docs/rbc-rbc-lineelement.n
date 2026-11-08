@@ -40,7 +40,7 @@ X and Y coordinates may be supplied separately with -x and -y:
 .PP
 -xdata and -ydata are synonyms for -x and -y\&.
 .PP
-Each value may be a Tcl numeric expression\&. The option may also name an existing Rbc vector:
+Each value may be a Tcl numeric expression\&. The option may also name an existing RBC vector:
 .PP
 .RS 4n
 .nf
@@ -53,7 +53,7 @@ voltage set {1 4 2 5 3}
 .fi
 .RE
 .PP
-When an Rbc vector is used, changes to the vector automatically invalidate and update the graph element\&.
+When an RBC vector is used, changes to the vector automatically invalidate and update the graph element\&.
 .PP
 The number of usable data points is the smaller of the X and Y vector lengths\&.
 .PP
@@ -84,7 +84,7 @@ Configuring -x or -y separately invalidates the retained paired -data representa
 parametric data where the plotted X/Y coordinates alone do not identify the independent variable, for example
 time, frequency, bias voltage, or another sweep quantity\&.
 .PP
-The value may be a Tcl list of numeric values or the name of an existing real Rbc vector:
+The value may be a Tcl list of numeric values or the name of an existing real RBC vector:
 .PP
 .RS 4n
 .nf
@@ -98,7 +98,7 @@ yValues set {1\&.0 0\&.0 -1\&.0 0\&.0}
 .fi
 .RE
 .PP
-A complex Rbc vector cannot be used as -param\&.
+A complex RBC vector cannot be used as -param\&.
 .PP
 When a non-empty -param value is supplied while an element is created or configured, the number of parameter
 values must equal the resulting number of element data points\&. Data and parameter changes in the same
@@ -121,7 +121,7 @@ An empty value disables parameter mapping:
 .fi
 .RE
 .PP
-When -param names an Rbc vector, later changes to that vector are tracked automatically\&. Parameter data do
+When -param names an RBC vector, later changes to that vector are tracked automatically\&. Parameter data do
 not affect the plotted geometry or axis limits\&.
 .PP
 Attached data and parameter vectors may be resized independently after configuration\&. A temporary length
@@ -321,7 +321,7 @@ retain source-data semantics even when the displayed trace is decimated\&. Searc
 operate on the rendered trace geometry\&.
 .SS "WHEN AUTOMATIC DECIMATION IS USED"
 .PP
-auto does not force every line or strip element through the decimation path\&. Rbc first checks whether
+auto does not force every line or strip element through the decimation path\&. RBC first checks whether
 decimation is useful and whether it can preserve the element's drawing semantics\&.
 .PP
 The source density must currently be at least approximately eight source points per physical data-X plot
@@ -338,7 +338,7 @@ The following conditions determine how far the optimization can proceed:
 │ decimation               │ data mode; -smooth linear; no area fill; no │ pixel-density geometry\&.                     │
 │                          │ multiple weight-selected pen styles;        │                                             │
 │                          │ sufficient display density                  │                                             │
-│ Pre-map decimation       │ Above conditions, plus no normal symbols or │ Rbc can avoid constructing complete         │
+│ Pre-map decimation       │ Above conditions, plus no normal symbols or │ RBC can avoid constructing complete         │
 │                          │ value labels, no error/high/low data, and   │ per-source mapped point, symbol, and style  │
 │                          │ no all-points-active symbols or values      │ arrays\&.                                     │
 │ Persistent cached        │ Pre-map conditions, plus globally monotonic │ Axis-only remaps, ranged Y updates, and     │
@@ -368,7 +368,7 @@ Supplying error-bar data also prevents the pre-map optimization even if error-ba
 hidden, because the error data remain associated with individual source points\&.
 .SS "FALLBACK BEHAVIOR"
 .PP
--decimate auto is deliberately conservative\&. If a faster path cannot safely represent a particular line, Rbc
+-decimate auto is deliberately conservative\&. If a faster path cannot safely represent a particular line, RBC
 falls back to a more general mapping path rather than changing the plotted topology\&.
 .PP
 For example:
@@ -389,11 +389,11 @@ symbols, value labels, or error data may require full source-point mapping even 
 unsupported combinations simply retain the ordinary full-resolution screen mapping\&.
 .PP
 Therefore -decimate auto may safely be left enabled for eligible large line and strip elements\&. It is not
-necessary for an application to switch the option on and off as the graph is zoomed: Rbc makes the density
+necessary for an application to switch the option on and off as the graph is zoomed: RBC makes the density
 decision again for the current plotting area\&.
 .SS "UPDATES TO VECTOR DATA"
 .PP
-Persistent decimation is particularly useful when -xdata and -ydata refer to Rbc vectors\&.
+Persistent decimation is particularly useful when -xdata and -ydata refer to RBC vectors\&.
 .PP
 A ranged modification of existing Y data can update only the affected cached summaries while retaining the X
 ordering information\&. This applies to ordinary vector-index writes and mapped Tcl-array writes, for example:
@@ -434,7 +434,7 @@ yVector index ++end $newY
 .RE
 .PP
 When the new X values preserve the existing monotonic direction and the appended X/Y values remain finite and
-valid for the current logarithmic domains, Rbc extends the persistent decimation cache rather than rebuilding
+valid for the current logarithmic domains, RBC extends the persistent decimation cache rather than rebuilding
 its existing source prefix\&. Only the new samples and, when necessary, the previous partial 64-sample summary
 block need to be examined\&.
 .PP
@@ -534,7 +534,7 @@ Symbol appearance is controlled by:
 
 .fi
 .PP
--maxsymbols is a display-density control rather than a modification of the source data\&. When positive, Rbc
+-maxsymbols is a display-density control rather than a modification of the source data\&. When positive, RBC
 computes an interval and draws approximately the requested number of symbols across the visible element\&. The
 same interval policy applies to SVG and PostScript output\&. Legend symbols and active symbols are not thinned\&.
 .PP
@@ -601,7 +601,7 @@ Asymmetric or absolute limits may instead be supplied using:
 When -xerror contains values it takes precedence over -xlow and -xhigh\&. Likewise, -yerror takes
 precedence over -ylow and -yhigh\&.
 .PP
-Error vectors may be Tcl lists or Rbc vector names, in the same way as X and Y data\&.
+Error vectors may be Tcl lists or RBC vector names, in the same way as X and Y data\&.
 .PP
 The drawing style is controlled by:
 .PP
@@ -796,7 +796,7 @@ Clearing -valuecommand restores normal formatting\&. -valueformat remains valida
 .SH "PENS, WEIGHTS, AND STYLES"
 .PP
 -weights associates one numeric weight with each data point\&. The value may be a Tcl list or the name of an
-Rbc vector\&.
+RBC vector\&.
 .PP
 -styles maps ranges of those weights to named line pens\&.
 .PP
@@ -933,7 +933,7 @@ opaque, including at 0\&.0\&. Native image tiles use a binary transparency mask 
 blending\&. PostScript output also ignores -areaopacity and retains opaque solid fills\&. Switching to Cairo
 restores the configured opacity\&.
 .PP
--areatile specifies an Rbc tile/image used to fill the area\&. An empty value disables the tile\&.
+-areatile specifies an RBC tile/image used to fill the area\&. An empty value disables the tile\&.
 .PP
 With -renderer cairo, solid, stippled, and photo-tiled areas use the graph's -antialias setting\&. Stipple
 pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge\&.  An empty
@@ -976,7 +976,7 @@ The complete line-element option set is:
 │ -areapattern pattern     │ areaPattern         │ AreaPattern         │ Enables area filling with solid or a Tk       │
 │                          │                     │                     │ bitmap stipple\&. An empty value disables the   │
 │                          │                     │                     │ pattern\&.                                      │
-│ -areatile tile           │ areaTile            │ AreaTile            │ Enables area filling with the named Rbc       │
+│ -areatile tile           │ areaTile            │ AreaTile            │ Enables area filling with the named RBC       │
 │                          │                     │                     │ tile/image\&. An empty value disables the tile\&. │
 │ -bindtags tags           │ bindTags            │ BindTags            │ Specifies additional graph binding tags for   │
 │                          │                     │                     │ the element\&. The default is all\&.              │
@@ -1058,7 +1058,7 @@ The complete line-element option set is:
 │                          │                     │                     │ outlines\&. The default is 1\&.                   │
 │ -param data              │ param               │ Param               │ Associates one real parameter value with each │
 │                          │                     │                     │ data point\&. Accepts a numeric list or real    │
-│                          │                     │                     │ Rbc vector\&. An empty value disables parameter │
+│                          │                     │                     │ RBC vector\&. An empty value disables parameter │
 │                          │                     │                     │ mapping\&.                                      │
 │ -pen penName             │ pen                 │ Pen                 │ Specifies a named line pen containing the     │
 │                          │                     │                     │ element's normal drawing attributes\&. An empty │
@@ -1111,30 +1111,30 @@ The complete line-element option set is:
 │                          │                     │                     │ select pens through -styles\&. Each literal     │
 │                          │                     │                     │ list item accepts a Tcl numeric expression\&.   │
 │ -x data                  │ xData               │ XData               │ Supplies the element's X coordinates as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -xdata data              │ —                   │ —                   │ Synonym for -x\&.                               │
 │ -xerror data             │ xError              │ XError              │ Supplies symmetric X error magnitudes as a    │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -xhigh data              │ xHigh               │ XHigh               │ Supplies the upper X error endpoints as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -xlow data               │ xLow                │ XLow                │ Supplies the lower X error endpoints as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -y data                  │ yData               │ YData               │ Supplies the element's Y coordinates as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -ydata data              │ —                   │ —                   │ Synonym for -y\&.                               │
 │ -yerror data             │ yError              │ YError              │ Supplies symmetric Y error magnitudes as a    │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -yhigh data              │ yHigh               │ YHigh               │ Supplies the upper Y error endpoints as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -ylow data               │ yLow                │ YLow                │ Supplies the lower Y error endpoints as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 └──────────────────────────┴─────────────────────┴─────────────────────┴───────────────────────────────────────────────┘
 

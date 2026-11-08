@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -846,7 +846,7 @@ documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-nam
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> are synonyms for <code class="docutils literal notranslate"><span class="pre">-x</span></code> and <code class="docutils literal notranslate"><span class="pre">-y</span></code>.</p>
-<p>Each value may be a Tcl numeric expression. The option may also name an existing Rbc vector:</p>
+<p>Each value may be a Tcl numeric expression. The option may also name an existing RBC vector:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>time<span class="w"> </span>voltage
 
 <span class="nb">time</span><span class="w"> </span>set<span class="w">    </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
@@ -855,7 +855,7 @@ documented in <a class="reference internal" href="rbc-tk9-rbc-ELEMENT.html#r-nam
 <span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>time<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>voltage
 </pre></div>
 </div>
-<p>When an Rbc vector is used, changes to the vector automatically invalidate and update the graph element.</p>
+<p>When an RBC vector is used, changes to the vector automatically invalidate and update the graph element.</p>
 <p>The number of usable data points is the smaller of the X and Y vector lengths.</p>
 <p>As an alternative, <code class="docutils literal notranslate"><span class="pre">-data</span></code> accepts one even-length list containing alternating X and Y coordinates:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>signal<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">3</span><span class="k">}</span>
@@ -874,7 +874,7 @@ the last option affecting a coordinate wins.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-param</span></code> associates one additional real parameter value with each element data point. It is intended for
 parametric data where the plotted X/Y coordinates alone do not identify the independent variable, for example
 time, frequency, bias voltage, or another sweep quantity.</p>
-<p>The value may be a Tcl list of numeric values or the name of an existing real Rbc vector:</p>
+<p>The value may be a Tcl list of numeric values or the name of an existing real RBC vector:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>sweep<span class="w"> </span>xValues<span class="w"> </span>yValues
 
 <span class="nv">sweep</span><span class="w">   </span>set<span class="w"> </span><span class="k">{</span><span class="nv">0.0</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="mf">0.2</span><span class="w"> </span><span class="mf">0.3</span><span class="k">}</span>
@@ -884,7 +884,7 @@ time, frequency, bias voltage, or another sweep quantity.</p>
 <span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trajectory<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>xValues<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>yValues<span class="w"> </span><span class="o">-</span>param<span class="w"> </span>sweep
 </pre></div>
 </div>
-<p>A complex Rbc vector cannot be used as <code class="docutils literal notranslate"><span class="pre">-param</span></code>.</p>
+<p>A complex RBC vector cannot be used as <code class="docutils literal notranslate"><span class="pre">-param</span></code>.</p>
 <p>When a non-empty -param value is supplied while an element is created or configured, the number of parameter
 values must equal the resulting number of element data points. Data and parameter changes in the same
 configuration command are validated together before either is committed:</p>
@@ -897,7 +897,7 @@ parameter mapping remain unchanged.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>element<span class="w"> </span>configure<span class="w"> </span>trajectory<span class="w"> </span><span class="o">-</span>param<span class="w"> </span><span class="k">{}</span>
 </pre></div>
 </div>
-<p>When <code class="docutils literal notranslate"><span class="pre">-param</span></code> names an Rbc vector, later changes to that vector are tracked automatically. Parameter data do
+<p>When <code class="docutils literal notranslate"><span class="pre">-param</span></code> names an RBC vector, later changes to that vector are tracked automatically. Parameter data do
 not affect the plotted geometry or axis limits.</p>
 <p>Attached data and parameter vectors may be resized independently after configuration. A temporary length
 mismatch does not prevent the element from being drawn. While the lengths differ, ELEMENT closest simply omits
@@ -1114,7 +1114,7 @@ operate on the rendered trace geometry.</p>
 </section>
 <section id="when-automatic-decimation-is-used">
 <span id="r-rbc-lineelement-when-automatic-decimation-is-used"></span><span id="r-3a3arbc3a3alineelementqzwhen20automatic20decimation20is20used"></span><h3>When automatic decimation is used<a class="headerlink" href="#when-automatic-decimation-is-used" title="Link to this heading"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">auto</span></code> does not force every line or strip element through the decimation path. Rbc first checks whether
+<p><code class="docutils literal notranslate"><span class="pre">auto</span></code> does not force every line or strip element through the decimation path. RBC first checks whether
 decimation is useful and whether it can preserve the element’s drawing semantics.</p>
 <p>The source density must currently be at least approximately eight source points per physical data-X plot
 pixel. Sparse lines continue through the ordinary mapping path because decimation would provide little or no
@@ -1139,7 +1139,7 @@ benefit.</p>
 </tr>
 <tr class="row-odd"><td><p>Pre-map decimation</p></td>
 <td><p>Above conditions, plus no normal symbols or value labels, no error/high/low data, and no all-points-active symbols or values</p></td>
-<td><p>Rbc can avoid constructing complete per-source mapped point, symbol, and style arrays.</p></td>
+<td><p>RBC can avoid constructing complete per-source mapped point, symbol, and style arrays.</p></td>
 </tr>
 <tr class="row-even"><td><p>Persistent cached decimation</p></td>
 <td><p>Pre-map conditions, plus globally monotonic X and finite data valid for the current logarithmic domains</p></td>
@@ -1161,7 +1161,7 @@ hidden, because the error data remain associated with individual source points.<
 </section>
 <section id="fallback-behavior">
 <span id="r-rbc-lineelement-fallback-behavior"></span><span id="r-3a3arbc3a3alineelementqzfallback20behavior"></span><h3>Fallback behavior<a class="headerlink" href="#fallback-behavior" title="Link to this heading"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> is deliberately conservative. If a faster path cannot safely represent a particular line, Rbc
+<p><code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> is deliberately conservative. If a faster path cannot safely represent a particular line, RBC
 falls back to a more general mapping path rather than changing the plotted topology.</p>
 <p>For example:</p>
 <ul class="simple">
@@ -1172,12 +1172,12 @@ falls back to a more general mapping path rather than changing the plotted topol
 <li><p>unsupported combinations simply retain the ordinary full-resolution screen mapping.</p></li>
 </ul>
 <p>Therefore <code class="docutils literal notranslate"><span class="pre">-decimate</span> <span class="pre">auto</span></code> may safely be left enabled for eligible large line and strip elements. It is not
-necessary for an application to switch the option on and off as the graph is zoomed: Rbc makes the density
+necessary for an application to switch the option on and off as the graph is zoomed: RBC makes the density
 decision again for the current plotting area.</p>
 </section>
 <section id="updates-to-vector-data">
 <span id="r-rbc-lineelement-updates-to-vector-data"></span><span id="r-3a3arbc3a3alineelementqzupdates20to20vector20data"></span><h3>Updates to vector data<a class="headerlink" href="#updates-to-vector-data" title="Link to this heading"></a></h3>
-<p>Persistent decimation is particularly useful when <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> refer to Rbc vectors.</p>
+<p>Persistent decimation is particularly useful when <code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> refer to RBC vectors.</p>
 <p>A ranged modification of existing Y data can update only the affected cached summaries while retaining the X
 ordering information. This applies to ordinary vector-index writes and mapped Tcl-array writes, for example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">yVector</span><span class="w"> </span>index<span class="w"> </span><span class="mi">100000</span><span class="w"> </span><span class="mf">1.25</span>
@@ -1200,7 +1200,7 @@ ordering information. This applies to ordinary vector-index writes and mapped Tc
 </pre></div>
 </div>
 <p>When the new X values preserve the existing monotonic direction and the appended X/Y values remain finite and
-valid for the current logarithmic domains, Rbc extends the persistent decimation cache rather than rebuilding
+valid for the current logarithmic domains, RBC extends the persistent decimation cache rather than rebuilding
 its existing source prefix. Only the new samples and, when necessary, the previous partial 64-sample summary
 block need to be examined.</p>
 <p>Vector growth may relocate the vector’s backing storage. An exact tail-growth notification allows the cache to
@@ -1306,7 +1306,7 @@ arrow
 </tr>
 </tbody>
 </table>
-<p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> is a display-density control rather than a modification of the source data. When positive, Rbc
+<p><code class="docutils literal notranslate"><span class="pre">-maxsymbols</span></code> is a display-density control rather than a modification of the source data. When positive, RBC
 computes an interval and draws approximately the requested number of symbols across the visible element. The
 same interval policy applies to SVG and PostScript output. Legend symbols and active symbols are not thinned.</p>
 <p>By default, <code class="docutils literal notranslate"><span class="pre">-symbolpoints</span> <span class="pre">all</span></code> keeps symbols and value labels at the original eligible sample points,
@@ -1369,7 +1369,7 @@ x + error
 </div>
 <p>When <code class="docutils literal notranslate"><span class="pre">-xerror</span></code> contains values it takes precedence over <code class="docutils literal notranslate"><span class="pre">-xlow</span></code> and <code class="docutils literal notranslate"><span class="pre">-xhigh</span></code>. Likewise, <code class="docutils literal notranslate"><span class="pre">-yerror</span></code> takes
 precedence over <code class="docutils literal notranslate"><span class="pre">-ylow</span></code> and <code class="docutils literal notranslate"><span class="pre">-yhigh</span></code>.</p>
-<p>Error vectors may be Tcl lists or Rbc vector names, in the same way as X and Y data.</p>
+<p>Error vectors may be Tcl lists or RBC vector names, in the same way as X and Y data.</p>
 <p>The drawing style is controlled by:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1566,7 +1566,7 @@ Clearing <code class="docutils literal notranslate"><span class="pre">-valuecomm
 <section id="pens-weights-and-styles">
 <span id="r-rbc-lineelement-pens-weights-and-styles"></span><span id="r-3a3arbc3a3alineelementqzpens2c20weights2c20and20styles"></span><h2>Pens, weights, and styles<a class="headerlink" href="#pens-weights-and-styles" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-weights</span></code> associates one numeric weight with each data point. The value may be a Tcl list or the name of an
-Rbc vector.</p>
+RBC vector.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-styles</span></code> maps ranges of those weights to named line pens.</p>
 <p>Each entry in the <code class="docutils literal notranslate"><span class="pre">-styles</span></code> list has one of two forms:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>penName
@@ -1659,7 +1659,7 @@ data or closest searches.</p>
 opaque, including at <code class="docutils literal notranslate"><span class="pre">0.0</span></code>. Native image tiles use a binary transparency mask and do not provide full alpha
 blending. PostScript output also ignores <code class="docutils literal notranslate"><span class="pre">-areaopacity</span></code> and retains opaque solid fills. Switching to Cairo
 restores the configured opacity.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-areatile</span></code> specifies an Rbc tile/image used to fill the area. An empty value disables the tile.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-areatile</span></code> specifies an RBC tile/image used to fill the area. An empty value disables the tile.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">cairo</span></code>, solid, stippled, and photo-tiled areas use the graph’s <code class="docutils literal notranslate"><span class="pre">-antialias</span></code> setting. Stipple
 pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.  An empty
 <code class="docutils literal notranslate"><span class="pre">-areabackground</span></code> leaves gaps transparent. Image tiles take precedence over patterns. Photo tiles align to the
@@ -1725,7 +1725,7 @@ runs.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-areatile</span> <span class="pre">tile</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">areaTile</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">AreaTile</span></code></p></td>
-<td><p>Enables area filling with the named Rbc tile/image. An empty value disables the tile.</p></td>
+<td><p>Enables area filling with the named RBC tile/image. An empty value disables the tile.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-bindtags</span> <span class="pre">tags</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bindTags</span></code></p></td>
@@ -1870,7 +1870,7 @@ runs.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-param</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">param</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Param</span></code></p></td>
-<td><p>Associates one real parameter value with each data point. Accepts a numeric list or real Rbc vector. An empty value disables parameter mapping.</p></td>
+<td><p>Associates one real parameter value with each data point. Accepts a numeric list or real RBC vector. An empty value disables parameter mapping.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-pen</span> <span class="pre">penName</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pen</span></code></p></td>
@@ -1975,7 +1975,7 @@ runs.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xData</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XData</span></code></p></td>
-<td><p>Supplies the element’s X coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the element’s X coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
@@ -1985,22 +1985,22 @@ runs.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XError</span></code></p></td>
-<td><p>Supplies symmetric X error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies symmetric X error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XHigh</span></code></p></td>
-<td><p>Supplies the upper X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the upper X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XLow</span></code></p></td>
-<td><p>Supplies the lower X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the lower X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yData</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YData</span></code></p></td>
-<td><p>Supplies the element’s Y coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the element’s Y coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
@@ -2010,17 +2010,17 @@ runs.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YError</span></code></p></td>
-<td><p>Supplies symmetric Y error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies symmetric Y error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YHigh</span></code></p></td>
-<td><p>Supplies the upper Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the upper Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YLow</span></code></p></td>
-<td><p>Supplies the lower Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the lower Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 </tbody>
 </table>

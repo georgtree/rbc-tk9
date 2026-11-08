@@ -677,7 +677,7 @@ static int PostScriptPreamble(Graph *graphPtr, const char *fileName, PsToken psT
     if (version == NULL) {
         version = "???";
     }
-    Rbc_AppendToPostScript(psToken, "%%Creator: (Rbc ", (char *)NULL);
+    Rbc_AppendToPostScript(psToken, "%%Creator: (RBC ", (char *)NULL);
     Rbc_AppendPostScriptString(psToken, version, -1);
     Rbc_AppendToPostScript(psToken, " ", (char *)NULL);
     Rbc_AppendPostScriptString(psToken, Tk_Class(graphPtr->tkwin), -1);
@@ -885,7 +885,7 @@ static int CreateWindowsEPS(Graph *graphPtr, PsToken psToken, Tcl_DString *docum
     hRefDC = GetDC(hWnd);
     /* Build a description string. */
     Tcl_DStringInit(&dString);
-    Tcl_DStringAppend(&dString, "Rbc Graph ", -1);
+    Tcl_DStringAppend(&dString, "RBC Graph ", -1);
     Tcl_DStringAppend(&dString, RBC_VERSION, -1);
     Tcl_DStringAppend(&dString, "\0", -1);
     Tcl_DStringAppend(&dString, Tk_PathName(graphPtr->tkwin), -1);

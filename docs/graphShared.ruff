@@ -153,7 +153,7 @@ namespace eval ::rbc::AXIS {
         places major ticks at 1, 10, 100, and 1000.
 
         ## Major and minor ticks
-        When `-majorticks` is empty, Rbc automatically chooses major tick positions.
+        When `-majorticks` is empty, RBC automatically chooses major tick positions.
 
         A custom list may be supplied:
         ```tcl
@@ -177,7 +177,7 @@ namespace eval ::rbc::AXIS {
         #ruffopt excludedformats {}
 
         A value less than or equal to zero selects automatic step calculation. If a requested step would produce an
-        impractical number of ticks, Rbc falls back to an automatically selected interval.
+        impractical number of ticks, RBC falls back to an automatically selected interval.
 
         The `-subdivisions` option controls automatically generated minor ticks between major ticks. A value of `N`
         divides each major interval into `N` parts, producing `N-1` minor ticks. The default value is `2`, which
@@ -215,7 +215,7 @@ namespace eval ::rbc::AXIS {
         while logarithmic major labels use power-of-ten notation.
 
         `-command` may be used to replace the generated label text. Its value is a Tcl command prefix. For every
-        major tick, Rbc appends two arguments:
+        major tick, RBC appends two arguments:
         ```text
         graphPath defaultLabel
         ```
@@ -317,7 +317,7 @@ namespace eval ::rbc::AXIS {
         .g axis view x 1
         ```
 
-        `-scrollcommand` specifies a Tcl command prefix to notify when the axis viewport is redrawn. Rbc appends the
+        `-scrollcommand` specifies a Tcl command prefix to notify when the axis viewport is redrawn. RBC appends the
         normalized first and last fractions to the command prefix, making it suitable for a Tk scrollbar's `set`
         command.
 
@@ -382,7 +382,7 @@ namespace eval ::rbc::AXIS {
         | `-bd distance`              | —                 | —                 | Synonym for `-borderwidth`.                                                                                                                                                                                                                                                                                                                                                                                                |
         | `-borderwidth distance`     | `borderWidth`     | `BorderWidth`     | Specifies the width of the border drawn around the axis. The default is `0`.                                                                                                                                                                                                                                                                                                                                               |
         | `-color color`              | `color`           | `Color`           | Specifies the color used to draw the axis line and tick labels. The default is `black`.                                                                                                                                                                                                                                                                                                                                    |
-        | `-command command`          | `command`         | `Command`         | Specifies a Tcl command prefix used to format major tick labels. The graph pathname and the default tick-label string are appended as arguments. The command result replaces the default label. An empty value uses Rbc's built-in formatting.                                                                                                                                                                             |
+        | `-command command`          | `command`         | `Command`         | Specifies a Tcl command prefix used to format major tick labels. The graph pathname and the default tick-label string are appended as arguments. The command result replaces the default label. An empty value uses RBC's built-in formatting.                                                                                                                                                                             |
         | `-descending boolean`       | `descending`      | `Descending`      | Specifies whether axis values increase in the reverse direction. The default is `no`.                                                                                                                                                                                                                                                                                                                                      |
         | `-hide boolean`             | `hide`            | `Hide`            | Specifies whether the axis is hidden. Newly created axes are normally visible. Of the four built-in axes, `x` and `y` are initially visible while `x2` and `y2` are initially hidden.                                                                                                                                                                                                                                      |
         | `-justify justify`          | `justify`         | `Justify`         | Specifies the justification of the axis title. The default is `center`.                                                                                                                                                                                                                                                                                                                                                    |
@@ -776,7 +776,7 @@ namespace eval ::rbc::ELEMENT {
         reference describes the available ways to supply data, select axes, configure pens, error bars, labels, and
         other type-specific attributes.
 
-        Element data may be supplied directly as Tcl lists or through Rbc vectors. When an element refers to an Rbc
+        Element data may be supplied directly as Tcl lists or through RBC vectors. When an element refers to an RBC
         vector, changes to that vector cause the graph to update automatically.
 
         ## Display list
@@ -954,7 +954,7 @@ namespace eval ::rbc::ELEMENT {
         ```
 
         The param entry is present only while the parameter vector has exactly the same number of values as the element
-        has data points. If attached Rbc vectors are resized independently and their lengths temporarily differ, the
+        has data points. If attached RBC vectors are resized independently and their lengths temporarily differ, the
         closest search still succeeds normally but param is omitted until the lengths match again.
 
         For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:
@@ -1220,7 +1220,7 @@ namespace eval ::rbc::LINEELEMENT {
 
         `-xdata` and `-ydata` are synonyms for `-x` and `-y`.
 
-        Each value may be a Tcl numeric expression. The option may also name an existing Rbc vector:
+        Each value may be a Tcl numeric expression. The option may also name an existing RBC vector:
         ```tcl
         vector create time voltage
 
@@ -1230,7 +1230,7 @@ namespace eval ::rbc::LINEELEMENT {
         .g element create signal -x time -y voltage
         ```
 
-        When an Rbc vector is used, changes to the vector automatically invalidate and update the graph element.
+        When an RBC vector is used, changes to the vector automatically invalidate and update the graph element.
 
         The number of usable data points is the smaller of the X and Y vector lengths.
 
@@ -1255,7 +1255,7 @@ namespace eval ::rbc::LINEELEMENT {
         parametric data where the plotted X/Y coordinates alone do not identify the independent variable, for example
         time, frequency, bias voltage, or another sweep quantity.
 
-        The value may be a Tcl list of numeric values or the name of an existing real Rbc vector:
+        The value may be a Tcl list of numeric values or the name of an existing real RBC vector:
         ```tcl
         vector create sweep xValues yValues
 
@@ -1266,7 +1266,7 @@ namespace eval ::rbc::LINEELEMENT {
         .g element create trajectory -x xValues -y yValues -param sweep
         ```
 
-        A complex Rbc vector cannot be used as `-param`.
+        A complex RBC vector cannot be used as `-param`.
 
         When a non-empty -param value is supplied while an element is created or configured, the number of parameter
         values must equal the resulting number of element data points. Data and parameter changes in the same
@@ -1283,7 +1283,7 @@ namespace eval ::rbc::LINEELEMENT {
         .g element configure trajectory -param {}
         ```
 
-        When `-param` names an Rbc vector, later changes to that vector are tracked automatically. Parameter data do
+        When `-param` names an RBC vector, later changes to that vector are tracked automatically. Parameter data do
         not affect the plotted geometry or axis limits.
 
         Attached data and parameter vectors may be resized independently after configuration. A temporary length
@@ -1457,7 +1457,7 @@ namespace eval ::rbc::LINEELEMENT {
         operate on the rendered trace geometry.
 
         ### When automatic decimation is used
-        `auto` does not force every line or strip element through the decimation path. Rbc first checks whether
+        `auto` does not force every line or strip element through the decimation path. RBC first checks whether
         decimation is useful and whether it can preserve the element's drawing semantics.
 
         The source density must currently be at least approximately eight source points per physical data-X plot
@@ -1469,7 +1469,7 @@ namespace eval ::rbc::LINEELEMENT {
         | Optimization level | Conditions | Effect |
         |--------------------|------------|--------|
         | Automatic trace decimation | Ordinary `LineElement` or `StripElement`; X/Y data mode; `-smooth linear`; no area fill; no multiple weight-selected pen styles; sufficient display density | The displayed trace may be reduced to pixel-density geometry. |
-        | Pre-map decimation | Above conditions, plus no normal symbols or value labels, no error/high/low data, and no all-points-active symbols or values | Rbc can avoid constructing complete per-source mapped point, symbol, and style arrays. |
+        | Pre-map decimation | Above conditions, plus no normal symbols or value labels, no error/high/low data, and no all-points-active symbols or values | RBC can avoid constructing complete per-source mapped point, symbol, and style arrays. |
         | Persistent cached decimation | Pre-map conditions, plus globally monotonic X and finite data valid for the current logarithmic domains | Axis-only remaps, ranged Y updates, and valid tail growth can reuse the persistent data-domain cache instead of rescanning the complete source vector. |
 
         For the strongest optimization, a large waveform should normally be configured similarly to:
@@ -1489,7 +1489,7 @@ namespace eval ::rbc::LINEELEMENT {
         hidden, because the error data remain associated with individual source points.
 
         ### Fallback behavior
-        `-decimate auto` is deliberately conservative. If a faster path cannot safely represent a particular line, Rbc
+        `-decimate auto` is deliberately conservative. If a faster path cannot safely represent a particular line, RBC
         falls back to a more general mapping path rather than changing the plotted topology.
 
         For example:
@@ -1501,11 +1501,11 @@ namespace eval ::rbc::LINEELEMENT {
         * unsupported combinations simply retain the ordinary full-resolution screen mapping.
 
         Therefore `-decimate auto` may safely be left enabled for eligible large line and strip elements. It is not
-        necessary for an application to switch the option on and off as the graph is zoomed: Rbc makes the density
+        necessary for an application to switch the option on and off as the graph is zoomed: RBC makes the density
         decision again for the current plotting area.
 
         ### Updates to vector data
-        Persistent decimation is particularly useful when `-xdata` and `-ydata` refer to Rbc vectors.
+        Persistent decimation is particularly useful when `-xdata` and `-ydata` refer to RBC vectors.
 
         A ranged modification of existing Y data can update only the affected cached summaries while retaining the X
         ordering information. This applies to ordinary vector-index writes and mapped Tcl-array writes, for example:
@@ -1534,7 +1534,7 @@ namespace eval ::rbc::LINEELEMENT {
         ```
 
         When the new X values preserve the existing monotonic direction and the appended X/Y values remain finite and
-        valid for the current logarithmic domains, Rbc extends the persistent decimation cache rather than rebuilding
+        valid for the current logarithmic domains, RBC extends the persistent decimation cache rather than rebuilding
         its existing source prefix. Only the new samples and, when necessary, the previous partial 64-sample summary
         block need to be examined.
 
@@ -1641,7 +1641,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-scalesymbols boolean` | Controls whether symbol sizes change as the graph axis ranges change. The default is `no`.              |
         | `-maxsymbols number`    | Reduces the density of displayed symbols. `0` displays symbols at all eligible points.                  |
 
-        `-maxsymbols` is a display-density control rather than a modification of the source data. When positive, Rbc
+        `-maxsymbols` is a display-density control rather than a modification of the source data. When positive, RBC
         computes an interval and draws approximately the requested number of symbols across the visible element. The
         same interval policy applies to SVG and PostScript output. Legend symbols and active symbols are not thinned.
 
@@ -1723,7 +1723,7 @@ namespace eval ::rbc::LINEELEMENT {
         When `-xerror` contains values it takes precedence over `-xlow` and `-xhigh`. Likewise, `-yerror` takes
         precedence over `-ylow` and `-yhigh`.
 
-        Error vectors may be Tcl lists or Rbc vector names, in the same way as X and Y data.
+        Error vectors may be Tcl lists or RBC vector names, in the same way as X and Y data.
 
         The drawing style is controlled by:
 
@@ -1918,7 +1918,7 @@ namespace eval ::rbc::LINEELEMENT {
 
         ## Pens, weights, and styles
         `-weights` associates one numeric weight with each data point. The value may be a Tcl list or the name of an
-        Rbc vector.
+        RBC vector.
 
         `-styles` maps ranges of those weights to named line pens.
 
@@ -2050,7 +2050,7 @@ namespace eval ::rbc::LINEELEMENT {
         blending. PostScript output also ignores `-areaopacity` and retains opaque solid fills. Switching to Cairo
         restores the configured opacity.
 
-        `-areatile` specifies an Rbc tile/image used to fill the area. An empty value disables the tile.
+        `-areatile` specifies an RBC tile/image used to fill the area. An empty value disables the tile.
 
         With `-renderer cairo`, solid, stippled, and photo-tiled areas use the graph's `-antialias` setting. Stipple
         pixels remain sharp and aligned to the widget origin; antialiasing affects the polygon edge.  An empty
@@ -2081,7 +2081,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-areaclose mode` | `areaClose` | `AreaClose` | Fill closure: `baseline` (default), `chord`, or `origin`. |
         | `-areaopacity value` | `areaOpacity` | `AreaOpacity` | Solid fill opacity from `0.0` to `1.0` (default); Cairo and SVG. Native and PostScript ignore it. |
         | `-areapattern pattern`  | `areaPattern`    | `AreaPattern`    | Enables area filling with `solid` or a Tk bitmap stipple. An empty value disables the pattern.                                                                                                                    |
-        | `-areatile tile`        | `areaTile`       | `AreaTile`       | Enables area filling with the named Rbc tile/image. An empty value disables the tile.                                                                                                                             |
+        | `-areatile tile`        | `areaTile`       | `AreaTile`       | Enables area filling with the named RBC tile/image. An empty value disables the tile.                                                                                                                             |
         | `-bindtags tags`        | `bindTags`       | `BindTags`       | Specifies additional graph binding tags for the element. The default is `all`.                                                                                                                                    |
         | `-color color`          | `color`          | `Color`          | Sets the built-in normal pen's trace color. The default is navy blue.                                                                                                                                             |
         | `-dashes dashes`        | `dashes`         | `Dashes`         | Sets the built-in normal pen's trace dash pattern. An empty value selects a solid line. Each numeric list item accepts a Tcl integer expression. |
@@ -2110,7 +2110,7 @@ namespace eval ::rbc::LINEELEMENT {
         | `-offdash color`        | `offDash`        | `OffDash`        | Sets the color used for the gaps of a dashed trace. An empty value leaves the gaps transparent; `defcolor` uses the trace color.                                                                                  |
         | `-outline color`        | `outline`        | `Outline`        | Sets the symbol outline color. `defcolor` uses the trace color.                                                                                                                                                   |
         | `-outlinewidth width`   | `outlineWidth`   | `OutlineWidth`   | Sets the non-negative width of symbol outlines. The default is `1`.                                                                                                                                               |
-        | `-param data`           | `param`          | `Param`          | Associates one real parameter value with each data point. Accepts a numeric list or real Rbc vector. An empty value disables parameter mapping.                                             |
+        | `-param data`           | `param`          | `Param`          | Associates one real parameter value with each data point. Accepts a numeric list or real RBC vector. An empty value disables parameter mapping.                                             |
         | `-pen penName`          | `pen`            | `Pen`            | Specifies a named line pen containing the element's normal drawing attributes. An empty value uses the element's built-in pen.                                                                                    |
         | `-pixels size`          | `pixels`         | `Pixels`         | Sets the requested symbol size. The default is `0.125i`.                                                                                                                                                          |
         | `-reduce tolerance`     | `reduce`         | `Reduce`         | Sets the screen-space tolerance used to reduce the number of points in the displayed trace. A non-positive value disables reduction. The default is `0.0`.                                                        |
@@ -2131,16 +2131,16 @@ namespace eval ::rbc::LINEELEMENT {
         | `-valuerotate degrees`  | `valueRotate`    | `ValueRotate`    | Sets the rotation angle of value labels in degrees. The default is `0.0`.                                                                                                                                         |
         | `-valueshadow shadow`   | `valueShadow`    | `ValueShadow`    | Specifies a shadow for value labels. An empty value disables the shadow.                                                                                                                                          |
         | `-weights weights`      | `weights`        | `Weights`        | Supplies per-point numeric weights used to select pens through `-styles`. Each literal list item accepts a Tcl numeric expression. |
-        | `-x data`               | `xData`          | `XData`          | Supplies the element's X coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-x data`               | `xData`          | `XData`          | Supplies the element's X coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
         | `-xdata data`           | —                | —                | Synonym for `-x`.                                                                                                                                                                                                 |
-        | `-xerror data`          | `xError`         | `XError`         | Supplies symmetric X error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-xhigh data`           | `xHigh`          | `XHigh`          | Supplies the upper X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-xlow data`            | `xLow`           | `XLow`           | Supplies the lower X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-y data`               | `yData`          | `YData`          | Supplies the element's Y coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xerror data`          | `xError`         | `XError`         | Supplies symmetric X error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xhigh data`           | `xHigh`          | `XHigh`          | Supplies the upper X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xlow data`            | `xLow`           | `XLow`           | Supplies the lower X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-y data`               | `yData`          | `YData`          | Supplies the element's Y coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
         | `-ydata data`           | —                | —                | Synonym for `-y`.                                                                                                                                                                                                 |
-        | `-yerror data`          | `yError`         | `YError`         | Supplies symmetric Y error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-yhigh data`           | `yHigh`          | `YHigh`          | Supplies the upper Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-ylow data`            | `yLow`           | `YLow`           | Supplies the lower Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-yerror data`          | `yError`         | `YError`         | Supplies symmetric Y error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-yhigh data`           | `yHigh`          | `YHigh`          | Supplies the upper Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-ylow data`            | `yLow`           | `YLow`           | Supplies the lower Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
 
     }
 }
@@ -2203,7 +2203,7 @@ namespace eval ::rbc::STRIPELEMENT {
         .s element create signal -x {0 1 2 3 4} -y {1 4 2 5 3}
         ```
 
-        Rbc vector names may be used instead of literal coordinate lists:
+        RBC vector names may be used instead of literal coordinate lists:
         ```tcl
         vector create time voltage
 
@@ -2223,7 +2223,7 @@ namespace eval ::rbc::STRIPELEMENT {
         [LINEELEMENT].
 
         With `-decimate auto`, dense eligible strip data can be reduced before full world-to-screen mapping. The
-        persistent data-domain cache supports monotonic X data, ranged Y updates, and pure tail growth of attached Rbc
+        persistent data-domain cache supports monotonic X data, ranged Y updates, and pure tail growth of attached RBC
         vectors.
 
         This makes `-decimate auto` particularly suitable for continuously growing stripchart waveforms:
@@ -2392,16 +2392,16 @@ namespace eval ::rbc::STRIPELEMENT {
         | `-valuerotate degrees`  | `valueRotate`   | `ValueRotate`   | Sets the rotation angle of value labels in degrees. The default is `0.0`.                                                                                                                                         |
         | `-valueshadow shadow`   | `valueShadow`   | `ValueShadow`   | Specifies a shadow for value labels. An empty value disables the shadow.                                                                                                                                          |
         | `-weights weights`      | `weights`       | `Weights`       | Supplies per-point numeric weights used to select pens through `-styles`. Each literal list item accepts a Tcl numeric expression. |
-        | `-x data`               | `xData`         | `XData`         | Supplies the element's X coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-x data`               | `xData`         | `XData`         | Supplies the element's X coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
         | `-xdata data`           | —               | —               | Synonym for `-x`.                                                                                                                                                                                                 |
-        | `-xerror data`          | `xError`        | `XError`        | Supplies symmetric X error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-xhigh data`           | `xHigh`         | `XHigh`         | Supplies the upper X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-xlow data`            | `xLow`          | `XLow`          | Supplies the lower X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-y data`               | `yData`         | `YData`         | Supplies the element's Y coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xerror data`          | `xError`        | `XError`        | Supplies symmetric X error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xhigh data`           | `xHigh`         | `XHigh`         | Supplies the upper X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xlow data`            | `xLow`          | `XLow`          | Supplies the lower X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-y data`               | `yData`         | `YData`         | Supplies the element's Y coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
         | `-ydata data`           | —               | —               | Synonym for `-y`.                                                                                                                                                                                                 |
-        | `-yerror data`          | `yError`        | `YError`        | Supplies symmetric Y error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-yhigh data`           | `yHigh`         | `YHigh`         | Supplies the upper Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-ylow data`            | `yLow`          | `YLow`          | Supplies the lower Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-yerror data`          | `yError`        | `YError`        | Supplies symmetric Y error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-yhigh data`           | `yHigh`         | `YHigh`         | Supplies the upper Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-ylow data`            | `yLow`          | `YLow`          | Supplies the lower Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
 
     }
 }
@@ -2492,7 +2492,7 @@ namespace eval ::rbc::POLARELEMENT {
         #ruffopt excludedformats {}
 
         ## Complex-vector data
-        `-cdata` names an Rbc complex vector whose values provide the two-dimensional element data directly.
+        `-cdata` names an RBC complex vector whose values provide the two-dimensional element data directly.
 
         For example:
 
@@ -2952,7 +2952,7 @@ namespace eval ::rbc::POLARELEMENT {
         | Option                | Database name | Database class | Description |
         |-----------------------|---------------|----------------|-------------|
         | `-datacoordinates mode` | `dataCoordinates` | `DataCoordinates` | Real input pairs: `cartesian` (default) or `polar` (theta in radians, radius). |
-        | `-cdata vectorName`   | `cData`       | `CData`        | Specifies a complex Rbc vector used as the element data source. An empty value selects ordinary X/Y data mode. |
+        | `-cdata vectorName`   | `cData`       | `CData`        | Specifies a complex RBC vector used as the element data source. An empty value selects ordinary X/Y data mode. |
         | `-cdataformat format` | `cDataFormat` | `CDataFormat`  | Specifies how complex data are interpreted: `gamma`, `impedance`, or `admittance`. The default is `gamma`. |
         | `-z0 value`           | `z0`          | `Z0`           | Specifies the positive finite reference impedance used for impedance/admittance conversion. The default is `50.0`. |
 
@@ -3005,7 +3005,7 @@ namespace eval ::rbc::BARELEMENT {
 
         `-xdata` and `-ydata` are synonyms for `-x` and `-y`.
 
-        Each coordinate option may also name an existing Rbc vector:
+        Each coordinate option may also name an existing RBC vector:
         ```tcl
         vector create xValues yValues
 
@@ -3015,7 +3015,7 @@ namespace eval ::rbc::BARELEMENT {
         .b element create values -x xValues -y yValues
         ```
 
-        When an Rbc vector is used, changes to the vector automatically invalidate and update the element.
+        When an RBC vector is used, changes to the vector automatically invalidate and update the element.
 
         The number of usable data points is the smaller of the X and Y vector lengths.
 
@@ -3354,7 +3354,7 @@ namespace eval ::rbc::BARELEMENT {
         When symmetric error data are present for an axis, they take precedence over the corresponding low/high
         vectors.
 
-        Error data may be Tcl lists or Rbc vector names.
+        Error data may be Tcl lists or RBC vector names.
 
         ### Error-bar position
         `-errorbarposition data|bar` is a bar-element option, not a pen option. The default `data` preserves the
@@ -3413,7 +3413,7 @@ namespace eval ::rbc::BARELEMENT {
         | `-errorbarwidth width`   | Sets the non-negative error-bar line width. The default is `1`.                            |
         | `-errorbarcap width`     | Sets the non-negative requested cap width. The default is `1`.                             |
 
-        If `-errorbarcap` is `0`, Rbc chooses a cap size from the rendered bar width.
+        If `-errorbarcap` is `0`, RBC chooses a cap size from the rendered bar width.
 
         Error-bar values also participate in automatic graph extents.
 
@@ -3453,7 +3453,7 @@ namespace eval ::rbc::BARELEMENT {
         `a`, `A`, `e`, `E`, `f`, `F`, `g`, or `G`; dynamic width or precision using `*` is not permitted.
 
         ## Weights and styles
-        `-weights` associates numeric weights with data points. The value may be a Tcl list or an Rbc vector.
+        `-weights` associates numeric weights with data points. The value may be a Tcl list or an RBC vector.
 
         `-styles` maps ranges of those weights to named bar pens.
 
@@ -3513,7 +3513,7 @@ namespace eval ::rbc::BARELEMENT {
         ## Closest searches
         Bar elements are searched using their rendered rectangles.
 
-        If the requested window point lies inside a bar rectangle, its distance is zero. Otherwise Rbc measures the
+        If the requested window point lies inside a bar rectangle, its distance is zero. Otherwise RBC measures the
         distance to the rectangle boundary.
 
         The result index and graph coordinates identify the original source data point represented by the selected
@@ -3565,16 +3565,16 @@ namespace eval ::rbc::BARELEMENT {
         | `-valuerotate degrees`  | `valueRotate`   | `ValueRotate`   | Sets the rotation angle of value labels in degrees. The default is `0.0`.                                                                                                                                         |
         | `-valueshadow shadow`   | `valueShadow`   | `ValueShadow`   | Specifies a shadow for value labels. An empty value disables the shadow.                                                                                                                                          |
         | `-weights weights`      | `weights`       | `Weights`       | Supplies per-point numeric weights used to select pens through `-styles`. Each literal list item accepts a Tcl numeric expression. |
-        | `-x data`               | `xdata`         | `Xdata`         | Supplies the element's X coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-x data`               | `xdata`         | `Xdata`         | Supplies the element's X coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
         | `-xdata data`           | —               | —               | Synonym for `-x`.                                                                                                                                                                                                 |
-        | `-xerror data`          | `xError`        | `XError`        | Supplies symmetric X error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-xhigh data`           | `xHigh`         | `XHigh`         | Supplies the upper X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-xlow data`            | `xLow`          | `XLow`          | Supplies the lower X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-y data`               | `ydata`         | `Ydata`         | Supplies the element's Y coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xerror data`          | `xError`        | `XError`        | Supplies symmetric X error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xhigh data`           | `xHigh`         | `XHigh`         | Supplies the upper X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-xlow data`            | `xLow`          | `XLow`          | Supplies the lower X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-y data`               | `ydata`         | `Ydata`         | Supplies the element's Y coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
         | `-ydata data`           | —               | —               | Synonym for `-y`.                                                                                                                                                                                                 |
-        | `-yerror data`          | `yError`        | `YError`        | Supplies symmetric Y error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-yhigh data`           | `yHigh`         | `YHigh`         | Supplies the upper Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
-        | `-ylow data`            | `yLow`          | `YLow`          | Supplies the lower Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-yerror data`          | `yError`        | `YError`        | Supplies symmetric Y error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-yhigh data`           | `yHigh`         | `YHigh`         | Supplies the upper Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
+        | `-ylow data`            | `yLow`          | `YLow`          | Supplies the lower Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression. |
     }
 }
 
@@ -3606,7 +3606,7 @@ namespace eval ::rbc::PEN {
         See [ELEMENT], [LINEELEMENT], [STRIPELEMENT], and [BARELEMENT] for how elements select and use pens.
 
         ## Pen types
-        Rbc has two concrete pen implementations:
+        RBC has two concrete pen implementations:
 
         | Pen type | Used by                 |
         |----------|-------------------------|
@@ -3632,7 +3632,7 @@ namespace eval ::rbc::PEN {
 
         The actual concrete pen type may be queried with `PEN type`.
 
-        Line pens may be assigned to line and strip elements. Bar pens may be assigned only to bar elements. Rbc
+        Line pens may be assigned to line and strip elements. Bar pens may be assigned only to bar elements. RBC
         rejects attempts to use a pen with an incompatible element type.
 
         `-type` is a creation-time selector. Changing it after a pen has been created does not convert the existing
@@ -3983,7 +3983,7 @@ namespace eval ::rbc::MARKER {
         Markers are graph annotations. They are independent of graph elements and do not contribute to the calculation
         of axis limits.
 
-        Rbc provides seven marker types:
+        RBC provides seven marker types:
 
         | Type      | Description                                  |
         |-----------|----------------------------------------------|
@@ -4003,7 +4003,7 @@ namespace eval ::rbc::MARKER {
         ```
 
         Unlike elements and pens, the marker name is not a positional argument of `MARKER create`. Use `-name` to
-        select an explicit name. If `-name` is omitted, Rbc generates a marker name.
+        select an explicit name. If `-name` is omitted, RBC generates a marker name.
 
         Cairo rendering provides next features:
         - Line markers, arrowheads, and polygon/arc fills/outlines use `-antialias`. 
@@ -4505,7 +4505,7 @@ namespace eval ::rbc::MARKER {
 
     proc create {type args} {
         # Creates a new marker of the specified type. `type` may be `arc`, `bitmap`, `image`, `line`, `polygon`, `text`, or
-        # `window`. Use `-name` to specify an explicit marker name; otherwise Rbc generates one automatically. Creating
+        # `window`. Use `-name` to specify an explicit marker name; otherwise RBC generates one automatically. Creating
         # a marker with the same name as an existing marker replaces the existing marker. See
         # [Marker types and options][Marker types and options].
         # type - type of marker to create.
@@ -4728,7 +4728,7 @@ namespace eval ::rbc::LEGEND {
         ![element_active_points](images/legend_external_window.png)
         #ruffopt excludedformats {}
 
-        Rbc creates the window at that pathname and draws the legend into it. If the external legend window is
+        RBC creates the window at that pathname and draws the legend into it. If the external legend window is
         destroyed, the legend returns to `rightmargin`.
 
         The `-anchor` option controls how the legend is positioned relative to its selected site or screen coordinate.
@@ -5038,7 +5038,7 @@ namespace eval ::rbc::GRID {
         `grid -mapx`. Negative ticks are ignored because radius is unsigned. The zero tick represents the origin rather
         than a circle.
 
-        The origin does not have to be visible. Rbc draws every configured radial circle that intersects the current
+        The origin does not have to be visible. RBC draws every configured radial circle that intersects the current
         plotting area. When only part of a circle lies inside the current Cartesian axis ranges, the visible portion is
         clipped to the plotting area.
 
@@ -5107,10 +5107,10 @@ namespace eval ::rbc::GRID {
         of its clipped spoke. If the corresponding positive ray does not intersect the viewport, neither that spoke nor
         its angular label is displayed.
 
-        With `-anglelabelanchor auto`, Rbc chooses an inward-facing anchor from the actual label position. For clipped
+        With `-anglelabelanchor auto`, RBC chooses an inward-facing anchor from the actual label position. For clipped
         spokes this is based on the mapped screen direction, so the behavior also follows `-invertxy`.
 
-        `-anglecommand` replaces the built-in angular label formatter. Its value is a Tcl command prefix. Rbc appends:
+        `-anglecommand` replaces the built-in angular label formatter. Its value is a Tcl command prefix. RBC appends:
         ```text
         widgetPath degrees
         ```
@@ -5132,7 +5132,7 @@ namespace eval ::rbc::GRID {
         The callback result is used as the complete label. Returning an empty string suppresses that label.
 
         If an angular formatter raises an error while the graph is being drawn, the error is reported as a background
-        Tcl error and Rbc keeps the built-in label for that tick.
+        Tcl error and RBC keeps the built-in label for that tick.
 
         `-anglelabelanchor` and `-radiallabelanchor` control label placement. They accept the normal Tk anchor values
         and the special value `auto`. Automatic angular anchoring keeps labels directed inward from their circular or
@@ -5192,10 +5192,10 @@ namespace eval ::rbc::GRID {
         Major imaginary Smith labels normally appear near the unit-circle end of their corresponding reactance or
         susceptance contours.
 
-        When the complete Smith unit circle is visible, Rbc retains this normal placement slightly inside the unit
+        When the complete Smith unit circle is visible, RBC retains this normal placement slightly inside the unit
         circle.
 
-        When the current axis ranges show only part of the Smith chart, Rbc follows each major reactive contour from
+        When the current axis ranges show only part of the Smith chart, RBC follows each major reactive contour from
         its zero-resistance or zero-conductance end and finds the first part of that contour which intersects the
         viewport. The corresponding `+jx`, `-jx`, `+jb`, or `-jb` label is placed at that visible contour boundary
         instead.
@@ -5212,7 +5212,7 @@ namespace eval ::rbc::GRID {
         ## Custom Smith labels
         `-smithrealcommand` and `-smithimagcommand` are Tcl command prefixes used to format major Smith labels.
 
-        Rbc appends three arguments:
+        RBC appends three arguments:
         ```text
         widgetPath domain value
         ```
@@ -5290,14 +5290,14 @@ namespace eval ::rbc::GRID {
 
         | Option                         | Database name          | Database class         | Description |
         |--------------------------------|------------------------|------------------------|-------------|
-        | `-anglelabelanchor anchor`     | `angleLabelAnchor`     | `AngleLabelAnchor`     | Sets the anchor used for major angular labels. Accepts a Tk anchor or `auto`. With `auto`, Rbc selects an inward-facing anchor for both circular and clipped-spoke label placement. The default is `center`. |
-        | `-anglecommand command`        | `angleCommand`         | `AngleCommand`         | Specifies a Tcl command prefix for formatting major angular labels. Rbc appends `widgetPath degrees`. An empty value uses built-in degree labels. |
+        | `-anglelabelanchor anchor`     | `angleLabelAnchor`     | `AngleLabelAnchor`     | Sets the anchor used for major angular labels. Accepts a Tk anchor or `auto`. With `auto`, RBC selects an inward-facing anchor for both circular and clipped-spoke label placement. The default is `center`. |
+        | `-anglecommand command`        | `angleCommand`         | `AngleCommand`         | Specifies a Tcl command prefix for formatting major angular labels. RBC appends `widgetPath degrees`. An empty value uses built-in degree labels. |
         | `-anglemajorticks tickList`    | `angleMajorTicks`      | `AngleMajorTicks`      | Specifies major angular spokes and labels in degrees. The default is `0 30 60 90 120 150 180 210 240 270 300 330`. |
         | `-angleminorticks tickList`    | `angleMinorTicks`      | `AngleMinorTicks`      | Specifies minor angular spokes in degrees. They are drawn when `grid -minor` is true. The default is `15 45 75 105 135 165 195 225 255 285 315 345`. |
         | `-radiallabelanchor anchor`    | `radialLabelAnchor`    | `RadialLabelAnchor`    | Sets the anchor used for Polar radial labels on the positive zero-degree ray. Accepts a Tk anchor or `auto`. The default is `se`. |
         | `-smithgrid mode`              | `smithGrid`            | `SmithGrid`            | Selects `impedance`, `admittance`, or `both` Smith contour families. The default is `impedance`. |
-        | `-smithrealcommand command`    | `smithRealCommand`     | `SmithRealCommand`     | Specifies a Tcl command prefix for major real Smith labels. Rbc appends `widgetPath domain value`. |
-        | `-smithimagcommand command`    | `smithImagCommand`     | `SmithImagCommand`     | Specifies a Tcl command prefix for major imaginary Smith labels. Rbc appends `widgetPath domain signedValue`. |
+        | `-smithrealcommand command`    | `smithRealCommand`     | `SmithRealCommand`     | Specifies a Tcl command prefix for major real Smith labels. RBC appends `widgetPath domain value`. |
+        | `-smithimagcommand command`    | `smithImagCommand`     | `SmithImagCommand`     | Specifies a Tcl command prefix for major imaginary Smith labels. RBC appends `widgetPath domain signedValue`. |
         | `-smithrealmajorticks list`    | `smithRealMajorTicks`  | `SmithRealMajorTicks`  | Specifies non-negative normalized real values for major Smith contours and labels. Default: `0 0.2 0.5 1 2 5`. |
         | `-smithrealminorticks list`    | `smithRealMinorTicks`  | `SmithRealMinorTicks`  | Specifies non-negative normalized real values for minor Smith contours. Default: `0.1 0.3 0.7 1.5 3 10`. |
         | `-smithimagmajorticks list`    | `smithImagMajorTicks`  | `SmithImagMajorTicks`  | Specifies positive normalized imaginary magnitudes for major Smith contours and labels. Default: `0.2 0.5 1 2 5`. |
@@ -5657,7 +5657,7 @@ namespace eval ::rbc::POSTSCRIPT {
         `-colormap` may name a Tcl array containing custom PostScript translations for Tk colors.
 
         Array elements are indexed by Tk color names. If an entry exists, its value is inserted verbatim into the
-        PostScript output in place of Rbc's normal color conversion. Colors without an entry use the normal automatic
+        PostScript output in place of RBC's normal color conversion. Colors without an entry use the normal automatic
         conversion.
 
         Because the same color map is consulted for both foreground and background colors, each custom translation
@@ -5675,7 +5675,7 @@ namespace eval ::rbc::POSTSCRIPT {
         .g postscript configure -fontmap psFonts
         ```
 
-        If the point size is omitted, Rbc determines the size from the Tk font.
+        If the point size is omitted, RBC determines the size from the Tk font.
 
         Fonts not found in the specified array are mapped automatically to suitable PostScript fonts.
 

@@ -478,7 +478,7 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 #       is compiled into the consumer exactly as documented for
 #       third-party extensions.
 #
-# The test library links to Tcl stubs, not directly to the Rbc library.
+# The test library links to Tcl stubs, not directly to the RBC library.
 #========================================================================
 
 rbcVectorApiTest.$(OBJEXT): \

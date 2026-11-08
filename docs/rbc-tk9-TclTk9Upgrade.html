@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="::rbc" href="rbc-tk9-rbc.html" />
-    <link rel="prev" title="Rbc - Refactored BLT Components for Tcl/Tk 9" href="rbc-tk9.html" /> 
+    <link rel="prev" title="RBC - Refactored BLT Components for Tcl/Tk 9" href="rbc-tk9.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -826,7 +826,7 @@
              
   <section id="tcl-tk-9-upgrade-and-additions">
 <span id="r-tcl-tk-9-upgrade-and-additions"></span><span id="r-tcl2ftk20920upgrade20and20additions"></span><span id="r-namespaceqz3a3atcltk9upgrade"></span><h1>Tcl/Tk 9 upgrade and additions<a class="headerlink" href="#tcl-tk-9-upgrade-and-additions" title="Link to this heading"></a></h1>
-<p>Rbc 0.5.0 targets Tcl/Tk 9 on Windows and Linux. This page summarizes the visible additions first,
+<p>RBC 0.5.0 targets Tcl/Tk 9 on Windows and Linux. This page summarizes the visible additions first,
 followed by the API, numerical and resource-management changes behind them. Tcl/Tk 8.x compatibility
 is not a goal of this fork. Build instructions and dependency details are in the documentation overview.</p>
 <section id="user-visible-additions">
@@ -933,7 +933,7 @@ without a graphical display. Binary dependencies remain required. See <a class="
 <span id="r-tcltk9upgrade-optional-toolbar-package"></span><span id="r-3a3atcltk9upgradeqzoptional20toolbar20package"></span><h3>Optional toolbar package<a class="headerlink" href="#optional-toolbar-package" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> loads the native widgets without loading argparse or the toolbar. Applications using
 <code class="docutils literal notranslate"><span class="pre">::rbc::graphtoolbar</span></code> now need <code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc::graphtoolbar</span></code>, before any <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">import</span> <span class="pre">::rbc::*</span></code>.
-The toolbar package requires the matching Rbc version and loads argparse. An installed argparse is preferred;
+The toolbar package requires the matching RBC version and loads argparse. An installed argparse is preferred;
 if it is missing, the bundled Tcl-only argparse 0.65 is used, so graph demos need no separate installation.
 Errors from an installed argparse are still reported. The private fallback is not advertised by the package
 index and is never loaded by native RBC or the vector core. Repeated requires preserve existing
@@ -1280,7 +1280,7 @@ configuration rollback, numerical boundaries and resource lifetime management.</
 <li><p>Updated command callbacks to use <code class="docutils literal notranslate"><span class="pre">Tcl_Size</span></code> argument counts where appropriate.</p></li>
 <li><p>Migrated command creation to <code class="docutils literal notranslate"><span class="pre">Tcl_CreateObjCommand2()</span></code> for Tcl 9 large-argument support.</p></li>
 <li><p>Replaced remaining old string-based command and result handling with <code class="docutils literal notranslate"><span class="pre">Tcl_Obj</span></code>-based APIs.</p></li>
-<li><p>Removed obsolete command parsing infrastructure inherited from the original BLT/Rbc implementation.</p></li>
+<li><p>Removed obsolete command parsing infrastructure inherited from the original BLT/RBC implementation.</p></li>
 <li><p>Reworked operation dispatch tables and argument validation around object-based parsing.</p></li>
 <li><p>Improved const-correctness throughout Tcl-facing APIs and removed casts that previously discarded <code class="docutils literal notranslate"><span class="pre">const</span></code>.</p></li>
 <li><p>Removed several local copies or emulations of Tcl internal parsing structures and functions.</p></li>
@@ -1323,7 +1323,7 @@ with the modern Tk option-table interface.</p>
 </ul>
 <p>Legacy configuration tables and their associated processing functions were removed after the new
 implementations were activated.</p>
-<p>Custom option types were added or rewritten for complex Rbc values such as:</p>
+<p>Custom option types were added or rewritten for complex RBC values such as:</p>
 <ul class="simple">
 <li><p>vectors</p></li>
 <li><p>axes</p></li>
@@ -1459,7 +1459,7 @@ capacity while retaining its existing clipping allowance and shared-sample split
 <ul class="simple">
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">parametric</span> <span class="pre">natural</span> <span class="pre">source</span> <span class="pre">result</span> <span class="pre">samples</span></code>.</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">spline</span> <span class="pre">parametric</span> <span class="pre">quadratic</span> <span class="pre">source</span> <span class="pre">result</span> <span class="pre">samples</span></code>.</p></li>
-<li><p>Parametric source and result vectors are first-class complex Rbc vectors.</p></li>
+<li><p>Parametric source and result vectors are first-class complex RBC vectors.</p></li>
 <li><p>Parametric splines use cumulative two-dimensional chord length and do not require either Cartesian coordinate to be monotonic.</p></li>
 <li><p>Vertical paths, reversing paths and loop-like trajectories are supported.</p></li>
 <li><p>Consecutive duplicate source points are rejected because they create a zero-length parameter interval.</p></li>
@@ -1521,7 +1521,7 @@ when calling APIs that inherently require integer coordinates.</p>
 <li><p>Corrected Unix image handling.</p></li>
 <li><p>Corrected Windows bitmap representation and mask generation.</p></li>
 <li><p>Hardened bitmap allocation and size calculations.</p></li>
-<li><p>Isolated native bitmap-handle access behind Rbc Windows helper functions.</p></li>
+<li><p>Isolated native bitmap-handle access behind RBC Windows helper functions.</p></li>
 </ul>
 </section>
 <section id="named-font-changes">
@@ -1587,8 +1587,8 @@ drawing order and window-snapshot fallback behavior are preserved.</p>
 <span id="r-tcltk9upgrade-windows-drawing-backend"></span><span id="r-3a3atcltk9upgradeqzwindows20drawing20backend"></span><h3>Windows drawing backend<a class="headerlink" href="#windows-drawing-backend" title="Link to this heading"></a></h3>
 <p>The Windows drawing implementation received a substantial cleanup.</p>
 <p>Obsolete compatibility code and dead drawing implementations were removed, and the remaining native drawing
-code was reorganized behind an Rbc-owned Windows abstraction.</p>
-<p>Rbc code outside the Windows backend no longer accesses Tk’s private Windows drawable structures directly.</p>
+code was reorganized behind an RBC-owned Windows abstraction.</p>
+<p>RBC code outside the Windows backend no longer accesses Tk’s private Windows drawable structures directly.</p>
 <p>Operations such as:</p>
 <ul class="simple">
 <li><p>acquiring and releasing a drawable <code class="docutils literal notranslate"><span class="pre">HDC</span></code>;</p></li>
@@ -1646,9 +1646,9 @@ a significant drawing-backend redesign.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">rbcText.c</span></code> uses Tk’s internal <code class="docutils literal notranslate"><span class="pre">TkDrawAngledChars()</span></code> functionality for rotated text. Tk does not currently provide equivalent functionality through its public API.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">rbcWinDraw.c</span></code> uses <code class="docutils literal notranslate"><span class="pre">tkWinInt.h</span></code> to bridge between Tk drawables and native Windows GDI objects.</p></li>
 </ul>
-<p>No other graph, element, image or general Rbc code needs to know about Tk’s Windows-private drawable structures.</p>
+<p>No other graph, element, image or general RBC code needs to know about Tk’s Windows-private drawable structures.</p>
 <p>Compiler diagnostics caused by known attribute mismatches inside the private Tk headers are suppressed only
-around those specific includes; warnings remain enabled for Rbc’s own source code.</p>
+around those specific includes; warnings remain enabled for RBC’s own source code.</p>
 </section>
 <section id="c-safety-and-hardening">
 <span id="r-tcltk9upgrade-c-safety-and-hardening"></span><span id="r-3a3atcltk9upgradeqzc20safety20and20hardening"></span><h3>C safety and hardening<a class="headerlink" href="#c-safety-and-hardening" title="Link to this heading"></a></h3>
@@ -1725,7 +1725,7 @@ relevant rendering code is replaced with an independent backend.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="rbc-tk9.html" class="btn btn-neutral float-left" title="Rbc - Refactored BLT Components for Tcl/Tk 9" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rbc-tk9.html" class="btn btn-neutral float-left" title="RBC - Refactored BLT Components for Tcl/Tk 9" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="rbc-tk9-rbc.html" class="btn btn-neutral float-right" title="::rbc" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

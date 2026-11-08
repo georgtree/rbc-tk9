@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -826,7 +826,7 @@
              
   <section id="vector-instance-vecinst-command">
 <span id="r-vector-instance-vecinst-command"></span><span id="r-vector20instance2060vecinst6020command"></span><span id="r-namespaceqz3a3arbc3a3avecinst"></span><h1>Vector instance <code class="docutils literal notranslate"><span class="pre">VECINST</span></code> command<a class="headerlink" href="#vector-instance-vecinst-command" title="Link to this heading"></a></h1>
-<p>Commands in this namespace document operations accepted by an individual Rbc vector command.</p>
+<p>Commands in this namespace document operations accepted by an individual RBC vector command.</p>
 <p><code class="docutils literal notranslate"><span class="pre">VECINST</span></code> is used below as a placeholder for the actual vector command:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>vector<span class="w"> </span>create<span class="w"> </span>x
 <span class="nv">x</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="k">}</span>
@@ -1700,15 +1700,15 @@ The commands perform no implicit vector creation or resampling and do not interp
 </section>
 <section id="c-language-api">
 <span id="r-rbc-vecinst-c-language-api"></span><span id="r-3a3arbc3a3avecinstqzc20language20api"></span><h2>C language API<a class="headerlink" href="#c-language-api" title="Link to this heading"></a></h2>
-<p>Rbc vectors can be created, inspected, modified, and destroyed directly from C code. This is useful for Tcl
+<p>RBC vectors can be created, inspected, modified, and destroyed directly from C code. This is useful for Tcl
 extensions that generate or acquire large numeric data sets and want to make those values available to Tcl
 scripts or graph elements without converting every value to and from a Tcl list.</p>
-<p>Include the Rbc public header:</p>
+<p>Include the RBC public header:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rbc.h&gt;</span>
 </pre></div>
 </div>
-<p>Rbc exports its public C interface through the Rbc stubs table. An extension using the stubs interface should
-initialize it before calling Rbc functions:</p>
+<p>RBC exports its public C interface through the RBC stubs table. An extension using the stubs interface should
+initialize it before calling RBC functions:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">InitRbcApi</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">version</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Rbc_VectorInitStubs</span><span class="p">(</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="n">version</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
@@ -1718,8 +1718,8 @@ initialize it before calling Rbc functions:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">version</span></code> is the minimum Rbc package version required by the extension. <code class="docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs</span></code> requires
-<code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code> and initializes the existing Rbc stubs table without loading Tk. Rebuild the consumer
+<p><code class="docutils literal notranslate"><span class="pre">version</span></code> is the minimum RBC package version required by the extension. <code class="docutils literal notranslate"><span class="pre">Rbc_VectorInitStubs</span></code> requires
+<code class="docutils literal notranslate"><span class="pre">rbc::vector</span></code> and initializes the existing RBC stubs table without loading Tk. Rebuild the consumer
 with the updated <code class="docutils literal notranslate"><span class="pre">rbcStubLib.c</span></code> (or updated stub library) to use this new helper. The table layout and
 vector function slots are unchanged.</p>
 <p><code class="docutils literal notranslate"><span class="pre">Rbc_InitStubs</span></code> remains available and requires the full <code class="docutils literal notranslate"><span class="pre">rbc</span></code> package, including Tk and the toolbar.
@@ -1752,7 +1752,7 @@ compiler-specific complex-number support.</p>
 </section>
 <section id="public-vector-functions">
 <span id="r-rbc-vecinst-public-vector-functions"></span><span id="r-3a3arbc3a3avecinstqzpublic20vector20functions"></span><h3>Public vector functions<a class="headerlink" href="#public-vector-functions" title="Link to this heading"></a></h3>
-<p>The following vector functions are exported through the Rbc stubs interface:</p>
+<p>The following vector functions are exported through the RBC stubs interface:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 50.0%" />
@@ -1774,7 +1774,7 @@ compiler-specific complex-number support.</p>
 <td><p>Changes the logical vector length while preserving its numeric type.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">char</span> <span class="pre">*Rbc_NameOfVector(Rbc_Vector</span> <span class="pre">*vecPtr)</span></code></p></td>
-<td><p>Returns the vector name. The returned string belongs to Rbc.</p></td>
+<td><p>Returns the vector name. The returned string belongs to RBC.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Rbc_ResetVector(Rbc_Vector</span> <span class="pre">*vecPtr,</span> <span class="pre">double</span> <span class="pre">*dataArr,</span> <span class="pre">Tcl_Size</span> <span class="pre">nValues,</span> <span class="pre">Tcl_Size</span> <span class="pre">arraySize,</span> <span class="pre">Tcl_FreeProc</span> <span class="pre">*freeProc)</span></code></p></td>
 <td><p>Replaces the storage of a real vector.</p></td>
@@ -1948,9 +1948,9 @@ exactly which samples changed:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Supplying the changed range allows Rbc clients to preserve caches that are independent of the modified samples.
-For real vectors, Rbc also attempts to maintain the cached global minimum and maximum from the changed interval.
-If the modification touches information needed to determine an old global extremum, Rbc automatically falls
+<p>Supplying the changed range allows RBC clients to preserve caches that are independent of the modified samples.
+For real vectors, RBC also attempts to maintain the cached global minimum and maximum from the changed interval.
+If the modification touches information needed to determine an old global extremum, RBC automatically falls
 back to a complete range calculation when required.</p>
 <p>Graph line elements can use ranged Y-vector notifications to update only the affected part of a persistent
 display-decimation cache instead of rebuilding source-domain summaries for the complete vector.</p>
@@ -2009,16 +2009,16 @@ operation for a complex vector.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TCL_VOLATILE</span></code></p></td>
-<td><p>Rbc copies the supplied data into its own storage. The caller retains ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and may reuse or release it immediately after the call returns.</p></td>
+<td><p>RBC copies the supplied data into its own storage. The caller retains ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and may reuse or release it immediately after the call returns.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TCL_STATIC</span></code></p></td>
-<td><p>Rbc uses <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> directly but never frees it. The caller must keep the array valid for as long as the vector uses it.</p></td>
+<td><p>RBC uses <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> directly but never frees it. The caller must keep the array valid for as long as the vector uses it.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TCL_DYNAMIC</span></code></p></td>
-<td><p>Rbc takes ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and releases it with Tcl’s allocator when the storage is replaced or the vector is destroyed. The array must therefore have been allocated with compatible Tcl allocation routines such as <code class="docutils literal notranslate"><span class="pre">Tcl_Alloc</span></code>.</p></td>
+<td><p>RBC takes ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and releases it with Tcl’s allocator when the storage is replaced or the vector is destroyed. The array must therefore have been allocated with compatible Tcl allocation routines such as <code class="docutils literal notranslate"><span class="pre">Tcl_Alloc</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p>custom <code class="docutils literal notranslate"><span class="pre">Tcl_FreeProc</span> <span class="pre">*</span></code></p></td>
-<td><p>Rbc takes ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and invokes the supplied deallocation procedure when the storage is no longer needed.</p></td>
+<td><p>RBC takes ownership of <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> and invokes the supplied deallocation procedure when the storage is no longer needed.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2031,7 +2031,7 @@ storage have been modified, use <code class="docutils literal notranslate"><span
 capacity of the supplied array and must be greater than or equal to <code class="docutils literal notranslate"><span class="pre">nValues</span></code>.</p>
 <p>Passing <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for <code class="docutils literal notranslate"><span class="pre">dataArr</span></code>, or an <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> of <code class="docutils literal notranslate"><span class="pre">0</span></code>, resets the vector to an empty vector.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">arraySize</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, a non-NULL <code class="docutils literal notranslate"><span class="pre">dataArr</span></code> is not adopted by the vector and ownership does not transfer to
-Rbc. The caller remains responsible for that storage.</p>
+RBC. The caller remains responsible for that storage.</p>
 <p>For example, dynamically allocated storage can be transferred directly to a vector:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">SetGeneratedData</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
@@ -2052,14 +2052,14 @@ Rbc. The caller remains responsible for that storage.</p>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_ERROR</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">    </span><span class="cm">/*</span>
-<span class="cm">     * Rbc now owns dataArr.</span>
+<span class="cm">     * RBC now owns dataArr.</span>
 <span class="cm">     * Do not free or reuse it here.</span>
 <span class="cm">     */</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">TCL_OK</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>When <code class="docutils literal notranslate"><span class="pre">TCL_DYNAMIC</span></code> is used, ownership transfers to Rbc only after a successful <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> call.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">TCL_DYNAMIC</span></code> is used, ownership transfers to RBC only after a successful <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code> call.</p>
 <p>Complex reset example:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">SetComplexData</span><span class="p">(</span><span class="n">Tcl_Interp</span><span class="w"> </span><span class="o">*</span><span class="n">interp</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Rbc_Vector</span><span class="w"> </span><span class="o">*</span><span class="n">vecPtr</span><span class="p">;</span>
@@ -2182,9 +2182,9 @@ are initialized to zero.</p>
 according to the ownership policy established by <code class="docutils literal notranslate"><span class="pre">Rbc_ResetVector</span></code>.</p>
 </section>
 <section id="compatibility-with-older-rbc-vector-apis">
-<span id="r-rbc-vecinst-compatibility-with-older-rbc-vector-apis"></span><span id="r-3a3arbc3a3avecinstqzcompatibility20with20older20rbc20vector20apis"></span><h3>Compatibility with older Rbc vector APIs<a class="headerlink" href="#compatibility-with-older-rbc-vector-apis" title="Link to this heading"></a></h3>
-<p>Older BLT and Rbc manuals describe additional C functions for vector client identifiers, change callbacks,
-deletion by name, and custom vector indices. Those routines are not part of the current public Rbc stubs
+<span id="r-rbc-vecinst-compatibility-with-older-rbc-vector-apis"></span><span id="r-3a3arbc3a3avecinstqzcompatibility20with20older20rbc20vector20apis"></span><h3>Compatibility with older RBC vector APIs<a class="headerlink" href="#compatibility-with-older-rbc-vector-apis" title="Link to this heading"></a></h3>
+<p>Older BLT and RBC manuals describe additional C functions for vector client identifiers, change callbacks,
+deletion by name, and custom vector indices. Those routines are not part of the current public RBC stubs
 interface and are intentionally not documented here.</p>
 <p>Use the functions listed in <a class="reference internal" href="#r-3a3arbc3a3avecinstqzpublic20vector20functions"><span class="std std-ref">Public vector functions</span></a> when writing new extensions.</p>
 <hr class="docutils" />

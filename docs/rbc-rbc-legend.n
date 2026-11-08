@@ -169,7 +169,7 @@ grid \&.legend -row 1 -column 0 -sticky news
 .fi
 .RE
 .PP
-Rbc creates the window at that pathname and draws the legend into it\&. If the external legend window is
+RBC creates the window at that pathname and draws the legend into it\&. If the external legend window is
 destroyed, the legend returns to rightmargin\&.
 .PP
 The -anchor option controls how the legend is positioned relative to its selected site or screen coordinate\&.

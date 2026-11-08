@@ -4,7 +4,7 @@ namespace eval TclTk9Upgrade {
     }
     variable _ruff_preamble {
 
-        Rbc 0.5.0 targets Tcl/Tk 9 on Windows and Linux. This page summarizes the visible additions first,
+        RBC 0.5.0 targets Tcl/Tk 9 on Windows and Linux. This page summarizes the visible additions first,
         followed by the API, numerical and resource-management changes behind them. Tcl/Tk 8.x compatibility
         is not a goal of this fork. Build instructions and dependency details are in the documentation overview.
 
@@ -108,7 +108,7 @@ namespace eval TclTk9Upgrade {
         ### Optional toolbar package
         `package require rbc` loads the native widgets without loading argparse or the toolbar. Applications using
         `::rbc::graphtoolbar` now need `package require rbc::graphtoolbar`, before any `namespace import ::rbc::*`.
-        The toolbar package requires the matching Rbc version and loads argparse. An installed argparse is preferred;
+        The toolbar package requires the matching RBC version and loads argparse. An installed argparse is preferred;
         if it is missing, the bundled Tcl-only argparse 0.65 is used, so graph demos need no separate installation.
         Errors from an installed argparse are still reported. The private fallback is not advertised by the package
         index and is never loaded by native RBC or the vector core. Repeated requires preserve existing
@@ -488,7 +488,7 @@ namespace eval TclTk9Upgrade {
         - Updated command callbacks to use `Tcl_Size` argument counts where appropriate.
         - Migrated command creation to `Tcl_CreateObjCommand2()` for Tcl 9 large-argument support.
         - Replaced remaining old string-based command and result handling with `Tcl_Obj`-based APIs.
-        - Removed obsolete command parsing infrastructure inherited from the original BLT/Rbc implementation.
+        - Removed obsolete command parsing infrastructure inherited from the original BLT/RBC implementation.
         - Reworked operation dispatch tables and argument validation around object-based parsing.
         - Improved const-correctness throughout Tcl-facing APIs and removed casts that previously discarded `const`.
         - Removed several local copies or emulations of Tcl internal parsing structures and functions.
@@ -530,7 +530,7 @@ namespace eval TclTk9Upgrade {
         Legacy configuration tables and their associated processing functions were removed after the new
         implementations were activated.
 
-        Custom option types were added or rewritten for complex Rbc values such as:
+        Custom option types were added or rewritten for complex RBC values such as:
 
         - vectors
         - axes
@@ -685,7 +685,7 @@ namespace eval TclTk9Upgrade {
 
         - Added `spline parametric natural source result samples`.
         - Added `spline parametric quadratic source result samples`.
-        - Parametric source and result vectors are first-class complex Rbc vectors.
+        - Parametric source and result vectors are first-class complex RBC vectors.
         - Parametric splines use cumulative two-dimensional chord length and do not require either Cartesian
           coordinate to be monotonic.
         - Vertical paths, reversing paths and loop-like trajectories are supported.
@@ -751,7 +751,7 @@ namespace eval TclTk9Upgrade {
         - Corrected Unix image handling.
         - Corrected Windows bitmap representation and mask generation.
         - Hardened bitmap allocation and size calculations.
-        - Isolated native bitmap-handle access behind Rbc Windows helper functions.
+        - Isolated native bitmap-handle access behind RBC Windows helper functions.
 
         ### Named-font changes
         Graph widgets now register Tk's world-change callback. Reconfiguring a named font refreshes cached
@@ -812,9 +812,9 @@ namespace eval TclTk9Upgrade {
         The Windows drawing implementation received a substantial cleanup.
 
         Obsolete compatibility code and dead drawing implementations were removed, and the remaining native drawing
-        code was reorganized behind an Rbc-owned Windows abstraction.
+        code was reorganized behind an RBC-owned Windows abstraction.
 
-        Rbc code outside the Windows backend no longer accesses Tk's private Windows drawable structures directly.
+        RBC code outside the Windows backend no longer accesses Tk's private Windows drawable structures directly.
 
         Operations such as:
 
@@ -880,10 +880,10 @@ namespace eval TclTk9Upgrade {
           provide equivalent functionality through its public API.
         - `rbcWinDraw.c` uses `tkWinInt.h` to bridge between Tk drawables and native Windows GDI objects.
 
-        No other graph, element, image or general Rbc code needs to know about Tk's Windows-private drawable structures.
+        No other graph, element, image or general RBC code needs to know about Tk's Windows-private drawable structures.
 
         Compiler diagnostics caused by known attribute mismatches inside the private Tk headers are suppressed only
-        around those specific includes; warnings remain enabled for Rbc's own source code.
+        around those specific includes; warnings remain enabled for RBC's own source code.
 
         ### C safety and hardening
         The Tcl/Tk 9 work also included a wider C safety audit.

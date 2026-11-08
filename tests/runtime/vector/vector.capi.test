@@ -1,6 +1,6 @@
 # vector.capi.test --
 #
-# Tests the public Rbc vector C/stubs interface from a separately
+# Tests the public RBC vector C/stubs interface from a separately
 # compiled consumer extension.
 
 package provide vector.capi
@@ -18,7 +18,7 @@ if {[info exists ::env(RBC_CAPI_TEST_LIB)]} {
 }
 
 if {![file exists $capiTestLib]} {
-    error "Rbc C API test library not found: $capiTestLib"
+    error "RBC C API test library not found: $capiTestLib"
 }
 
 load $capiTestLib

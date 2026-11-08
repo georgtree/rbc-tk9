@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -2215,7 +2215,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3amarker20configure"><span class="std std-ref">configure</span></a></dt><dd><p>Queries or modifies marker configuration options. One or more marker names may be supplied before the first option. With no option, returns all configuration information for the first marker. With one option, returns information for that option for the first marker. With option/value pairs, applies the same changes to every listed marker. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 </dd>
-<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3amarker20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates a new marker of the specified type. <code class="docutils literal notranslate"><span class="pre">type</span></code> may be <code class="docutils literal notranslate"><span class="pre">arc</span></code>, <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or <code class="docutils literal notranslate"><span class="pre">window</span></code>. Use <code class="docutils literal notranslate"><span class="pre">-name</span></code> to specify an explicit marker name; otherwise Rbc generates one automatically. Creating a marker with the same name as an existing marker replaces the existing marker. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3amarker20create"><span class="std std-ref">create</span></a></dt><dd><p>Creates a new marker of the specified type. <code class="docutils literal notranslate"><span class="pre">type</span></code> may be <code class="docutils literal notranslate"><span class="pre">arc</span></code>, <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or <code class="docutils literal notranslate"><span class="pre">window</span></code>. Use <code class="docutils literal notranslate"><span class="pre">-name</span></code> to specify an explicit marker name; otherwise RBC generates one automatically. Creating a marker with the same name as an existing marker replaces the existing marker. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3amarker20delete"><span class="std std-ref">delete</span></a></dt><dd><p>Deletes one or more markers. Supplying no marker names has no effect.</p>
 </dd>
@@ -2331,7 +2331,7 @@ listed marker. See <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r
 <section id="marker-create">
 <span id="r-symbolqz3a3arbc3a3amarker20create"></span><span id="index-174"></span><span id="index-173"></span><h3><code class="docutils literal notranslate"><span class="pre">MARKER</span> <span class="pre">create</span></code><a class="headerlink" href="#marker-create" title="Link to this heading"></a></h3>
 <p>Creates a new marker of the specified type. <code class="docutils literal notranslate"><span class="pre">type</span></code> may be <code class="docutils literal notranslate"><span class="pre">arc</span></code>, <code class="docutils literal notranslate"><span class="pre">bitmap</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">window</span></code>. Use <code class="docutils literal notranslate"><span class="pre">-name</span></code> to specify an explicit marker name; otherwise Rbc generates one automatically. Creating
+<code class="docutils literal notranslate"><span class="pre">window</span></code>. Use <code class="docutils literal notranslate"><span class="pre">-name</span></code> to specify an explicit marker name; otherwise RBC generates one automatically. Creating
 a marker with the same name as an existing marker replaces the existing marker. See
 <a class="reference internal" href="rbc-tk9-rbc-MARKER.html#r-3a3arbc3a3amarkerqzmarker20types20and20options"><span class="std std-ref">Marker types and options</span></a>.</p>
 <pre class="literal-block"><strong>MARKER create</strong> <em>type ?option value ...?</em></pre>
@@ -2650,7 +2650,7 @@ data in the Cartesian complex plane, where X is the real coordinate and Y is the
 <p class="rubric">Description</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">-representation</span></code> option selects either a conventional polar grid or a Smith-chart grid. The underlying
 element coordinates remain Cartesian in both representations.</p>
-<p>Polar elements may use ordinary X/Y data or may obtain their data directly from a complex Rbc vector with
+<p>Polar elements may use ordinary X/Y data or may obtain their data directly from a complex RBC vector with
 the element <code class="docutils literal notranslate"><span class="pre">-cdata</span></code> option. Complex data may represent reflection coefficient, impedance, or admittance.</p>
 <p>Unless <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> is explicitly configured, a polar widget automatically adjusts the physical plotting-area
 aspect ratio so that one X data unit and one Y data unit have the same screen scale. This keeps polar circles
@@ -4227,7 +4227,7 @@ ensemble.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20raise"><span class="std std-ref">raise</span></a></dt><dd><p>Raises one or more Tk windows to the top of their stacking order. Supplying no window names has no effect.</p>
 </dd>
-<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20readjpeg"><span class="std std-ref">readjpeg</span></a></dt><dd><p>Reads a JPEG file into an existing Tk photo image. The operation returns an error if JPEG support was not compiled into Rbc.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20readjpeg"><span class="std std-ref">readjpeg</span></a></dt><dd><p>Reads a JPEG file into an existing Tk photo image. The operation returns an error if JPEG support was not compiled into RBC.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3awinop20resample"><span class="std std-ref">resample</span></a></dt><dd><p>Copies or resamples a source photo into a destination photo. The destination’s existing dimensions determine the requested output size. One filter is used in both directions; two filters independently select horizontal and vertical filtering. With no filter, <code class="docutils literal notranslate"><span class="pre">none</span></code> is used. See <a class="reference internal" href="rbc-tk9-rbc-winop.html#r-3a3arbc3a3awinopqzimage20resampling"><span class="std std-ref">Image resampling</span></a>.</p>
 </dd>
@@ -4395,7 +4395,7 @@ defaults to <code class="docutils literal notranslate"><span class="pre">1</span
 <section id="winop-readjpeg">
 <span id="r-symbolqz3a3arbc3a3awinop20readjpeg"></span><span id="index-378"></span><span id="index-377"></span><h3><code class="docutils literal notranslate"><span class="pre">winop</span> <span class="pre">readjpeg</span></code><a class="headerlink" href="#winop-readjpeg" title="Link to this heading"></a></h3>
 <p>Reads a JPEG file into an existing Tk photo image. The operation returns an error if JPEG support was not
-compiled into Rbc.</p>
+compiled into RBC.</p>
 <pre class="literal-block"><strong>winop readjpeg</strong> <em>fileName photoName</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">

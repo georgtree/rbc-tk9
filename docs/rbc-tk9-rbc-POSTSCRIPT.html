@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -949,7 +949,7 @@ its aspect ratio, even when the graph would already fit without scaling.</p>
 <span id="r-rbc-postscript-color-maps"></span><span id="r-3a3arbc3a3apostscriptqzcolor20maps"></span><h2>Color maps<a class="headerlink" href="#color-maps" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-colormap</span></code> may name a Tcl array containing custom PostScript translations for Tk colors.</p>
 <p>Array elements are indexed by Tk color names. If an entry exists, its value is inserted verbatim into the
-PostScript output in place of Rbc’s normal color conversion. Colors without an entry use the normal automatic
+PostScript output in place of RBC’s normal color conversion. Colors without an entry use the normal automatic
 conversion.</p>
 <p>Because the same color map is consulted for both foreground and background colors, each custom translation
 should contain complete PostScript code suitable for every context in which that Tk color is used.</p>
@@ -964,7 +964,7 @@ optionally, a point size:</p>
 <span class="nv">.g</span><span class="w"> </span>postscript<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>fontmap<span class="w"> </span>psFonts
 </pre></div>
 </div>
-<p>If the point size is omitted, Rbc determines the size from the Tk font.</p>
+<p>If the point size is omitted, RBC determines the size from the Tk font.</p>
 <p>Fonts not found in the specified array are mapped automatically to suitable PostScript fonts.</p>
 <p>An empty <code class="docutils literal notranslate"><span class="pre">-fontmap</span></code> value disables the custom font map.</p>
 </section>

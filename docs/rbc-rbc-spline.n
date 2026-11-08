@@ -6,7 +6,7 @@
 rbc::spline - Commands in namespace rbc::spline
 .SH "SPLINE INTERPOLATION"
 .PP
-The spline command performs scalar or parametric spline interpolation on data stored in Rbc vectors\&.
+The spline command performs scalar or parametric spline interpolation on data stored in RBC vectors\&.
 .PP
 Two interpolation algorithms are available:
 .TP
@@ -43,7 +43,7 @@ spline parametric quadratic source result samples
 .fi
 .RE
 .PP
-source and result are complex Rbc vectors\&. Each source value:
+source and result are complex RBC vectors\&. Each source value:
 .PP
 .RS 4n
 .nf
@@ -140,7 +140,7 @@ spline natural x y splX splY
 populate is not required; splX may contain any finite coordinates appropriate for the application\&.
 .SH "PARAMETRIC SOURCE DATA"
 .PP
-A parametric source must be a complex Rbc vector containing at least three points\&.
+A parametric source must be a complex RBC vector containing at least three points\&.
 .PP
 All real and imaginary components must be finite\&.
 .PP

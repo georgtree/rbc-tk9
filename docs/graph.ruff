@@ -82,7 +82,7 @@ namespace eval ::rbc {
         # The `-representation` option selects either a conventional polar grid or a Smith-chart grid. The underlying
         # element coordinates remain Cartesian in both representations.
         #
-        # Polar elements may use ordinary X/Y data or may obtain their data directly from a complex Rbc vector with
+        # Polar elements may use ordinary X/Y data or may obtain their data directly from a complex RBC vector with
         # the element `-cdata` option. Complex data may represent reflection coefficient, impedance, or admittance.
         #
         # Unless `-aspect` is explicitly configured, a polar widget automatically adjusts the physical plotting-area
@@ -178,7 +178,7 @@ namespace eval ::rbc::GRAPHINST {
         -topvariable
         ```
 
-        can be used to observe the actual calculated margin sizes. After layout and drawing, Rbc writes the current
+        can be used to observe the actual calculated margin sizes. After layout and drawing, RBC writes the current
         size of each configured margin to the specified global Tcl variable.
 
         For example:
@@ -226,7 +226,7 @@ namespace eval ::rbc::GRAPHINST {
 
         requests a plotting area whose width is 1.5 times its height.
 
-        Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
+        RBC satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
         enlarge the widget. Set `-aspect` to `0` to disable the constraint.
 
         ## Layout
@@ -264,7 +264,7 @@ namespace eval ::rbc::GRAPHINST {
         [track invtransform][::rbc::TRACKGRAPH::Track coordinate conversion] to select a track.
 
         ## Polar and Smith charts
-        A widget created with [::rbc::polar] uses the ordinary Rbc graph coordinate system but provides specialized
+        A widget created with [::rbc::polar] uses the ordinary RBC graph coordinate system but provides specialized
         Polar and Smith-chart grid representations.
 
         Polar data are always represented internally as Cartesian coordinates:
@@ -356,7 +356,7 @@ namespace eval ::rbc::GRAPHINST {
         ### Polar autoscaling without visible elements
         Plot-hidden and normally hidden elements do not contribute to automatic axis limits.
 
-        For a Polar representation, if a grid-mapped axis has no contributing visible element data, Rbc supplies a
+        For a Polar representation, if a grid-mapped axis has no contributing visible element data, RBC supplies a
         neutral `-1` to `+1` fallback range for that axis. This keeps an empty Polar widget, or a Polar widget whose
         plotted elements have all been hidden with `-hideplot`, in a usable state with a visible Polar grid.
 
@@ -763,7 +763,7 @@ namespace eval ::rbc::GRAPHINST {
         ## Buffering
         Two separate buffering mechanisms are available.
 
-        `-buffergraph` controls double-buffering of the complete widget. With double-buffering enabled, Rbc renders the
+        `-buffergraph` controls double-buffering of the complete widget. With double-buffering enabled, RBC renders the
         graph to an off-screen pixmap and copies the completed image to the window.
 
         `-bufferelements` controls an additional backing store containing the plot region and data elements. It is
@@ -833,7 +833,7 @@ namespace eval ::rbc::GRAPHINST {
         arithmetic. For example, `-valueoffset` requires two integer pixel values, and crosshair `-position` accepts Tk
         pixel distances rather than the legend's integer expressions.
 
-        Brace an expression to pass it to Rbc without Tcl substituting it first:
+        Brace an expression to pass it to RBC without Tcl substituting it first:
         ```tcl
         .g axis configure x -max {2 * acos(-1)}
         .g legend configure -position {@10+5,20+10}
@@ -848,11 +848,11 @@ namespace eval ::rbc::GRAPHINST {
 
         Use floating-point operands when a fractional result is needed: `1 / 3` is integer division, while `1.0 / 3`
         produces a fraction. Tcl expression functions and substitutions follow normal Tcl expression rules. Outer
-        braces defer substitution; they do not disable it when Rbc evaluates the expression.
+        braces defer substitution; they do not disable it when RBC evaluates the expression.
 
-        Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced Tcl
+        Expressions are evaluated when RBC parses the option. They are not live formulas: changing a referenced Tcl
         variable does not itself update the graph. Supply the option again to evaluate it with new values. An existing
-        Rbc vector name supplied to a vector-capable data option is handled as a vector reference, not an expression;
+        RBC vector name supplied to a vector-capable data option is handled as a vector reference, not an expression;
         vector notifications provide its automatic updates.
 
         For an option that does not evaluate expressions, calculate the value explicitly:
@@ -862,7 +862,7 @@ namespace eval ::rbc::GRAPHINST {
         ```
 
         ## Application data
-        The `-data` option is an application-defined storage slot. Rbc stores the supplied value but does not interpret
+        The `-data` option is an application-defined storage slot. RBC stores the supplied value but does not interpret
         it in the C graph implementation.
 
         For example:

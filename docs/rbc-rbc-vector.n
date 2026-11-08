@@ -61,7 +61,7 @@ samples expr {samples * 2}
 .fi
 .RE
 .PP
-This loads the same Rbc shared library but initializes only its vector commands and C API\&. It does not
+This loads the same RBC shared library but initializes only its vector commands and C API\&. It does not
 require Tk, a graphical display, argparse, or graphtoolbar\&. Real and complex vectors, expressions,
 array access, and vector client notifications use the same implementation as the full package\&.
 Graphs, winop, and spline are available through the full rbc package\&. The optional toolbar is loaded

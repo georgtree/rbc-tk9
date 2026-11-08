@@ -191,7 +191,7 @@ namespace eval ::rbc::winop {
         ::rbc::winop readjpeg image.jpg picture
         ```
 
-        JPEG support is optional at build time. If Rbc was built without JPEG support, the operation returns an error.
+        JPEG support is optional at build time. If RBC was built without JPEG support, the operation returns an error.
 
         Tk's normal image facilities or an image extension may be preferable when they already provide the required
         JPEG support.
@@ -230,7 +230,7 @@ namespace eval ::rbc::winop {
         | `box`      | Box filter                                    |
         | `bspline`  | B-spline filter                               |
         | `catrom`   | Catmull-Rom filter                            |
-        | `default`  | Rbc default resampling filter                 |
+        | `default`  | RBC default resampling filter                 |
         | `dummy`    | Dummy filter                                  |
         | `gauss8`   | Wide Gaussian filter                          |
         | `gaussian` | Gaussian filter                               |
@@ -357,7 +357,7 @@ namespace eval ::rbc::winop {
 
     proc readjpeg {fileName photoName} {
         # Reads a JPEG file into an existing Tk photo image. The operation returns an error if JPEG support was not
-        # compiled into Rbc.
+        # compiled into RBC.
         # fileName - JPEG file to read.
         # photoName - destination Tk photo image.
         # Returns: Nothing.

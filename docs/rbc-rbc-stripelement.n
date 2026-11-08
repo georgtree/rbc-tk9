@@ -70,7 +70,7 @@ For example:
 .fi
 .RE
 .PP
-Rbc vector names may be used instead of literal coordinate lists:
+RBC vector names may be used instead of literal coordinate lists:
 .PP
 .RS 4n
 .nf
@@ -93,7 +93,7 @@ Strip elements support -decimate none|auto with the same screen-density decimati
 \fILINEELEMENT\fP\&.
 .PP
 With -decimate auto, dense eligible strip data can be reduced before full world-to-screen mapping\&. The
-persistent data-domain cache supports monotonic X data, ranged Y updates, and pure tail growth of attached Rbc
+persistent data-domain cache supports monotonic X data, ranged Y updates, and pure tail growth of attached RBC
 vectors\&.
 .PP
 This makes -decimate auto particularly suitable for continuously growing stripchart waveforms:
@@ -365,30 +365,30 @@ The complete strip-element option set is:
 │                          │                     │                     │ select pens through -styles\&. Each literal     │
 │                          │                     │                     │ list item accepts a Tcl numeric expression\&.   │
 │ -x data                  │ xData               │ XData               │ Supplies the element's X coordinates as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -xdata data              │ —                   │ —                   │ Synonym for -x\&.                               │
 │ -xerror data             │ xError              │ XError              │ Supplies symmetric X error magnitudes as a    │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -xhigh data              │ xHigh               │ XHigh               │ Supplies the upper X error endpoints as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -xlow data               │ xLow                │ XLow                │ Supplies the lower X error endpoints as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -y data                  │ yData               │ YData               │ Supplies the element's Y coordinates as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -ydata data              │ —                   │ —                   │ Synonym for -y\&.                               │
 │ -yerror data             │ yError              │ YError              │ Supplies symmetric Y error magnitudes as a    │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -yhigh data              │ yHigh               │ YHigh               │ Supplies the upper Y error endpoints as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 │ -ylow data               │ yLow                │ YLow                │ Supplies the lower Y error endpoints as a     │
-│                          │                     │                     │ list or Rbc vector\&. Each literal list item    │
+│                          │                     │                     │ list or RBC vector\&. Each literal list item    │
 │                          │                     │                     │ accepts a Tcl numeric expression\&.             │
 └──────────────────────────┴─────────────────────┴─────────────────────┴───────────────────────────────────────────────┘
 

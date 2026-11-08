@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rbc - Refactored BLT Components for Tcl/Tk 9 &mdash; rbc  documentation</title>
+  <title>RBC - Refactored BLT Components for Tcl/Tk 9 &mdash; rbc  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/rbc.css?v=269a995a" />
@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -814,7 +814,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Rbc - Refactored BLT Components for Tcl/Tk 9</li>
+      <li class="breadcrumb-item active">RBC - Refactored BLT Components for Tcl/Tk 9</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/rbc-tk9.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -825,12 +825,12 @@
            <div itemprop="articleBody">
              
   <section id="rbc-refactored-blt-components-for-tcl-tk-9">
-<span id="r-rbc-refactored-blt-components-for-tcl-tk-9"></span><span id="r-rbc202d20refactored20blt20components20for20tcl2ftk209"></span><h1>Rbc - Refactored BLT Components for Tcl/Tk 9<a class="headerlink" href="#rbc-refactored-blt-components-for-tcl-tk-9" title="Link to this heading"></a></h1>
+<span id="r-rbc-refactored-blt-components-for-tcl-tk-9"></span><span id="r-rbc202d20refactored20blt20components20for20tcl2ftk209"></span><h1>RBC - Refactored BLT Components for Tcl/Tk 9<a class="headerlink" href="#rbc-refactored-blt-components-for-tcl-tk-9" title="Link to this heading"></a></h1>
 <p><img alt="RBC preview" src="images/preview.png" /></p>
-<p>Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
+<p>RBC extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots and
 graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.</p>
-<p>This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is <strong>0.8.5</strong>.</p>
+<p>This repository maintains and extends RBC for Tcl/Tk 9.0. The current package version is <strong>0.8.5</strong>.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/georgtree/rbc-tk9">Source code</a></p></li>
 <li><p><a class="reference external" href="https://georgtree.github.io/rbc-tk9/">Documentation</a></p></li>
@@ -855,12 +855,12 @@ graphical elements support SVG, PostScript and PDF export. All three exporters w
 cached summaries across axis changes, ranged value updates, and monotonic tail appends.</p>
 <p>An optional Cairo backend adds antialiased plotting. Cairo-enabled builds select it by default; applications can choose
 <code class="docutils literal notranslate"><span class="pre">-renderer</span> <span class="pre">native</span></code> for workloads where native drawing is faster. Text continues to use Tk in either mode.</p>
-<p>Rbc contains selected components derived from BLT. It is not a complete replacement for the BLT toolkit.</p>
+<p>RBC contains selected components derived from BLT. It is not a complete replacement for the BLT toolkit.</p>
 </section>
 <section id="interactive-examples">
 <span id="r-interactive-examples"></span><span id="r-interactive20examples"></span><h2>Interactive examples<a class="headerlink" href="#interactive-examples" title="Link to this heading"></a></h2>
 <p>In this section you can see the usage of the package in a few examples from <code class="docutils literal notranslate"><span class="pre">demo</span></code> folder. There is shown dynamic
-interaction between native Tk widgets and Rbc <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> megawidget, as well as live graph update following vectors
+interaction between native Tk widgets and RBC <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> megawidget, as well as live graph update following vectors
 changes:</p>
 <details>
 <summary><strong>Fast Fourier Transform (fft1.tcl)</strong></summary><p><img alt="fft1_live_demo" src="images/fft1_live_demo.gif" /></p>
@@ -874,7 +874,7 @@ changes:</p>
 <section id="requirements">
 <span id="r-requirements"></span><h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
 <section id="running-rbc">
-<span id="r-running-rbc"></span><span id="r-running20rbc"></span><h3>Running Rbc<a class="headerlink" href="#running-rbc" title="Link to this heading"></a></h3>
+<span id="r-running-rbc"></span><span id="r-running20rbc"></span><h3>Running RBC<a class="headerlink" href="#running-rbc" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Tcl and Tk 9.0/9.1</p></li>
 <li><p>The optional toolbar prefers an installed <a class="reference external" href="https://github.com/georgtree/argparse">argparse package</a>. If none is available, it uses the bundled Tcl-only argparse 0.65; no separate installation is required for the graph demos.</p></li>
@@ -882,14 +882,14 @@ changes:</p>
 </ul>
 <p>The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.</p>
-<p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> loads Tk, the native Rbc widgets and commands, and the legacy <code class="docutils literal notranslate"><span class="pre">graph.tcl</span></code> helpers,
+<p><code class="docutils literal notranslate"><span class="pre">package</span> <span class="pre">require</span> <span class="pre">rbc</span></code> loads Tk, the native RBC widgets and commands, and the legacy <code class="docutils literal notranslate"><span class="pre">graph.tcl</span></code> helpers,
 without requiring argparse.</p>
 <p>The global <code class="docutils literal notranslate"><span class="pre">Rbc_ActiveLegend</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_Crosshairs</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ResetCrosshairs</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ZoomStack</span></code>, <code class="docutils literal notranslate"><span class="pre">Rbc_ClosestPoint</span></code>,
 <code class="docutils literal notranslate"><span class="pre">Rbc_PrintKey</span></code>, and <code class="docutils literal notranslate"><span class="pre">Rbc_PostScriptDialog</span></code> commands are retained for <strong>backward compatibility</strong>.  They are not enabled
 until called on a graph. For new applications, prefer the optional toolbar below. <strong>Using these helpers together with
 ``rbc::graphtoolbar`` on the same graph is not recommended</strong>, because their bindings and interaction state can
 interfere. Separate widgets may use separate interaction systems.  See <a class="reference internal" href="rbc-tk9-rbc-GRAPHINST.html#r-3a3arbc3a3agraphinstqzlegacy20graph20helpers"><span class="std std-ref">Legacy graph helpers</span></a> in the graph
-documentation for usage and cleanup behavior.  Load the optional toolbar explicitly, before importing Rbc commands:</p>
+documentation for usage and cleanup behavior.  Load the optional toolbar explicitly, before importing RBC commands:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::graphtoolbar
 <span class="k">namespace</span><span class="w"> </span>import<span class="w"> </span><span class="o">::</span>rbc::<span class="o">*</span>
 </pre></div>
@@ -915,7 +915,7 @@ External C extensions can use <code class="docutils literal notranslate"><span c
 <p>The full tests and documentation generation need a working graphical display. The vector-only test target does not.</p>
 </section>
 <section id="building-rbc">
-<span id="r-building-rbc"></span><span id="r-building20rbc"></span><h3>Building Rbc<a class="headerlink" href="#building-rbc" title="Link to this heading"></a></h3>
+<span id="r-building-rbc"></span><span id="r-building20rbc"></span><h3>Building RBC<a class="headerlink" href="#building-rbc" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>A C compiler and linker compatible with the selected Tcl/Tk build.</p></li>
 <li><p>GNU Make and a Unix-style shell.</p></li>
@@ -924,7 +924,7 @@ External C extensions can use <code class="docutils literal notranslate"><span c
 <li><p>On Linux, the X11 and Fontconfig development headers and libraries (for example, <code class="docutils literal notranslate"><span class="pre">libx11-dev</span></code> and <code class="docutils literal notranslate"><span class="pre">libfontconfig1-dev</span></code> on Debian/Ubuntu). PDF/SVG font discovery uses Fontconfig, independently of Cairo. Configure uses <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code>; custom installations can set <code class="docutils literal notranslate"><span class="pre">FONTCONFIG_CFLAGS</span></code> and <code class="docutils literal notranslate"><span class="pre">FONTCONFIG_LIBS</span></code>. Windows uses GDI without an additional font library.</p></li>
 <li><p>For <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>, Cairo 1.12 or newer with its platform backend and development headers. Configure uses <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> unless both <code class="docutils literal notranslate"><span class="pre">CAIRO_CFLAGS</span></code> and <code class="docutils literal notranslate"><span class="pre">CAIRO_LIBS</span></code> are supplied.</p></li>
 </ul>
-<p>Rbc still uses a small number of private Tk interfaces. Retain the matching Tk source tree unless the development
+<p>RBC still uses a small number of private Tk interfaces. Retain the matching Tk source tree unless the development
 installation provides all required private headers. The configure script uses the source location recorded in
 <code class="docutils literal notranslate"><span class="pre">tkConfig.sh</span></code> when locating these headers.</p>
 <p>Keep the corresponding Tcl source tree available as well when using the provided development targets: the Makefile sets
@@ -945,7 +945,7 @@ trees.</p>
 <p><code class="docutils literal notranslate"><span class="pre">--with-tcl</span></code> and <code class="docutils literal notranslate"><span class="pre">--with-tk</span></code> take the <strong>directories containing</strong> <code class="docutils literal notranslate"><span class="pre">tclConfig.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">tkConfig.sh</span></code>, not the configuration
 filenames themselves.</p>
 <p>Install <code class="docutils literal notranslate"><span class="pre">argparse</span></code> for the same Tcl interpreter before running toolbar demos, toolbar tests, benchmarks, or
-generating the complete documentation. Native Rbc widgets and vector-only use do not need argparse.</p>
+generating the complete documentation. Native RBC widgets and vector-only use do not need argparse.</p>
 <section id="linux">
 <span id="r-linux"></span><h3>Linux<a class="headerlink" href="#linux" title="Link to this heading"></a></h3>
 <p>For example, using Tcl/Tk build trees and a user-local installation prefix:</p>
@@ -991,8 +991,8 @@ make<span class="w"> </span>install
 </pre></div>
 </div>
 <p>Ensure that the selected Tcl/Tk DLLs, Cairo DLLs and their dependencies, and compiler runtime DLLs are available through
-<code class="docutils literal notranslate"><span class="pre">PATH</span></code>. Use Cairo and <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> from the same UCRT64 toolchain as Tcl/Tk and Rbc.</p>
-<p>The UCRT64 shell does not automatically determine Rbc’s installation prefix. Specify <code class="docutils literal notranslate"><span class="pre">--prefix=/ucrt64</span></code> when that is
+<code class="docutils literal notranslate"><span class="pre">PATH</span></code>. Use Cairo and <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> from the same UCRT64 toolchain as Tcl/Tk and RBC.</p>
+<p>The UCRT64 shell does not automatically determine RBC’s installation prefix. Specify <code class="docutils literal notranslate"><span class="pre">--prefix=/ucrt64</span></code> when that is
 the intended destination.</p>
 </section>
 <section id="configure-options-and-renderer-defaults">
@@ -1212,10 +1212,10 @@ from the repository’s GitHub source archives.</p>
 <p>To check the versions in use:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">puts</span><span class="w"> </span><span class="s2">"Tcl: [info patchlevel]"</span>
 <span class="nb">puts</span><span class="w"> </span><span class="s2">"Tk:  [package provide Tk]"</span>
-<span class="nb">puts</span><span class="w"> </span><span class="s2">"Rbc: [package provide rbc]"</span>
+<span class="nb">puts</span><span class="w"> </span><span class="s2">"RBC: [package provide rbc]"</span>
 </pre></div>
 </div>
-<p>If Rbc is installed outside Tcl’s normal package search locations, add its library directory before loading it:</p>
+<p>If RBC is installed outside Tcl’s normal package search locations, add its library directory before loading it:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">lappend</span><span class="w"> </span>auto_path<span class="w"> </span><span class="o">/</span>path<span class="o">/</span>to<span class="o">/</span>prefix<span class="o">/</span>lib
 <span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc
 </pre></div>
@@ -1226,11 +1226,11 @@ library, <code class="docutils literal notranslate"><span class="pre">graph.tcl<
 sufficient.</p>
 <section id="using-an-uninstalled-build">
 <span id="r-using-an-uninstalled-build"></span><span id="r-using20an20uninstalled20build"></span><h3>Using an uninstalled build<a class="headerlink" href="#using-an-uninstalled-build" title="Link to this heading"></a></h3>
-<p>From the Rbc build directory:</p>
+<p>From the RBC build directory:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell
 </pre></div>
 </div>
-<p>This starts the configured Tcl interpreter with the build directory in its package search path. Then load Rbc normally:</p>
+<p>This starts the configured Tcl interpreter with the build directory in its package search path. Then load RBC normally:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc
 </pre></div>
 </div>
@@ -1242,32 +1242,45 @@ sufficient.</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span>
 </pre></div>
 </div>
-<p>This target builds the package and the public C API test extension, then runs <code class="docutils literal notranslate"><span class="pre">tests/all.tcl</span></code> with the appropriate build
-environment. The automated runner sets native as the option-database default to preserve the existing pixel tests.
-Dedicated renderer tests explicitly select Cairo and verify the compiled default. Manual tests and demos retain the
-build default: Cairo when enabled, native otherwise.</p>
+<p>This target runs the widget suite, the headless vector suite, and the private vector notification, tile, image and
+resource/PostScript harnesses. Each runs in a fresh Tcl process. Vector tests shared by the first two suites exercise
+both Tk-loaded and Tcl-only configurations. Widget pixel tests use native rendering unless a test selects a renderer.
+File and test-name filters apply across the suites. Header probes, build and documentation checks, benchmarks, and manual
+tests remain separate.</p>
 <p>Run the Tcl-only package-loading, public vector C API, literal-name, namespace, rename, and expression callback tests
 without a display:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>test-vector
 </pre></div>
 </div>
-<p>This runs <code class="docutils literal notranslate"><span class="pre">tests/all.tcl vector</span></code>. GUI upgrade/load-order tests run in the normal <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> suite and are skipped
+<p>This runs <code class="docutils literal notranslate"><span class="pre">tests/all.tcl</span> <span class="pre">vector</span></code>. GUI upgrade/load-order tests run in the normal <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> suite and are skipped
 by the headless runner. Regenerate your Makefile with <code class="docutils literal notranslate"><span class="pre">./config.status</span></code> after updating <code class="docutils literal notranslate"><span class="pre">Makefile.in</span></code>.</p>
 <p>Run the internal C notification callback tests separately, without a display:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>test-vector-notify
 </pre></div>
 </div>
-<p>This relinks RBC objects into a test-only library and runs <code class="docutils literal notranslate"><span class="pre">vector.notify.test</span></code> in a fresh Tcl interpreter.
-It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.
-These private APIs are not added to the public stubs table. The ordinary suite skips this file without the dedicated
-harness. The MSVC makefile provides the same target.</p>
-<p>The suite uses <code class="docutils literal notranslate"><span class="pre">tcltest</span></code>. Pass test selection options through <code class="docutils literal notranslate"><span class="pre">TESTFLAGS</span></code>.</p>
+<p>This relinks RBC objects into a test-only library and runs <code class="docutils literal notranslate"><span class="pre">vector.notify.test</span></code> in a fresh Tcl interpreter.  It covers
+client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.  These
+private APIs are not added to the public stubs table. The aggregate target runs this file only in its dedicated harness
+process. The MSVC makefile provides the same target.</p>
+<p>Runtime tests live in <code class="docutils literal notranslate"><span class="pre">tests/runtime/&lt;group&gt;/</span></code>, for example <code class="docutils literal notranslate"><span class="pre">tests/runtime/graph/</span></code> and <code class="docutils literal notranslate"><span class="pre">tests/runtime/vector/</span></code>.  Pass
+<code class="docutils literal notranslate"><span class="pre">tcltest</span></code> selection options through <code class="docutils literal notranslate"><span class="pre">TESTFLAGS</span></code>. The <code class="docutils literal notranslate"><span class="pre">-file</span></code> and <code class="docutils literal notranslate"><span class="pre">-notfile</span></code> patterns match the filename without its
+directory.</p>
 <p>For example, run the line-decimation test file:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">"-file graph.element.decimate.test"</span>
 </pre></div>
 </div>
 <p>Or select tests by name:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">"-match graph.element.decimate.*"</span>
+</pre></div>
+</div>
+<p>Cairo-specific drawing and native comparison checks live in <code class="docutils literal notranslate"><span class="pre">graph.cairo.test</span></code> and <code class="docutils literal notranslate"><span class="pre">barchart.cairo.test</span></code>.  Shared
+configuration, caching and drawing-state checks live in <code class="docutils literal notranslate"><span class="pre">graph.rendering.test</span></code> and <code class="docutils literal notranslate"><span class="pre">trackgraph.rendering.test</span></code>. Feature
+tests cover native drawing regressions and feature behaviour across renderers.  Each suite loads its support files
+directly and can run independently. Cairo-dependent cases are skipped when Cairo is unavailable, while independent
+native cases run.</p>
+<p>Run the Cairo suites or the shared rendering suites:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">"-file *.cairo.test"</span>
+make<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nv">TESTFLAGS</span><span class="o">=</span><span class="s2">"-file *.rendering.test"</span>
 </pre></div>
 </div>
 <p>On a headless Linux system, an X11 virtual display can be used if Xvfb is installed:</p>
@@ -1303,7 +1316,7 @@ stipples, and helper scripts together.</p>
 <span id="r-rendering-benchmarks"></span><span id="r-rendering20benchmarks"></span><h2>Rendering benchmarks<a class="headerlink" href="#rendering-benchmarks" title="Link to this heading"></a></h2>
 <p>Performance benchmarks are separate from the correctness tests. They can create large data sets and should be run
 deliberately.</p>
-<p>In addition to Rbc and <code class="docutils literal notranslate"><span class="pre">argparse</span></code>, the benchmark scripts require the Tcllib packages <code class="docutils literal notranslate"><span class="pre">csv</span></code>, <code class="docutils literal notranslate"><span class="pre">report</span></code>, and
+<p>In addition to RBC and <code class="docutils literal notranslate"><span class="pre">argparse</span></code>, the benchmark scripts require the Tcllib packages <code class="docutils literal notranslate"><span class="pre">csv</span></code>, <code class="docutils literal notranslate"><span class="pre">report</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">struct::matrix</span></code>.</p>
 <p>Run the small smoke profile from an in-tree build:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>shell<span class="w"> </span><span class="nv">SCRIPT</span><span class="o">=</span><span class="s2">"tests/benchmark/run.tcl -profile smoke"</span>
@@ -1341,8 +1354,8 @@ browse the local HTML documentation.</p>
 <span id="r-regenerating-documentation"></span><span id="r-regenerating20documentation"></span><h3>Regenerating documentation<a class="headerlink" href="#regenerating-documentation" title="Link to this heading"></a></h3>
 <p>Documentation generation requires:</p>
 <ul class="simple">
-<li><p>A working Rbc build and its runtime dependencies.</p></li>
-<li><p>The Tcl <code class="docutils literal notranslate"><span class="pre">ruff</span></code> package with Sphinx and nroff output support.</p></li>
+<li><p>A working RBC build and its runtime dependencies.</p></li>
+<li><p>The Tcl <code class="docutils literal notranslate"><span class="pre">ruff</span></code> package with additions from this <a class="reference external" href="https://github.com/georgtree/ruff">fork</a>.</p></li>
 <li><p>Tcllib’s <code class="docutils literal notranslate"><span class="pre">fileutil</span></code> and <code class="docutils literal notranslate"><span class="pre">textutil::adjust</span></code> packages.</p></li>
 <li><p>Python with Sphinx and the <code class="docutils literal notranslate"><span class="pre">sphinx-rtd-theme</span></code> package installed for that interpreter.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ditaa</span></code> and its Java runtime when rendering diagrams that use the configured diagram generator.</p></li>
@@ -1355,9 +1368,9 @@ python<span class="w"> </span>-m<span class="w"> </span>sphinx<span class="w"> <
 python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import sphinx_rtd_theme; print(sphinx_rtd_theme.__file__)"</span>
 </pre></div>
 </div>
-<p>Use <code class="docutils literal notranslate"><span class="pre">pacman</span> <span class="pre">-Syu</span></code> for a full MSYS2 update before installation when needed. Keep Python, Sphinx and the theme in the
-same UCRT64 environment. The developer manual additionally requires Doxygen and Breathe; see
-<a class="reference external" href="https://georgtree.github.io/rbc-tk9/developer/html/building.html">its build instructions</a>.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">pacman</span> <span class="pre">-Syu</span></code> for a full MSYS2 update before installation when needed. Keep Python, Sphinx and the theme in the same
+UCRT64 environment. The developer manual additionally requires Doxygen and Breathe; see <a class="reference external" href="https://georgtree.github.io/rbc-tk9/developer/html/building.html">its build
+instructions</a>.</p>
 <p>From an in-tree build, run:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>doc
 </pre></div>
@@ -1370,26 +1383,26 @@ HTML under <code class="docutils literal notranslate"><span class="pre">docs</sp
 namespace’s <code class="docutils literal notranslate"><span class="pre">_ruff_preamble</span></code> before Ruff runs. Each table keeps its Markdown form for Sphinx/HTML and receives a
 wrapped, boxed literal form for nroff, selected with generated <code class="docutils literal notranslate"><span class="pre">#ruffopt</span></code> guards. Existing format restrictions and
 fenced code examples are preserved. Preambles are restored after generation, including on errors.</p>
-<p>Do not maintain a second hand-written nroff copy of a table. Tables may have any column count that fits the default
-120-character width (including borders, excluding source indentation). Columns are sized automatically; long cells
-wrap. Alignment markers are accepted, while the nroff cells are left-aligned. Escape literal pipes as <code class="docutils literal notranslate"><span class="pre">\|</span></code> or put them
-inside inline code. Table rows must have the same column count as the header. This preprocessing covers namespace
-preambles and the README; it does not rewrite procedure bodies or TclOO method documentation.</p>
+<p>Tables may have any column count that fits the default 120-character width (including borders, excluding source
+indentation). Columns are sized automatically; long cells wrap. Alignment markers are accepted, while the nroff cells
+are left-aligned. Escape literal pipes as <code class="docutils literal notranslate"><span class="pre">\|</span></code> or put them inside inline code. Table rows must have the same column
+count as the header. This preprocessing covers namespace preambles and the README; it does not rewrite procedure bodies
+or TclOO method documentation.</p>
 <p>The helper regression tests require only Tcl, Tcllib and <code class="docutils literal notranslate"><span class="pre">tcltest</span></code>:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>tclsh9.0<span class="w"> </span>tests/docs.tables.test
 </pre></div>
 </div>
-<p>Select another Python executable with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span> <span class="pre">DOC_PYTHON=python3</span></code>; the developer builder uses
-<code class="docutils literal notranslate"><span class="pre">DOC_DEV_PYTHON</span></code>. When invoking <code class="docutils literal notranslate"><span class="pre">docs/doc_gen.tcl</span></code> directly, use the <code class="docutils literal notranslate"><span class="pre">RBC_DOC_PYTHON</span></code> environment variable.
-Executable overrides name a single executable, without extra command-line flags. Sphinx errors fail the user-documentation
-build; review warnings and the rendered pages before publishing.</p>
+<p>Select another Python executable with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">doc</span> <span class="pre">DOC_PYTHON=python3</span></code>; the developer builder uses <code class="docutils literal notranslate"><span class="pre">DOC_DEV_PYTHON</span></code>. When
+invoking <code class="docutils literal notranslate"><span class="pre">docs/doc_gen.tcl</span></code> directly, use the <code class="docutils literal notranslate"><span class="pre">RBC_DOC_PYTHON</span></code> environment variable.  Executable overrides name a single
+executable, without extra command-line flags. Sphinx errors fail the user-documentation build; review warnings and the
+rendered pages before publishing.</p>
 <p>Shared styles are maintained in <code class="docutils literal notranslate"><span class="pre">docs/theme/rbc.css</span></code>, with table and field-list layout in
 <code class="docutils literal notranslate"><span class="pre">docs/theme/rbc-layout.css</span></code>. Both manuals use RTD’s default content width; cells wrap and field lists stack on narrow
 screens. Both builders stage and verify the stylesheets in the HTML output, failing if a source is missing or an output
-copy differs. Ruff’s generated theme settings are maintained in
-<code class="docutils literal notranslate"><span class="pre">docs/doc_gen.tcl</span></code>; developer settings are in <code class="docutils literal notranslate"><span class="pre">docs/developer/conf.py</span></code>. Keep <code class="docutils literal notranslate"><span class="pre">docs/.nojekyll</span></code> and publish the complete
-HTML output trees, including <code class="docutils literal notranslate"><span class="pre">_static</span></code> CSS, JavaScript and fonts. GitHub Pages serves the theme directly; no Read the Docs
-account or hosting integration is required. Existing user and developer page URLs remain the same.</p>
+copy differs. Ruff’s generated theme settings are maintained in <code class="docutils literal notranslate"><span class="pre">docs/doc_gen.tcl</span></code>; developer settings are in
+<code class="docutils literal notranslate"><span class="pre">docs/developer/conf.py</span></code>. Keep <code class="docutils literal notranslate"><span class="pre">docs/.nojekyll</span></code> and publish the complete HTML output trees, including <code class="docutils literal notranslate"><span class="pre">_static</span></code> CSS,
+JavaScript and fonts. GitHub Pages serves the theme directly; no Read the Docs account or hosting integration is
+required. Existing user and developer page URLs remain the same.</p>
 <p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> supplies the shared introduction and build instructions. <code class="docutils literal notranslate"><span class="pre">docs/startPage.ruff</span></code> reads that file as the
 documentation preamble.</p>
 </section>
@@ -1399,7 +1412,7 @@ documentation preamble.</p>
 <p>Please use the <a class="reference external" href="https://github.com/georgtree/rbc-tk9/issues">issue tracker</a>.</p>
 <p>For build or runtime problems, include:</p>
 <ul class="simple">
-<li><p>The Rbc version or commit.</p></li>
+<li><p>The RBC version or commit.</p></li>
 <li><p>Operating system and architecture.</p></li>
 <li><p>Tcl/Tk versions and, on Windows, the compiler/MSYS2 environment.</p></li>
 <li><p>Configure options and the relevant error output.</p></li>
@@ -1409,20 +1422,20 @@ documentation preamble.</p>
 </section>
 <section id="history-and-acknowledgments">
 <span id="r-history-and-acknowledgments"></span><span id="r-history20and20acknowledgments"></span><h2>History and acknowledgments<a class="headerlink" href="#history-and-acknowledgments" title="Link to this heading"></a></h2>
-<p>Rbc originated as a refactoring of selected components from version 2.4z of the BLT toolkit, developed by George Howlett
+<p>RBC originated as a refactoring of selected components from version 2.4z of the BLT toolkit, developed by George Howlett
 and other contributors.</p>
-<p>Samuel Green, Nicholas Hudson, Stanton Sievers, and Jarrod Stormo carried out the original Rbc project at Rose-Hulman
+<p>Samuel Green, Nicholas Hudson, Stanton Sievers, and Jarrod Stormo carried out the original RBC project at Rose-Hulman
 Institute of Technology during 2008–2009. The project adapted commonly used BLT components for Tcl/Tk 8.5 and was
 associated with the
 <a class="reference external" href="https://sourceforge.net/projects/gdat/">GDAT graphical data-analysis project</a>.</p>
 <p>Subsequent work included additional maintenance, demo improvements, and C stubs support. The stubs implementation
 includes work by Ashok P. Nadkarni.</p>
-<p>Emiliano Gavilán adapted Rbc for Tcl/Tk 9.0. This repository is based on his
-<a class="reference external" href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">Rbc Tcl/Tk 9 repository</a>.</p>
+<p>Emiliano Gavilán adapted RBC for Tcl/Tk 9.0. This repository is based on his
+<a class="reference external" href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">RBC Tcl/Tk 9 repository</a>.</p>
 <p>George Yashin maintains this fork and its further Tcl/Tk 9 modernization, new functionality, tests, performance
 improvements, and documentation.</p>
 <p>The project also acknowledges the Tcl/Tk developers, the maintainers of the Tcl Extension Architecture build system, and
-the contributors whose code and resources remain part of Rbc.</p>
+the contributors whose code and resources remain part of RBC.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://sourceforge.net/projects/blt/">BLT project</a></p></li>
 <li><p><a class="reference external" href="https://chiselapp.com/user/egavilan/repository/rbc-tk9">Upstream Tcl/Tk 9 adaptation</a></p></li>
@@ -1431,7 +1444,7 @@ the contributors whose code and resources remain part of Rbc.</p>
 </section>
 <section id="copyright-and-licensing">
 <span id="r-copyright-and-licensing"></span><span id="r-copyright20and20licensing"></span><h2>Copyright and licensing<a class="headerlink" href="#copyright-and-licensing" title="Link to this heading"></a></h2>
-<p>Rbc includes material from several authors and projects. The applicable copyright notices, permission conditions, and
+<p>RBC includes material from several authors and projects. The applicable copyright notices, permission conditions, and
 warranty disclaimers are retained in the source distribution.</p>
 <p>The main
 <a class="reference external" href="https://github.com/georgtree/rbc-tk9/blob/main/license.terms">license.terms</a>

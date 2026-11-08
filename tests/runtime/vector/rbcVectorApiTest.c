@@ -1,9 +1,9 @@
 /*
  * rbcVectorApiTest.c --
  *
- *      Consumer-side tests for the public Rbc vector C/stubs API.
+ *      Consumer-side tests for the public RBC vector C/stubs API.
  *
- *      This file deliberately includes only public Rbc headers.
+ *      This file deliberately includes only public RBC headers.
  */
 
 #ifdef RBCAPI

@@ -5,7 +5,7 @@ namespace eval ::rbc::spline {
     }
 
     variable _ruff_preamble {
-        The `spline` command performs scalar or parametric spline interpolation on data stored in Rbc vectors.
+        The `spline` command performs scalar or parametric spline interpolation on data stored in RBC vectors.
 
         Two interpolation algorithms are available:
         * `natural` - natural cubic spline interpolation.
@@ -33,7 +33,7 @@ namespace eval ::rbc::spline {
         spline parametric quadratic source result samples
         ```
 
-        `source` and `result` are complex Rbc vectors. Each source value:
+        `source` and `result` are complex RBC vectors. Each source value:
         ```text
         {real imag}
         ```
@@ -110,7 +110,7 @@ namespace eval ::rbc::spline {
 
         ## Parametric source data
 
-        A parametric source must be a complex Rbc vector containing at least three points.
+        A parametric source must be a complex RBC vector containing at least three points.
 
         All real and imaginary components must be finite.
 

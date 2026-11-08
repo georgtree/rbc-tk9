@@ -25,10 +25,10 @@ rbc::graphtoolbar - Commands in namespace rbc::graphtoolbar
 .br
 .SH GRAPHTOOLBAR
 .PP
-The graphtoolbar command creates an Rbc graph megawidget with an optional toolbar or context-menu control
+The graphtoolbar command creates an RBC graph megawidget with an optional toolbar or context-menu control
 surface and a set of coordinated interactive graph-navigation facilities\&.
 .PP
-The graph itself is a normal Rbc graph, barchart, stripchart, or polar widget\&. The megawidget adds:
+The graph itself is a normal RBC graph, barchart, stripchart, or polar widget\&. The megawidget adds:
 .TP
 \(bu
 Drag-selection zoom\&.
@@ -76,7 +76,7 @@ package require rbc::graphtoolbar
 .fi
 .RE
 .PP
-or, after importing the Rbc commands:
+or, after importing the RBC commands:
 .PP
 .RS 4n
 .nf
@@ -103,7 +103,7 @@ pack \&.gtb -fill both -expand yes
 .fi
 .RE
 .PP
-graph forwards the remaining arguments directly to the embedded Rbc graph widget\&. The graph pathname can
+graph forwards the remaining arguments directly to the embedded RBC graph widget\&. The graph pathname can
 alternatively be obtained with:
 .PP
 .RS 4n
@@ -306,7 +306,7 @@ a scrolling boundary it simply stops moving; its width or logarithmic ratio is n
 If several used axes belong to the same data dimension, their scrolling constraints are combined\&. The most
 restrictive axis limits the common physical drag displacement, so all mapped axes remain synchronized\&.
 .PP
-When -scrollcommand is configured without explicit -scrollmin or -scrollmax, Rbc uses the complete data
+When -scrollcommand is configured without explicit -scrollmin or -scrollmax, RBC uses the complete data
 range of the axis as the scrolling region\&.
 .PP
 If the current viewport already covers that complete range, axis view reports the full interval 0\&.0 1\&.0\&.
@@ -396,13 +396,13 @@ changes are suppressed\&. Normal legend interaction resumes when the transient o
 -crosshairs enables the enhanced crosshair system\&. The -crosshairsmode property selects one of four modes:
 .TP
 \(bu
-current - show Rbc crosshair lines and annotate the current pointer coordinates\&.
+current - show RBC crosshair lines and annotate the current pointer coordinates\&.
 .TP
 \(bu
 closest - find plotted data near the pointer and annotate the selected point or points\&.
 .TP
 \(bu
-none - show ordinary Rbc crosshair lines without an annotation marker\&.
+none - show ordinary RBC crosshair lines without an annotation marker\&.
 .TP
 \(bu
 disabled - disable both the lines and the annotation marker\&.
@@ -421,7 +421,7 @@ In closest mode, -crosshairsclosestopts controls the search:
 -single yes displays the globally closest result\&. With -single no, each visible element is searched independently\&.
 .TP
 \(bu
--hide yes hides the ordinary Rbc crosshair lines while closest annotations are displayed\&.
+-hide yes hides the ordinary RBC crosshair lines while closest annotations are displayed\&.
 .PP
 Elements configured with -hideplot yes do not participate in closest searches\&.
 .PP
@@ -709,7 +709,7 @@ The most common access forms are:
 .PP
 .RS 4n
 .nf
-# Forward directly to the Rbc graph\&.
+# Forward directly to the RBC graph\&.
 \&.gtb graph axis configure x -min 0 -max 10
 \&.gtb graph element create e1 -data {0 0 1 1}
 
@@ -727,12 +727,12 @@ puts [\&.gtb names]
 The exact subwidget set depends on -controlmode and on which optional facilities were enabled\&.
 .SH "RESERVED INTERNAL NAMES"
 .PP
-graphtoolbar installs private binding tags and graph markers in the embedded Rbc graph\&.
+graphtoolbar installs private binding tags and graph markers in the embedded RBC graph\&.
 .PP
 Binding tags whose names begin with gtb- are reserved for graphtoolbar\&. Applications should not create,
 modify, remove, or attach their own bindings to tags using this prefix\&.
 .PP
-Rbc graph marker names beginning with gtb are likewise reserved for graphtoolbar\&. Applications using the
+RBC graph marker names beginning with gtb are likewise reserved for graphtoolbar\&. Applications using the
 embedded graph should choose marker names that do not begin with gtb\&.
 .PP
 The exact private names are implementation details and may change\&. Applications should rely only on the
@@ -740,7 +740,7 @@ reserved prefixes, and should use the public graphtoolbar interface rather than 
 bindings or markers\&.
 .PP
 Graphtoolbar-created markers are visual overlays only\&. They are created with -state disabled, which keeps
-them visible but excludes them from Rbc graph hit testing and binding dispatch\&. As a result, internal markers
+them visible but excludes them from RBC graph hit testing and binding dispatch\&. As a result, internal markers
 such as closest-point symbols, annotation text, annotation backgrounds, zoom outlines, and zoom titles do not
 become the graph's current marker and do not interfere with application element bindings\&.
 .PP
@@ -896,7 +896,7 @@ or changed through the oo::configurable interface:
 Options such as -type, -controlmode, -zoom, -pan, and -crosshairs select structural features
 when the megawidget is created and are not configurable properties afterward\&.
 .PP
-Private binding tags created by the class use the reserved gtb- prefix\&. Private Rbc graph markers
+Private binding tags created by the class use the reserved gtb- prefix\&. Private RBC graph markers
 use the reserved gtb prefix\&. Applications should not use either prefix for objects they create in
 the embedded graph\&.
 .PP
@@ -916,7 +916,7 @@ getAxisActiveScale
 Returns axes currently enabled for interactive scale toggling\&. List of axis names carrying the graphtoolbar active-scale binding tag\&.
 .TP
 graph
-Forwards a command directly to the embedded Rbc graph widget\&.
+Forwards a command directly to the embedded RBC graph widget\&.
 .TP
 names
 Returns the names of all subwidgets created for this instance\&. List of subwidget names\&.
@@ -938,16 +938,16 @@ Invokes a command on a named graphtoolbar subwidget\&.
 Enables zoom, pan, wheel zoom, crosshairs, active legend and scale toggling on axes x and y, with their default options\&. Explicit feature options, including -scaletoggle, override these defaults regardless of argument order\&. This is a construction-time switch\&.
 .TP
 -width pixels
-Initial requested width of the embedded Rbc graph\&. The default is 800\&.
+Initial requested width of the embedded RBC graph\&. The default is 800\&.
 .TP
 -height pixels
-Initial requested height of the embedded Rbc graph\&. The default is 600\&.
+Initial requested height of the embedded RBC graph\&. The default is 600\&.
 .TP
 -controlmode mode
 Selects the user-interface control surface\&. Must be toolbar, contextmenu, or both\&. The default is both\&.
 .TP
 -type type
-Selects the embedded Rbc widget\&. Must be graph, barchart, stripchart, polar, or trackgraph\&. The default is graph\&.
+Selects the embedded RBC widget\&. Must be graph, barchart, stripchart, polar, or trackgraph\&. The default is graph\&.
 .TP
 -representation mode
 For -type polar, selects polar or smith representation\&. The default is polar\&. It is ignored by the other graph types\&.
@@ -1031,7 +1031,7 @@ Initial -pointeropts property\&. Configures the bitmap pointer used to mark clos
 Initial crosshair mode\&. Must be current, closest, none, or disabled\&. The default is closest\&. Requires -crosshairs\&.
 .TP
 -crosshairsopts dictionary
-Initial Rbc crosshair line options\&. Requires -crosshairs\&.
+Initial RBC crosshair line options\&. Requires -crosshairs\&.
 .TP
 -crosshairsmarkopts dictionary
 Initial text-marker and numeric-format options used by current and closest annotations\&. Requires -crosshairs\&.
@@ -1068,10 +1068,10 @@ Readable, writable\&. Selects the value representation used for closest-point an
 Readable, writable\&. Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom corner markers\&. Accepted values are auto, axis, complex, polar, polardegrees, gamma, normalizedimpedance, normalizedimpedanceri, normalizedadmittance, and normalizedadmittanceri\&. auto uses ordinary axis values except on a Smith chart, where normalized impedance/admittance real and imaginary components are selected according to the Smith grid\&.
 .TP
 -crosshairsbarlineopts
-Readable, writable\&. Dictionary configuring the dimension line used when the closest result is a bar\&. Recognized keys are -outline, -linewidth, and -arrowshape\&. -arrowshape contains the three screen distances used by an Rbc line-marker arrowhead\&. Initial values come from the gtbCrosshairsBarLine* Tk option-database resources\&.
+Readable, writable\&. Dictionary configuring the dimension line used when the closest result is a bar\&. Recognized keys are -outline, -linewidth, and -arrowshape\&. -arrowshape contains the three screen distances used by an RBC line-marker arrowhead\&. Initial values come from the gtbCrosshairsBarLine* Tk option-database resources\&.
 .TP
 -crosshairsclosestopts
-Readable, writable\&. Dictionary controlling closest-element searches\&. Recognized keys and defaults are: tcl -interpolate yes -halo 10 -single yes -hide yes -interpolate is forwarded to element closest\&. -halo is the search distance in pixels\&. -single yes selects one globally closest result; -single no searches every visible element separately\&. -hide controls visibility of the ordinary Rbc crosshair lines while closest annotations are displayed\&.
+Readable, writable\&. Dictionary controlling closest-element searches\&. Recognized keys and defaults are: tcl -interpolate yes -halo 10 -single yes -hide yes -interpolate is forwarded to element closest\&. -halo is the search distance in pixels\&. -single yes selects one globally closest result; -single no searches every visible element separately\&. -hide controls visibility of the ordinary RBC crosshair lines while closest annotations are displayed\&.
 .TP
 -crosshairsmarkboxopts
 Readable, writable\&. Dictionary configuring the polygon background behind current and closest text annotations\&. Recognized keys are -fill, -outline, and -linewidth\&. If fill and outline are both empty, no background is drawn\&. Initial values come from the gtbCrosshairsTextBox* Tk option-database resources\&.
@@ -1080,10 +1080,10 @@ Readable, writable\&. Dictionary configuring the polygon background behind curre
 Readable, writable\&. Dictionary configuring current/closest text annotations\&. Recognized keys are -font, -anchor, -justify, -foreground, -padx, -pady, -formatx, -formaty, and -formatparam\&. The three format keys are format conversion bodies, for example \&.4g\&. -formatparam is used when a closest element supplies info(param)\&. Initial values are obtained from the gtbCrosshairsText* Tk option-database resources\&.
 .TP
 -crosshairsmode
-Readable, writable\&. Selects enhanced crosshair behaviour\&. Accepted values are current, closest, none, and disabled\&. current annotates the current pointer coordinates\&. closest annotates nearby plotted data\&. none leaves only ordinary Rbc crosshair lines\&. disabled suppresses both lines and annotation markers\&. This property is intended for an instance created with -crosshairs\&.
+Readable, writable\&. Selects enhanced crosshair behaviour\&. Accepted values are current, closest, none, and disabled\&. current annotates the current pointer coordinates\&. closest annotates nearby plotted data\&. none leaves only ordinary RBC crosshair lines\&. disabled suppresses both lines and annotation markers\&. This property is intended for an instance created with -crosshairs\&.
 .TP
 -crosshairsopts
-Readable, writable\&. Dictionary configuring the underlying Rbc crosshair lines\&. Recognized keys are -linewidth, -color, and -dashes\&. Initial values come from gtbCrosshairsLineWidth, gtbCrosshairsColor, and gtbCrosshairsDashes\&.
+Readable, writable\&. Dictionary configuring the underlying RBC crosshair lines\&. Recognized keys are -linewidth, -color, and -dashes\&. Initial values come from gtbCrosshairsLineWidth, gtbCrosshairsColor, and gtbCrosshairsDashes\&.
 .TP
 -pointeropts
 Readable, writable\&. Dictionary configuring the bitmap pointer used to identify closest line, strip, and Polar points\&. Recognized keys are -outline and -rotate\&. -outline specifies the bitmap foreground color\&. -rotate specifies its rotation angle in degrees\&. Initial values come from gtbPointerOutline and gtbPointerRotate\&.
@@ -1101,7 +1101,7 @@ Readable, writable\&. Dictionary configuring rectangle-corner text annotations\&
 Readable, writable\&. Boolean controlling the transient Zoom #n annotation produced after a completed navigation operation\&. This property is meaningful for instances created with -zoom\&.
 .TP
 -zoomtitleopts
-Readable, writable\&. Dictionary of Rbc text-marker options used for the transient zoom-level title\&. Recognized keys are -font, -foreground, -shadow, -anchor, and -coords\&. Initial values are obtained from the corresponding gtbZoomTitle* Tk option-database resources\&.
+Readable, writable\&. Dictionary of RBC text-marker options used for the transient zoom-level title\&. Recognized keys are -font, -foreground, -shadow, -anchor, and -coords\&. Initial values are obtained from the corresponding gtbZoomTitle* Tk option-database resources\&.
 .RE
 .PP
 .RS -4n
@@ -1163,7 +1163,7 @@ List of axis names carrying the graphtoolbar active-scale binding tag\&.
 \fBgraph\fR (::rbc::graphtoolbar::graphtoolbar)
 .RE
 .PP
-Forwards a command directly to the embedded Rbc graph widget\&.
+Forwards a command directly to the embedded RBC graph widget\&.
 .RS 4n
 \fBGRAPHTOOLBAROBJ graph\fP \fI?graphCommand \&.\&.\&.?\fP
 .br

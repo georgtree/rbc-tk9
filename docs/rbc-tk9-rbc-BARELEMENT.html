@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -853,7 +853,7 @@ See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">-xdata</span></code> and <code class="docutils literal notranslate"><span class="pre">-ydata</span></code> are synonyms for <code class="docutils literal notranslate"><span class="pre">-x</span></code> and <code class="docutils literal notranslate"><span class="pre">-y</span></code>.</p>
-<p>Each coordinate option may also name an existing Rbc vector:</p>
+<p>Each coordinate option may also name an existing RBC vector:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>xValues<span class="w"> </span>yValues
 
 <span class="nv">xValues</span><span class="w"> </span>set<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="k">}</span>
@@ -862,7 +862,7 @@ See <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#r-3a3arbc3a3
 <span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>x<span class="w"> </span>xValues<span class="w"> </span><span class="o">-</span>y<span class="w"> </span>yValues
 </pre></div>
 </div>
-<p>When an Rbc vector is used, changes to the vector automatically invalidate and update the element.</p>
+<p>When an RBC vector is used, changes to the vector automatically invalidate and update the element.</p>
 <p>The number of usable data points is the smaller of the X and Y vector lengths.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-data</span></code> provides an alternative paired representation containing alternating X and Y values:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.b</span><span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>values<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">1</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">15</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span>
@@ -1246,7 +1246,7 @@ y + e
 </div>
 <p>When symmetric error data are present for an axis, they take precedence over the corresponding low/high
 vectors.</p>
-<p>Error data may be Tcl lists or Rbc vector names.</p>
+<p>Error data may be Tcl lists or RBC vector names.</p>
 <section id="error-bar-position">
 <span id="r-rbc-barelement-error-bar-position"></span><span id="r-3a3arbc3a3abarelementqzerror2dbar20position"></span><h3>Error-bar position<a class="headerlink" href="#error-bar-position" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">-errorbarposition</span> <span class="pre">data|bar</span></code> is a bar-element option, not a pen option. The default <code class="docutils literal notranslate"><span class="pre">data</span></code> preserves the
@@ -1312,7 +1312,7 @@ translated endpoints.</p>
 </tr>
 </tbody>
 </table>
-<p>If <code class="docutils literal notranslate"><span class="pre">-errorbarcap</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, Rbc chooses a cap size from the rendered bar width.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">-errorbarcap</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, RBC chooses a cap size from the rendered bar width.</p>
 <p>Error-bar values also participate in automatic graph extents.</p>
 </section>
 </section>
@@ -1373,7 +1373,7 @@ whose screen geometry has been aligned, overlapped, or stacked.</p>
 </section>
 <section id="weights-and-styles">
 <span id="r-rbc-barelement-weights-and-styles"></span><span id="r-3a3arbc3a3abarelementqzweights20and20styles"></span><h2>Weights and styles<a class="headerlink" href="#weights-and-styles" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">-weights</span></code> associates numeric weights with data points. The value may be a Tcl list or an Rbc vector.</p>
+<p><code class="docutils literal notranslate"><span class="pre">-weights</span></code> associates numeric weights with data points. The value may be a Tcl list or an RBC vector.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-styles</span></code> maps ranges of those weights to named bar pens.</p>
 <p>Each style specification has one of the forms:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>penName
@@ -1419,7 +1419,7 @@ or beyond zero.</p>
 <section id="closest-searches">
 <span id="r-rbc-barelement-closest-searches"></span><span id="r-3a3arbc3a3abarelementqzclosest20searches"></span><h2>Closest searches<a class="headerlink" href="#closest-searches" title="Link to this heading"></a></h2>
 <p>Bar elements are searched using their rendered rectangles.</p>
-<p>If the requested window point lies inside a bar rectangle, its distance is zero. Otherwise Rbc measures the
+<p>If the requested window point lies inside a bar rectangle, its distance is zero. Otherwise RBC measures the
 distance to the rectangle boundary.</p>
 <p>The result index and graph coordinates identify the original source data point represented by the selected
 rectangle.</p>
@@ -1644,7 +1644,7 @@ rectangle.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xdata</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Xdata</span></code></p></td>
-<td><p>Supplies the element’s X coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the element’s X coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xdata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
@@ -1654,22 +1654,22 @@ rectangle.</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XError</span></code></p></td>
-<td><p>Supplies symmetric X error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies symmetric X error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-xhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XHigh</span></code></p></td>
-<td><p>Supplies the upper X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the upper X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-xlow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">xLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">XLow</span></code></p></td>
-<td><p>Supplies the lower X error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the lower X error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-y</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ydata</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Ydata</span></code></p></td>
-<td><p>Supplies the element’s Y coordinates as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the element’s Y coordinates as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-ydata</span> <span class="pre">data</span></code></p></td>
 <td><p>—</p></td>
@@ -1679,17 +1679,17 @@ rectangle.</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-yerror</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yError</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YError</span></code></p></td>
-<td><p>Supplies symmetric Y error magnitudes as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies symmetric Y error magnitudes as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-yhigh</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yHigh</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YHigh</span></code></p></td>
-<td><p>Supplies the upper Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the upper Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-ylow</span> <span class="pre">data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">yLow</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">YLow</span></code></p></td>
-<td><p>Supplies the lower Y error endpoints as a list or Rbc vector. Each literal list item accepts a Tcl numeric expression.</p></td>
+<td><p>Supplies the lower Y error endpoints as a list or RBC vector. Each literal list item accepts a Tcl numeric expression.</p></td>
 </tr>
 </tbody>
 </table>

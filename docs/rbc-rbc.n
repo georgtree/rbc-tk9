@@ -2662,7 +2662,7 @@ Queries the current value of one configuration option of a marker\&. The availab
 Queries or modifies marker configuration options\&. One or more marker names may be supplied before the first option\&. With no option, returns all configuration information for the first marker\&. With one option, returns information for that option for the first marker\&. With option/value pairs, applies the same changes to every listed marker\&. See \fIMarker types and options\fP\&.
 .TP
 \fIcreate\fP
-Creates a new marker of the specified type\&. type may be arc, bitmap, image, line, polygon, text, or window\&. Use -name to specify an explicit marker name; otherwise Rbc generates one automatically\&. Creating a marker with the same name as an existing marker replaces the existing marker\&. See \fIMarker types and options\fP\&.
+Creates a new marker of the specified type\&. type may be arc, bitmap, image, line, polygon, text, or window\&. Use -name to specify an explicit marker name; otherwise RBC generates one automatically\&. Creating a marker with the same name as an existing marker replaces the existing marker\&. See \fIMarker types and options\fP\&.
 .TP
 \fIdelete\fP
 Deletes one or more markers\&. Supplying no marker names has no effect\&.
@@ -2826,7 +2826,7 @@ Configuration information when querying, otherwise nothing\&.
 .RE
 .PP
 Creates a new marker of the specified type\&. type may be arc, bitmap, image, line, polygon, text, or
-window\&. Use -name to specify an explicit marker name; otherwise Rbc generates one automatically\&. Creating
+window\&. Use -name to specify an explicit marker name; otherwise RBC generates one automatically\&. Creating
 a marker with the same name as an existing marker replaces the existing marker\&. See
 \fIMarker types and options\fP\&.
 .RS 4n
@@ -3308,7 +3308,7 @@ Value for the configuration option\&.
 The -representation option selects either a conventional polar grid or a Smith-chart grid\&. The underlying
 element coordinates remain Cartesian in both representations\&.
 .PP
-Polar elements may use ordinary X/Y data or may obtain their data directly from a complex Rbc vector with
+Polar elements may use ordinary X/Y data or may obtain their data directly from a complex RBC vector with
 the element -cdata option\&. Complex data may represent reflection coefficient, impedance, or admittance\&.
 .PP
 Unless -aspect is explicitly configured, a polar widget automatically adjusts the physical plotting-area
@@ -5635,7 +5635,7 @@ Gives back the current pointer location in root-screen coordinates\&.
 Raises one or more Tk windows to the top of their stacking order\&. Supplying no window names has no effect\&.
 .TP
 \fIreadjpeg\fP
-Reads a JPEG file into an existing Tk photo image\&. The operation returns an error if JPEG support was not compiled into Rbc\&.
+Reads a JPEG file into an existing Tk photo image\&. The operation returns an error if JPEG support was not compiled into RBC\&.
 .TP
 \fIresample\fP
 Copies or resamples a source photo into a destination photo\&. The destination's existing dimensions determine the requested output size\&. One filter is used in both directions; two filters independently select horizontal and vertical filtering\&. With no filter, none is used\&. See \fIImage resampling\fP\&.
@@ -5889,7 +5889,7 @@ Nothing\&.
 .RE
 .PP
 Reads a JPEG file into an existing Tk photo image\&. The operation returns an error if JPEG support was not
-compiled into Rbc\&.
+compiled into RBC\&.
 .RS 4n
 \fBwinop readjpeg\fP \fIfileName photoName\fP
 .br

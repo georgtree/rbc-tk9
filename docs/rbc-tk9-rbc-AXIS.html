@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -954,7 +954,7 @@ minor ticks represent the values 2 through 9 within each decade.</p>
 </section>
 <section id="major-and-minor-ticks">
 <span id="r-rbc-axis-major-and-minor-ticks"></span><span id="r-3a3arbc3a3aaxisqzmajor20and20minor20ticks"></span><h2>Major and minor ticks<a class="headerlink" href="#major-and-minor-ticks" title="Link to this heading"></a></h2>
-<p>When <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> is empty, Rbc automatically chooses major tick positions.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">-majorticks</span></code> is empty, RBC automatically chooses major tick positions.</p>
 <p>A custom list may be supplied:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>majorticks<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">15</span><span class="w"> </span><span class="mi">20</span><span class="k">}</span><span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">30</span>
 </pre></div>
@@ -968,7 +968,7 @@ linear axis:</p>
 </div>
 <p><img alt="axes_stepsize_major_ticks" src="images/axes_stepsize_major_ticks.svg" /></p>
 <p>A value less than or equal to zero selects automatic step calculation. If a requested step would produce an
-impractical number of ticks, Rbc falls back to an automatically selected interval.</p>
+impractical number of ticks, RBC falls back to an automatically selected interval.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">-subdivisions</span></code> option controls automatically generated minor ticks between major ticks. A value of <code class="docutils literal notranslate"><span class="pre">N</span></code>
 divides each major interval into <code class="docutils literal notranslate"><span class="pre">N</span></code> parts, producing <code class="docutils literal notranslate"><span class="pre">N-1</span></code> minor ticks. The default value is <code class="docutils literal notranslate"><span class="pre">2</span></code>, which
 produces one minor tick halfway between adjacent major ticks.</p>
@@ -996,7 +996,7 @@ major ticks retain their regular subdivision and clipping rules at the axis limi
 <p>Major tick labels are generated automatically. Linear-axis labels use a general floating-point representation,
 while logarithmic major labels use power-of-ten notation.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-command</span></code> may be used to replace the generated label text. Its value is a Tcl command prefix. For every
-major tick, Rbc appends two arguments:</p>
+major tick, RBC appends two arguments:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>graphPath defaultLabel
 </pre></div>
 </div>
@@ -1070,7 +1070,7 @@ screen distance.</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>view<span class="w"> </span>x<span class="w"> </span><span class="mi">1</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> specifies a Tcl command prefix to notify when the axis viewport is redrawn. Rbc appends the
+<p><code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> specifies a Tcl command prefix to notify when the axis viewport is redrawn. RBC appends the
 normalized first and last fractions to the command prefix, making it suitable for a Tk scrollbar’s <code class="docutils literal notranslate"><span class="pre">set</span></code>
 command.</p>
 <p>For example:</p>
@@ -1173,7 +1173,7 @@ ordinary numeric label as a fallback. Callback evaluation preserves the surround
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-command</span> <span class="pre">command</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">command</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Command</span></code></p></td>
-<td><p>Specifies a Tcl command prefix used to format major tick labels. The graph pathname and the default tick-label string are appended as arguments. The command result replaces the default label. An empty value uses Rbc’s built-in formatting.</p></td>
+<td><p>Specifies a Tcl command prefix used to format major tick labels. The graph pathname and the default tick-label string are appended as arguments. The command result replaces the default label. An empty value uses RBC’s built-in formatting.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-descending</span> <span class="pre">boolean</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">descending</span></code></p></td>

@@ -62,7 +62,7 @@ Elements contain X and Y data and are mapped through an X axis and a Y axis\&. T
 reference describes the available ways to supply data, select axes, configure pens, error bars, labels, and
 other type-specific attributes\&.
 .PP
-Element data may be supplied directly as Tcl lists or through Rbc vectors\&. When an element refers to an Rbc
+Element data may be supplied directly as Tcl lists or through RBC vectors\&. When an element refers to an RBC
 vector, changes to that vector cause the graph to update automatically\&.
 .SH "DISPLAY LIST"
 .PP
@@ -273,7 +273,7 @@ if {[\&.g element closest $x $y info]} {
 .RE
 .PP
 The param entry is present only while the parameter vector has exactly the same number of values as the element
-has data points\&. If attached Rbc vectors are resized independently and their lengths temporarily differ, the
+has data points\&. If attached RBC vectors are resized independently and their lengths temporarily differ, the
 closest search still succeeds normally but param is omitted until the lengths match again\&.
 .PP
 For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:

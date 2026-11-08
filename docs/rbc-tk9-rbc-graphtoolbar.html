@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -826,9 +826,9 @@
              
   <section id="graphtoolbar">
 <span id="r-graphtoolbar"></span><span id="r-namespaceqz3a3arbc3a3agraphtoolbar"></span><h1>graphtoolbar<a class="headerlink" href="#graphtoolbar" title="Link to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> command creates an Rbc graph megawidget with an optional toolbar or context-menu control
+<p>The <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> command creates an RBC graph megawidget with an optional toolbar or context-menu control
 surface and a set of coordinated interactive graph-navigation facilities.</p>
-<p>The graph itself is a normal Rbc <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code> widget. The megawidget adds:</p>
+<p>The graph itself is a normal RBC <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, or <code class="docutils literal notranslate"><span class="pre">polar</span></code> widget. The megawidget adds:</p>
 <ul class="simple">
 <li><p>Drag-selection zoom.</p></li>
 <li><p>Mouse-wheel zoom.</p></li>
@@ -852,7 +852,7 @@ Require the toolbar package before importing <code class="docutils literal notra
 <span class="o">::</span><span class="nv">rbc</span><span class="o">::</span>graphtoolbar<span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
 </pre></div>
 </div>
-<p>or, after importing the Rbc commands:</p>
+<p>or, after importing the RBC commands:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">package</span><span class="w"> </span>require<span class="w"> </span>rbc::graphtoolbar
 <span class="k">namespace</span><span class="w"> </span>import<span class="w"> </span><span class="o">::</span>rbc::<span class="o">*</span>
 <span class="nv">graphtoolbar</span><span class="w"> </span>.gtb<span class="w"> </span><span class="o">?</span>option<span class="w"> </span>...<span class="o">?</span>
@@ -872,7 +872,7 @@ legend entries, and interactive axis scale selection:</p>
 <span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>trace<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">9</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">16</span><span class="k">}</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">graph</span></code> forwards the remaining arguments directly to the embedded Rbc graph widget. The graph pathname can
+<p><code class="docutils literal notranslate"><span class="pre">graph</span></code> forwards the remaining arguments directly to the embedded RBC graph widget. The graph pathname can
 alternatively be obtained with:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>graph<span class="w"> </span><span class="k">[</span><span class="nv">.gtb</span><span class="w"> </span>subwidget<span class="w"> </span>graph<span class="k">]</span>
 </pre></div>
@@ -1020,7 +1020,7 @@ or uses <code class="docutils literal notranslate"><span class="pre">-scrollcomm
 a scrolling boundary it simply stops moving; its width or logarithmic ratio is never reduced.</p>
 <p>If several used axes belong to the same data dimension, their scrolling constraints are combined. The most
 restrictive axis limits the common physical drag displacement, so all mapped axes remain synchronized.</p>
-<p>When <code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> is configured without explicit <code class="docutils literal notranslate"><span class="pre">-scrollmin</span></code> or <code class="docutils literal notranslate"><span class="pre">-scrollmax</span></code>, Rbc uses the complete data
+<p>When <code class="docutils literal notranslate"><span class="pre">-scrollcommand</span></code> is configured without explicit <code class="docutils literal notranslate"><span class="pre">-scrollmin</span></code> or <code class="docutils literal notranslate"><span class="pre">-scrollmax</span></code>, RBC uses the complete data
 range of the axis as the scrolling region.</p>
 <p>If the current viewport already covers that complete range, <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">view</span></code> reports the full interval <code class="docutils literal notranslate"><span class="pre">0.0</span> <span class="pre">1.0</span></code>.
 The associated scrollbar thumb therefore fills the entire trough, and graphtoolbar panning is correspondingly
@@ -1079,9 +1079,9 @@ changes are suppressed. Normal legend interaction resumes when the transient ope
 <span id="r-rbc-graphtoolbar-crosshairs"></span><span id="r-3a3arbc3a3agraphtoolbarqzcrosshairs"></span><h2>Crosshairs<a class="headerlink" href="#crosshairs" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> enables the enhanced crosshair system. The <code class="docutils literal notranslate"><span class="pre">-crosshairsmode</span></code> property selects one of four modes:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">current</span></code> - show Rbc crosshair lines and annotate the current pointer coordinates.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">current</span></code> - show RBC crosshair lines and annotate the current pointer coordinates.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">closest</span></code> - find plotted data near the pointer and annotate the selected point or points.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">none</span></code> - show ordinary Rbc crosshair lines without an annotation marker.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">none</span></code> - show ordinary RBC crosshair lines without an annotation marker.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">disabled</span></code> - disable both the lines and the annotation marker.</p></li>
 </ul>
 <p>The default is <code class="docutils literal notranslate"><span class="pre">closest</span></code>.</p>
@@ -1090,7 +1090,7 @@ changes are suppressed. Normal legend interaction resumes when the transient ope
 <li><p><code class="docutils literal notranslate"><span class="pre">-interpolate</span> <span class="pre">yes</span></code> allows a closest point on an interpolated trace.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-halo</span> <span class="pre">10</span></code> sets the search halo in pixels.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">yes</span></code> displays the globally closest result. With <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">no</span></code>, each visible element is searched independently.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">yes</span></code> hides the ordinary Rbc crosshair lines while closest annotations are displayed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-hide</span> <span class="pre">yes</span></code> hides the ordinary RBC crosshair lines while closest annotations are displayed.</p></li>
 </ul>
 <p>Elements configured with <code class="docutils literal notranslate"><span class="pre">-hideplot</span> <span class="pre">yes</span></code> do not participate in closest searches.</p>
 <p>A closest line, strip, or Polar point is marked by a bitmap pointer together with its text annotation. The
@@ -1312,7 +1312,7 @@ switched to logarithmic scaling; auxiliary axes can still use it.</p>
 <section id="public-megawidget-access">
 <span id="r-rbc-graphtoolbar-public-megawidget-access"></span><span id="r-3a3arbc3a3agraphtoolbarqzpublic20megawidget20access"></span><h2>Public megawidget access<a class="headerlink" href="#public-megawidget-access" title="Link to this heading"></a></h2>
 <p>The most common access forms are:</p>
-<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="c"># Forward directly to the Rbc graph.</span>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="c"># Forward directly to the RBC graph.</span>
 <span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>min<span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="mi">10</span>
 <span class="nv">.gtb</span><span class="w"> </span>graph<span class="w"> </span>element<span class="w"> </span>create<span class="w"> </span>e1<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">{</span><span class="nv">0</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="k">}</span>
 
@@ -1330,16 +1330,16 @@ switched to logarithmic scaling; auxiliary axes can still use it.</p>
 </section>
 <section id="reserved-internal-names">
 <span id="r-rbc-graphtoolbar-reserved-internal-names"></span><span id="r-3a3arbc3a3agraphtoolbarqzreserved20internal20names"></span><h2>Reserved internal names<a class="headerlink" href="#reserved-internal-names" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> installs private binding tags and graph markers in the embedded Rbc graph.</p>
+<p><code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code> installs private binding tags and graph markers in the embedded RBC graph.</p>
 <p>Binding tags whose names begin with <code class="docutils literal notranslate"><span class="pre">gtb-</span></code> are reserved for <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code>. Applications should not create,
 modify, remove, or attach their own bindings to tags using this prefix.</p>
-<p>Rbc graph marker names beginning with <code class="docutils literal notranslate"><span class="pre">gtb</span></code> are likewise reserved for <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code>. Applications using the
+<p>RBC graph marker names beginning with <code class="docutils literal notranslate"><span class="pre">gtb</span></code> are likewise reserved for <code class="docutils literal notranslate"><span class="pre">graphtoolbar</span></code>. Applications using the
 embedded graph should choose marker names that do not begin with <code class="docutils literal notranslate"><span class="pre">gtb</span></code>.</p>
 <p>The exact private names are implementation details and may change. Applications should rely only on the
 reserved prefixes, and should use the public graphtoolbar interface rather than manipulating its internal
 bindings or markers.</p>
 <p>Graphtoolbar-created markers are visual overlays only. They are created with <code class="docutils literal notranslate"><span class="pre">-state</span> <span class="pre">disabled</span></code>, which keeps
-them visible but excludes them from Rbc graph hit testing and binding dispatch. As a result, internal markers
+them visible but excludes them from RBC graph hit testing and binding dispatch. As a result, internal markers
 such as closest-point symbols, annotation text, annotation backgrounds, zoom outlines, and zoom titles do not
 become the graph’s current marker and do not interfere with application element bindings.</p>
 <p>This is particularly important for element bindings such as:</p>
@@ -1692,7 +1692,7 @@ or changed through the <code class="docutils literal notranslate"><span class="p
 </div>
 <p>Options such as <code class="docutils literal notranslate"><span class="pre">-type</span></code>, <code class="docutils literal notranslate"><span class="pre">-controlmode</span></code>, <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>, <code class="docutils literal notranslate"><span class="pre">-pan</span></code>, and <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code> select structural features
 when the megawidget is created and are not configurable properties afterward.</p>
-<p>Private binding tags created by the class use the reserved <code class="docutils literal notranslate"><span class="pre">gtb-</span></code> prefix. Private Rbc graph markers
+<p>Private binding tags created by the class use the reserved <code class="docutils literal notranslate"><span class="pre">gtb-</span></code> prefix. Private RBC graph markers
 use the reserved <code class="docutils literal notranslate"><span class="pre">gtb</span></code> prefix. Applications should not use either prefix for objects they create in
 the embedded graph.</p>
 <p class="rubric">Method summary</p>
@@ -1705,7 +1705,7 @@ the embedded graph.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agetaxisactivescale"><span class="std std-ref">getAxisActiveScale</span></a></dt><dd><p>Returns axes currently enabled for interactive scale toggling. List of axis names carrying the graphtoolbar active-scale binding tag.</p>
 </dd>
-<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"><span class="std std-ref">graph</span></a></dt><dd><p>Forwards a command directly to the embedded Rbc graph widget.</p>
+<dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"><span class="std std-ref">graph</span></a></dt><dd><p>Forwards a command directly to the embedded RBC graph widget.</p>
 </dd>
 <dt><a class="reference internal" href="#r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3anames"><span class="std std-ref">names</span></a></dt><dd><p>Returns the names of all subwidgets created for this instance. List of subwidget names.</p>
 </dd>
@@ -1722,16 +1722,16 @@ the embedded graph.</p>
 <dd class="field-odd"><p>Enables zoom, pan, wheel zoom, crosshairs, active legend and scale toggling on axes <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>, with their default options. Explicit feature options, including <code class="docutils literal notranslate"><span class="pre">-scaletoggle</span></code>, override these defaults regardless of argument order. This is a construction-time switch.</p>
 </dd>
 <dt class="field-even">-width pixels<span class="colon">:</span></dt>
-<dd class="field-even"><p>Initial requested width of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">800</span></code>.</p>
+<dd class="field-even"><p>Initial requested width of the embedded RBC graph. The default is <code class="docutils literal notranslate"><span class="pre">800</span></code>.</p>
 </dd>
 <dt class="field-odd">-height pixels<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial requested height of the embedded Rbc graph. The default is <code class="docutils literal notranslate"><span class="pre">600</span></code>.</p>
+<dd class="field-odd"><p>Initial requested height of the embedded RBC graph. The default is <code class="docutils literal notranslate"><span class="pre">600</span></code>.</p>
 </dd>
 <dt class="field-even">-controlmode mode<span class="colon">:</span></dt>
 <dd class="field-even"><p>Selects the user-interface control surface. Must be <code class="docutils literal notranslate"><span class="pre">toolbar</span></code>, <code class="docutils literal notranslate"><span class="pre">contextmenu</span></code>, or <code class="docutils literal notranslate"><span class="pre">both</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">both</span></code>.</p>
 </dd>
 <dt class="field-odd">-type type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Selects the embedded Rbc widget. Must be <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code>, or <code class="docutils literal notranslate"><span class="pre">trackgraph</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">graph</span></code>.</p>
+<dd class="field-odd"><p>Selects the embedded RBC widget. Must be <code class="docutils literal notranslate"><span class="pre">graph</span></code>, <code class="docutils literal notranslate"><span class="pre">barchart</span></code>, <code class="docutils literal notranslate"><span class="pre">stripchart</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code>, or <code class="docutils literal notranslate"><span class="pre">trackgraph</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">graph</span></code>.</p>
 </dd>
 <dt class="field-even">-representation mode<span class="colon">:</span></dt>
 <dd class="field-even"><p>For <code class="docutils literal notranslate"><span class="pre">-type</span> <span class="pre">polar</span></code>, selects <code class="docutils literal notranslate"><span class="pre">polar</span></code> or <code class="docutils literal notranslate"><span class="pre">smith</span></code> representation. The default is <code class="docutils literal notranslate"><span class="pre">polar</span></code>. It is ignored by the other graph types.</p>
@@ -1815,7 +1815,7 @@ the embedded graph.</p>
 <dd class="field-even"><p>Initial crosshair mode. Must be <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, or <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. The default is <code class="docutils literal notranslate"><span class="pre">closest</span></code>. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
 <dt class="field-odd">-crosshairsopts dictionary<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Initial Rbc crosshair line options. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dd class="field-odd"><p>Initial RBC crosshair line options. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
 <dt class="field-even">-crosshairsmarkopts dictionary<span class="colon">:</span></dt>
 <dd class="field-even"><p>Initial text-marker and numeric-format options used by current and closest annotations. Requires <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
@@ -1851,10 +1851,10 @@ the embedded graph.</p>
 <dd class="field-odd"><p>Readable, writable. Selects the coordinate representation used by current-position crosshair markers and rectangle-zoom corner markers. Accepted values are <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">axis</span></code>, <code class="docutils literal notranslate"><span class="pre">complex</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code>, <code class="docutils literal notranslate"><span class="pre">polardegrees</span></code>, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedimpedance</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedimpedanceri</span></code>, <code class="docutils literal notranslate"><span class="pre">normalizedadmittance</span></code>, and <code class="docutils literal notranslate"><span class="pre">normalizedadmittanceri</span></code>. <code class="docutils literal notranslate"><span class="pre">auto</span></code> uses ordinary axis values except on a Smith chart, where normalized impedance/admittance real and imaginary components are selected according to the Smith grid.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-crosshairsbarlineopts</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Readable, writable. Dictionary configuring the dimension line used when the closest result is a bar. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code>. <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code> contains the three screen distances used by an Rbc line-marker arrowhead. Initial values come from the <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsBarLine*</span></code> Tk option-database resources.</p>
+<dd class="field-even"><p>Readable, writable. Dictionary configuring the dimension line used when the closest result is a bar. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code>. <code class="docutils literal notranslate"><span class="pre">-arrowshape</span></code> contains the three screen distances used by an RBC line-marker arrowhead. Initial values come from the <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsBarLine*</span></code> Tk option-database resources.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-crosshairsclosestopts</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Readable, writable. Dictionary controlling closest-element searches. Recognized keys and defaults are: <code class="docutils literal notranslate"><span class="pre">tcl</span> <span class="pre">-interpolate</span> <span class="pre">yes</span> <span class="pre">-halo</span> <span class="pre">10</span> <span class="pre">-single</span> <span class="pre">yes</span> <span class="pre">-hide</span> <span class="pre">yes</span></code> <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code> is forwarded to <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code>. <code class="docutils literal notranslate"><span class="pre">-halo</span></code> is the search distance in pixels. <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">yes</span></code> selects one globally closest result; <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">no</span></code> searches every visible element separately. <code class="docutils literal notranslate"><span class="pre">-hide</span></code> controls visibility of the ordinary Rbc crosshair lines while closest annotations are displayed.</p>
+<dd class="field-odd"><p>Readable, writable. Dictionary controlling closest-element searches. Recognized keys and defaults are: <code class="docutils literal notranslate"><span class="pre">tcl</span> <span class="pre">-interpolate</span> <span class="pre">yes</span> <span class="pre">-halo</span> <span class="pre">10</span> <span class="pre">-single</span> <span class="pre">yes</span> <span class="pre">-hide</span> <span class="pre">yes</span></code> <code class="docutils literal notranslate"><span class="pre">-interpolate</span></code> is forwarded to <code class="docutils literal notranslate"><span class="pre">element</span> <span class="pre">closest</span></code>. <code class="docutils literal notranslate"><span class="pre">-halo</span></code> is the search distance in pixels. <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">yes</span></code> selects one globally closest result; <code class="docutils literal notranslate"><span class="pre">-single</span> <span class="pre">no</span></code> searches every visible element separately. <code class="docutils literal notranslate"><span class="pre">-hide</span></code> controls visibility of the ordinary RBC crosshair lines while closest annotations are displayed.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-crosshairsmarkboxopts</span></code><span class="colon">:</span></dt>
 <dd class="field-even"><p>Readable, writable. Dictionary configuring the polygon background behind current and closest text annotations. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-fill</span></code>, <code class="docutils literal notranslate"><span class="pre">-outline</span></code>, and <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>. If fill and outline are both empty, no background is drawn. Initial values come from the <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsTextBox*</span></code> Tk option-database resources.</p>
@@ -1863,10 +1863,10 @@ the embedded graph.</p>
 <dd class="field-odd"><p>Readable, writable. Dictionary configuring current/closest text annotations. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, <code class="docutils literal notranslate"><span class="pre">-justify</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-padx</span></code>, <code class="docutils literal notranslate"><span class="pre">-pady</span></code>, <code class="docutils literal notranslate"><span class="pre">-formatx</span></code>, <code class="docutils literal notranslate"><span class="pre">-formaty</span></code>, and <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code>. The three format keys are <code class="docutils literal notranslate"><span class="pre">format</span></code> conversion bodies, for example <code class="docutils literal notranslate"><span class="pre">.4g</span></code>. <code class="docutils literal notranslate"><span class="pre">-formatparam</span></code> is used when a closest element supplies <code class="docutils literal notranslate"><span class="pre">info(param)</span></code>. Initial values are obtained from the <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsText*</span></code> Tk option-database resources.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-crosshairsmode</span></code><span class="colon">:</span></dt>
-<dd class="field-even"><p>Readable, writable. Selects enhanced crosshair behaviour. Accepted values are <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, and <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. <code class="docutils literal notranslate"><span class="pre">current</span></code> annotates the current pointer coordinates. <code class="docutils literal notranslate"><span class="pre">closest</span></code> annotates nearby plotted data. <code class="docutils literal notranslate"><span class="pre">none</span></code> leaves only ordinary Rbc crosshair lines. <code class="docutils literal notranslate"><span class="pre">disabled</span></code> suppresses both lines and annotation markers. This property is intended for an instance created with <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
+<dd class="field-even"><p>Readable, writable. Selects enhanced crosshair behaviour. Accepted values are <code class="docutils literal notranslate"><span class="pre">current</span></code>, <code class="docutils literal notranslate"><span class="pre">closest</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code>, and <code class="docutils literal notranslate"><span class="pre">disabled</span></code>. <code class="docutils literal notranslate"><span class="pre">current</span></code> annotates the current pointer coordinates. <code class="docutils literal notranslate"><span class="pre">closest</span></code> annotates nearby plotted data. <code class="docutils literal notranslate"><span class="pre">none</span></code> leaves only ordinary RBC crosshair lines. <code class="docutils literal notranslate"><span class="pre">disabled</span></code> suppresses both lines and annotation markers. This property is intended for an instance created with <code class="docutils literal notranslate"><span class="pre">-crosshairs</span></code>.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-crosshairsopts</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Readable, writable. Dictionary configuring the underlying Rbc crosshair lines. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, <code class="docutils literal notranslate"><span class="pre">-color</span></code>, and <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>. Initial values come from <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsLineWidth</span></code>, <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsColor</span></code>, and <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsDashes</span></code>.</p>
+<dd class="field-odd"><p>Readable, writable. Dictionary configuring the underlying RBC crosshair lines. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-linewidth</span></code>, <code class="docutils literal notranslate"><span class="pre">-color</span></code>, and <code class="docutils literal notranslate"><span class="pre">-dashes</span></code>. Initial values come from <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsLineWidth</span></code>, <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsColor</span></code>, and <code class="docutils literal notranslate"><span class="pre">gtbCrosshairsDashes</span></code>.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">-pointeropts</span></code><span class="colon">:</span></dt>
 <dd class="field-even"><p>Readable, writable. Dictionary configuring the bitmap pointer used to identify closest line, strip, and Polar points. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-outline</span></code> and <code class="docutils literal notranslate"><span class="pre">-rotate</span></code>. <code class="docutils literal notranslate"><span class="pre">-outline</span></code> specifies the bitmap foreground color. <code class="docutils literal notranslate"><span class="pre">-rotate</span></code> specifies its rotation angle in degrees. Initial values come from <code class="docutils literal notranslate"><span class="pre">gtbPointerOutline</span></code> and <code class="docutils literal notranslate"><span class="pre">gtbPointerRotate</span></code>.</p>
@@ -1884,7 +1884,7 @@ the embedded graph.</p>
 <dd class="field-even"><p>Readable, writable. Boolean controlling the transient <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">#n</span></code> annotation produced after a completed navigation operation. This property is meaningful for instances created with <code class="docutils literal notranslate"><span class="pre">-zoom</span></code>.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">-zoomtitleopts</span></code><span class="colon">:</span></dt>
-<dd class="field-odd"><p>Readable, writable. Dictionary of Rbc text-marker options used for the transient zoom-level title. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-shadow</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, and <code class="docutils literal notranslate"><span class="pre">-coords</span></code>. Initial values are obtained from the corresponding <code class="docutils literal notranslate"><span class="pre">gtbZoomTitle*</span></code> Tk option-database resources.</p>
+<dd class="field-odd"><p>Readable, writable. Dictionary of RBC text-marker options used for the transient zoom-level title. Recognized keys are <code class="docutils literal notranslate"><span class="pre">-font</span></code>, <code class="docutils literal notranslate"><span class="pre">-foreground</span></code>, <code class="docutils literal notranslate"><span class="pre">-shadow</span></code>, <code class="docutils literal notranslate"><span class="pre">-anchor</span></code>, and <code class="docutils literal notranslate"><span class="pre">-coords</span></code>. Initial values are obtained from the corresponding <code class="docutils literal notranslate"><span class="pre">gtbZoomTitle*</span></code> Tk option-database resources.</p>
 </dd>
 </dl>
 <section id="constructor">
@@ -1921,7 +1921,7 @@ List of axis names carrying the graphtoolbar active-scale binding tag.</p>
 </section>
 <section id="graph">
 <span id="r-symbolqz3a3arbc3a3agraphtoolbar3a3agraphtoolbar3a3agraph"></span><span id="index-8"></span><h4><code class="docutils literal notranslate"><span class="pre">graph</span></code><a class="headerlink" href="#graph" title="Link to this heading"></a></h4>
-<p>Forwards a command directly to the embedded Rbc graph widget.</p>
+<p>Forwards a command directly to the embedded RBC graph widget.</p>
 <pre class="literal-block"><strong>GRAPHTOOLBAROBJ graph</strong> <em>?graphCommand ...?</em></pre>
 <p class="rubric">Parameters</p>
 <dl class="field-list simple">

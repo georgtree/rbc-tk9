@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -880,7 +880,7 @@ element type and are documented separately for line, strip, bar, and polar eleme
 <p>Elements contain X and Y data and are mapped through an X axis and a Y axis. The concrete element option
 reference describes the available ways to supply data, select axes, configure pens, error bars, labels, and
 other type-specific attributes.</p>
-<p>Element data may be supplied directly as Tcl lists or through Rbc vectors. When an element refers to an Rbc
+<p>Element data may be supplied directly as Tcl lists or through RBC vectors. When an element refers to an RBC
 vector, changes to that vector cause the graph to update automatically.</p>
 </section>
 <section id="display-list">
@@ -1049,7 +1049,7 @@ Its value is the parameter value associated with the source data index reported 
 </pre></div>
 </div>
 <p>The param entry is present only while the parameter vector has exactly the same number of values as the element
-has data points. If attached Rbc vectors are resized independently and their lengths temporarily differ, the
+has data points. If attached RBC vectors are resized independently and their lengths temporarily differ, the
 closest search still succeeds normally but param is omitted until the lengths match again.</p>
 <p>For a bar element, the result array also contains the physical bounds of the selected mapped bar rectangle:</p>
 <table class="docutils align-default">

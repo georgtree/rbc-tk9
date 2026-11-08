@@ -157,7 +157,7 @@ Explicit -majorticks on a logarithmic axis are specified in base-10 exponent coo
 places major ticks at 1, 10, 100, and 1000\&.
 .SH "MAJOR AND MINOR TICKS"
 .PP
-When -majorticks is empty, Rbc automatically chooses major tick positions\&.
+When -majorticks is empty, RBC automatically chooses major tick positions\&.
 .PP
 A custom list may be supplied:
 .PP
@@ -179,7 +179,7 @@ linear axis:
 .RE
 .PP
 A value less than or equal to zero selects automatic step calculation\&. If a requested step would produce an
-impractical number of ticks, Rbc falls back to an automatically selected interval\&.
+impractical number of ticks, RBC falls back to an automatically selected interval\&.
 .PP
 The -subdivisions option controls automatically generated minor ticks between major ticks\&. A value of N
 divides each major interval into N parts, producing N-1 minor ticks\&. The default value is 2, which
@@ -216,7 +216,7 @@ Major tick labels are generated automatically\&. Linear-axis labels use a genera
 while logarithmic major labels use power-of-ten notation\&.
 .PP
 -command may be used to replace the generated label text\&. Its value is a Tcl command prefix\&. For every
-major tick, Rbc appends two arguments:
+major tick, RBC appends two arguments:
 .PP
 .RS 4n
 .nf
@@ -332,7 +332,7 @@ For compatibility, a single integer argument is also accepted and is treated as 
 .fi
 .RE
 .PP
--scrollcommand specifies a Tcl command prefix to notify when the axis viewport is redrawn\&. Rbc appends the
+-scrollcommand specifies a Tcl command prefix to notify when the axis viewport is redrawn\&. RBC appends the
 normalized first and last fractions to the command prefix, making it suitable for a Tk scrollbar's set
 command\&.
 .PP
@@ -420,7 +420,7 @@ The following options apply to virtual axes and to axes displayed through the ma
 │                          │                 │                 │ tick labels\&. The graph pathname and the default       │
 │                          │                 │                 │ tick-label string are appended as arguments\&. The      │
 │                          │                 │                 │ command result replaces the default label\&. An empty   │
-│                          │                 │                 │ value uses Rbc's built-in formatting\&.                 │
+│                          │                 │                 │ value uses RBC's built-in formatting\&.                 │
 │ -descending boolean      │ descending      │ Descending      │ Specifies whether axis values increase in the reverse │
 │                          │                 │                 │ direction\&. The default is no\&.                         │
 │ -hide boolean            │ hide            │ Hide            │ Specifies whether the axis is hidden\&. Newly created   │

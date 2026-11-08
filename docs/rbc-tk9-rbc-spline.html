@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -826,7 +826,7 @@
              
   <section id="spline-interpolation">
 <span id="r-spline-interpolation"></span><span id="r-spline20interpolation"></span><span id="r-namespaceqz3a3arbc3a3aspline"></span><h1>Spline interpolation<a class="headerlink" href="#spline-interpolation" title="Link to this heading"></a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">spline</span></code> command performs scalar or parametric spline interpolation on data stored in Rbc vectors.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">spline</span></code> command performs scalar or parametric spline interpolation on data stored in RBC vectors.</p>
 <p>Two interpolation algorithms are available:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">natural</span></code> - natural cubic spline interpolation.</p></li>
@@ -851,7 +851,7 @@
 <span class="nv">spline</span><span class="w"> </span>parametric<span class="w"> </span>quadratic<span class="w"> </span>source<span class="w"> </span>result<span class="w"> </span>samples
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">result</span></code> are complex Rbc vectors. Each source value:</p>
+<p><code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">result</span></code> are complex RBC vectors. Each source value:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{real imag}
 </pre></div>
 </div>
@@ -916,7 +916,7 @@ the corresponding order.</p>
 </section>
 <section id="parametric-source-data">
 <span id="r-rbc-spline-parametric-source-data"></span><span id="r-3a3arbc3a3asplineqzparametric20source20data"></span><h3>Parametric source data<a class="headerlink" href="#parametric-source-data" title="Link to this heading"></a></h3>
-<p>A parametric source must be a complex Rbc vector containing at least three points.</p>
+<p>A parametric source must be a complex RBC vector containing at least three points.</p>
 <p>All real and imaginary components must be finite.</p>
 <p>Consecutive source points must be distinct. A repeated consecutive point has zero chord length and is rejected:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">vector</span><span class="w"> </span>create<span class="w"> </span>z<span class="w"> </span><span class="o">-</span>type<span class="w"> </span>complex

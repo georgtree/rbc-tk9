@@ -6,7 +6,7 @@
 rbc::VECINST - Commands in namespace rbc::VECINST
 .SH "VECTOR INSTANCE VECINST COMMAND"
 .PP
-Commands in this namespace document operations accepted by an individual Rbc vector command\&.
+Commands in this namespace document operations accepted by an individual RBC vector command\&.
 .PP
 VECINST is used below as a placeholder for the actual vector command:
 .PP
@@ -864,11 +864,11 @@ Frequency underflow follows ordinary double arithmetic and may round extremely s
 The commands perform no implicit vector creation or resampling and do not interpret #auto\&.
 .SH "C LANGUAGE API"
 .PP
-Rbc vectors can be created, inspected, modified, and destroyed directly from C code\&. This is useful for Tcl
+RBC vectors can be created, inspected, modified, and destroyed directly from C code\&. This is useful for Tcl
 extensions that generate or acquire large numeric data sets and want to make those values available to Tcl
 scripts or graph elements without converting every value to and from a Tcl list\&.
 .PP
-Include the Rbc public header:
+Include the RBC public header:
 .PP
 .RS 4n
 .nf
@@ -876,8 +876,8 @@ Include the Rbc public header:
 .fi
 .RE
 .PP
-Rbc exports its public C interface through the Rbc stubs table\&. An extension using the stubs interface should
-initialize it before calling Rbc functions:
+RBC exports its public C interface through the RBC stubs table\&. An extension using the stubs interface should
+initialize it before calling RBC functions:
 .PP
 .RS 4n
 .nf
@@ -891,8 +891,8 @@ static int InitRbcApi(Tcl_Interp *interp, const char *version) {
 .fi
 .RE
 .PP
-version is the minimum Rbc package version required by the extension\&. Rbc_VectorInitStubs requires
-rbc::vector and initializes the existing Rbc stubs table without loading Tk\&. Rebuild the consumer
+version is the minimum RBC package version required by the extension\&. Rbc_VectorInitStubs requires
+rbc::vector and initializes the existing RBC stubs table without loading Tk\&. Rebuild the consumer
 with the updated rbcStubLib\&.c (or updated stub library) to use this new helper\&. The table layout and
 vector function slots are unchanged\&.
 .PP
@@ -938,7 +938,7 @@ Rbc_Complex deliberately does not use the native C complex type, so the public A
 compiler-specific complex-number support\&.
 .SS "PUBLIC VECTOR FUNCTIONS"
 .PP
-The following vector functions are exported through the Rbc stubs interface:
+The following vector functions are exported through the RBC stubs interface:
 .PP
 .nf
 ┌─────────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────┐
@@ -952,7 +952,7 @@ The following vector functions are exported through the Rbc stubs interface:
 │ **vecPtrPtr)                            │                                                                            │
 │ int Rbc_ResizeVector(Rbc_Vector         │ Changes the logical vector length while preserving its numeric type\&.       │
 │ *vecPtr, Tcl_Size nValues)              │                                                                            │
-│ char *Rbc_NameOfVector(Rbc_Vector       │ Returns the vector name\&. The returned string belongs to Rbc\&.               │
+│ char *Rbc_NameOfVector(Rbc_Vector       │ Returns the vector name\&. The returned string belongs to RBC\&.               │
 │ *vecPtr)                                │                                                                            │
 │ int Rbc_ResetVector(Rbc_Vector *vecPtr, │ Replaces the storage of a real vector\&.                                     │
 │ double *dataArr, Tcl_Size nValues,      │                                                                            │
@@ -1135,9 +1135,9 @@ static int UpdateSamples(Tcl_Interp *interp, const char *name, Tcl_Size first, T
 .fi
 .RE
 .PP
-Supplying the changed range allows Rbc clients to preserve caches that are independent of the modified samples\&.
-For real vectors, Rbc also attempts to maintain the cached global minimum and maximum from the changed interval\&.
-If the modification touches information needed to determine an old global extremum, Rbc automatically falls
+Supplying the changed range allows RBC clients to preserve caches that are independent of the modified samples\&.
+For real vectors, RBC also attempts to maintain the cached global minimum and maximum from the changed interval\&.
+If the modification touches information needed to determine an old global extremum, RBC automatically falls
 back to a complete range calculation when required\&.
 .PP
 Graph line elements can use ranged Y-vector notifications to update only the affected part of a persistent
@@ -1198,14 +1198,14 @@ Both functions accept nValues, arraySize, and freeProc with the same ownership r
 ┌───────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────┐
 │ freeProc              │ Storage ownership                                                                            │
 ├───────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────┤
-│ TCL_VOLATILE          │ Rbc copies the supplied data into its own storage\&. The caller retains ownership of dataArr   │
+│ TCL_VOLATILE          │ RBC copies the supplied data into its own storage\&. The caller retains ownership of dataArr   │
 │                       │ and may reuse or release it immediately after the call returns\&.                              │
-│ TCL_STATIC            │ Rbc uses dataArr directly but never frees it\&. The caller must keep the array valid for as    │
+│ TCL_STATIC            │ RBC uses dataArr directly but never frees it\&. The caller must keep the array valid for as    │
 │                       │ long as the vector uses it\&.                                                                  │
-│ TCL_DYNAMIC           │ Rbc takes ownership of dataArr and releases it with Tcl's allocator when the storage is      │
+│ TCL_DYNAMIC           │ RBC takes ownership of dataArr and releases it with Tcl's allocator when the storage is      │
 │                       │ replaced or the vector is destroyed\&. The array must therefore have been allocated with       │
 │                       │ compatible Tcl allocation routines such as Tcl_Alloc\&.                                        │
-│ custom Tcl_FreeProc * │ Rbc takes ownership of dataArr and invokes the supplied deallocation procedure when the      │
+│ custom Tcl_FreeProc * │ RBC takes ownership of dataArr and invokes the supplied deallocation procedure when the      │
 │                       │ storage is no longer needed\&.                                                                 │
 └───────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────┘
 
@@ -1224,7 +1224,7 @@ capacity of the supplied array and must be greater than or equal to nValues\&.
 Passing NULL for dataArr, or an arraySize of 0, resets the vector to an empty vector\&.
 .PP
 If arraySize is 0, a non-NULL dataArr is not adopted by the vector and ownership does not transfer to
-Rbc\&. The caller remains responsible for that storage\&.
+RBC\&. The caller remains responsible for that storage\&.
 .PP
 For example, dynamically allocated storage can be transferred directly to a vector:
 .PP
@@ -1249,7 +1249,7 @@ static int SetGeneratedData(Tcl_Interp *interp, const char *name) {
         return TCL_ERROR;
     }
     /*
-     * Rbc now owns dataArr\&.
+     * RBC now owns dataArr\&.
      * Do not free or reuse it here\&.
      */
     return TCL_OK;
@@ -1257,7 +1257,7 @@ static int SetGeneratedData(Tcl_Interp *interp, const char *name) {
 .fi
 .RE
 .PP
-When TCL_DYNAMIC is used, ownership transfers to Rbc only after a successful Rbc_ResetVector call\&.
+When TCL_DYNAMIC is used, ownership transfers to RBC only after a successful Rbc_ResetVector call\&.
 .PP
 Complex reset example:
 .PP
@@ -1406,8 +1406,8 @@ Destroying the vector also removes its associated Tcl command and array mapping 
 according to the ownership policy established by Rbc_ResetVector\&.
 .SS "COMPATIBILITY WITH OLDER RBC VECTOR APIS"
 .PP
-Older BLT and Rbc manuals describe additional C functions for vector client identifiers, change callbacks,
-deletion by name, and custom vector indices\&. Those routines are not part of the current public Rbc stubs
+Older BLT and RBC manuals describe additional C functions for vector client identifiers, change callbacks,
+deletion by name, and custom vector indices\&. Those routines are not part of the current public RBC stubs
 interface and are intentionally not documented here\&.
 .PP
 Use the functions listed in \fIPublic vector functions\fP when writing new extensions\&.

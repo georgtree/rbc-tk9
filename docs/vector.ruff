@@ -51,7 +51,7 @@ namespace eval ::rbc::vector {
         samples expr {samples * 2}
         ```
 
-        This loads the same Rbc shared library but initializes only its vector commands and C API. It does not
+        This loads the same RBC shared library but initializes only its vector commands and C API. It does not
         require Tk, a graphical display, argparse, or graphtoolbar. Real and complex vectors, expressions,
         array access, and vector client notifications use the same implementation as the full package.
         Graphs, winop, and spline are available through the full `rbc` package. The optional toolbar is loaded
@@ -412,7 +412,7 @@ namespace eval ::rbc::VECINST {
     }
 
     variable _ruff_preamble {
-        Commands in this namespace document operations accepted by an individual Rbc vector command.
+        Commands in this namespace document operations accepted by an individual RBC vector command.
 
         `VECINST` is used below as a placeholder for the actual vector command:
 
@@ -1112,17 +1112,17 @@ namespace eval ::rbc::VECINST {
         The commands perform no implicit vector creation or resampling and do not interpret `#auto`.
 
         ## C language API
-        Rbc vectors can be created, inspected, modified, and destroyed directly from C code. This is useful for Tcl
+        RBC vectors can be created, inspected, modified, and destroyed directly from C code. This is useful for Tcl
         extensions that generate or acquire large numeric data sets and want to make those values available to Tcl
         scripts or graph elements without converting every value to and from a Tcl list.
 
-        Include the Rbc public header:
+        Include the RBC public header:
         ```c
         #include <rbc.h>
         ```
 
-        Rbc exports its public C interface through the Rbc stubs table. An extension using the stubs interface should
-        initialize it before calling Rbc functions:
+        RBC exports its public C interface through the RBC stubs table. An extension using the stubs interface should
+        initialize it before calling RBC functions:
         ```c
         static int InitRbcApi(Tcl_Interp *interp, const char *version) {
             if (Rbc_VectorInitStubs(interp, version, 0) == NULL) {
@@ -1133,8 +1133,8 @@ namespace eval ::rbc::VECINST {
         }
         ```
 
-        `version` is the minimum Rbc package version required by the extension. `Rbc_VectorInitStubs` requires
-        `rbc::vector` and initializes the existing Rbc stubs table without loading Tk. Rebuild the consumer
+        `version` is the minimum RBC package version required by the extension. `Rbc_VectorInitStubs` requires
+        `rbc::vector` and initializes the existing RBC stubs table without loading Tk. Rebuild the consumer
         with the updated `rbcStubLib.c` (or updated stub library) to use this new helper. The table layout and
         vector function slots are unchanged.
 
@@ -1171,14 +1171,14 @@ namespace eval ::rbc::VECINST {
         compiler-specific complex-number support.
 
         ### Public vector functions
-        The following vector functions are exported through the Rbc stubs interface:
+        The following vector functions are exported through the RBC stubs interface:
 
         | Function                                                                                                                             | Description                                                                                                                                                                |
         |--------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
         | `int Rbc_CreateVector(Tcl_Interp *interp, const char *vecName, Tcl_Size size, Rbc_Vector **vecPtrPtr)`                               | Creates a real vector using the traditional Tcl command and automatic array mapping.                                                                                       |
         | `int Rbc_GetVector(Tcl_Interp *interp, const char *vecName, Rbc_Vector **vecPtrPtr)`                                                 | Looks up an existing real or complex vector.                                                                                                                               |
         | `int Rbc_ResizeVector(Rbc_Vector *vecPtr, Tcl_Size nValues)`                                                                         | Changes the logical vector length while preserving its numeric type.                                                                                                       |
-        | `char *Rbc_NameOfVector(Rbc_Vector *vecPtr)`                                                                                         | Returns the vector name. The returned string belongs to Rbc.                                                                                                               |
+        | `char *Rbc_NameOfVector(Rbc_Vector *vecPtr)`                                                                                         | Returns the vector name. The returned string belongs to RBC.                                                                                                               |
         | `int Rbc_ResetVector(Rbc_Vector *vecPtr, double *dataArr, Tcl_Size nValues, Tcl_Size arraySize, Tcl_FreeProc *freeProc)`             | Replaces the storage of a real vector.                                                                                                                                     |
         | `double *Rbc_VectorData(Rbc_Vector *vecPtr)`                                                                                         | Returns real-vector storage, or `NULL` for a complex vector.                                                                                                               |
         | `Tcl_Size Rbc_VectorLength(Rbc_Vector *vecPtr)`                                                                                      | Returns the logical number of vector values.                                                                                                                               |
@@ -1318,9 +1318,9 @@ namespace eval ::rbc::VECINST {
         }
         ```
 
-        Supplying the changed range allows Rbc clients to preserve caches that are independent of the modified samples.
-        For real vectors, Rbc also attempts to maintain the cached global minimum and maximum from the changed interval.
-        If the modification touches information needed to determine an old global extremum, Rbc automatically falls
+        Supplying the changed range allows RBC clients to preserve caches that are independent of the modified samples.
+        For real vectors, RBC also attempts to maintain the cached global minimum and maximum from the changed interval.
+        If the modification touches information needed to determine an old global extremum, RBC automatically falls
         back to a complete range calculation when required.
 
         Graph line elements can use ranged Y-vector notifications to update only the affected part of a persistent
@@ -1377,10 +1377,10 @@ namespace eval ::rbc::VECINST {
 
         | `freeProc`              | Storage ownership                                                                                                                                                                                                                        |
         |-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-        | `TCL_VOLATILE`          | Rbc copies the supplied data into its own storage. The caller retains ownership of `dataArr` and may reuse or release it immediately after the call returns.                                                                             |
-        | `TCL_STATIC`            | Rbc uses `dataArr` directly but never frees it. The caller must keep the array valid for as long as the vector uses it.                                                                                                                  |
-        | `TCL_DYNAMIC`           | Rbc takes ownership of `dataArr` and releases it with Tcl's allocator when the storage is replaced or the vector is destroyed. The array must therefore have been allocated with compatible Tcl allocation routines such as `Tcl_Alloc`. |
-        | custom `Tcl_FreeProc *` | Rbc takes ownership of `dataArr` and invokes the supplied deallocation procedure when the storage is no longer needed.                                                                                                                   |
+        | `TCL_VOLATILE`          | RBC copies the supplied data into its own storage. The caller retains ownership of `dataArr` and may reuse or release it immediately after the call returns.                                                                             |
+        | `TCL_STATIC`            | RBC uses `dataArr` directly but never frees it. The caller must keep the array valid for as long as the vector uses it.                                                                                                                  |
+        | `TCL_DYNAMIC`           | RBC takes ownership of `dataArr` and releases it with Tcl's allocator when the storage is replaced or the vector is destroyed. The array must therefore have been allocated with compatible Tcl allocation routines such as `Tcl_Alloc`. |
+        | custom `Tcl_FreeProc *` | RBC takes ownership of `dataArr` and invokes the supplied deallocation procedure when the storage is no longer needed.                                                                                                                   |
 
         The ownership policy supplied to a reset operation becomes the vector's storage contract. This is true even if
         the supplied data pointer is identical to the vector's current data pointer.
@@ -1395,7 +1395,7 @@ namespace eval ::rbc::VECINST {
         Passing `NULL` for `dataArr`, or an `arraySize` of `0`, resets the vector to an empty vector.
 
         If `arraySize` is `0`, a non-NULL `dataArr` is not adopted by the vector and ownership does not transfer to
-        Rbc. The caller remains responsible for that storage.
+        RBC. The caller remains responsible for that storage.
 
         For example, dynamically allocated storage can be transferred directly to a vector:
 
@@ -1419,14 +1419,14 @@ namespace eval ::rbc::VECINST {
                 return TCL_ERROR;
             }
             /*
-             * Rbc now owns dataArr.
+             * RBC now owns dataArr.
              * Do not free or reuse it here.
              */
             return TCL_OK;
         }
         ```
 
-        When `TCL_DYNAMIC` is used, ownership transfers to Rbc only after a successful `Rbc_ResetVector` call.
+        When `TCL_DYNAMIC` is used, ownership transfers to RBC only after a successful `Rbc_ResetVector` call.
 
         Complex reset example:
         ```c
@@ -1557,9 +1557,9 @@ namespace eval ::rbc::VECINST {
         Destroying the vector also removes its associated Tcl command and array mapping and releases vector storage
         according to the ownership policy established by `Rbc_ResetVector`.
 
-        ### Compatibility with older Rbc vector APIs
-        Older BLT and Rbc manuals describe additional C functions for vector client identifiers, change callbacks,
-        deletion by name, and custom vector indices. Those routines are not part of the current public Rbc stubs
+        ### Compatibility with older RBC vector APIs
+        Older BLT and RBC manuals describe additional C functions for vector client identifiers, change callbacks,
+        deletion by name, and custom vector indices. Those routines are not part of the current public RBC stubs
         interface and are intentionally not documented here.
 
         Use the functions listed in [Public vector functions][Public vector functions] when writing new extensions.

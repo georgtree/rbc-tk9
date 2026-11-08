@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -939,7 +939,7 @@ restores automatic sizing.</p>
 -topvariable
 </pre></div>
 </div>
-<p>can be used to observe the actual calculated margin sizes. After layout and drawing, Rbc writes the current
+<p>can be used to observe the actual calculated margin sizes. After layout and drawing, RBC writes the current
 size of each configured margin to the specified global Tcl variable.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">graph</span><span class="w"> </span>.g<span class="w"> </span><span class="o">-</span>leftvariable<span class="w"> </span>leftSize<span class="w"> </span><span class="o">-</span>bottomvariable<span class="w"> </span>bottomSize
@@ -981,7 +981,7 @@ distance:</p>
 </pre></div>
 </div>
 <p>requests a plotting area whose width is 1.5 times its height.</p>
-<p>Rbc satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
+<p>RBC satisfies the requested ratio by reducing the usable width or height of the plotting area; it does not
 enlarge the widget. Set <code class="docutils literal notranslate"><span class="pre">-aspect</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code> to disable the constraint.</p>
 </section>
 <section id="layout">
@@ -1017,7 +1017,7 @@ Trackgraphs use <a class="reference internal" href="rbc-tk9-rbc-TRACKGRAPH.html#
 </section>
 <section id="polar-and-smith-charts">
 <span id="r-rbc-graphinst-polar-and-smith-charts"></span><span id="r-3a3arbc3a3agraphinstqzpolar20and20smith20charts"></span><h2>Polar and Smith charts<a class="headerlink" href="#polar-and-smith-charts" title="Link to this heading"></a></h2>
-<p>A widget created with <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3apolar"><span class="std std-ref">::rbc::polar</span></a> uses the ordinary Rbc graph coordinate system but provides specialized
+<p>A widget created with <a class="reference internal" href="rbc-tk9-rbc.html#r-symbolqz3a3arbc3a3apolar"><span class="std std-ref">::rbc::polar</span></a> uses the ordinary RBC graph coordinate system but provides specialized
 Polar and Smith-chart grid representations.</p>
 <p>Polar data are always represented internally as Cartesian coordinates:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>x = real
@@ -1084,7 +1084,7 @@ unequal numerical X and Y spans can intentionally distort circles.</p>
 <section id="polar-autoscaling-without-visible-elements">
 <span id="r-rbc-graphinst-polar-autoscaling-without-visible-elements"></span><span id="r-3a3arbc3a3agraphinstqzpolar20autoscaling20without20visible20elements"></span><h3>Polar autoscaling without visible elements<a class="headerlink" href="#polar-autoscaling-without-visible-elements" title="Link to this heading"></a></h3>
 <p>Plot-hidden and normally hidden elements do not contribute to automatic axis limits.</p>
-<p>For a Polar representation, if a grid-mapped axis has no contributing visible element data, Rbc supplies a
+<p>For a Polar representation, if a grid-mapped axis has no contributing visible element data, RBC supplies a
 neutral <code class="docutils literal notranslate"><span class="pre">-1</span></code> to <code class="docutils literal notranslate"><span class="pre">+1</span></code> fallback range for that axis. This keeps an empty Polar widget, or a Polar widget whose
 plotted elements have all been hidden with <code class="docutils literal notranslate"><span class="pre">-hideplot</span></code>, in a usable state with a visible Polar grid.</p>
 <p>The fallback is used only when that grid axis has no visible data contribution. It does not constrain or extend
@@ -1720,7 +1720,7 @@ in the graph.</p>
 <section id="buffering">
 <span id="r-rbc-graphinst-buffering"></span><span id="r-3a3arbc3a3agraphinstqzbuffering"></span><h2>Buffering<a class="headerlink" href="#buffering" title="Link to this heading"></a></h2>
 <p>Two separate buffering mechanisms are available.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-buffergraph</span></code> controls double-buffering of the complete widget. With double-buffering enabled, Rbc renders the
+<p><code class="docutils literal notranslate"><span class="pre">-buffergraph</span></code> controls double-buffering of the complete widget. With double-buffering enabled, RBC renders the
 graph to an off-screen pixmap and copies the completed image to the window.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-bufferelements</span></code> controls an additional backing store containing the plot region and data elements. It is
 useful when elements themselves are unchanged but the graph must frequently redraw objects placed above them,
@@ -1783,7 +1783,7 @@ produce floating-point results. The option’s range and domain rules still appl
 and the legend’s <code class="docutils literal notranslate"><span class="pre">&#64;x,y</span></code> position support expressions. Other numeric options do not automatically evaluate
 arithmetic. For example, <code class="docutils literal notranslate"><span class="pre">-valueoffset</span></code> requires two integer pixel values, and crosshair <code class="docutils literal notranslate"><span class="pre">-position</span></code> accepts Tk
 pixel distances rather than the legend’s integer expressions.</p>
-<p>Brace an expression to pass it to Rbc without Tcl substituting it first:</p>
+<p>Brace an expression to pass it to RBC without Tcl substituting it first:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>axis<span class="w"> </span>configure<span class="w"> </span>x<span class="w"> </span><span class="o">-</span>max<span class="w"> </span><span class="k">{</span><span class="nv">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>acos<span class="k">(</span><span class="nv">-1</span><span class="k">)}</span>
 <span class="nv">.g</span><span class="w"> </span>legend<span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>position<span class="w"> </span><span class="k">{</span>@10<span class="o">+</span><span class="nv">5</span>,20<span class="o">+</span><span class="mi">10</span><span class="k">}</span>
 </pre></div>
@@ -1796,10 +1796,10 @@ the outer braces delimit the entire list:</p>
 </div>
 <p>Use floating-point operands when a fractional result is needed: <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">3</span></code> is integer division, while <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">/</span> <span class="pre">3</span></code>
 produces a fraction. Tcl expression functions and substitutions follow normal Tcl expression rules. Outer
-braces defer substitution; they do not disable it when Rbc evaluates the expression.</p>
-<p>Expressions are evaluated when Rbc parses the option. They are not live formulas: changing a referenced Tcl
+braces defer substitution; they do not disable it when RBC evaluates the expression.</p>
+<p>Expressions are evaluated when RBC parses the option. They are not live formulas: changing a referenced Tcl
 variable does not itself update the graph. Supply the option again to evaluate it with new values. An existing
-Rbc vector name supplied to a vector-capable data option is handled as a vector reference, not an expression;
+RBC vector name supplied to a vector-capable data option is handled as a vector reference, not an expression;
 vector notifications provide its automatic updates.</p>
 <p>For an option that does not evaluate expressions, calculate the value explicitly:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span>gap<span class="w"> </span><span class="mi">8</span>
@@ -1809,7 +1809,7 @@ vector notifications provide its automatic updates.</p>
 </section>
 <section id="application-data">
 <span id="r-rbc-graphinst-application-data"></span><span id="r-3a3arbc3a3agraphinstqzapplication20data"></span><h2>Application data<a class="headerlink" href="#application-data" title="Link to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">-data</span></code> option is an application-defined storage slot. Rbc stores the supplied value but does not interpret
+<p>The <code class="docutils literal notranslate"><span class="pre">-data</span></code> option is an application-defined storage slot. RBC stores the supplied value but does not interpret
 it in the C graph implementation.</p>
 <p>For example:</p>
 <div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nv">.g</span><span class="w"> </span>configure<span class="w"> </span><span class="o">-</span>data<span class="w"> </span><span class="k">[</span><span class="nb">dict</span><span class="w"> </span>create<span class="w"> </span>source<span class="w"> </span>simulation1<span class="w"> </span>quantity<span class="w"> </span>voltage<span class="k">]</span>

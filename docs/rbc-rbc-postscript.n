@@ -179,7 +179,7 @@ For example:
 -colormap may name a Tcl array containing custom PostScript translations for Tk colors\&.
 .PP
 Array elements are indexed by Tk color names\&. If an entry exists, its value is inserted verbatim into the
-PostScript output in place of Rbc's normal color conversion\&. Colors without an entry use the normal automatic
+PostScript output in place of RBC's normal color conversion\&. Colors without an entry use the normal automatic
 conversion\&.
 .PP
 Because the same color map is consulted for both foreground and background colors, each custom translation
@@ -200,7 +200,7 @@ set psFonts(MyGraphFont) {Helvetica 10}
 .fi
 .RE
 .PP
-If the point size is omitted, Rbc determines the size from the Tk font\&.
+If the point size is omitted, RBC determines the size from the Tk font\&.
 .PP
 Fonts not found in the specified array are mapped automatically to suitable PostScript fonts\&.
 .PP

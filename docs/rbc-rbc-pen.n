@@ -32,7 +32,7 @@ graph \&.g
 See \fIELEMENT\fP, \fILINEELEMENT\fP, \fISTRIPELEMENT\fP, and \fIBARELEMENT\fP for how elements select and use pens\&.
 .SH "PEN TYPES"
 .PP
-Rbc has two concrete pen implementations:
+RBC has two concrete pen implementations:
 .PP
 .nf
 ┌──────────┬─────────────────────────┐
@@ -71,7 +71,7 @@ If -type is omitted, the default follows the graph widget type:
 .PP
 The actual concrete pen type may be queried with PEN type\&.
 .PP
-Line pens may be assigned to line and strip elements\&. Bar pens may be assigned only to bar elements\&. Rbc
+Line pens may be assigned to line and strip elements\&. Bar pens may be assigned only to bar elements\&. RBC
 rejects attempts to use a pen with an incompatible element type\&.
 .PP
 -type is a creation-time selector\&. Changing it after a pen has been created does not convert the existing

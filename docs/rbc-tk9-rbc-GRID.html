@@ -46,12 +46,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">Rbc - Refactored BLT Components for Tcl/Tk 9</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="rbc-tk9.html">RBC - Refactored BLT Components for Tcl/Tk 9</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#components">Components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#interactive-examples">Interactive examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running Rbc</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building Rbc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#running-rbc">Running RBC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9.html#building-rbc">Building RBC</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rbc-tk9.html#building-from-source">Building from source</a><ul>
@@ -749,7 +749,7 @@
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#resizing-a-vector">Resizing a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#testing-for-a-vector">Testing for a vector</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#destroying-a-vector">Destroying a vector</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older Rbc vector APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rbc-tk9-rbc-VECINST.html#compatibility-with-older-rbc-vector-apis">Compatibility with older RBC vector APIs</a></li>
 </ul>
 </li>
 </ul>
@@ -1014,7 +1014,7 @@ the resource class is <code class="docutils literal notranslate"><span class="pr
 <p>In <code class="docutils literal notranslate"><span class="pre">polar</span></code> representation, circular radial grid lines are derived from positive ticks of the X axis selected by
 <code class="docutils literal notranslate"><span class="pre">grid</span> <span class="pre">-mapx</span></code>. Negative ticks are ignored because radius is unsigned. The zero tick represents the origin rather
 than a circle.</p>
-<p>The origin does not have to be visible. Rbc draws every configured radial circle that intersects the current
+<p>The origin does not have to be visible. RBC draws every configured radial circle that intersects the current
 plotting area. When only part of a circle lies inside the current Cartesian axis ranges, the visible portion is
 clipped to the plotting area.</p>
 <p>Angular spokes are positive rays starting at the Polar origin. Each configured spoke is clipped independently
@@ -1064,9 +1064,9 @@ on the normal circular label locus inside that circle.</p>
 <p>When no complete centered circle is visible, each major angular label is instead placed at the far visible end
 of its clipped spoke. If the corresponding positive ray does not intersect the viewport, neither that spoke nor
 its angular label is displayed.</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">-anglelabelanchor</span> <span class="pre">auto</span></code>, Rbc chooses an inward-facing anchor from the actual label position. For clipped
+<p>With <code class="docutils literal notranslate"><span class="pre">-anglelabelanchor</span> <span class="pre">auto</span></code>, RBC chooses an inward-facing anchor from the actual label position. For clipped
 spokes this is based on the mapped screen direction, so the behavior also follows <code class="docutils literal notranslate"><span class="pre">-invertxy</span></code>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">-anglecommand</span></code> replaces the built-in angular label formatter. Its value is a Tcl command prefix. Rbc appends:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-anglecommand</span></code> replaces the built-in angular label formatter. Its value is a Tcl command prefix. RBC appends:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>widgetPath degrees
 </pre></div>
 </div>
@@ -1081,7 +1081,7 @@ spokes this is based on the mapped screen direction, so the behavior also follow
 <p><img alt="polar_custom_angular_ticks" src="images/polar_custom_angular_ticks.svg" /></p>
 <p>The callback result is used as the complete label. Returning an empty string suppresses that label.</p>
 <p>If an angular formatter raises an error while the graph is being drawn, the error is reported as a background
-Tcl error and Rbc keeps the built-in label for that tick.</p>
+Tcl error and RBC keeps the built-in label for that tick.</p>
 <p><code class="docutils literal notranslate"><span class="pre">-anglelabelanchor</span></code> and <code class="docutils literal notranslate"><span class="pre">-radiallabelanchor</span></code> control label placement. They accept the normal Tk anchor values
 and the special value <code class="docutils literal notranslate"><span class="pre">auto</span></code>. Automatic angular anchoring keeps labels directed inward from their circular or
 clipped-spoke positions. Automatic radial anchoring uses the standard radial-label placement.</p>
@@ -1128,9 +1128,9 @@ contours.</p>
 <span id="r-rbc-grid-smith-labels-during-zooming"></span><span id="r-3a3arbc3a3agridqzsmith20labels20during20zooming"></span><h2>Smith labels during zooming<a class="headerlink" href="#smith-labels-during-zooming" title="Link to this heading"></a></h2>
 <p>Major imaginary Smith labels normally appear near the unit-circle end of their corresponding reactance or
 susceptance contours.</p>
-<p>When the complete Smith unit circle is visible, Rbc retains this normal placement slightly inside the unit
+<p>When the complete Smith unit circle is visible, RBC retains this normal placement slightly inside the unit
 circle.</p>
-<p>When the current axis ranges show only part of the Smith chart, Rbc follows each major reactive contour from
+<p>When the current axis ranges show only part of the Smith chart, RBC follows each major reactive contour from
 its zero-resistance or zero-conductance end and finds the first part of that contour which intersects the
 viewport. The corresponding <code class="docutils literal notranslate"><span class="pre">+jx</span></code>, <code class="docutils literal notranslate"><span class="pre">-jx</span></code>, <code class="docutils literal notranslate"><span class="pre">+jb</span></code>, or <code class="docutils literal notranslate"><span class="pre">-jb</span></code> label is placed at that visible contour boundary
 instead.</p>
@@ -1143,7 +1143,7 @@ therefore works with <code class="docutils literal notranslate"><span class="pre
 <section id="custom-smith-labels">
 <span id="r-rbc-grid-custom-smith-labels"></span><span id="r-3a3arbc3a3agridqzcustom20smith20labels"></span><h2>Custom Smith labels<a class="headerlink" href="#custom-smith-labels" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">-smithrealcommand</span></code> and <code class="docutils literal notranslate"><span class="pre">-smithimagcommand</span></code> are Tcl command prefixes used to format major Smith labels.</p>
-<p>Rbc appends three arguments:</p>
+<p>RBC appends three arguments:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>widgetPath domain value
 </pre></div>
 </div>
@@ -1219,12 +1219,12 @@ no longer accepted. For example:</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-anglelabelanchor</span> <span class="pre">anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">angleLabelAnchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">AngleLabelAnchor</span></code></p></td>
-<td><p>Sets the anchor used for major angular labels. Accepts a Tk anchor or <code class="docutils literal notranslate"><span class="pre">auto</span></code>. With <code class="docutils literal notranslate"><span class="pre">auto</span></code>, Rbc selects an inward-facing anchor for both circular and clipped-spoke label placement. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
+<td><p>Sets the anchor used for major angular labels. Accepts a Tk anchor or <code class="docutils literal notranslate"><span class="pre">auto</span></code>. With <code class="docutils literal notranslate"><span class="pre">auto</span></code>, RBC selects an inward-facing anchor for both circular and clipped-spoke label placement. The default is <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-anglecommand</span> <span class="pre">command</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">angleCommand</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">AngleCommand</span></code></p></td>
-<td><p>Specifies a Tcl command prefix for formatting major angular labels. Rbc appends <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">degrees</span></code>. An empty value uses built-in degree labels.</p></td>
+<td><p>Specifies a Tcl command prefix for formatting major angular labels. RBC appends <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">degrees</span></code>. An empty value uses built-in degree labels.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-anglemajorticks</span> <span class="pre">tickList</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">angleMajorTicks</span></code></p></td>
@@ -1249,12 +1249,12 @@ no longer accepted. For example:</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-smithrealcommand</span> <span class="pre">command</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">smithRealCommand</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SmithRealCommand</span></code></p></td>
-<td><p>Specifies a Tcl command prefix for major real Smith labels. Rbc appends <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">domain</span> <span class="pre">value</span></code>.</p></td>
+<td><p>Specifies a Tcl command prefix for major real Smith labels. RBC appends <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">domain</span> <span class="pre">value</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-smithimagcommand</span> <span class="pre">command</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">smithImagCommand</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">SmithImagCommand</span></code></p></td>
-<td><p>Specifies a Tcl command prefix for major imaginary Smith labels. Rbc appends <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">domain</span> <span class="pre">signedValue</span></code>.</p></td>
+<td><p>Specifies a Tcl command prefix for major imaginary Smith labels. RBC appends <code class="docutils literal notranslate"><span class="pre">widgetPath</span> <span class="pre">domain</span> <span class="pre">signedValue</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-smithrealmajorticks</span> <span class="pre">list</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">smithRealMajorTicks</span></code></p></td>

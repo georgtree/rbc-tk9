@@ -194,7 +194,7 @@ In polar representation, circular radial grid lines are derived from positive ti
 grid -mapx\&. Negative ticks are ignored because radius is unsigned\&. The zero tick represents the origin rather
 than a circle\&.
 .PP
-The origin does not have to be visible\&. Rbc draws every configured radial circle that intersects the current
+The origin does not have to be visible\&. RBC draws every configured radial circle that intersects the current
 plotting area\&. When only part of a circle lies inside the current Cartesian axis ranges, the visible portion is
 clipped to the plotting area\&.
 .PP
@@ -273,10 +273,10 @@ When no complete centered circle is visible, each major angular label is instead
 of its clipped spoke\&. If the corresponding positive ray does not intersect the viewport, neither that spoke nor
 its angular label is displayed\&.
 .PP
-With -anglelabelanchor auto, Rbc chooses an inward-facing anchor from the actual label position\&. For clipped
+With -anglelabelanchor auto, RBC chooses an inward-facing anchor from the actual label position\&. For clipped
 spokes this is based on the mapped screen direction, so the behavior also follows -invertxy\&.
 .PP
--anglecommand replaces the built-in angular label formatter\&. Its value is a Tcl command prefix\&. Rbc appends:
+-anglecommand replaces the built-in angular label formatter\&. Its value is a Tcl command prefix\&. RBC appends:
 .PP
 .RS 4n
 .nf
@@ -300,7 +300,7 @@ proc formatAngle {widget degrees} {
 The callback result is used as the complete label\&. Returning an empty string suppresses that label\&.
 .PP
 If an angular formatter raises an error while the graph is being drawn, the error is reported as a background
-Tcl error and Rbc keeps the built-in label for that tick\&.
+Tcl error and RBC keeps the built-in label for that tick\&.
 .PP
 -anglelabelanchor and -radiallabelanchor control label placement\&. They accept the normal Tk anchor values
 and the special value auto\&. Automatic angular anchoring keeps labels directed inward from their circular or
@@ -370,10 +370,10 @@ For example:
 Major imaginary Smith labels normally appear near the unit-circle end of their corresponding reactance or
 susceptance contours\&.
 .PP
-When the complete Smith unit circle is visible, Rbc retains this normal placement slightly inside the unit
+When the complete Smith unit circle is visible, RBC retains this normal placement slightly inside the unit
 circle\&.
 .PP
-When the current axis ranges show only part of the Smith chart, Rbc follows each major reactive contour from
+When the current axis ranges show only part of the Smith chart, RBC follows each major reactive contour from
 its zero-resistance or zero-conductance end and finds the first part of that contour which intersects the
 viewport\&. The corresponding +jx, -jx, +jb, or -jb label is placed at that visible contour boundary
 instead\&.
@@ -390,7 +390,7 @@ The same adaptive placement is used for on-screen rendering and PostScript outpu
 .PP
 -smithrealcommand and -smithimagcommand are Tcl command prefixes used to format major Smith labels\&.
 .PP
-Rbc appends three arguments:
+RBC appends three arguments:
 .PP
 .RS 4n
 .nf
@@ -477,11 +477,11 @@ polar \&.p -representation smith
 ├──────────────────────────┼─────────────────────┼─────────────────────┼───────────────────────────────────────────────┤
 │ -anglelabelanchor anchor │ angleLabelAnchor    │ AngleLabelAnchor    │ Sets the anchor used for major angular        │
 │                          │                     │                     │ labels\&. Accepts a Tk anchor or auto\&. With     │
-│                          │                     │                     │ auto, Rbc selects an inward-facing anchor for │
+│                          │                     │                     │ auto, RBC selects an inward-facing anchor for │
 │                          │                     │                     │ both circular and clipped-spoke label         │
 │                          │                     │                     │ placement\&. The default is center\&.             │
 │ -anglecommand command    │ angleCommand        │ AngleCommand        │ Specifies a Tcl command prefix for formatting │
-│                          │                     │                     │ major angular labels\&. Rbc appends widgetPath  │
+│                          │                     │                     │ major angular labels\&. RBC appends widgetPath  │
 │                          │                     │                     │ degrees\&. An empty value uses built-in degree  │
 │                          │                     │                     │ labels\&.                                       │
 │ -anglemajorticks         │ angleMajorTicks     │ AngleMajorTicks     │ Specifies major angular spokes and labels in  │
@@ -497,10 +497,10 @@ polar \&.p -representation smith
 │ -smithgrid mode          │ smithGrid           │ SmithGrid           │ Selects impedance, admittance, or both Smith  │
 │                          │                     │                     │ contour families\&. The default is impedance\&.   │
 │ -smithrealcommand        │ smithRealCommand    │ SmithRealCommand    │ Specifies a Tcl command prefix for major real │
-│ command                  │                     │                     │ Smith labels\&. Rbc appends widgetPath domain   │
+│ command                  │                     │                     │ Smith labels\&. RBC appends widgetPath domain   │
 │                          │                     │                     │ value\&.                                        │
 │ -smithimagcommand        │ smithImagCommand    │ SmithImagCommand    │ Specifies a Tcl command prefix for major      │
-│ command                  │                     │                     │ imaginary Smith labels\&. Rbc appends           │
+│ command                  │                     │                     │ imaginary Smith labels\&. RBC appends           │
 │                          │                     │                     │ widgetPath domain signedValue\&.                │
 │ -smithrealmajorticks     │ smithRealMajorTicks │ SmithRealMajorTicks │ Specifies non-negative normalized real values │
 │ list                     │                     │                     │ for major Smith contours and labels\&. Default: │

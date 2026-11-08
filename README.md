@@ -1,12 +1,12 @@
-# Rbc - Refactored BLT Components for Tcl/Tk 9
+# RBC - Refactored BLT Components for Tcl/Tk 9
 
 ![RBC preview](docs/images/preview.png)
 
-Rbc extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
+RBC extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots and
 graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.
 
-This repository maintains and extends Rbc for Tcl/Tk 9.0. The current package version is **0.8.5**.
+This repository maintains and extends RBC for Tcl/Tk 9.0. The current package version is **0.8.5**.
 
 - [Source code](https://github.com/georgtree/rbc-tk9)
 - [Documentation](https://georgtree.github.io/rbc-tk9/)
@@ -38,12 +38,12 @@ cached summaries across axis changes, ranged value updates, and monotonic tail a
 An optional Cairo backend adds antialiased plotting. Cairo-enabled builds select it by default; applications can choose
 `-renderer native` for workloads where native drawing is faster. Text continues to use Tk in either mode.
 
-Rbc contains selected components derived from BLT. It is not a complete replacement for the BLT toolkit.
+RBC contains selected components derived from BLT. It is not a complete replacement for the BLT toolkit.
 
 ## Interactive examples
 
 In this section you can see the usage of the package in a few examples from `demo` folder. There is shown dynamic
-interaction between native Tk widgets and Rbc `graphtoolbar` megawidget, as well as live graph update following vectors
+interaction between native Tk widgets and RBC `graphtoolbar` megawidget, as well as live graph update following vectors
 changes:
 
 <details>
@@ -72,7 +72,7 @@ Detailed description and demonstration of `graphtoolbar` megawidget could be fou
 
 ## Requirements
 
-### Running Rbc
+### Running RBC
 
 - Tcl and Tk 9.0/9.1
 - The optional toolbar prefers an installed [argparse package](https://github.com/georgtree/argparse). If none is
@@ -82,7 +82,7 @@ Detailed description and demonstration of `graphtoolbar` megawidget could be fou
 The build environments described here are Linux with X11 Tk and Windows with MSYS2/UCRT64 or MSVC. Tcl/Tk 8.x
 compatibility is not a target of this fork.
 
-`package require rbc` loads Tk, the native Rbc widgets and commands, and the legacy `graph.tcl` helpers,
+`package require rbc` loads Tk, the native RBC widgets and commands, and the legacy `graph.tcl` helpers,
 without requiring argparse. 
 
 The global `Rbc_ActiveLegend`, `Rbc_Crosshairs`, `Rbc_ResetCrosshairs`, `Rbc_ZoomStack`, `Rbc_ClosestPoint`,
@@ -90,7 +90,7 @@ The global `Rbc_ActiveLegend`, `Rbc_Crosshairs`, `Rbc_ResetCrosshairs`, `Rbc_Zoo
 until called on a graph. For new applications, prefer the optional toolbar below. **Using these helpers together with
 `rbc::graphtoolbar` on the same graph is not recommended**, because their bindings and interaction state can
 interfere. Separate widgets may use separate interaction systems.  See [Legacy graph helpers] in the graph
-documentation for usage and cleanup behavior.  Load the optional toolbar explicitly, before importing Rbc commands:
+documentation for usage and cleanup behavior.  Load the optional toolbar explicitly, before importing RBC commands:
 
 ```tcl
 package require rbc::graphtoolbar
@@ -122,7 +122,7 @@ External C extensions can use `Rbc_VectorInitStubs` from the updated stub librar
 
 The full tests and documentation generation need a working graphical display. The vector-only test target does not.
 
-### Building Rbc
+### Building RBC
 
 - A C compiler and linker compatible with the selected Tcl/Tk build.
 - GNU Make and a Unix-style shell.
@@ -135,7 +135,7 @@ The full tests and documentation generation need a working graphical display. Th
 - For `--enable-cairo`, Cairo 1.12 or newer with its platform backend and development headers. Configure uses
   `pkg-config` unless both `CAIRO_CFLAGS` and `CAIRO_LIBS` are supplied.
 
-Rbc still uses a small number of private Tk interfaces. Retain the matching Tk source tree unless the development
+RBC still uses a small number of private Tk interfaces. Retain the matching Tk source tree unless the development
 installation provides all required private headers. The configure script uses the source location recorded in
 `tkConfig.sh` when locating these headers.
 
@@ -161,7 +161,7 @@ trees.
 filenames themselves.
 
 Install `argparse` for the same Tcl interpreter before running toolbar demos, toolbar tests, benchmarks, or
-generating the complete documentation. Native Rbc widgets and vector-only use do not need argparse.
+generating the complete documentation. Native RBC widgets and vector-only use do not need argparse.
 
 ### Linux
 
@@ -211,9 +211,9 @@ make install
 ```
 
 Ensure that the selected Tcl/Tk DLLs, Cairo DLLs and their dependencies, and compiler runtime DLLs are available through
-`PATH`. Use Cairo and `pkg-config` from the same UCRT64 toolchain as Tcl/Tk and Rbc.
+`PATH`. Use Cairo and `pkg-config` from the same UCRT64 toolchain as Tcl/Tk and RBC.
 
-The UCRT64 shell does not automatically determine Rbc's installation prefix. Specify `--prefix=/ucrt64` when that is
+The UCRT64 shell does not automatically determine RBC's installation prefix. Specify `--prefix=/ucrt64` when that is
 the intended destination.
 
 ### Configure options and renderer defaults
@@ -447,10 +447,10 @@ To check the versions in use:
 ```tcl
 puts "Tcl: [info patchlevel]"
 puts "Tk:  [package provide Tk]"
-puts "Rbc: [package provide rbc]"
+puts "RBC: [package provide rbc]"
 ```
 
-If Rbc is installed outside Tcl's normal package search locations, add its library directory before loading it:
+If RBC is installed outside Tcl's normal package search locations, add its library directory before loading it:
 ```tcl
 lappend auto_path /path/to/prefix/lib
 package require rbc
@@ -464,12 +464,12 @@ sufficient.
 
 ### Using an uninstalled build
 
-From the Rbc build directory:
+From the RBC build directory:
 ```sh
 make shell
 ```
 
-This starts the configured Tcl interpreter with the build directory in its package search path. Then load Rbc normally:
+This starts the configured Tcl interpreter with the build directory in its package search path. Then load RBC normally:
 ```tcl
 package require rbc
 ```
@@ -501,12 +501,14 @@ Run the internal C notification callback tests separately, without a display:
 make test-vector-notify
 ```
 
-This relinks RBC objects into a test-only library and runs `vector.notify.test` in a fresh Tcl interpreter.
-It covers client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.
-These private APIs are not added to the public stubs table. The aggregate target runs this file only in its dedicated harness process. The MSVC makefile provides the same target.
+This relinks RBC objects into a test-only library and runs `vector.notify.test` in a fresh Tcl interpreter.  It covers
+client removal/addition, nested updates, vector destruction/recreation and interpreter deletion from callbacks.  These
+private APIs are not added to the public stubs table. The aggregate target runs this file only in its dedicated harness
+process. The MSVC makefile provides the same target.
 
-Runtime tests live in `tests/runtime/<group>/`, for example `tests/runtime/graph/` and `tests/runtime/vector/`.
-Pass `tcltest` selection options through `TESTFLAGS`. The `-file` and `-notfile` patterns match the filename without its directory.
+Runtime tests live in `tests/runtime/<group>/`, for example `tests/runtime/graph/` and `tests/runtime/vector/`.  Pass
+`tcltest` selection options through `TESTFLAGS`. The `-file` and `-notfile` patterns match the filename without its
+directory.
 
 For example, run the line-decimation test file:
 ```sh
@@ -518,11 +520,11 @@ Or select tests by name:
 make test TESTFLAGS="-match graph.element.decimate.*"
 ```
 
-Cairo-specific drawing and native comparison checks live in `graph.cairo.test` and `barchart.cairo.test`.
-Shared configuration, caching and drawing-state checks live in `graph.rendering.test` and
-`trackgraph.rendering.test`. Feature tests cover native drawing regressions and feature behaviour across renderers.
-Each suite loads its support files directly and can run independently. Cairo-dependent cases are skipped when Cairo
-is unavailable, while independent native cases run.
+Cairo-specific drawing and native comparison checks live in `graph.cairo.test` and `barchart.cairo.test`.  Shared
+configuration, caching and drawing-state checks live in `graph.rendering.test` and `trackgraph.rendering.test`. Feature
+tests cover native drawing regressions and feature behaviour across renderers.  Each suite loads its support files
+directly and can run independently. Cairo-dependent cases are skipped when Cairo is unavailable, while independent
+native cases run.
 
 Run the Cairo suites or the shared rendering suites:
 
@@ -572,7 +574,7 @@ The current demos cover graphs, bar charts, stripcharts, symbols, spline interpo
 Performance benchmarks are separate from the correctness tests. They can create large data sets and should be run
 deliberately.
 
-In addition to Rbc and `argparse`, the benchmark scripts require the Tcllib packages `csv`, `report`, and
+In addition to RBC and `argparse`, the benchmark scripts require the Tcllib packages `csv`, `report`, and
 `struct::matrix`.
 
 Run the small smoke profile from an in-tree build:
@@ -615,8 +617,8 @@ browse the local HTML documentation.
 
 Documentation generation requires:
 
-- A working Rbc build and its runtime dependencies.
-- The Tcl `ruff` package with Sphinx and nroff output support.
+- A working RBC build and its runtime dependencies.
+- The Tcl `ruff` package with additions from this [fork](https://github.com/georgtree/ruff).
 - Tcllib's `fileutil` and `textutil::adjust` packages.
 - Python with Sphinx and the `sphinx-rtd-theme` package installed for that interpreter.
 - `ditaa` and its Java runtime when rendering diagrams that use the
@@ -633,9 +635,9 @@ python -m sphinx --version
 python -c "import sphinx_rtd_theme; print(sphinx_rtd_theme.__file__)"
 ```
 
-Use `pacman -Syu` for a full MSYS2 update before installation when needed. Keep Python, Sphinx and the theme in the
-same UCRT64 environment. The developer manual additionally requires Doxygen and Breathe; see
-[its build instructions](https://georgtree.github.io/rbc-tk9/developer/html/building.html).
+Use `pacman -Syu` for a full MSYS2 update before installation when needed. Keep Python, Sphinx and the theme in the same
+UCRT64 environment. The developer manual additionally requires Doxygen and Breathe; see [its build
+instructions](https://georgtree.github.io/rbc-tk9/developer/html/building.html).
 
 From an in-tree build, run:
 
@@ -654,11 +656,11 @@ namespace's `_ruff_preamble` before Ruff runs. Each table keeps its Markdown for
 wrapped, boxed literal form for nroff, selected with generated `#ruffopt` guards. Existing format restrictions and
 fenced code examples are preserved. Preambles are restored after generation, including on errors.
 
-Do not maintain a second hand-written nroff copy of a table. Tables may have any column count that fits the default
-120-character width (including borders, excluding source indentation). Columns are sized automatically; long cells
-wrap. Alignment markers are accepted, while the nroff cells are left-aligned. Escape literal pipes as `\|` or put them
-inside inline code. Table rows must have the same column count as the header. This preprocessing covers namespace
-preambles and the README; it does not rewrite procedure bodies or TclOO method documentation.
+Tables may have any column count that fits the default 120-character width (including borders, excluding source
+indentation). Columns are sized automatically; long cells wrap. Alignment markers are accepted, while the nroff cells
+are left-aligned. Escape literal pipes as `\|` or put them inside inline code. Table rows must have the same column
+count as the header. This preprocessing covers namespace preambles and the README; it does not rewrite procedure bodies
+or TclOO method documentation.
 
 The helper regression tests require only Tcl, Tcllib and `tcltest`:
 
@@ -666,18 +668,18 @@ The helper regression tests require only Tcl, Tcllib and `tcltest`:
 tclsh9.0 tests/docs.tables.test
 ```
 
-Select another Python executable with `make doc DOC_PYTHON=python3`; the developer builder uses
-`DOC_DEV_PYTHON`. When invoking `docs/doc_gen.tcl` directly, use the `RBC_DOC_PYTHON` environment variable.
-Executable overrides name a single executable, without extra command-line flags. Sphinx errors fail the user-documentation
-build; review warnings and the rendered pages before publishing.
+Select another Python executable with `make doc DOC_PYTHON=python3`; the developer builder uses `DOC_DEV_PYTHON`. When
+invoking `docs/doc_gen.tcl` directly, use the `RBC_DOC_PYTHON` environment variable.  Executable overrides name a single
+executable, without extra command-line flags. Sphinx errors fail the user-documentation build; review warnings and the
+rendered pages before publishing.
 
 Shared styles are maintained in `docs/theme/rbc.css`, with table and field-list layout in
 `docs/theme/rbc-layout.css`. Both manuals use RTD's default content width; cells wrap and field lists stack on narrow
 screens. Both builders stage and verify the stylesheets in the HTML output, failing if a source is missing or an output
-copy differs. Ruff's generated theme settings are maintained in
-`docs/doc_gen.tcl`; developer settings are in `docs/developer/conf.py`. Keep `docs/.nojekyll` and publish the complete
-HTML output trees, including `_static` CSS, JavaScript and fonts. GitHub Pages serves the theme directly; no Read the Docs
-account or hosting integration is required. Existing user and developer page URLs remain the same.
+copy differs. Ruff's generated theme settings are maintained in `docs/doc_gen.tcl`; developer settings are in
+`docs/developer/conf.py`. Keep `docs/.nojekyll` and publish the complete HTML output trees, including `_static` CSS,
+JavaScript and fonts. GitHub Pages serves the theme directly; no Read the Docs account or hosting integration is
+required. Existing user and developer page URLs remain the same.
 
 `README.md` supplies the shared introduction and build instructions. `docs/startPage.ruff` reads that file as the
 documentation preamble.
@@ -688,7 +690,7 @@ Please use the [issue tracker](https://github.com/georgtree/rbc-tk9/issues).
 
 For build or runtime problems, include:
 
-- The Rbc version or commit.
+- The RBC version or commit.
 - Operating system and architecture.
 - Tcl/Tk versions and, on Windows, the compiler/MSYS2 environment.
 - Configure options and the relevant error output.
@@ -698,10 +700,10 @@ For rendering problems, include a screenshot and the relevant graph, element, pe
 
 ## History and acknowledgments
 
-Rbc originated as a refactoring of selected components from version 2.4z of the BLT toolkit, developed by George Howlett
+RBC originated as a refactoring of selected components from version 2.4z of the BLT toolkit, developed by George Howlett
 and other contributors.
 
-Samuel Green, Nicholas Hudson, Stanton Sievers, and Jarrod Stormo carried out the original Rbc project at Rose-Hulman
+Samuel Green, Nicholas Hudson, Stanton Sievers, and Jarrod Stormo carried out the original RBC project at Rose-Hulman
 Institute of Technology during 2008–2009. The project adapted commonly used BLT components for Tcl/Tk 8.5 and was
 associated with the
 [GDAT graphical data-analysis project](https://sourceforge.net/projects/gdat/).
@@ -709,14 +711,14 @@ associated with the
 Subsequent work included additional maintenance, demo improvements, and C stubs support. The stubs implementation
 includes work by Ashok P. Nadkarni.
 
-Emiliano Gavilán adapted Rbc for Tcl/Tk 9.0. This repository is based on his
-[Rbc Tcl/Tk 9 repository](https://chiselapp.com/user/egavilan/repository/rbc-tk9).
+Emiliano Gavilán adapted RBC for Tcl/Tk 9.0. This repository is based on his
+[RBC Tcl/Tk 9 repository](https://chiselapp.com/user/egavilan/repository/rbc-tk9).
 
 George Yashin maintains this fork and its further Tcl/Tk 9 modernization, new functionality, tests, performance
 improvements, and documentation.
 
 The project also acknowledges the Tcl/Tk developers, the maintainers of the Tcl Extension Architecture build system, and
-the contributors whose code and resources remain part of Rbc.
+the contributors whose code and resources remain part of RBC.
 
 - [BLT project](https://sourceforge.net/projects/blt/)
 - [Upstream Tcl/Tk 9 adaptation](https://chiselapp.com/user/egavilan/repository/rbc-tk9)
@@ -724,7 +726,7 @@ the contributors whose code and resources remain part of Rbc.
 
 ## Copyright and licensing
 
-Rbc includes material from several authors and projects. The applicable copyright notices, permission conditions, and
+RBC includes material from several authors and projects. The applicable copyright notices, permission conditions, and
 warranty disclaimers are retained in the source distribution.
 
 The main
