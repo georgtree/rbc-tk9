@@ -42,14 +42,14 @@ Later database changes affect new widgets only\&. Explicit pdf configure and pdf
 override the initialized values, with the existing persistent output-option behaviour unchanged\&.
 .PP
 .nf
-┌──────────────┬───────────────┬────────────────┐
-│ Option       │ Resource name │ Resource class │
-├──────────────┼───────────────┼────────────────┤
-│ -width       │ width         │ Width          │
-│ -height      │ height        │ Height         │
-│ -decorations │ decorations   │ Decorations    │
-│ -embedfonts  │ embedFonts    │ EmbedFonts     │
-└──────────────┴───────────────┴────────────────┘
+┌──────────────┬───────────────┬────────────────┬─────────┐
+│ Option       │ Resource name │ Resource class │ Default │
+├──────────────┼───────────────┼────────────────┼─────────┤
+│ -width       │ width         │ Width          │ 0       │
+│ -height      │ height        │ Height         │ 0       │
+│ -decorations │ decorations   │ Decorations    │ 1       │
+│ -embedfonts  │ embedFonts    │ EmbedFonts     │ 1       │
+└──────────────┴───────────────┴────────────────┴─────────┘
 
 .fi
 .PP

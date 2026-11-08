@@ -218,16 +218,16 @@ the intended destination.
 
 ### Configure options and renderer defaults
 
-| Option                            | Effect                                                                                                                                                |
-|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--enable-cairo`                  | Builds Cairo support and makes `cairo` the default renderer. Requires `cairo-xlib` on Linux or `cairo-win32` on Windows.                              |
-| `--disable-cairo`                 | Builds without Cairo; `native` is the renderer default. This is also the configure default when neither flag is supplied.                             |
-| `--enable-cairo-static`           | Enables Cairo and links its non-system dependencies from static archives into the RBC shared library. Requires GCC and GNU-compatible linker options. |
-| `--disable-cairo-static`          | Disables forced static linking of Cairo dependencies. This is the default; Cairo support is controlled separately by `--enable-cairo`.                |
-| `--enable-winpthreads-static` | Embeds the MinGW-w64 winpthreads runtime in the DLL. Independent of Cairo; disabled by default. Requires genuine `libwinpthread.a` and target `objdump`. |
-| `--enable-symbols`                | Builds with debugging symbols for crash diagnosis.                                                                                                    |
-| `--with-tcl=DIR`, `--with-tk=DIR` | Select directories containing the matching Tcl/Tk configuration files.                                                                                |
-| `--prefix=DIR`                    | Selects the installation prefix.                                                                                                                      |
+| Option                              | Default                                        | Effect                                                                                                                                                  |
+| ----------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--enable-cairo`                    | Disabled                                       | Builds Cairo support and makes `cairo` the default renderer. Requires `cairo-xlib` on Linux or `cairo-win32` on Windows.                                |
+| `--disable-cairo`                   | Enabled unless Cairo is enabled                | Builds without Cairo; `native` is the renderer default.                                                                                                 |
+| `--enable-cairo-static`             | Disabled                                       | Enables Cairo and links its non-system dependencies from static archives into the RBC shared library. Requires GCC and GNU-compatible linker options.   |
+| `--disable-cairo-static`            | Enabled                                        | Disables forced static linking of Cairo dependencies. Cairo support is controlled separately by `--enable-cairo`.                                       |
+| `--enable-winpthreads-static`       | Disabled                                       | Embeds the MinGW-w64 winpthreads runtime in the DLL. Independent of Cairo. Requires genuine `libwinpthread.a` and target `objdump`.                     |
+| `--enable-symbols`                  | Disabled                                       | Builds with debugging symbols for crash diagnosis.                                                                                                      |
+| `--with-tcl=DIR`, `--with-tk=DIR`   | Auto-detected                                  | Select directories containing the matching Tcl/Tk configuration files.                                                                                  |
+| `--prefix=DIR`                      | Tcl installation prefix; fallback `/usr/local` | Selects the installation prefix.                                                                                                                        |
 
 The examples above enable Cairo. Omit `--enable-cairo`, or replace it with `--disable-cairo`, for a native-only build.
 If Cairo is requested but its headers or platform backend cannot be linked, configure fails rather than silently

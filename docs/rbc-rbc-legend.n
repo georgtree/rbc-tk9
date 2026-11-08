@@ -262,57 +262,92 @@ LEGEND get can also identify the entry at an explicit screen position\&.
 .SH "LEGEND OPTIONS"
 .PP
 .nf
-┌──────────────────────────┬───────────────────┬───────────────────┬───────────────────────────────────────────────────┐
-│ Option                   │ Database name     │ Database class    │ Description                                       │
-├──────────────────────────┼───────────────────┼───────────────────┼───────────────────────────────────────────────────┤
-│ -activebackground color  │ activeBackground  │ ActiveBackground  │ Sets the background color used for active legend  │
-│                          │                   │                   │ entries\&.                                          │
-│ -activeborderwidth       │ activeBorderWidth │ ActiveBorderWidth │ Sets the width of the 3-D border around active    │
-│ distance                 │                   │                   │ legend entries\&. The default is 2\&.                 │
-│ -activeforeground color  │ activeForeground  │ ActiveForeground  │ Sets the foreground color used for active legend  │
-│                          │                   │                   │ entries\&.                                          │
-│ -activerelief relief     │ activeRelief      │ ActiveRelief      │ Sets the relief used for active legend entries\&.   │
-│                          │                   │                   │ The default is flat\&.                              │
-│ -anchor anchor           │ anchor            │ Anchor            │ Specifies how the legend is positioned relative   │
-│                          │                   │                   │ to the location selected by -position\&. The        │
-│                          │                   │                   │ default is center\&.                                │
-│ -background color        │ background        │ Background        │ Sets the legend background color\&. An empty value  │
-│                          │                   │                   │ makes the legend background transparent\&.          │
-│ -bg color                │ —                 │ —                 │ Synonym for -background\&.                          │
-│ -borderwidth distance    │ borderWidth       │ BorderWidth       │ Sets the width of the 3-D border around the       │
-│                          │                   │                   │ legend\&. The default is 2\&.                         │
-│ -bd distance             │ —                 │ —                 │ Synonym for -borderwidth\&.                         │
-│ -columns number          │ columns           │ Columns           │ Specifies the requested number of columns used to │
-│                          │                   │                   │ arrange legend entries\&. 0 selects the automatic   │
-│                          │                   │                   │ layout\&.                                           │
-│ -font font               │ font              │ Font              │ Sets the font used for legend labels\&.             │
-│ -foreground color        │ foreground        │ Foreground        │ Sets the foreground color used for legend labels\&. │
-│                          │                   │                   │ The default is black\&.                             │
-│ -fg color                │ —                 │ —                 │ Synonym for -foreground\&.                          │
-│ -hide boolean            │ hide              │ Hide              │ Controls whether the legend is displayed\&. The     │
-│                          │                   │                   │ default is no\&.                                    │
-│ -ipadx padding           │ iPadX             │ IPadX             │ Sets horizontal padding inside each legend entry\&. │
-│ -ipady padding           │ iPadY             │ IPadY             │ Sets vertical padding inside each legend entry\&.   │
-│ -padx padding            │ padX              │ PadX              │ Sets horizontal padding around the exterior of    │
-│                          │                   │                   │ the legend\&.                                       │
-│ -pady padding            │ padY              │ PadY              │ Sets vertical padding around the exterior of the  │
-│                          │                   │                   │ legend\&.                                           │
-│ -position position       │ position          │ Position          │ Specifies where the legend is displayed\&. The      │
-│                          │                   │                   │ value may select a graph margin, plotarea, or an  │
-│                          │                   │                   │ explicit @x,y window position\&. The default is     │
-│                          │                   │                   │ right\&. In @x,y form, each coordinate accepts a    │
-│                          │                   │                   │ Tcl integer expression\&.                           │
-│ -raised boolean          │ raised            │ Raised            │ Controls whether a legend placed in the plotting  │
-│                          │                   │                   │ area is drawn above graph elements\&. The default   │
-│                          │                   │                   │ is no\&.                                            │
-│ -relief relief           │ relief            │ Relief            │ Sets the relief used for the legend border\&. The   │
-│                          │                   │                   │ default is sunken\&.                                │
-│ -rows number             │ rows              │ Rows              │ Specifies the requested number of rows used to    │
-│                          │                   │                   │ arrange legend entries\&. 0 selects the automatic   │
-│                          │                   │                   │ layout\&.                                           │
-│ -shadow shadow           │ shadow            │ Shadow            │ Specifies a shadow for legend labels\&. An empty    │
-│                          │                   │                   │ value disables the shadow\&.                        │
-└──────────────────────────┴───────────────────┴───────────────────┴───────────────────────────────────────────────────┘
+┌──────────────────────────┬───────────────────┬───────────────────┬─────────────────────────┬─────────────────────────┐
+│ Option                   │ Database name     │ Database class    │ Default                 │ Description             │
+├──────────────────────────┼───────────────────┼───────────────────┼─────────────────────────┼─────────────────────────┤
+│ -activebackground color  │ activeBackground  │ ActiveBackground  │ #a3a3a3; monochrome:    │ Sets the background     │
+│                          │                   │                   │ #000000                 │ color used for active   │
+│                          │                   │                   │                         │ legend entries\&.         │
+│ -activeborderwidth       │ activeBorderWidth │ ActiveBorderWidth │ 2                       │ Sets the width of the   │
+│ distance                 │                   │                   │                         │ 3-D border around       │
+│                          │                   │                   │                         │ active legend entries\&.  │
+│ -activeforeground color  │ activeForeground  │ ActiveForeground  │ #000000; monochrome:    │ Sets the foreground     │
+│                          │                   │                   │ #ffffff                 │ color used for active   │
+│                          │                   │                   │                         │ legend entries\&.         │
+│ -activerelief relief     │ activeRelief      │ ActiveRelief      │ flat                    │ Sets the relief used    │
+│                          │                   │                   │                         │ for active legend       │
+│                          │                   │                   │                         │ entries\&.                │
+│ -anchor anchor           │ anchor            │ Anchor            │ n                       │ Specifies how the       │
+│                          │                   │                   │                         │ legend is positioned    │
+│                          │                   │                   │                         │ relative to the         │
+│                          │                   │                   │                         │ location selected by    │
+│                          │                   │                   │                         │ -position\&.              │
+│ -background color        │ background        │ Background        │ Empty                   │ Sets the legend         │
+│                          │                   │                   │                         │ background color\&. An    │
+│                          │                   │                   │                         │ empty value makes the   │
+│                          │                   │                   │                         │ legend background       │
+│                          │                   │                   │                         │ transparent\&.            │
+│ -bg color                │ —                 │ —                 │ Empty                   │ Synonym for             │
+│                          │                   │                   │                         │ -background\&.            │
+│ -borderwidth distance    │ borderWidth       │ BorderWidth       │ 1                       │ Sets the width of the   │
+│                          │                   │                   │                         │ 3-D border around the   │
+│                          │                   │                   │                         │ legend\&.                 │
+│ -bd distance             │ —                 │ —                 │ 1                       │ Synonym for             │
+│                          │                   │                   │                         │ -borderwidth\&.           │
+│ -columns number          │ columns           │ Columns           │ 0                       │ Specifies the requested │
+│                          │                   │                   │                         │ number of columns used  │
+│                          │                   │                   │                         │ to arrange legend       │
+│                          │                   │                   │                         │ entries\&. 0 selects the  │
+│                          │                   │                   │                         │ automatic layout\&.       │
+│ -font font               │ font              │ Font              │ TkSmallCaptionFont      │ Sets the font used for  │
+│                          │                   │                   │ (Unix); Arial 6         │ legend labels\&.          │
+│                          │                   │                   │ (Windows)               │                         │
+│ -foreground color        │ foreground        │ Foreground        │ #000000 (Unix);         │ Sets the foreground     │
+│                          │                   │                   │ SystemButtonText        │ color used for legend   │
+│                          │                   │                   │ (Windows); monochrome:  │ labels\&.                 │
+│                          │                   │                   │ #000000                 │                         │
+│ -fg color                │ —                 │ —                 │ #000000 (Unix);         │ Synonym for             │
+│                          │                   │                   │ SystemButtonText        │ -foreground\&.            │
+│                          │                   │                   │ (Windows)               │                         │
+│ -hide boolean            │ hide              │ Hide              │ no                      │ Controls whether the    │
+│                          │                   │                   │                         │ legend is displayed\&.    │
+│ -ipadx padding           │ iPadX             │ IPadX             │ 1                       │ Sets horizontal padding │
+│                          │                   │                   │                         │ inside each legend      │
+│                          │                   │                   │                         │ entry\&.                  │
+│ -ipady padding           │ iPadY             │ IPadY             │ 1                       │ Sets vertical padding   │
+│                          │                   │                   │                         │ inside each legend      │
+│                          │                   │                   │                         │ entry\&.                  │
+│ -padx padding            │ padX              │ PadX              │ 1                       │ Sets horizontal padding │
+│                          │                   │                   │                         │ around the exterior of  │
+│                          │                   │                   │                         │ the legend\&.             │
+│ -pady padding            │ padY              │ PadY              │ 1                       │ Sets vertical padding   │
+│                          │                   │                   │                         │ around the exterior of  │
+│                          │                   │                   │                         │ the legend\&.             │
+│ -position position       │ position          │ Position          │ rightmargin             │ Specifies where the     │
+│                          │                   │                   │                         │ legend is displayed\&.    │
+│                          │                   │                   │                         │ The value may select a  │
+│                          │                   │                   │                         │ graph margin, plotarea, │
+│                          │                   │                   │                         │ or an explicit @x,y     │
+│                          │                   │                   │                         │ window position\&. In     │
+│                          │                   │                   │                         │ @x,y form, each         │
+│                          │                   │                   │                         │ coordinate accepts a    │
+│                          │                   │                   │                         │ Tcl integer expression\&. │
+│ -raised boolean          │ raised            │ Raised            │ no                      │ Controls whether a      │
+│                          │                   │                   │                         │ legend placed in the    │
+│                          │                   │                   │                         │ plotting area is drawn  │
+│                          │                   │                   │                         │ above graph elements\&.   │
+│ -relief relief           │ relief            │ Relief            │ sunken                  │ Sets the relief used    │
+│                          │                   │                   │                         │ for the legend border\&.  │
+│ -rows number             │ rows              │ Rows              │ 0                       │ Specifies the requested │
+│                          │                   │                   │                         │ number of rows used to  │
+│                          │                   │                   │                         │ arrange legend entries\&. │
+│                          │                   │                   │                         │ 0 selects the automatic │
+│                          │                   │                   │                         │ layout\&.                 │
+│ -shadow shadow           │ shadow            │ Shadow            │ Empty                   │ Specifies a shadow for  │
+│                          │                   │                   │                         │ legend labels\&. An empty │
+│                          │                   │                   │                         │ value disables the      │
+│                          │                   │                   │                         │ shadow\&.                 │
+└──────────────────────────┴───────────────────┴───────────────────┴─────────────────────────┴─────────────────────────┘
 
 .fi
 .PP

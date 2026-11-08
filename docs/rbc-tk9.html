@@ -999,37 +999,47 @@ the intended destination.</p>
 <span id="r-configure-options-and-renderer-defaults"></span><span id="r-configure20options20and20renderer20defaults"></span><h3>Configure options and renderer defaults<a class="headerlink" href="#configure-options-and-renderer-defaults" title="Link to this heading"></a></h3>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 50.0%" />
-<col style="width: 50.0%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Default</p></th>
 <th class="head"><p>Effect</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code></p></td>
+<td><p>Disabled</p></td>
 <td><p>Builds Cairo support and makes <code class="docutils literal notranslate"><span class="pre">cairo</span></code> the default renderer. Requires <code class="docutils literal notranslate"><span class="pre">cairo-xlib</span></code> on Linux or <code class="docutils literal notranslate"><span class="pre">cairo-win32</span></code> on Windows.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable-cairo</span></code></p></td>
-<td><p>Builds without Cairo; <code class="docutils literal notranslate"><span class="pre">native</span></code> is the renderer default. This is also the configure default when neither flag is supplied.</p></td>
+<td><p>Enabled unless Cairo is enabled</p></td>
+<td><p>Builds without Cairo; <code class="docutils literal notranslate"><span class="pre">native</span></code> is the renderer default.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-cairo-static</span></code></p></td>
+<td><p>Disabled</p></td>
 <td><p>Enables Cairo and links its non-system dependencies from static archives into the RBC shared library. Requires GCC and GNU-compatible linker options.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable-cairo-static</span></code></p></td>
-<td><p>Disables forced static linking of Cairo dependencies. This is the default; Cairo support is controlled separately by <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>.</p></td>
+<td><p>Enabled</p></td>
+<td><p>Disables forced static linking of Cairo dependencies. Cairo support is controlled separately by <code class="docutils literal notranslate"><span class="pre">--enable-cairo</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-winpthreads-static</span></code></p></td>
-<td><p>Embeds the MinGW-w64 winpthreads runtime in the DLL. Independent of Cairo; disabled by default. Requires genuine <code class="docutils literal notranslate"><span class="pre">libwinpthread.a</span></code> and target <code class="docutils literal notranslate"><span class="pre">objdump</span></code>.</p></td>
+<td><p>Disabled</p></td>
+<td><p>Embeds the MinGW-w64 winpthreads runtime in the DLL. Independent of Cairo. Requires genuine <code class="docutils literal notranslate"><span class="pre">libwinpthread.a</span></code> and target <code class="docutils literal notranslate"><span class="pre">objdump</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--enable-symbols</span></code></p></td>
+<td><p>Disabled</p></td>
 <td><p>Builds with debugging symbols for crash diagnosis.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--with-tcl=DIR</span></code>, <code class="docutils literal notranslate"><span class="pre">--with-tk=DIR</span></code></p></td>
+<td><p>Auto-detected</p></td>
 <td><p>Select directories containing the matching Tcl/Tk configuration files.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--prefix=DIR</span></code></p></td>
+<td><p>Tcl installation prefix; fallback <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code></p></td>
 <td><p>Selects the installation prefix.</p></td>
 </tr>
 </tbody>

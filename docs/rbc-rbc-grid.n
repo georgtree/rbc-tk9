@@ -149,29 +149,35 @@ The remaining grid defaults are common to all graph widget types\&.
 .SH "GRID OPTIONS"
 .PP
 .nf
-┌─────────────────────┬───────────────┬────────────────┬───────────────────────────────────────────────────────────────┐
-│ Option              │ Database name │ Database class │ Description                                                   │
-├─────────────────────┼───────────────┼────────────────┼───────────────────────────────────────────────────────────────┤
-│ -color color        │ color         │ Color          │ Sets the color used to draw grid lines\&. The default is        │
-│                     │               │                │ grey64, or black on monochrome displays\&.                      │
-│ -dashes dashes      │ dashes        │ Dashes         │ Sets the dash pattern used to draw grid lines\&. An empty value │
-│                     │               │                │ selects solid lines\&. The default is dot\&. Each numeric list    │
-│                     │               │                │ item accepts a Tcl integer expression\&.                        │
-│ -hide boolean       │ hide          │ Hide           │ Controls whether the grid is displayed\&. The default is yes    │
-│                     │               │                │ for graph and stripchart widgets and no for polar and         │
-│                     │               │                │ barchart widgets\&.                                             │
-│ -linewidth distance │ lineWidth     │ Linewidth      │ Sets the non-negative width of grid lines\&. Values 0 and 1 use │
-│                     │               │                │ the native thin-line width\&. The default is 0\&.                 │
-│ -mapx axisName      │ mapX          │ MapX           │ Specifies the X axis whose ticks generate vertical grid       │
-│                     │               │                │ lines\&. The axis must exist and must be an X axis\&. An empty    │
-│                     │               │                │ value disables X grid lines\&. The default is x for graph and   │
-│                     │               │                │ stripchart widgets and empty for barchart widgets\&.            │
-│ -mapy axisName      │ mapY          │ MapY           │ Specifies the Y axis whose ticks generate horizontal grid     │
-│                     │               │                │ lines\&. The axis must exist and must be a Y axis\&. An empty     │
-│                     │               │                │ value disables Y grid lines\&. The default is y\&.                │
-│ -minor boolean      │ minor         │ Minor          │ Controls whether grid lines are also generated at minor tick  │
-│                     │               │                │ positions\&. The default is yes\&.                                │
-└─────────────────────┴───────────────┴────────────────┴───────────────────────────────────────────────────────────────┘
+┌─────────────────────┬───────────────┬────────────────┬──────────────────────────┬────────────────────────────────────┐
+│ Option              │ Database name │ Database class │ Default                  │ Description                        │
+├─────────────────────┼───────────────┼────────────────┼──────────────────────────┼────────────────────────────────────┤
+│ -color color        │ color         │ Color          │ #a3a3a3; monochrome:     │ Sets the color used to draw grid   │
+│                     │               │                │ #000000                  │ lines\&.                             │
+│ -dashes dashes      │ dashes        │ Dashes         │ dot                      │ Sets the dash pattern used to draw │
+│                     │               │                │                          │ grid lines\&. An empty value selects │
+│                     │               │                │                          │ solid lines\&. Each numeric list     │
+│                     │               │                │                          │ item accepts a Tcl integer         │
+│                     │               │                │                          │ expression\&.                        │
+│ -hide boolean       │ hide          │ Hide           │ yes; polar/barchart: no  │ Controls whether the grid is       │
+│                     │               │                │                          │ displayed\&.                         │
+│ -linewidth distance │ lineWidth     │ Linewidth      │ 0                        │ Sets the non-negative width of     │
+│                     │               │                │                          │ grid lines\&. Values 0 and 1 use the │
+│                     │               │                │                          │ native thin-line width\&.            │
+│ -mapx axisName      │ mapX          │ MapX           │ x; barchart: empty       │ Specifies the X axis whose ticks   │
+│                     │               │                │                          │ generate vertical grid lines\&. The  │
+│                     │               │                │                          │ axis must exist and must be an X   │
+│                     │               │                │                          │ axis\&. An empty value disables X    │
+│                     │               │                │                          │ grid lines\&.                        │
+│ -mapy axisName      │ mapY          │ MapY           │ y                        │ Specifies the Y axis whose ticks   │
+│                     │               │                │                          │ generate horizontal grid lines\&.    │
+│                     │               │                │                          │ The axis must exist and must be a  │
+│                     │               │                │                          │ Y axis\&. An empty value disables Y  │
+│                     │               │                │                          │ grid lines\&.                        │
+│ -minor boolean      │ minor         │ Minor          │ yes                      │ Controls whether grid lines are    │
+│                     │               │                │                          │ also generated at minor tick       │
+│                     │               │                │                          │ positions\&.                         │
+└─────────────────────┴───────────────┴────────────────┴──────────────────────────┴────────────────────────────────────┘
 
 .fi
 .PP
@@ -472,49 +478,74 @@ polar \&.p -representation smith
 .RE
 .PP
 .nf
-┌──────────────────────────┬─────────────────────┬─────────────────────┬───────────────────────────────────────────────┐
-│ Option                   │ Database name       │ Database class      │ Description                                   │
-├──────────────────────────┼─────────────────────┼─────────────────────┼───────────────────────────────────────────────┤
-│ -anglelabelanchor anchor │ angleLabelAnchor    │ AngleLabelAnchor    │ Sets the anchor used for major angular        │
-│                          │                     │                     │ labels\&. Accepts a Tk anchor or auto\&. With     │
-│                          │                     │                     │ auto, RBC selects an inward-facing anchor for │
-│                          │                     │                     │ both circular and clipped-spoke label         │
-│                          │                     │                     │ placement\&. The default is center\&.             │
-│ -anglecommand command    │ angleCommand        │ AngleCommand        │ Specifies a Tcl command prefix for formatting │
-│                          │                     │                     │ major angular labels\&. RBC appends widgetPath  │
-│                          │                     │                     │ degrees\&. An empty value uses built-in degree  │
-│                          │                     │                     │ labels\&.                                       │
-│ -anglemajorticks         │ angleMajorTicks     │ AngleMajorTicks     │ Specifies major angular spokes and labels in  │
-│ tickList                 │                     │                     │ degrees\&. The default is 0 30 60 90 120 150    │
-│                          │                     │                     │ 180 210 240 270 300 330\&.                      │
-│ -angleminorticks         │ angleMinorTicks     │ AngleMinorTicks     │ Specifies minor angular spokes in degrees\&.    │
-│ tickList                 │                     │                     │ They are drawn when grid -minor is true\&. The  │
-│                          │                     │                     │ default is 15 45 75 105 135 165 195 225 255   │
-│                          │                     │                     │ 285 315 345\&.                                  │
-│ -radiallabelanchor       │ radialLabelAnchor   │ RadialLabelAnchor   │ Sets the anchor used for Polar radial labels  │
-│ anchor                   │                     │                     │ on the positive zero-degree ray\&. Accepts a Tk │
-│                          │                     │                     │ anchor or auto\&. The default is se\&.            │
-│ -smithgrid mode          │ smithGrid           │ SmithGrid           │ Selects impedance, admittance, or both Smith  │
-│                          │                     │                     │ contour families\&. The default is impedance\&.   │
-│ -smithrealcommand        │ smithRealCommand    │ SmithRealCommand    │ Specifies a Tcl command prefix for major real │
-│ command                  │                     │                     │ Smith labels\&. RBC appends widgetPath domain   │
-│                          │                     │                     │ value\&.                                        │
-│ -smithimagcommand        │ smithImagCommand    │ SmithImagCommand    │ Specifies a Tcl command prefix for major      │
-│ command                  │                     │                     │ imaginary Smith labels\&. RBC appends           │
-│                          │                     │                     │ widgetPath domain signedValue\&.                │
-│ -smithrealmajorticks     │ smithRealMajorTicks │ SmithRealMajorTicks │ Specifies non-negative normalized real values │
-│ list                     │                     │                     │ for major Smith contours and labels\&. Default: │
-│                          │                     │                     │ 0 0\&.2 0\&.5 1 2 5\&.                              │
-│ -smithrealminorticks     │ smithRealMinorTicks │ SmithRealMinorTicks │ Specifies non-negative normalized real values │
-│ list                     │                     │                     │ for minor Smith contours\&. Default: 0\&.1 0\&.3    │
-│                          │                     │                     │ 0\&.7 1\&.5 3 10\&.                                 │
-│ -smithimagmajorticks     │ smithImagMajorTicks │ SmithImagMajorTicks │ Specifies positive normalized imaginary       │
-│ list                     │                     │                     │ magnitudes for major Smith contours and       │
-│                          │                     │                     │ labels\&. Default: 0\&.2 0\&.5 1 2 5\&.               │
-│ -smithimagminorticks     │ smithImagMinorTicks │ SmithImagMinorTicks │ Specifies positive normalized imaginary       │
-│ list                     │                     │                     │ magnitudes for minor Smith contours\&. Default: │
-│                          │                     │                     │ 0\&.1 0\&.3 0\&.7 1\&.5 3 10\&.                         │
-└──────────────────────────┴─────────────────────┴─────────────────────┴───────────────────────────────────────────────┘
+┌────────────────────────┬─────────────────────┬─────────────────────┬────────────────────────┬────────────────────────┐
+│ Option                 │ Database name       │ Database class      │ Default                │ Description            │
+├────────────────────────┼─────────────────────┼─────────────────────┼────────────────────────┼────────────────────────┤
+│ -anglelabelanchor      │ angleLabelAnchor    │ AngleLabelAnchor    │ center                 │ Sets the anchor used   │
+│ anchor                 │                     │                     │                        │ for major angular      │
+│                        │                     │                     │                        │ labels\&. Accepts a Tk   │
+│                        │                     │                     │                        │ anchor or auto\&. With   │
+│                        │                     │                     │                        │ auto, RBC selects an   │
+│                        │                     │                     │                        │ inward-facing anchor   │
+│                        │                     │                     │                        │ for both circular and  │
+│                        │                     │                     │                        │ clipped-spoke label    │
+│                        │                     │                     │                        │ placement\&.             │
+│ -anglecommand command  │ angleCommand        │ AngleCommand        │ Empty                  │ Specifies a Tcl        │
+│                        │                     │                     │                        │ command prefix for     │
+│                        │                     │                     │                        │ formatting major       │
+│                        │                     │                     │                        │ angular labels\&. RBC    │
+│                        │                     │                     │                        │ appends widgetPath     │
+│                        │                     │                     │                        │ degrees\&. An empty      │
+│                        │                     │                     │                        │ value uses built-in    │
+│                        │                     │                     │                        │ degree labels\&.         │
+│ -anglemajorticks       │ angleMajorTicks     │ AngleMajorTicks     │ 0 30 60 90 120 150 180 │ Specifies major        │
+│ tickList               │                     │                     │ 210 240 270 300 330    │ angular spokes and     │
+│                        │                     │                     │                        │ labels in degrees\&.     │
+│ -angleminorticks       │ angleMinorTicks     │ AngleMinorTicks     │ 15 45 75 105 135 165   │ Specifies minor        │
+│ tickList               │                     │                     │ 195 225 255 285 315    │ angular spokes in      │
+│                        │                     │                     │ 345                    │ degrees\&. They are      │
+│                        │                     │                     │                        │ drawn when grid -minor │
+│                        │                     │                     │                        │ is true\&.               │
+│ -radiallabelanchor     │ radialLabelAnchor   │ RadialLabelAnchor   │ se                     │ Sets the anchor used   │
+│ anchor                 │                     │                     │                        │ for Polar radial       │
+│                        │                     │                     │                        │ labels on the positive │
+│                        │                     │                     │                        │ zero-degree ray\&.       │
+│                        │                     │                     │                        │ Accepts a Tk anchor or │
+│                        │                     │                     │                        │ auto\&.                  │
+│ -smithgrid mode        │ smithGrid           │ SmithGrid           │ impedance              │ Selects impedance,     │
+│                        │                     │                     │                        │ admittance, or both    │
+│                        │                     │                     │                        │ Smith contour          │
+│                        │                     │                     │                        │ families\&.              │
+│ -smithrealcommand      │ smithRealCommand    │ SmithRealCommand    │ Empty                  │ Specifies a Tcl        │
+│ command                │                     │                     │                        │ command prefix for     │
+│                        │                     │                     │                        │ major real Smith       │
+│                        │                     │                     │                        │ labels\&. RBC appends    │
+│                        │                     │                     │                        │ widgetPath domain      │
+│                        │                     │                     │                        │ value\&.                 │
+│ -smithimagcommand      │ smithImagCommand    │ SmithImagCommand    │ Empty                  │ Specifies a Tcl        │
+│ command                │                     │                     │                        │ command prefix for     │
+│                        │                     │                     │                        │ major imaginary Smith  │
+│                        │                     │                     │                        │ labels\&. RBC appends    │
+│                        │                     │                     │                        │ widgetPath domain      │
+│                        │                     │                     │                        │ signedValue\&.           │
+│ -smithrealmajorticks   │ smithRealMajorTicks │ SmithRealMajorTicks │ 0 0\&.2 0\&.5 1 2 5        │ Specifies non-negative │
+│ list                   │                     │                     │                        │ normalized real values │
+│                        │                     │                     │                        │ for major Smith        │
+│                        │                     │                     │                        │ contours and labels\&.   │
+│ -smithrealminorticks   │ smithRealMinorTicks │ SmithRealMinorTicks │ 0\&.1 0\&.3 0\&.7 1\&.5 3 10   │ Specifies non-negative │
+│ list                   │                     │                     │                        │ normalized real values │
+│                        │                     │                     │                        │ for minor Smith        │
+│                        │                     │                     │                        │ contours\&.              │
+│ -smithimagmajorticks   │ smithImagMajorTicks │ SmithImagMajorTicks │ 0\&.2 0\&.5 1 2 5          │ Specifies positive     │
+│ list                   │                     │                     │                        │ normalized imaginary   │
+│                        │                     │                     │                        │ magnitudes for major   │
+│                        │                     │                     │                        │ Smith contours and     │
+│                        │                     │                     │                        │ labels\&.                │
+│ -smithimagminorticks   │ smithImagMinorTicks │ SmithImagMinorTicks │ 0\&.1 0\&.3 0\&.7 1\&.5 3 10   │ Specifies positive     │
+│ list                   │                     │                     │                        │ normalized imaginary   │
+│                        │                     │                     │                        │ magnitudes for minor   │
+│                        │                     │                     │                        │ Smith contours\&.        │
+└────────────────────────┴─────────────────────┴─────────────────────┴────────────────────────┴────────────────────────┘
 
 .fi
 

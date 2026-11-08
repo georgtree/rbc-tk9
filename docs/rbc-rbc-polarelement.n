@@ -655,19 +655,20 @@ Polar elements support the configuration options documented for \fILINEELEMENT\f
 Polar-specific additions below\&.
 .PP
 .nf
-┌───────────────────────┬─────────────────┬─────────────────┬──────────────────────────────────────────────────────────┐
-│ Option                │ Database name   │ Database class  │ Description                                              │
-├───────────────────────┼─────────────────┼─────────────────┼──────────────────────────────────────────────────────────┤
-│ -datacoordinates mode │ dataCoordinates │ DataCoordinates │ Real input pairs: cartesian (default) or polar (theta in │
-│                       │                 │                 │ radians, radius)\&.                                        │
-│ -cdata vectorName     │ cData           │ CData           │ Specifies a complex RBC vector used as the element data  │
-│                       │                 │                 │ source\&. An empty value selects ordinary X/Y data mode\&.   │
-│ -cdataformat format   │ cDataFormat     │ CDataFormat     │ Specifies how complex data are interpreted: gamma,       │
-│                       │                 │                 │ impedance, or admittance\&. The default is gamma\&.          │
-│ -z0 value             │ z0              │ Z0              │ Specifies the positive finite reference impedance used   │
-│                       │                 │                 │ for impedance/admittance conversion\&. The default is      │
-│                       │                 │                 │ 50\&.0\&.                                                    │
-└───────────────────────┴─────────────────┴─────────────────┴──────────────────────────────────────────────────────────┘
+┌───────────────────────┬─────────────────┬─────────────────┬───────────┬──────────────────────────────────────────────┐
+│ Option                │ Database name   │ Database class  │ Default   │ Description                                  │
+├───────────────────────┼─────────────────┼─────────────────┼───────────┼──────────────────────────────────────────────┤
+│ -datacoordinates mode │ dataCoordinates │ DataCoordinates │ cartesian │ Real input pairs: cartesian or polar (theta  │
+│                       │                 │                 │           │ in radians, radius)\&.                         │
+│ -cdata vectorName     │ cData           │ CData           │ Empty     │ Specifies a complex RBC vector used as the   │
+│                       │                 │                 │           │ element data source\&. An empty value selects  │
+│                       │                 │                 │           │ ordinary X/Y data mode\&.                      │
+│ -cdataformat format   │ cDataFormat     │ CDataFormat     │ gamma     │ Specifies how complex data are interpreted:  │
+│                       │                 │                 │           │ gamma, impedance, or admittance\&.             │
+│ -z0 value             │ z0              │ Z0              │ 50\&.0      │ Specifies the positive finite reference      │
+│                       │                 │                 │           │ impedance used for impedance/admittance      │
+│                       │                 │                 │           │ conversion\&.                                  │
+└───────────────────────┴─────────────────┴─────────────────┴───────────┴──────────────────────────────────────────────┘
 
 .fi
 .PP

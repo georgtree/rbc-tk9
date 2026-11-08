@@ -174,15 +174,15 @@ Creation reads these defaults once; explicit track create options take precedenc
 changes do not modify existing tracks, including during track configure, resizing or scrolling\&.
 .PP
 .nf
-┌────────────┬───────────────┬────────────────┐
-│ Option     │ Resource name │ Resource class │
-├────────────┼───────────────┼────────────────┤
-│ -weight    │ weight        │ Weight         │
-│ -minheight │ minHeight     │ MinHeight      │
-│ -height    │ height        │ Height         │
-│ -yaxes     │ yAxes         │ YAxes          │
-│ -barmode   │ barMode       │ BarMode        │
-└────────────┴───────────────┴────────────────┘
+┌────────────┬───────────────┬────────────────┬─────────┐
+│ Option     │ Resource name │ Resource class │ Default │
+├────────────┼───────────────┼────────────────┼─────────┤
+│ -weight    │ weight        │ Weight         │ 1\&.0     │
+│ -minheight │ minHeight     │ MinHeight      │ 40      │
+│ -height    │ height        │ Height         │ 160     │
+│ -yaxes     │ yAxes         │ YAxes          │ Empty   │
+│ -barmode   │ barMode       │ BarMode        │ inherit │
+└────────────┴───────────────┴────────────────┴─────────┘
 
 .fi
 .PP

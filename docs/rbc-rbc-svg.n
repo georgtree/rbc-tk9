@@ -55,14 +55,14 @@ Later database changes affect new widgets only\&. Explicit svg configure and svg
 override the initialized values, with the existing persistent output-option behaviour unchanged\&.
 .PP
 .nf
-┌──────────────┬───────────────┬────────────────┐
-│ Option       │ Resource name │ Resource class │
-├──────────────┼───────────────┼────────────────┤
-│ -width       │ width         │ Width          │
-│ -height      │ height        │ Height         │
-│ -decorations │ decorations   │ Decorations    │
-│ -embedfonts  │ embedFonts    │ EmbedFonts     │
-└──────────────┴───────────────┴────────────────┘
+┌──────────────┬───────────────┬────────────────┬─────────┐
+│ Option       │ Resource name │ Resource class │ Default │
+├──────────────┼───────────────┼────────────────┼─────────┤
+│ -width       │ width         │ Width          │ 0       │
+│ -height      │ height        │ Height         │ 0       │
+│ -decorations │ decorations   │ Decorations    │ 1       │
+│ -embedfonts  │ embedFonts    │ EmbedFonts     │ 0       │
+└──────────────┴───────────────┴────────────────┴─────────┘
 
 .fi
 .PP
@@ -89,7 +89,7 @@ not also change the graph widget's size\&. No child window is created for this c
 │ -height distance     │ 0       │ Non-negative output height\&. Zero uses the graph height\&.                             │
 │ -decorations boolean │ 1       │ Include graph/legend backgrounds and relief borders\&. False uses white backgrounds;  │
 │                      │         │ axes, labels and symbols remain visible\&.                                            │
-│ -embedfonts boolean  │ 0       │ Embed native outline fonts and fallback faces as CSS webfonts\&. Disabled by default\&. │
+│ -embedfonts boolean  │ 0       │ Embed native outline fonts and fallback faces as CSS webfonts\&.                      │
 └──────────────────────┴─────────┴─────────────────────────────────────────────────────────────────────────────────────┘
 
 .fi
