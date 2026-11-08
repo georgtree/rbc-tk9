@@ -9,27 +9,29 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graphtoolbar {
-    # Numeric case IDs for loop-generated tests.
-    array set testCase {20 0 22 0 23 0 26 0 29 0 30 0 31 0 32 0 33 0 58 0 59 0 60 0 123 0 143 0 144 0 145 0 146 0 147 0 148 0 149 0 151 0 152 0 153 0 154 0 155 0 158 0 161 0 162 0 165 0 170 0 176 0 182 0 189 0 191 0 192 0}
+
+# Numeric case IDs for loop-generated tests.
+array set testCase {20 0 22 0 23 0 26 0 29 0 30 0 31 0 32 0 33 0 58 0 59 0 60 0 123 0 143 0 144 0 145 0 146 0 147 0\
+                          148 0 149 0 151 0 152 0 153 0 154 0 155 0 158 0 161 0 162 0 165 0 170 0 176 0 182 0 189\
+                          0 191 0 192 0}
 set atol 1e-8
 set rtol 1e-10
 set defaultDelay 100
-
 source [file join [file dirname [info script]] .. approxEqual.tcl]
 
 proc uniqkey {} {
-	set key [expr {pow(2,31)+[clock clicks]}]
-    set key [string range $key end-8 end-3]
-    set key [clock seconds]$key
-    return $key
+  set key [expr {pow(2,31)+[clock clicks]}]
+  set key [string range $key end-8 end-3]
+  set key [clock seconds]$key
+  return $key
 }
 
 proc sleep {ms} {
-    set uniq [uniqkey]
-    set ::__sleep__tmp__$uniq 0
-    after $ms set ::__sleep__tmp__$uniq 1
-    vwait ::__sleep__tmp__$uniq
-    unset ::__sleep__tmp__$uniq
+  set uniq [uniqkey]
+  set ::__sleep__tmp__$uniq 0
+  after $ms set ::__sleep__tmp__$uniq 1
+  vwait ::__sleep__tmp__$uniq
+  unset ::__sleep__tmp__$uniq
 }
 
 proc FindAxisPoint {graph axis side} {
@@ -113,7 +115,7 @@ proc FindLegendPoint {graph element} {
 
 proc GenerateGraphEvent {graph sequence x y time} {
     sleep $time
-    if {$sequence eq "<Motion>" && "gtb-pan-region-$graph" in [bindtags $graph]} {
+    if {($sequence eq {<Motion>}) && ("gtb-pan-region-$graph" in [bindtags $graph])} {
         # Pan motion reads the physical pointer rather than synthetic event coordinates.
         event generate $graph $sequence -x $x -y $y -warp 1
     } else {
@@ -140,7 +142,7 @@ proc GenerateGraphWheelEvent {graph x y delta time {modifier {}}} {
 proc GenerateGraphTouchpadEvent {graph x y deltaX deltaY time {modifier {}}} {
     # Pack signed horizontal and vertical deltas into TouchpadScroll %D.
     foreach value [list $deltaX $deltaY] {
-        if {![string is integer -strict $value] || $value < -32768 || $value > 32767} {
+        if {![string is integer -strict $value] || ($value < -32768) || ($value > 32767)} {
             error "touchpad delta must be a signed 16-bit integer"
         }
     }
@@ -230,18 +232,6 @@ proc MarkerWidgetSize {graph marker} {
     set xs [lsort -real $xs]
     set ys [lsort -real $ys]
     return [list [expr {[lindex $xs end]-[lindex $xs 0]}] [expr {[lindex $ys end]-[lindex $ys 0]}]]
-}
-
-proc approxPixelCoordsEqual {a b {tolerance 1.0}} {
-    if {[llength $a] != [llength $b]} {
-        return false
-    }
-    foreach x $a y $b {
-        if {abs($x-$y) > $tolerance} {
-            return false
-        }
-    }
-    return true
 }
 
 proc ExpectedSmithNormalized {gammaReal gammaImag mode} {
@@ -447,14 +437,14 @@ proc ParkPointer {graph x y} {
     lassign [winfo pointerxy $graph] rootX rootY
     set actualX [expr {$rootX - [winfo rootx $graph]}]
     set actualY [expr {$rootY - [winfo rooty $graph]}]
-    if {[winfo containing $rootX $rootY] ne $graph || abs($actualX - $x) > 1 || abs($actualY - $y) > 1} {
+    if {([winfo containing $rootX $rootY] ne $graph) || (abs($actualX - $x) > 1) || (abs($actualY - $y) > 1)} {
         error "Could not position the physical pointer over the test graph"
     }
     return [list $actualX $actualY]
 }
 
 proc RestorePointer {position} {
-    if {[llength $position] != 2 || ![winfo exists .]} {
+    if {([llength $position] != 2) || ![winfo exists .]} {
         return
     }
     lassign $position rootX rootY
@@ -495,8 +485,7 @@ proc PlaceGraphPointer {graph x y} {
     lassign [winfo pointerxy $graph] rootX rootY
     set actualX [expr {$rootX - [winfo rootx $graph]}]
     set actualY [expr {$rootY - [winfo rooty $graph]}]
-    if {[winfo containing $rootX $rootY] ne $graph ||
-        $actualX != $x || $actualY != $y} {
+    if {([winfo containing $rootX $rootY] ne $graph) || ($actualX != $x) || ($actualY != $y)} {
         return -code error "Could not place pointer at $graph ($x,$y): actual position is ($actualX,$actualY)"
     }
 }
@@ -545,7 +534,8 @@ proc InspectExportDialog {widget format action} {
                 $top.buttons.reset invoke
                 list $initial $changed $embed
             }
-            save-no - save-yes {
+            save-no -
+            save-yes {
                 $top.radiobuts.embedfonts-[string range $action 5 end] invoke
                 $top.buttons.print invoke
                 list [$graph $format cget -embedfonts] $embed
@@ -561,10 +551,11 @@ proc RunExportDialog {widget format action} {
     after 0 [list ::graphtoolbar::InspectExportDialog $widget $format $action]
     [$widget subwidget exportMenu] invoke [string toupper $format]...
     lassign $exportDialogResult code value options
-    if {$code} {return -options $options $value}
+    if {$code} {
+        return -options $options $value
+    }
     return $value
 }
-
 
 customMatch approxEqual ::graphtoolbar::approxNestedEqual
 
@@ -576,8 +567,7 @@ testConstraint isAxes true
 testConstraint isCross true
 testConstraint isActiveLegend true
 
-
-test graphtoolbar.1.1 {make test keeps native rendering for every embedded graph type} \
+test graphtoolbar.1.1 {make test keeps native rendering for every embedded graph type}\
         -constraints rbcNativeSuiteDefault -body {
     set result {}
     foreach type {graph barchart stripchart polar trackgraph} {
@@ -615,7 +605,8 @@ test graphtoolbar.3.1 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     lsort [$widget names]
-} -result {contextExportMenu contextMenu exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame} -cleanup {
+} -result {contextExportMenu contextMenu exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame}\
+        -cleanup {
     destroy $widget
 }
 
@@ -626,7 +617,8 @@ test graphtoolbar.4.1 {names subcommand} -setup {
     grid rowconfigure . 0 -weight 1
 } -body {
     lsort [$widget names]
-} -result {contextExportMenu contextMenu crosshairsMenu crosshairsMenuButton exportButton exportMenu graph resetZoomBut revertZoomBut toolbarFrame} -cleanup {
+} -result {contextExportMenu contextMenu crosshairsMenu crosshairsMenuButton exportButton exportMenu graph resetZoomBut\
+                   revertZoomBut toolbarFrame} -cleanup {
     destroy $widget
 }
 
@@ -689,8 +681,7 @@ test graphtoolbar.9.1 {options configuration} -setup {
 }
 
 test graphtoolbar.10.1 {options configuration} -setup {
-    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
-                        -zoommarkopts {-font {Helvetica 10}}]
+    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark -zoommarkopts {-font {Helvetica 10}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -702,8 +693,7 @@ test graphtoolbar.10.1 {options configuration} -setup {
 }
 
 test graphtoolbar.11.1 {options configuration} -setup {
-    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark\
-                        -zoomtitleopts {-font {Helvetica 15}}]
+    set widget [graphtoolbar .gtb -width 400 -height 400 -zoom -zoommark -zoomtitleopts {-font {Helvetica 15}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -725,8 +715,7 @@ test graphtoolbar.12.1 {options configuration} -setup {
 }
 
 test graphtoolbar.13.1 {options configuration} -setup {
-    set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs\
-                        -crosshairsmarkopts {-font {Helvetica 15}}]
+    set widget [graphtoolbar .gtb -width 400 -height 400 -crosshairs -crosshairsmarkopts {-font {Helvetica 15}}]
     grid .gtb -row 0 -column 0 -sticky nsew
     grid columnconfigure . 0 -weight 1
     grid rowconfigure . 0 -weight 1
@@ -768,16 +757,16 @@ test graphtoolbar.16.1 {crosshairs properties and menu stay synchronized} -setup
     foreach mode {current closest none disabled} {
         $widget configure -crosshairsmode $mode
         uplevel #0 [$menu cget -postcommand]
-        lappend actual [list [$widget configure -crosshairsmode] \
-            [set [$crossMenu entrycget 0 -variable]] [$menu entrycget {Closest crosshairs format} -state]]
+        lappend actual [list [$widget configure -crosshairsmode] [set [$crossMenu entrycget 0 -variable]]\
+                                [$menu entrycget {Closest crosshairs format} -state]]
     }
     $crossMenu invoke {Current point}
     uplevel #0 [$menu cget -postcommand]
-    lappend actual [list [$widget configure -crosshairsmode] \
-        [set [$crossMenu entrycget 0 -variable]] [$menu entrycget {Closest crosshairs format} -state]]
+    lappend actual [list [$widget configure -crosshairsmode] [set [$crossMenu entrycget 0 -variable]]\
+                            [$menu entrycget {Closest crosshairs format} -state]]
     set actual
 } -result {{current {Current point} disabled} {closest {Closest point} normal} {none {No marker} disabled}\
-    {disabled Disabled disabled} {current {Current point} disabled}} -cleanup {
+                   {disabled Disabled disabled} {current {Current point} disabled}} -cleanup {
     destroy $widget
 }
 
@@ -786,9 +775,8 @@ test graphtoolbar.17.1 {toolbar crosshair menu button replaces comboboxes} -setu
     set button [$widget subwidget crosshairsMenuButton]
     set menu [$widget subwidget crosshairsMenu]
 } -body {
-    list [winfo class $button] [$button cget -text] [expr {[$button cget -menu] eq $menu}] \
-        [MenuDescription $menu] [catch {$widget subwidget crosshairsComBox}] \
-        [catch {$widget subwidget closestCoordComBox}]
+    list [winfo class $button] [$button cget -text] [expr {[$button cget -menu] eq $menu}] [MenuDescription $menu]\
+            [catch {$widget subwidget crosshairsComBox}] [catch {$widget subwidget closestCoordComBox}]
 } -result {TMenubutton Crosshairs 1 {{cascade {Crosshairs mode}} {cascade {Closest crosshairs format}}} 1 1} -cleanup {
     destroy $widget
 }
@@ -810,7 +798,6 @@ test graphtoolbar.18.1 {context-menu mode has graph and menu but no visible tool
 
 test graphtoolbar.19.1 {context menu contains only controls for enabled features} -setup {
     set widgets [list]
-
     foreach {path options} {.ctx0 {} .ctx1 {-zoom} .ctx2 {-crosshairs} .ctx3 {-zoom -crosshairs}} {
         lappend widgets [graphtoolbar $path -width 400 -height 400 -controlmode contextmenu {*}$options]
     }
@@ -871,9 +858,10 @@ foreach control {toolbar contextmenu} {
         $closestMenu invoke [$closestMenu index Admittance]
         set smithSelection [$widget configure -coordclosestmark]
         list $crossEntries $polarLabels $polarSelection $smithLabels $smithDefault $smithSelection
-    } -result {{{radiobutton {Current point}} {radiobutton {Closest point}} {radiobutton {No marker}} {radiobutton\
-    Disabled}} {Axis Complex {Polar (radians)} {Polar (degrees)}} complex {Axis Gamma {Normalized impedance} Impedance {Normalized admittance}\
-    Admittance} normalizedimpedance admittance} -cleanup {
+    } -result {{{radiobutton {Current point}} {radiobutton {Closest point}} {radiobutton {No marker}}\
+                        {radiobutton Disabled}} {Axis Complex {Polar (radians)} {Polar (degrees)}} complex {Axis Gamma\
+                        {Normalized impedance} Impedance {Normalized admittance} Admittance} normalizedimpedance\
+                        admittance} -cleanup {
         destroy $widget
     }
 
@@ -896,8 +884,8 @@ test graphtoolbar.21.1 {preset matches explicit features and defaults to both co
         destroy $widget
     }
     list [expr {[lindex $presetStates 0] eq [lindex $presetStates 1]}]\
-            [expr {{contextMenu} in [lindex $presetStates 0 0]}]\
-            [expr {{exportButton} in [lindex $presetStates 0 0]}] [lsort [lindex $presetStates 0 3]]
+            [expr {{contextMenu} in [lindex $presetStates 0 0]}] [expr {{exportButton} in [lindex $presetStates 0 0]}]\
+            [lsort [lindex $presetStates 0 3]]
 } -cleanup {
     catch {destroy .gtb}
     unset -nocomplain presetStates
@@ -965,13 +953,13 @@ foreach side {top bottom} {
         $context.crosshairs invoke {Current point}
         set first [$widget configure -crosshairsmode]
         $cross.crosshairs invoke {Closest point}
-        list [winfo manager $toolbar] [dict get [grid info $toolbar] -row] \
-                [expr {[[$widget subwidget exportButton] cget -menu] eq $export}] \
-                [expr {[$context entrycget Export -menu] eq $contextExport}] \
-                [expr {[MenuDescription $export] eq [MenuDescription $contextExport]}] \
-                $first [$widget configure -crosshairsmode] \
-                [expr {[$cross.crosshairs entrycget {Current point} -variable] eq \
-                           [$context.crosshairs entrycget {Current point} -variable]}]
+        list [winfo manager $toolbar] [dict get [grid info $toolbar] -row]\
+                [expr {[[$widget subwidget exportButton] cget -menu] eq $export}]\
+                [expr {[$context entrycget Export -menu] eq $contextExport}]\
+                [expr {[MenuDescription $export] eq [MenuDescription $contextExport]}]\
+                $first [$widget configure -crosshairsmode]\
+                [expr {[$cross.crosshairs entrycget {Current point} -variable] eq\
+                               [$context.crosshairs entrycget {Current point} -variable]}]
     } -cleanup {
         destroy $widget
     } -result [list grid [expr {$side eq {top} ? 0 : 1}] 1 1 1 current closest 1]
@@ -1007,7 +995,8 @@ foreach mode {toolbar contextmenu} {
             set count [expr {[$parent index end] + 1}]
         }
         list [MenuDescription $menu] $linked $count
-    } -cleanup {destroy $widget} -result {{{command {PNG snapshot...}} {command PostScript...} {command SVG...} {command PDF...}} 1 1}
+    } -cleanup {destroy $widget} -result {{{command {PNG snapshot...}} {command PostScript...} {command SVG...}\
+                                                   {command PDF...}} 1 1}
 
     test graphtoolbar.30.[incr testCase(30)] {every format dispatches to its own action} -setup {
         set widget [graphtoolbar .gtb -controlmode $mode -width 400 -height 400]
@@ -1015,11 +1004,14 @@ foreach mode {toolbar contextmenu} {
         WaitForWindow [$widget subwidget graph]
         set dispatch {}
         foreach method {MakeSnapshot PostScriptDialog SvgDialog PdfDialog} {
-            oo::objdefine $widget ::oo::objdefine::method $method {} [list lappend [namespace current]::dispatch $method]
+            oo::objdefine $widget ::oo::objdefine::method $method {}\
+                    [list lappend [namespace current]::dispatch $method]
         }
     } -body {
         set menu [$widget subwidget exportMenu]
-        for {set i 0} {$i < 4} {incr i} {$menu invoke $i}
+        for {set i 0} {$i < 4} {incr i} {
+            $menu invoke $i
+        }
         set dispatch
     } -cleanup {destroy $widget} -result {MakeSnapshot PostScriptDialog SvgDialog PdfDialog}
 
@@ -1063,8 +1055,9 @@ foreach mode {toolbar contextmenu} {
                 set document [read $channel]
                 close $channel
                 set expected [expr {$format eq "svg" ? {<svg } : {%PDF-}}]
-                list $values [dict get $exportSaveOptions -initialfile] [expr {[string first $expected $document] >= 0}]\
-                        [expr {[regexp {@font-face|/FontFile[23]} $document] == ($setting eq "yes")}]
+                list $values [dict get $exportSaveOptions -initialfile]\
+                        [expr {[string first $expected $document] >= 0}]\
+                        [expr {[regexp {@font-face|/FontFile[23]} $document] == ($setting eq {yes})}]
             } -cleanup {
                 rename ::tk_getSaveFile {}
                 rename ::SavedExportGetSaveFile ::tk_getSaveFile
@@ -1081,10 +1074,8 @@ set winSize {-width 700 -height 400}
 set titleFont {-font {ArialNarrow 8}}
 
 #### zoom
-
 test graphtoolbar.34.1 {single-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1117,8 +1108,7 @@ test graphtoolbar.34.1 {single-stage zoom} -match approxEqual -constraints {isIn
 }
 
 test graphtoolbar.35.1 {multi-stage zoom} -match approxEqual -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {multi-stage zoom} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1154,8 +1144,7 @@ test graphtoolbar.35.1 {multi-stage zoom} -match approxEqual -constraints {isInt
 }
 
 test graphtoolbar.36.1 {single-stage zoom with no title} -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark\
-                        -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom with no title} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1180,8 +1169,7 @@ test graphtoolbar.36.1 {single-stage zoom with no title} -constraints {isInterac
 }
 
 test graphtoolbar.37.1 {single-stage zoom with no zoom marker} -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomboxopts\
-                        {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom with no zoom marker} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1207,11 +1195,9 @@ test graphtoolbar.37.1 {single-stage zoom with no zoom marker} -constraints {isI
 
 test graphtoolbar.38.1 {single-stage zoom, check for disabled toolbar during selection} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
-    $widget graph configure -title {single-stage zoom, check for disabled toolbar during selection}\
-            {*}$titleFont
+    $widget graph configure -title {single-stage zoom, check for disabled toolbar during selection} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -1241,11 +1227,10 @@ test graphtoolbar.38.1 {single-stage zoom, check for disabled toolbar during sel
 
 test graphtoolbar.39.1 {single-stage zoom, check marker positioning near the edge of plotting area}\
         -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
-    $widget graph configure -title {single-stage zoom, check marker positioning near the edge of plotting\
-                                            area} {*}$titleFont
+    $widget graph configure -title {single-stage zoom, check marker positioning near the edge of plotting area}\
+            {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
     $widget graph element create line2 -xdata xVec2 -ydata yVec2
     set graph [$widget subwidget graph]
@@ -1266,8 +1251,7 @@ test graphtoolbar.39.1 {single-stage zoom, check marker positioning near the edg
 
 test graphtoolbar.40.1 {single-stage zoom, check clamping to visible area} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, check clamping to visible area} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1300,10 +1284,10 @@ test graphtoolbar.40.1 {single-stage zoom, check clamping to visible area} -matc
     destroy $widget
 }
 
-test graphtoolbar.41.1 {single-stage zoom, no marker box} -match approxEqual\
-        -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1} -zoommarkboxopts {-fill {} -outline {}}]
+test graphtoolbar.41.1 {single-stage zoom, no marker box} -match approxEqual -constraints {isInteractive isZoom}\
+        -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark -zoomboxopts {-linewidth 1}\
+                        -zoommarkboxopts {-fill {} -outline {}}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom, no marker box} {*}$titleFont
     $widget graph element create line1 -xdata xVec1 -ydata yVec1
@@ -1327,10 +1311,9 @@ test graphtoolbar.41.1 {single-stage zoom, no marker box} -match approxEqual\
     destroy $widget
 }
 
-test graphtoolbar.42.1 {single-stage zoom with multiple axes} -match approxEqual\
-        -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1}]
+test graphtoolbar.42.1 {single-stage zoom with multiple axes} -match approxEqual -constraints {isInteractive isZoom}\
+        -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom with multiple axes} {*}$titleFont
     $widget graph axis create y3
@@ -1371,8 +1354,7 @@ test graphtoolbar.42.1 {single-stage zoom with multiple axes} -match approxEqual
 
 test graphtoolbar.43.1 {single-stage zoom with inverted axes} -match approxEqual\
         -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark\
-                        -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -zoomtitle -zoommark -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {single-stage zoom with inverted axes} {*}$titleFont
     $widget graph configure -invertxy true
@@ -1488,8 +1470,7 @@ test graphtoolbar.46.1 {wheel zoom includes hidden used axes but not unused axes
 }
 
 test graphtoolbar.47.1 {wheel zoom with logarithmic axes in plot area} -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
-                        -zoomwheelscale 2.0]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom with logarithmic axes in plot area} {*}$titleFont
     $widget graph axis configure x -logscale yes -min 0.1 -max 10
@@ -1501,8 +1482,7 @@ test graphtoolbar.47.1 {wheel zoom with logarithmic axes in plot area} -constrai
     lassign [$graph extents plotarea] left top width height
     set x [expr {$left+$width/4}]
     set y [expr {$top+$height*3/4}]
-    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $x]\
-                       {*}[ExpectedWheelLimits $graph y 0.5 $y]]
+    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $x] {*}[ExpectedWheelLimits $graph y 0.5 $y]]
     GenerateGraphWheelEvent $graph $x $y 120 20
     sleep $defaultDelay
     set actual [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
@@ -1513,8 +1493,7 @@ test graphtoolbar.47.1 {wheel zoom with logarithmic axes in plot area} -constrai
 
 test graphtoolbar.48.1 {wheel over logarithmic axis scales around logarithmic center}\
         -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
-                        -zoomwheelscale 2.0]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel over logarithmic axis scales around logarithmic center} {*}$titleFont
     $widget graph axis configure x -logscale yes -min 0.1 -max 1000
@@ -1536,8 +1515,7 @@ test graphtoolbar.48.1 {wheel over logarithmic axis scales around logarithmic ce
 }
 
 test graphtoolbar.49.1 {wheel zoom with inverted axes} -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
-                        -zoomwheelscale 2.0]
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {wheel zoom with inverted axes} -invertxy yes {*}$titleFont
     $widget graph axis configure x -min 0 -max 10
@@ -1560,10 +1538,9 @@ test graphtoolbar.49.1 {wheel zoom with inverted axes} -constraints {isInteracti
     destroy $widget
 }
 
-test graphtoolbar.50.1 {each wheel zoom step is reversible with right-click pop}\
-        -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {}\
-                        -zoomwheelscale 2.0]
+test graphtoolbar.50.1 {each wheel zoom step is reversible with right-click pop} -constraints {isInteractive isZoom}\
+        -setup {
+    set widget [graphtoolbar .gtb {*}$winSize -zoom -zoomwheel -zoomwheelmod {} -zoomwheelscale 2.0]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {each wheel zoom step is reversible with right-click pop} {*}$titleFont
     $widget graph axis configure x -min 0 -max 10
@@ -1629,12 +1606,12 @@ test graphtoolbar.51.1 {wheel zoom scales element-mapped axis not installed in a
     set expectedTime1 [ExpectedWheelLimits $graph time1 0.5 $yPixel]
     set unusedBefore [$graph axis limits unusedY]
     GenerateGraphWheelEvent $graph $x $yPixel 120 20
-    set zoomed [list [$graph axis limits x] [$graph axis limits y] [$graph axis limits time1] [$graph axis limits\
-                                                                                                       unusedY]]
+    set zoomed [list [$graph axis limits x] [$graph axis limits y] [$graph axis limits time1]\
+                        [$graph axis limits unusedY]]
     set expected [list $expectedX $expectedY $expectedTime1 $unusedBefore]
-    set actual [list [expr {"time1" in $marginAxes}] [expr {"y" ni $marginAxes}]\
-            [expr {[$graph element cget line1 -mapy] eq "y"}]\
-                        [expr {[$graph element cget line2 -mapy] eq "time1"}] [expr {"unusedY" ni $marginAxes}] $zoomed]
+    set actual [list [expr {{time1} in $marginAxes}] [expr {{y} ni $marginAxes}]\
+                        [expr {[$graph element cget line1 -mapy] eq {y}}]\
+                        [expr {[$graph element cget line2 -mapy] eq {time1}}] [expr {{unusedY} ni $marginAxes}] $zoomed]
     set expected [list 1 1 1 1 1 $expected]
     approxNestedEqual $actual $expected
 } -result true -cleanup {
@@ -1643,8 +1620,8 @@ test graphtoolbar.51.1 {wheel zoom scales element-mapped axis not installed in a
 
 test graphtoolbar.52.1 {polar zoom box preserves plot aspect and clamps the second corner}\
         -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-}\
-                        -zoommark -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-} -zoommark\
+                        -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {polar zoom box preserves plot aspect and clamps the second corner} {*}$titleFont
     $widget graph axis configure x -min -5 -max 5
@@ -1687,8 +1664,8 @@ test graphtoolbar.52.1 {polar zoom box preserves plot aspect and clamps the seco
 
 test graphtoolbar.53.1 {polar zoom box scales hidden grid axes and multiple visible axes}\
         -constraints {isInteractive isZoom} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-}\
-                        -zoommark -zoomboxopts {-linewidth 1}]
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -zoom -zoommod {Any-} -zoommark\
+                        -zoomboxopts {-linewidth 1}]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {polar zoom box scales hidden grid axes and multiple visible axes} {*}$titleFont
     $widget graph axis configure x -min -4 -max 4 -hide yes
@@ -1962,8 +1939,7 @@ foreach {variant inverted logarithmic} {normal 0 0 inverted 1 0 logarithmic 0 1}
 foreach device {mouse touchpad} {
     foreach selectedAxis {x y} {
         foreach action {retain expire motion-return leave click} {
-            test graphtoolbar.59.[incr testCase(59)]\
-                    "axis scroll retention: $device, $selectedAxis, $action"\
+            test graphtoolbar.59.[incr testCase(59)] "axis scroll retention: $device, $selectedAxis, $action"\
                     -constraints {isInteractive isZoom} -setup {
                 set widget [graphtoolbar .gtb -width 600 -height 450 -zoom -zoomwheel -zoomwheelmod {}\
                                     -zoomwheelscale 4.0]
@@ -2080,7 +2056,7 @@ foreach device {mouse touchpad} {
 
 #### pan
 foreach inverted {no yes} {
-    test graphtoolbar.60.[incr testCase(60)] {stale motion does not reverse a pan; release removes its tag} \
+    test graphtoolbar.60.[incr testCase(60)] {stale motion does not reverse a pan; release removes its tag}\
             -constraints {isInteractive isPan} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -zoom -pan]
         pack .gtb -fill both -expand yes
@@ -2102,19 +2078,19 @@ foreach inverted {no yes} {
         PlaceGraphPointer $graph $ax $ay
         GenerateGraphEvent $graph <Shift-ButtonPress-1> $ax $ay 20
         PlaceGraphPointer $graph $bx $by
-        set before [list [$graph axis cget x -min] [$graph axis cget x -max] \
-                         [$graph axis cget y -min] [$graph axis cget y -max]]
+        set before [list [$graph axis cget x -min] [$graph axis cget x -max] [$graph axis cget y -min]\
+                            [$graph axis cget y -max]]
         # Deliberately do not warp: these event coordinates are obsolete.
         foreach x [list $ax [expr {$ax+5}] $ax] {
             event generate $graph <Motion> -x $x -y $ay
             update
         }
-        set after [list [$graph axis cget x -min] [$graph axis cget x -max] \
-                        [$graph axis cget y -min] [$graph axis cget y -max]]
+        set after [list [$graph axis cget x -min] [$graph axis cget x -max] [$graph axis cget y -min]\
+                           [$graph axis cget y -max]]
         GenerateGraphEvent $graph <ButtonRelease-1> $cx $cy 20
         set final [list {*}[$graph axis limits x] {*}[$graph axis limits y]]
-        list [approxNestedEqual $before $after] [approxNestedEqual $final $expected] \
-            [expr {"gtb-pan-region-$graph" ni [bindtags $graph]}]
+        list [approxNestedEqual $before $after] [approxNestedEqual $final $expected]\
+                [expr {"gtb-pan-region-$graph" ni [bindtags $graph]}]
     } -cleanup {
         destroy $widget
     } -result {true true 1}
@@ -2590,7 +2566,6 @@ test graphtoolbar.74.1 {pan uses common scroll constraint for mapped axes} -cons
     GenerateGraphEvent $graph <ButtonRelease-1> $bx $ay $defaultDelay
     set primary [$graph axis limits x]
     set alternate [$graph axis limits xAlt]
-
     list [approxNestedEqual $primary {3.5 7.5}] [approxNestedEqual $alternate {35 75}]\
             [expr {abs(([lindex $primary 1]-[lindex $primary 0])-4.0) < 1.0e-9 }]\
             [expr {abs(([lindex $alternate 1]-[lindex $alternate 0])-40.0) < 1.0e-9}]
@@ -3709,8 +3684,7 @@ test graphtoolbar.105.1 {smith closest marker supports every available coordinat
 
 test graphtoolbar.106.1 {closest coordinate selector chooses valid default when polar changes to smith}\
         -constraints {isInteractive isCrosshairs} -setup {
-    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
-                        -crosshairsmode closest]
+    set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs -crosshairsmode closest]
     pack .gtb -fill both -expand yes
     $widget graph configure -title {closest coordinate selector after representation change} {*}$titleFont
     set graph [$widget subwidget graph]
@@ -3721,8 +3695,8 @@ test graphtoolbar.106.1 {closest coordinate selector chooses valid default when 
     $graph configure -representation smith
     $graph grid configure -smithgrid admittance
     uplevel #0 [$menu cget -postcommand]
-    list [$widget configure -coordclosestmark] [set [$menu entrycget 0 -variable]] \
-        [expr {[$menu index {Normalized admittance}] ne {none}}]
+    list [$widget configure -coordclosestmark] [set [$menu entrycget 0 -variable]]\
+            [expr {[$menu index {Normalized admittance}] ne {none}}]
 } -result {normalizedadmittance {Normalized admittance} 1} -cleanup {
     destroy $widget
 }
@@ -4179,8 +4153,8 @@ test graphtoolbar.120.1 {closest marker omits unavailable parameter mapping}\
     destroy $widget
 }
 
-test graphtoolbar.121.1 {smith closest marker displays parameter mapping} \
-        -constraints {isInteractive isCrosshairs} -setup {
+test graphtoolbar.121.1 {smith closest marker displays parameter mapping} -constraints {isInteractive isCrosshairs}\
+        -setup {
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -crosshairs -crosshairsmode closest\
                         -coordclosestmark gamma -crosshairsclosestopts {-interpolate no -halo 10 -single yes}\
                         -crosshairsmarkopts {-formatx .3g -formaty .3g -formatparam .3e}]
@@ -4328,7 +4302,7 @@ foreach invert {0 1} {
     } -result {1 1 1 1 1 1 1}
 }
 
-test graphtoolbar.124.1 {closest annotation refreshes with fixed axes and preserves hidden hairs} \
+test graphtoolbar.124.1 {closest annotation refreshes with fixed axes and preserves hidden hairs}\
         -constraints {isInteractive isCrosshairs} -setup {
     set savedPointer [winfo pointerxy .]
     set motionTag GtbStreamingMotionObserver
@@ -4336,7 +4310,6 @@ test graphtoolbar.124.1 {closest annotation refreshes with fixed axes and preser
     rbc::vector create ::gtbStreamingX ::gtbStreamingY
     ::gtbStreamingX set {0 5 10}
     ::gtbStreamingY set {2 2 2}
-
     set widget [graphtoolbar .gtb {*}$winSize -type stripchart -controlmode contextmenu -crosshairs\
                         -crosshairsmode closest -crosshairsclosestopts {-interpolate no -halo 10000 -single yes\
                                                                                  -hide yes}]
@@ -5025,7 +4998,7 @@ test graphtoolbar.140.1 {zoom B motion passes through plotarea legend without ac
     destroy $widget
 } -result {1 true 0}
 
-test graphtoolbar.141.1 {releasing zoom drag on plotarea legend completes zoom without toggling legend} \
+test graphtoolbar.141.1 {releasing zoom drag on plotarea legend completes zoom without toggling legend}\
         -constraints {isInteractive isCross} -setup {
     set widget [graphtoolbar .gtb {*}$winSize -zoom -zoommod {Any-} -activelegend -zoommark -zoomboxopts\
                         {-linewidth 1}]
@@ -5426,7 +5399,7 @@ foreach {mode expected} {
     show-hide {{0 0 flat} {0 1 sunken} {0 0 flat} {0 1 sunken} {0 0 flat}}
     show-active {{0 0 flat} {1 0 raised} {0 0 flat} {1 0 raised} {0 0 flat}}
 } {
-    test graphtoolbar.151.[incr testCase(151)] {two-state legend repeats without entering omitted state} \
+    test graphtoolbar.151.[incr testCase(151)] {two-state legend repeats without entering omitted state}\
             -constraints {isInteractive isActiveLegend} -setup {
         set widget [graphtoolbar .gtb {*}$winSize -activelegend -activelegendmode $mode -controlmode both]
         pack $widget -fill both -expand yes
@@ -5724,8 +5697,8 @@ foreach type {graph stripchart polar barchart} {
     } -body {
         set text [namespace eval $objectNs [list my ClosestMarkerText Signal 1 2 $options $metadata]]
         set suffix "\nx error=±0.25\ny bounds=\[1.5, 2.8\]"
-        set bare [namespace eval $objectNs [list my ClosestMarkerText Signal 1 2 $options \
-                                              [dict remove $metadata xerror ylow yhigh]]]
+        set bare [namespace eval $objectNs [list my ClosestMarkerText Signal 1 2 $options\
+                                                    [dict remove $metadata xerror ylow yhigh]]]
         expr {$text eq "${bare}${suffix}"}
     } -cleanup {destroy $widget} -result 1
 }
@@ -6041,8 +6014,7 @@ test graphtoolbar.175.1 {track XOR zoom outlines use the clipped redraw path}\
     update
     set count [llength [$graph marker names gtbZoom*]]
     GenerateGraphEvent $graph <ButtonRelease-1> $bx $by 0
-    list [dict get [$widget configure -zoomboxopts] -xor] [expr {$count>0}] \
-        [llength [$graph marker names gtbZoom*]]
+    list [dict get [$widget configure -zoomboxopts] -xor] [expr {$count>0}] [llength [$graph marker names gtbZoom*]]
 } -cleanup {destroy $widget} -result {yes 1 0}
 
 foreach descending {0 1} {
@@ -6252,22 +6224,21 @@ test graphtoolbar.186.1 {coordinate markers do not cover local legend controls}\
 } -cleanup {destroy $widget} -result 0
 
 
-test graphtoolbar.187.1 {wheel selects a column and scales shared vertical X axes} \
+test graphtoolbar.187.1 {wheel selects a column and scales shared vertical X axes}\
         -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar] widget graph objectNs
     $graph configure -invertxy yes
     update
 } -body {
     lassign [TrackToolbarPoint $graph lower] x y
-    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $y] \
-        {*}[ExpectedWheelLimits $graph samples 0.5 $y] {*}[ExpectedWheelLimits $graph amps 0.5 $x]]
+    set expected [list {*}[ExpectedWheelLimits $graph x 0.5 $y] {*}[ExpectedWheelLimits $graph samples 0.5 $y]\
+                          {*}[ExpectedWheelLimits $graph amps 0.5 $x]]
     GenerateGraphWheelEvent $graph $x $y 120 0
-    list [approxNestedEqual [list {*}[$graph axis limits x] {*}[$graph axis limits samples] \
-        {*}[$graph axis limits amps]] $expected] [$graph axis limits volts]
+    list [approxNestedEqual [list {*}[$graph axis limits x] {*}[$graph axis limits samples]\
+                                     {*}[$graph axis limits amps]] $expected] [$graph axis limits volts]
 } -cleanup {destroy $widget} -result {true {-1.0 1.0}}
 
-test graphtoolbar.188.1 {box zoom clamps to the starting column} \
-        -constraints {isInteractive isZoom} -setup {
+test graphtoolbar.188.1 {box zoom clamps to the starting column} -constraints {isInteractive isZoom} -setup {
     lassign [SetupTrackToolbar -zoommark] widget graph objectNs
     $graph configure -invertxy yes
     update
@@ -6275,20 +6246,21 @@ test graphtoolbar.188.1 {box zoom clamps to the starting column} \
     lassign [TrackToolbarPoint $graph upper 0.2 0.2] ax ay
     lassign [TrackToolbarPoint $graph lower 0.8 0.8] bx by
     lassign [$graph track bbox upper] left top right bottom
-    set expected [list {*}[lsort -real [list [$graph axis invtransform x $ay] [$graph axis invtransform x $by]]] \
-        {*}[lsort -real [list [$graph axis invtransform volts $ax] [$graph axis invtransform volts $right]]]]
+    set expected [list {*}[lsort -real [list [$graph axis invtransform x $ay] [$graph axis invtransform x $by]]]\
+                          {*}[lsort -real [list [$graph axis invtransform volts $ax]\
+                                                   [$graph axis invtransform volts $right]]]]
     GenerateGraphEvent $graph <ButtonPress-1> $ax $ay 0
     GenerateGraphEvent $graph <Motion> $bx $by 0
     set owners {}
     foreach marker [$graph marker names gtbZoom*] {lappend owners [$graph marker cget $marker -track]}
     GenerateGraphEvent $graph <ButtonRelease-1> $bx $by 0
-    list [expr {[llength $owners]>=4 && [lsort -unique $owners] eq {upper}}] \
-        [approxNestedEqual [list {*}[$graph axis limits x] {*}[$graph axis limits volts]] $expected] \
-        [$graph axis limits amps]
+    list [expr {[llength $owners]>=4 && [lsort -unique $owners] eq {upper}}]\
+            [approxNestedEqual [list {*}[$graph axis limits x] {*}[$graph axis limits volts]] $expected]\
+            [$graph axis limits amps]
 } -cleanup {destroy $widget} -result {1 true {-10.0 10.0}}
 
 foreach mode {current closest} {
-    test graphtoolbar.189.[incr testCase(189)] {coordinate annotations use the pointed column} \
+    test graphtoolbar.189.[incr testCase(189)] {coordinate annotations use the pointed column}\
             -constraints {isInteractive isCrosshairs} -setup {
         lassign [SetupTrackToolbar -crosshairsmode $mode] widget graph objectNs
         $graph configure -invertxy yes

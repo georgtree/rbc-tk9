@@ -28,14 +28,15 @@ namespace eval trackgraph.grid {
         .tg track grid voltage configure
         .tg track grid voltage configure -color
         .tg grid configure -color purple -mapx {} -minor no
-        lappend result [.tg track grid voltage cget -color] [.tg track grid current cget -mapx] \
-            [.tg track grid voltage cget -minor]
+        lappend result [.tg track grid voltage cget -color] [.tg track grid current cget -mapx]\
+                [.tg track grid voltage cget -minor]
         .tg grid configure -mapy {}
         lappend result [.tg track grid voltage cget -mapy]
         set result
     } -cleanup {destroy .tg} -result {volts amps purple {} 0 {}}
 
-    test trackgraph.grid.2.1 {first mutation copies current defaults and further global changes remain independent} -setup {
+    test trackgraph.grid.2.1 {first mutation copies current defaults and further global changes remain independent}\
+            -setup {
         Create
         .tg axis create samples -min 0 -max 100 -loose no
         .tg x2axis use samples
@@ -43,21 +44,22 @@ namespace eval trackgraph.grid {
     } -body {
         .tg track grid voltage configure -mapx samples -hide no
         .tg grid configure -color orange -linewidth 4 -hide yes
-        list [.tg track grid voltage cget -mapx] [.tg track grid voltage cget -mapy] \
-            [.tg track grid voltage cget -color] [.tg track grid voltage cget -linewidth] \
-            [.tg track grid voltage cget -dashes] [.tg track grid voltage cget -minor] \
-            [.tg track grid voltage cget -hide] [.tg track grid current cget -color] [.tg grid cget -mapx]
+        list [.tg track grid voltage cget -mapx] [.tg track grid voltage cget -mapy]\
+                [.tg track grid voltage cget -color] [.tg track grid voltage cget -linewidth]\
+                [.tg track grid voltage cget -dashes] [.tg track grid voltage cget -minor]\
+                [.tg track grid voltage cget -hide] [.tg track grid current cget -color] [.tg grid cget -mapx]
     } -cleanup {destroy .tg} -result {samples volts purple 2 {3 2} 0 0 orange x}
 
     foreach local {0 1} {
-        test trackgraph.grid.3.[incr testCase(3)] {bad options and foreign axes roll back without freezing inherited state} -setup {
+        test trackgraph.grid.3.[incr testCase(3)]\
+                {bad options and foreign axes roll back without freezing inherited state} -setup {
             Create
             if {$local} {.tg track grid voltage configure -color green}
         } -body {
             set before [.tg track grid voltage configure]
             set result {}
-            foreach options {{-color red -mapy amps} {-color red -mapx volts} {-linewidth -1} \
-                    {-dashes {-1}} {-color red -mapy nonexistent} {-color red -unknown no} {-color red -minor}} {
+            foreach options {{-color red -mapy amps} {-color red -mapx volts} {-linewidth -1} {-dashes {-1}}\
+                                     {-color red -mapy nonexistent} {-color red -unknown no} {-color red -minor}} {
                 lappend result [catch {.tg track grid voltage configure {*}$options}]
                 lappend result [expr {$before eq [.tg track grid voltage configure]}]
             }
@@ -90,9 +92,9 @@ namespace eval trackgraph.grid {
         Create
         .tg track create empty
     } -body {
-        set result [list [.tg track grid empty cget -mapy] \
-            [catch {.tg track grid missing cget -hide}] [catch {.tg track grid empty bogus}] \
-            [catch {.tg track grid empty}] [catch {.tg track grid empty on extra}]]
+        set result [list [.tg track grid empty cget -mapy] [catch {.tg track grid missing cget -hide}]\
+                            [catch {.tg track grid empty bogus}] [catch {.tg track grid empty}]\
+                            [catch {.tg track grid empty on extra}]]
         .tg grid configure -color purple
         lappend result [.tg track grid empty cget -color]
         .tg track grid empty on
@@ -106,7 +108,8 @@ namespace eval trackgraph.grid {
 
     foreach inverted {0 1} {
         foreach renderer {native cairo} {
-            test trackgraph.grid.6.[incr testCase(6)] {selected axes draw only in their own tracks across layout and range changes} \
+            test trackgraph.grid.6.[incr testCase(6)]\
+                    {selected axes draw only in their own tracks across layout and range changes}\
                     -constraints trackRenderer$renderer -setup {
                 GridSetup $inverted $renderer
                 set photo [image create photo]
@@ -116,7 +119,9 @@ namespace eval trackgraph.grid {
                     switch $step {
                         reorder {.tg track order {current voltage}}
                         resize {.tg configure -width 760 -height 560; .tg track configure voltage -weight 1}
-                        logarithmic {.tg axis configure samples -min 1 -max 100 -logscale yes -descending yes -majorticks {}}
+                        logarithmic\
+                                {.tg axis configure samples -min 1 -max 100 -logscale yes -descending yes\
+                                         -majorticks {}}
                     }
                     update
                     .tg snap $photo
@@ -137,11 +142,15 @@ namespace eval trackgraph.grid {
                 lassign [.tg track transform voltage 40 75 -mapx samples -mapy alternate] x y
                 lappend result [expr {![GridPixel $photo $x $y {255 0 255}]}]
                 set result
-            } -cleanup {image delete $photo; destroy .tg} -result {1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1}
+            } -cleanup {
+                image delete $photo
+                destroy .tg
+            } -result {1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1}
         }
 
         foreach format {svg pdf postscript} {
-            test trackgraph.grid.7.[incr testCase(7)] {local grids export independently of global visibility and restore screen geometry} -setup {
+            test trackgraph.grid.7.[incr testCase(7)]\
+                    {local grids export independently of global visibility and restore screen geometry} -setup {
                 GridSetup $inverted native
             } -body {
                 set before [.tg track transform voltage 40 25 -mapx samples -mapy alternate]
@@ -155,21 +164,21 @@ namespace eval trackgraph.grid {
                 .tg track grid voltage off
                 set hidden [.tg $format output]
                 # PostScript records wall-clock time even when the drawing is identical.
-                if {$format eq "postscript"} {
+                if {$format eq {postscript}} {
                     foreach document {original enlarged restored hidden} {
                         regsub -line {^%%CreationDate:.*$} [set $document] {%%CreationDate: ignored} $document
                     }
                 }
-                list [expr {$original ne $enlarged}] [expr {$original eq $restored}] \
-                    [expr {$original ne $hidden}] \
-                    [expr {$before eq [.tg track transform voltage 40 25 -mapx samples -mapy alternate]}]
+                list [expr {$original ne $enlarged}] [expr {$original eq $restored}] [expr {$original ne $hidden}]\
+                        [expr {$before eq [.tg track transform voltage 40 25 -mapx samples -mapy alternate]}]
             } -cleanup {destroy .tg} -result {1 1 1 1}
         }
     }
 
     foreach inverted {0 1} {
         foreach renderer {native cairo} {
-            test trackgraph.grid.8.[incr testCase(8)] {minor tick selection is local and inherited tracks still follow the graph grid} \
+            test trackgraph.grid.8.[incr testCase(8)]\
+                    {minor tick selection is local and inherited tracks still follow the graph grid}\
                     -constraints trackRenderer$renderer -setup {
                 GridSetup $inverted $renderer
                 .tg axis configure x -minorticks {0.5}
@@ -196,7 +205,8 @@ namespace eval trackgraph.grid {
                 set result
             } -cleanup {image delete $photo; destroy .tg} -result {1 1 1}
 
-            test trackgraph.grid.9.[incr testCase(9)] {wide boundary grid strokes never escape their owning plot rectangle} \
+            test trackgraph.grid.9.[incr testCase(9)]\
+                    {wide boundary grid strokes never escape their owning plot rectangle}\
                     -constraints trackRenderer$renderer -setup {
                 GridSetup $inverted $renderer
                 .tg axis configure samples -majorticks {0 100}
@@ -214,12 +224,17 @@ namespace eval trackgraph.grid {
                         lassign [$photo get $x $y] red green blue
                         if {$red>200 && $green<100 && $blue>200} {
                             incr count
-                            if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                            if {$x<$l || $x>$r || $y<$t || $y>$b} {
+                                set valid 0
+                            }
                         }
                     }
                 }
                 list $valid [expr {$count>0}]
-            } -cleanup {image delete $photo; destroy .tg} -result {1 1}
+            } -cleanup {
+                image delete $photo
+                destroy .tg
+            } -result {1 1}
         }
     }
     test trackgraph.grid.10.1 {option-name objects survive repeated inherited and local grid lifetimes} -body {
@@ -243,10 +258,8 @@ namespace eval trackgraph.grid {
     } -body {
         .tg track grid $name configure -color purple
         set code [catch {.tg track grid $name cget} message options]
-        list [.tg track grid $name cget -color] $code \
-                [dict get $options -errorcode] \
-                [expr {[string first [list track grid $name] $message] >= 0}] \
-                [.tg track exists $name]
+        list [.tg track grid $name cget -color] $code [dict get $options -errorcode]\
+                [expr {[string first [list track grid $name] $message] >= 0}] [.tg track exists $name]
     } -cleanup {destroy .tg; unset name} -result {purple 1 {TCL WRONGARGS} 1 1}
 
     cleanupTests

@@ -25,7 +25,8 @@ namespace eval trackgraph.marker {
         foreach renderer {native cairo} {
             foreach under {0 1} {
                 foreach {kind coords} {line {5 -100 5 100} polygon {3 -100 7 -100 7 100 3 100} arc {3 -100 7 100}} {
-                    test trackgraph.marker.xor.1.[incr testCase(1)] {XOR drawing is clipped and redraws without cumulative toggling} \
+                    test trackgraph.marker.xor.1.[incr testCase(1)]\
+                            {XOR drawing is clipped and redraws without cumulative toggling}\
                             -constraints trackRenderer$renderer -setup {
                         MarkerSetup
                         .tg configure -invertxy $inverted -renderer $renderer
@@ -33,7 +34,8 @@ namespace eval trackgraph.marker {
                         .tg snap $photo
                         set baseline [$photo data]
                     } -body {
-                        .tg marker create $kind -name xor -track voltage -mapy volts -coords $coords -xor yes -outline red -linewidth 3 -under $under
+                        .tg marker create $kind -name xor -track voltage -mapy volts -coords $coords -xor yes\
+                                -outline red -linewidth 3 -under $under
                         update
                         .tg snap $photo
                         set first [$photo data]
@@ -44,7 +46,8 @@ namespace eval trackgraph.marker {
                         .tg marker configure xor -hide yes
                         update
                         .tg snap $photo
-                        lappend result [expr {$baseline eq [$photo data]}] [expr {$other eq [$photo data -from $l $t $r $b]}]
+                        lappend result [expr {$baseline eq [$photo data]}]\
+                                [expr {$other eq [$photo data -from $l $t $r $b]}]
                         .tg marker configure xor -hide no
                         .tg track order {current voltage}
                         .tg track configure voltage -weight 3
@@ -56,7 +59,8 @@ namespace eval trackgraph.marker {
                         update
                         .tg snap $photo
                         set clean [$photo data]
-                        .tg marker create $kind -name xor -track voltage -mapy volts -coords $coords -xor yes -outline red -linewidth 3 -under $under
+                        .tg marker create $kind -name xor -track voltage -mapy volts -coords $coords -xor yes\
+                                -outline red -linewidth 3 -under $under
                         update
                         .tg snap $photo
                         lappend result [expr {$moved eq [$photo data]}] [expr {$clean ne $moved}]
@@ -66,7 +70,10 @@ namespace eval trackgraph.marker {
                         .tg snap $photo
                         lappend result [expr {$clean eq [$photo data]}]
                         set result
-                    } -cleanup {image delete $photo; destroy .tg} -result {1 1 1 1 1 1 1}
+                    } -cleanup {
+                        image delete $photo
+                        destroy .tg
+                    } -result {1 1 1 1 1 1 1}
                 }
             }
         }

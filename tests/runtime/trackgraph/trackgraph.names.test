@@ -23,9 +23,8 @@ namespace eval trackgraph.names {
         .tg track create Voltage2
         .tg track order {current Voltage2 voltage}
     } -body {
-        list [.tg track names] [.tg track names v* *age] [.tg track names V* current] \
-            [.tg track names missing*] [.tg track exists voltage] [.tg track exists v*] \
-            [.tg track exists missing]
+        list [.tg track names] [.tg track names v* *age] [.tg track names V* current] [.tg track names missing*]\
+                [.tg track exists voltage] [.tg track exists v*] [.tg track exists missing]
     } -cleanup {destroy .tg} -result {{current Voltage2 voltage} voltage {current Voltage2} {} 1 0 0}
     cleanupTests
 }

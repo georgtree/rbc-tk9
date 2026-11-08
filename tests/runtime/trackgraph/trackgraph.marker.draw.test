@@ -30,16 +30,16 @@ namespace eval trackgraph.marker {
                 update
             } -body {
                 lassign [.tg track transform voltage 5 10] px py
-                .tg marker find overlapping [expr {int($px)-2}] [expr {int($py)-2}] \
-                    [expr {int($px)+2}] [expr {int($py)+2}]
+                .tg marker find overlapping [expr {int($px)-2}] [expr {int($py)-2}] [expr {int($px)+2}]\
+                        [expr {int($py)+2}]
             } -cleanup {destroy .tg} -result m
         }
     }
 
     test trackgraph.marker.draw.2.1 {find and current marker ignore clipped overhangs in track gaps} -setup {
         MarkerSetup
-        .tg marker create text -name m -track voltage -mapy volts -coords {5 -1} \
-            -text XXXXX -font {Helvetica 40} -anchor center -background red
+        .tg marker create text -name m -track voltage -mapy volts -coords {5 -1} -text XXXXX -font {Helvetica 40}\
+                -anchor center -background red
         update
     } -body {
         lassign [.tg track transform voltage 5 -1] x y
@@ -49,8 +49,8 @@ namespace eval trackgraph.marker {
         set result [list [.tg marker get current]]
         event generate .tg <Motion> -x $x -y [expr {$y+5}]
         update
-        lappend result [.tg marker get current] \
-            [.tg marker find overlapping [expr {$x-2}] [expr {$y+2}] [expr {$x+2}] [expr {$y+8}]]
+        lappend result [.tg marker get current]\
+                [.tg marker find overlapping [expr {$x-2}] [expr {$y+2}] [expr {$x+2}] [expr {$y+8}]]
         set result
     } -cleanup {destroy .tg} -result {m {} {}}
 
@@ -83,12 +83,17 @@ namespace eval trackgraph.marker {
                             lassign [$photo get $x $y] red green blue
                             if {$red>180 && $green<80 && $blue<80} {
                                 incr count
-                                if {$y < $t || $y > $b || $x < $l || $x > $r} {incr outside}
+                                if {$y < $t || $y > $b || $x < $l || $x > $r} {
+                                    incr outside
+                                }
                             }
                         }
                     }
                     list [expr {$count>0}] $outside
-                } -cleanup {image delete $photo trackMarkerPhoto; destroy .tg} -result {1 0}
+                } -cleanup {
+                    image delete $photo trackMarkerPhoto
+                    destroy .tg
+                } -result {1 0}
             }
         }
     }
@@ -98,8 +103,8 @@ namespace eval trackgraph.marker {
             test trackgraph.marker.draw.4.[incr testCase(4)] {under/over markers redraw without stale pixels} -setup {
                 MarkerSetup
                 .tg configure -bufferelements $buffered -plotbackground white
-                .tg marker create polygon -name m -track voltage -mapy volts -under $under \
-                    -coords {4 -1 6 -1 6 1 4 1} -fill red -outline red
+                .tg marker create polygon -name m -track voltage -mapy volts -under $under -coords {4 -1 6 -1 6 1 4 1}\
+                        -fill red -outline red
                 set photo [image create photo]
             } -body {
                 set result {}
@@ -111,7 +116,10 @@ namespace eval trackgraph.marker {
                     lappend result [$photo get [expr {int($x)}] [expr {int($y)}]]
                 }
                 set result
-            } -cleanup {image delete $photo; destroy .tg} -result {{255 0 0} {255 255 255} {255 0 0}}
+            } -cleanup {
+                image delete $photo
+                destroy .tg
+            } -result {{255 0 0} {255 255 255} {255 0 0}}
         }
     }
 
@@ -124,7 +132,8 @@ namespace eval trackgraph.marker {
         lassign [.tg track bbox current] l t r b
         set result {}
         foreach y [list $t $b] {
-            lappend result [.tg marker find overlapping [expr {int($x)-1}] [expr {$y-1}] [expr {int($x)+1}] [expr {$y+1}]]
+            lappend result [.tg marker find overlapping [expr {int($x)-1}] [expr {$y-1}] [expr {int($x)+1}]\
+                                    [expr {$y+1}]]
         }
         set result
     } -cleanup {destroy .tg} -result {m m}
@@ -132,11 +141,11 @@ namespace eval trackgraph.marker {
     test trackgraph.marker.draw.6.1 {interleaved graph-wide markers retain painter order} -setup {
         MarkerSetup
         .tg axis configure y -min -1 -max 1 -loose no
-        .tg marker create polygon -name first -track voltage -mapy volts \
-            -coords {0 -Inf 10 -Inf 10 Inf 0 Inf} -fill red -outline red
+        .tg marker create polygon -name first -track voltage -mapy volts -coords {0 -Inf 10 -Inf 10 Inf 0 Inf}\
+                -fill red -outline red
         .tg marker create polygon -name global -coords {0 -Inf 10 -Inf 10 Inf 0 Inf} -fill blue -outline blue
-        .tg marker create polygon -name last -track voltage -mapy volts \
-            -coords {4 -1 6 -1 6 1 4 1} -fill green -outline green
+        .tg marker create polygon -name last -track voltage -mapy volts -coords {4 -1 6 -1 6 1 4 1} -fill green\
+                -outline green
         set photo [image create photo]
     } -body {
         update
@@ -147,21 +156,31 @@ namespace eval trackgraph.marker {
             lappend result [$photo get [expr {int($px)}] [expr {int($py)}]]
         }
         set result
-    } -cleanup {image delete $photo; destroy .tg} -result {{0 0 255} {0 128 0}}
+    } -cleanup {
+        image delete $photo
+        destroy .tg
+    } -result {{0 0 255} {0 128 0}}
 
     foreach format {svg postscript pdf} {
-        test trackgraph.marker.draw.7.[incr testCase(7)] {track marker exports establish a clip and restore screen geometry} -setup {
+        test trackgraph.marker.draw.7.[incr testCase(7)]\
+                {track marker exports establish a clip and restore screen geometry} -setup {
             MarkerSetup
-            .tg marker create text -name m -track voltage -mapy volts -coords {5 -1} \
-                -text TRACK_CLIP -font {Helvetica 40}
+            .tg marker create text -name m -track voltage -mapy volts -coords {5 -1} -text TRACK_CLIP\
+                    -font {Helvetica 40}
         } -body {
             update
             set before [.tg track bbox voltage]
             set output [.tg $format output]
             switch $format {
-                svg {set clip [regexp {clip-path="url\(#rbcClip[0-9]+\)"} $output]}
-                postscript {set clip [string match {*closepath clip newpath*} $output]}
-                pdf {set clip [regexp {q [0-9]+ [0-9]+ [0-9]+ [0-9]+ re W n} $output]}
+                svg {
+                    set clip [regexp {clip-path="url\(#rbcClip[0-9]+\)"} $output]
+                }
+                postscript {
+                    set clip [string match {*closepath clip newpath*} $output]
+                }
+                pdf {
+                    set clip [regexp {q [0-9]+ [0-9]+ [0-9]+ [0-9]+ re W n} $output]
+                }
             }
             .tg $format output -width 900 -height 700
             .tg $format configure -width 0 -height 0
@@ -172,14 +191,15 @@ namespace eval trackgraph.marker {
 
     foreach inverted {0 1} {
         foreach renderer {native cairo} {
-            test trackgraph.marker.draw.8.[incr testCase(8)] {partially scrolled markers follow full track transforms, not clipped bounds} \
+            test trackgraph.marker.draw.8.[incr testCase(8)]\
+                    {partially scrolled markers follow full track transforms, not clipped bounds}\
                     -constraints trackRenderer$renderer -setup {
                 ScrollSetup $inverted
                 .tg configure -renderer $renderer
                 .tg element delete v i
                 .tg grid off
-                .tg marker create line -name threshold -track voltage -mapy volts \
-                    -coords {-Inf 0 Inf 0} -outline #ff00ff -linewidth 3
+                .tg marker create line -name threshold -track voltage -mapy volts -coords {-Inf 0 Inf 0}\
+                        -outline #ff00ff -linewidth 3
                 set photo [image create photo]
             } -body {
                 set result {}
@@ -195,8 +215,9 @@ namespace eval trackgraph.marker {
                             .tg snap $photo
                             lassign [$photo get [expr {int(round($x))}] [expr {int(round($y))}]] red green blue
                             lappend result [expr {$red>200 && $green<80 && $blue>200}]
-                            lappend result [expr {[.tg marker find overlapping \
-                                [expr {int($x)-2}] [expr {int($y)-2}] [expr {int($x)+2}] [expr {int($y)+2}]] eq "threshold"}]
+                            lappend result\
+                                    [expr {[.tg marker find overlapping [expr {int($x)-2}] [expr {int($y)-2}]\
+                                                    [expr {int($x)+2}] [expr {int($y)+2}]] eq {threshold}}]
                         }
                     }
                 }

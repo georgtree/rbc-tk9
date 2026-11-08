@@ -31,13 +31,17 @@ namespace eval trackgraph.bind {
         set sequences [.tg track bind voltage]
         BackgroundMotion voltage
         .tg track bind voltage <Motion> {}
-        list [expr {[string first first $script]>=0 && [string first second $script]>=0}] \
-            [expr {"<Motion>" in $sequences}] $::trackHits [.tg track bind voltage] \
-            [catch {.tg track bind missing <Motion> {}}] [catch {.tg track get missing}]
-    } -cleanup {destroy .tg; unset ::trackHits} -result {1 1 {first second} {} 1 1}
+        list [expr {[string first first $script]>=0 && [string first second $script]>=0}]\
+                [expr {"<Motion>" in $sequences}] $::trackHits [.tg track bind voltage]\
+                [catch {.tg track bind missing <Motion> {}}] [catch {.tg track get missing}]
+    } -cleanup {
+        destroy .tg
+        unset ::trackHits
+    } -result {1 1 {first second} {} 1 1}
 
     foreach inverted {0 1} {
-        test trackgraph.bind.2.[incr testCase(2)] {name and all tags are isolated from other component bindings and current queries} -setup {
+        test trackgraph.bind.2.[incr testCase(2)]\
+                {name and all tags are isolated from other component bindings and current queries} -setup {
             BackgroundSetup $inverted
             set ::trackHits {}
             .tg track bind voltage <ButtonPress-3> {lappend ::trackHits [list %W [%W track get current] %x %y]}
@@ -49,11 +53,12 @@ namespace eval trackgraph.bind {
             event generate .tg <Motion> -x $x -y $y
             event generate .tg <ButtonPress-3> -x $x -y $y
             event generate .tg <ButtonRelease-3> -x $x -y $y
-            list [expr {$::trackHits eq [list [list .tg voltage $x $y] all]}] \
-                [.tg track get current] [.tg element get current] [.tg marker get current] [.tg axis get current]
+            list [expr {$::trackHits eq [list [list .tg voltage $x $y] all]}] [.tg track get current]\
+                    [.tg element get current] [.tg marker get current] [.tg axis get current]
         } -cleanup {destroy .tg; unset ::trackHits} -result {1 voltage {} {} {}}
 
-        test trackgraph.bind.3.[incr testCase(3)] {crossing backgrounds and separators produces Enter and Leave in order} -setup {
+        test trackgraph.bind.3.[incr testCase(3)]\
+                {crossing backgrounds and separators produces Enter and Leave in order} -setup {
             BackgroundSetup $inverted
             set ::trackHits {}
             .tg track bind all <Enter> {lappend ::trackHits enter [%W track get current]}
@@ -68,9 +73,13 @@ namespace eval trackgraph.bind {
             BackgroundMotion current
             event generate .tg <Leave> -x 0 -y 0
             list $gap [.tg track get current] $::trackHits
-        } -cleanup {destroy .tg; unset ::trackHits} -result {{} {} {enter voltage leave voltage enter current leave current}}
+        } -cleanup {
+            destroy .tg
+            unset ::trackHits
+        } -result {{} {} {enter voltage leave voltage enter current leave current}}
 
-        test trackgraph.bind.4.[incr testCase(4)] {stationary pointers are repicked when tracks scroll and exports do not repick} -setup {
+        test trackgraph.bind.4.[incr testCase(4)]\
+                {stationary pointers are repicked when tracks scroll and exports do not repick} -setup {
             ScrollSetup $inverted
             .tg element delete v i
             update
@@ -90,7 +99,10 @@ namespace eval trackgraph.bind {
             .tg track view moveto 0
             update idletasks
             list $current $unchanged [.tg track get current] $::trackHits
-        } -cleanup {destroy .tg; unset ::trackHits} -result {current 1 voltage {enter voltage leave voltage enter current leave current enter voltage}}
+        } -cleanup {
+            destroy .tg
+            unset ::trackHits
+        } -result {current 1 voltage {enter voltage leave voltage enter current leave current enter voltage}}
     }
 
     test trackgraph.bind.5.1 {a name binding may stop the track all tag} -setup {
@@ -101,7 +113,10 @@ namespace eval trackgraph.bind {
     } -body {
         BackgroundMotion voltage
         set ::trackHits
-    } -cleanup {destroy .tg; unset ::trackHits} -result name
+    } -cleanup {
+        destroy .tg
+        unset ::trackHits
+    } -result name
 
     test trackgraph.bind.6.1 {elements and markers take precedence over track backgrounds} -setup {
         Create
@@ -123,7 +138,10 @@ namespace eval trackgraph.bind {
             lappend ::trackHits [.tg track get current]
         }
         set ::trackHits
-    } -cleanup {destroy .tg; unset ::trackHits} -result {element {} marker {}}
+    } -cleanup {
+        destroy .tg
+        unset ::trackHits
+    } -result {element {} marker {}}
 
     test trackgraph.bind.7.1 {legend entries and padding are not track backgrounds} -setup {
         LocalLegendSetup
@@ -138,7 +156,10 @@ namespace eval trackgraph.bind {
         event generate .tg <Motion> -x $x -y $y
         lappend result [.tg track get current] $::trackHits
         set result
-    } -cleanup {destroy .tg; unset ::trackHits} -result {{} {} {}}
+    } -cleanup {
+        destroy .tg
+        unset ::trackHits
+    } -result {{} {} {}}
 
     test trackgraph.bind.8.1 {global legend padding also excludes track backgrounds} -setup {
         LocalLegendSetup
@@ -152,7 +173,10 @@ namespace eval trackgraph.bind {
         lassign [.tg extents legend] x y w h
         event generate .tg <Motion> -x $x -y $y
         list [.tg track get current] $::trackHits
-    } -cleanup {destroy .tg; unset ::trackHits} -result {{} {}}
+    } -cleanup {
+        destroy .tg
+        unset ::trackHits
+    } -result {{} {}}
 
     test trackgraph.bind.9.1 {reordering repicks a stationary pointer without a motion event} -setup {
         BackgroundSetup
@@ -169,7 +193,10 @@ namespace eval trackgraph.bind {
         # that can replace the synthetic position set by BackgroundMotion.
         update idletasks
         list [.tg track get current] $::trackHits
-    } -cleanup {destroy .tg; unset ::trackHits} -result {current {leave voltage enter current}}
+    } -cleanup {
+        destroy .tg
+        unset ::trackHits
+    } -result {current {leave voltage enter current}}
 
     test trackgraph.bind.10.1 {deleting the current track removes name bindings but retains the all tag} -setup {
         BackgroundSetup
@@ -185,7 +212,10 @@ namespace eval trackgraph.bind {
         set ::trackHits {}
         BackgroundMotion voltage
         list $current [.tg track bind voltage] $::trackHits
-    } -cleanup {destroy .tg; unset ::trackHits} -result {{} {} all}
+    } -cleanup {
+        destroy .tg
+        unset ::trackHits
+    } -result {{} {} all}
 
     test trackgraph.bind.11.1 {Leave may delete the destination before its Enter is dispatched} -setup {
         BackgroundSetup
@@ -196,7 +226,10 @@ namespace eval trackgraph.bind {
     } -body {
         BackgroundMotion current
         list [.tg track exists current] [.tg track get current] $::trackHits
-    } -cleanup {destroy .tg; unset ::trackHits} -result {0 {} {}}
+    } -cleanup {
+        destroy .tg
+        unset ::trackHits
+    } -result {0 {} {}}
 
     test trackgraph.bind.12.1 {Enter and scroll-triggered Leave may destroy the widget safely} -body {
         set result {}

@@ -26,7 +26,7 @@ namespace eval trackgraph.legend {
     } -body {
         set bounds [.tg track bbox voltage]
         set defaults [list [.tg track legend voltage cget -hide] [.tg track legend voltage cget -position]\
-                          [.tg track legend voltage cget -raised] [.tg track legend voltage bbox]]
+                              [.tg track legend voltage cget -raised] [.tg track legend voltage bbox]]
         .tg track legend voltage configure -hide no
         update
         list $defaults [expr {$bounds eq [.tg track bbox voltage]}] [.tg legend cget -hide]
@@ -61,7 +61,7 @@ namespace eval trackgraph.legend {
         } -body {
             set before [.tg track legend voltage configure]
             list [catch {.tg track legend voltage configure -foreground red -position $position}]\
-                [expr {$before eq [.tg track legend voltage configure]}] [winfo exists .external]
+                    [expr {$before eq [.tg track legend voltage configure]}] [winfo exists .external]
         } -cleanup {destroy .tg} -result {1 1 0}
     }
 
@@ -75,9 +75,8 @@ namespace eval trackgraph.legend {
         set reordered [.tg track legend voltage bbox]
         .tg track sashpos current [expr {[.tg track sashpos current]+15}]
         update
-        list [expr {[lindex $reordered 1]>[lindex $before 1]}]\
-            [expr {$reordered ne [.tg track legend voltage bbox]}]\
-            [.tg track legend voltage bind v <Enter>]
+        list [expr {[lindex $reordered 1]>[lindex $before 1]}] [expr {$reordered ne [.tg track legend voltage bbox]}]\
+                [.tg track legend voltage bind v <Enter>]
     } -cleanup {destroy .tg} -result {1 1 {set ::localEntered yes}}
 
     test trackgraph.legend.6.1 {bindings and current entries are scoped independently to each legend} -setup {
@@ -98,7 +97,10 @@ namespace eval trackgraph.legend {
             update
         }
         set ::localHits
-    } -cleanup {destroy .tg; unset ::localHits} -result {voltage v current i}
+    } -cleanup {
+        destroy .tg
+        unset ::localHits
+    } -result {voltage v current i}
 
     test trackgraph.legend.7.1 {global external legend does not steal local event routing} -setup {
         LocalLegendSetup
@@ -114,7 +116,11 @@ namespace eval trackgraph.legend {
         event generate .tg <ButtonRelease-1> -x $x -y $y
         update
         list $::localHits [winfo exists .outsideLegend] [.tg legend cget -position]
-    } -cleanup {destroy .tg; catch {destroy .outsideLegend}; unset ::localHits} -result {local 1 .outsideLegend}
+    } -cleanup {
+        destroy .tg
+        catch {destroy .outsideLegend}
+        unset ::localHits
+    } -result {local 1 .outsideLegend}
 
     test trackgraph.legend.8.1 {deleting the picked element and track inside a binding is safe} -setup {
         LocalLegendSetup
@@ -159,7 +165,8 @@ namespace eval trackgraph.legend {
 
     foreach inverted {0 1} {
         foreach renderer {native cairo} {
-            test trackgraph.legend.11.[incr testCase(11)] {oversized legend drawing and picking are clipped to the owning track}\
+            test trackgraph.legend.11.[incr testCase(11)]\
+                    {oversized legend drawing and picking are clipped to the owning track}\
                     -constraints trackRenderer$renderer -setup {
                 LocalLegendSetup
                 .tg configure -invertxy $inverted
@@ -179,16 +186,22 @@ namespace eval trackgraph.legend {
                         lassign [$photo get $x $y] red green blue
                         if {$green>240 && $red<15 && $blue<15} {
                             incr count
-                            if {$x<$left || $x>$right || $y<$top || $y>$bottom} {incr outside}
+                            if {$x<$left || $x>$right || $y<$top || $y>$bottom} {
+                                incr outside
+                            }
                         }
                     }
                 }
                 list [expr {$count>0}] $outside [.tg track legend voltage get @$left,[expr {$bottom+3}]]
-            } -cleanup {image delete $photo; destroy .tg} -result {1 0 {}}
+            } -cleanup {
+                image delete $photo
+                destroy .tg
+            } -result {1 0 {}}
         }
 
         foreach format {svg pdf postscript} {
-            test trackgraph.legend.12.[incr testCase(12)] {export remaps local legends and restores screen geometry} -setup {
+            test trackgraph.legend.12.[incr testCase(12)] {export remaps local legends and restores screen geometry}\
+                    -setup {
                 LocalLegendSetup
                 .tg configure -invertxy $inverted
             } -body {
@@ -199,7 +212,7 @@ namespace eval trackgraph.legend {
                 update
                 set restored [.tg $format output]
                 list [expr {$original ne $resized}] [expr {$original eq $restored}]\
-                    [expr {$before eq [.tg track legend current bbox]}]
+                        [expr {$before eq [.tg track legend current bbox]}]
             } -cleanup {destroy .tg} -result {1 1 1}
         }
     }
@@ -211,8 +224,8 @@ namespace eval trackgraph.legend {
         .tg track legend voltage configure -hide yes
         set one [.tg svg output]
         list [expr {[string first VoltageLegend $both]>=0 && [string first CurrentLegend $both]>=0}]\
-            [expr {[string first VoltageLegend $one]<0 && [string first CurrentLegend $one]>=0}]\
-            [expr {[string first {clip-path=} $both]>=0}]
+                [expr {[string first VoltageLegend $one]<0 && [string first CurrentLegend $one]>=0}]\
+                [expr {[string first {clip-path=} $both]>=0}]
     } -cleanup {destroy .tg} -result {1 1 1}
 
     test trackgraph.legend.14.1 {global/local legend overlap routes each click to only the top legend} -setup {
@@ -233,7 +246,10 @@ namespace eval trackgraph.legend {
             update
         }
         set ::localHits
-    } -cleanup {destroy .tg; unset ::localHits} -result {global local}
+    } -cleanup {
+        destroy .tg
+        unset ::localHits
+    } -result {global local}
 
     test trackgraph.legend.15.1 {local legend clicks do not also select underlying plotted elements} -setup {
         LocalLegendSetup
@@ -249,7 +265,10 @@ namespace eval trackgraph.legend {
         event generate .tg <ButtonRelease-1> -x $x -y $y
         update
         set ::localHits
-    } -cleanup {destroy .tg; unset ::localHits} -result legend
+    } -cleanup {
+        destroy .tg
+        unset ::localHits
+    } -result legend
 
     test trackgraph.legend.16.1 {local option-database tests do not clear the caller's renderer defaults} -setup {
         interp create trackOptionChild
@@ -266,9 +285,10 @@ namespace eval trackgraph.legend {
     } -body {
         interp eval trackOptionChild {
             list [.tg track legend voltage cget -foreground] [.tg track legend current cget -anchor]\
-                [.tg track legend voltage cget -hide] [.tg legend cget -anchor]
+                    [.tg track legend voltage cget -hide] [.tg legend cget -anchor]
         }
     } -cleanup {interp delete trackOptionChild} -result {purple sw 1 n}
+
     test trackgraph.legend.17.1 {failed local legend initialization permits recreating the track} -setup {
         interp create trackOptionChild
         interp eval trackOptionChild [list set auto_path $::auto_path]
@@ -297,8 +317,7 @@ namespace eval trackgraph.legend {
         LocalLegendSetup
     } -body {
         set bounds [.tg track legend voltage bbox]
-        list [expr {[llength $bounds] == 4}] \
-                [expr {$bounds eq [.tg track legend voltage bb]}] \
+        list [expr {[llength $bounds] == 4}] [expr {$bounds eq [.tg track legend voltage bb]}]\
                 [expr {$bounds eq [.tg track legend voltage bbo]}]
     } -cleanup {destroy .tg} -result {1 1 1}
 
@@ -314,8 +333,7 @@ namespace eval trackgraph.legend {
         set result {}
         foreach operation {bbox bb bbo} {
             set code [catch {.tg track legend voltage $operation extra} message options]
-            lappend result $code [dict get $options -errorcode] \
-                    [string match {wrong # args:*} $message]
+            lappend result $code [dict get $options -errorcode] [string match {wrong # args:*} $message]
         }
         set result
     } -cleanup {destroy .tg} -result {1 {TCL WRONGARGS} 1 1 {TCL WRONGARGS} 1 1 {TCL WRONGARGS} 1}
@@ -325,22 +343,23 @@ namespace eval trackgraph.legend {
     } -body {
         set code [catch {.tg track legend voltage b} message]
         list $code $message
-    } -cleanup {destroy .tg} -result {1 {ambiguous subcommand "b": must be activate, bbox, bind, cget, configure, deactivate, or get}}
+    } -cleanup {destroy .tg}\
+            -result {1 {ambiguous subcommand "b": must be activate, bbox, bind, cget, configure, deactivate, or get}}
 
     test trackgraph.legend.18.5 {unknown local operations list bbox with the shared operations} -setup {
         LocalLegendSetup
     } -body {
         set code [catch {.tg track legend voltage unknown} message]
         list $code $message
-    } -cleanup {destroy .tg} -result {1 {bad subcommand "unknown": must be activate, bbox, bind, cget, configure, deactivate, or get}}
+    } -cleanup {destroy .tg}\
+            -result {1 {bad subcommand "unknown": must be activate, bbox, bind, cget, configure, deactivate, or get}}
 
     test trackgraph.legend.18.6 {local bind and shared query abbreviations still dispatch correctly} -setup {
         LocalLegendSetup
     } -body {
         .tg track legend voltage bi all <ButtonPress-1> {set ::localLegendHit 1}
-        list [.tg track legend voltage bi all <ButtonPress-1>] \
-                [.tg track legend voltage cg -hide] \
-                [expr {[.tg track legend voltage conf -hide] eq [.tg track legend voltage configure -hide]}] \
+        list [.tg track legend voltage bi all <ButtonPress-1>] [.tg track legend voltage cg -hide]\
+                [expr {[.tg track legend voltage conf -hide] eq [.tg track legend voltage configure -hide]}]\
                 [.tg track legend voltage a *] [.tg track legend voltage d *]
     } -cleanup {destroy .tg} -result {{set ::localLegendHit 1} 0 1 v {}}
 
@@ -350,7 +369,9 @@ namespace eval trackgraph.legend {
         .tg legend b all <ButtonPress-1> {set ::globalLegendHit 1}
         set code [catch {.tg legend bbox} message]
         list [.tg legend b all <ButtonPress-1>] $code $message
-    } -cleanup {destroy .tg} -result {{set ::globalLegendHit 1} 1 {bad subcommand "bbox": must be activate, bind, cget, configure, deactivate, or get}}
+    } -cleanup {destroy .tg}\
+            -result {{set ::globalLegendHit 1} 1 {bad subcommand "bbox": must be activate, bind, cget, configure,\
+                                                          deactivate, or get}}
 
     test trackgraph.legend.18.8 {invalid operations do not run layout callbacks} -setup {
         LocalLegendSetup
@@ -361,7 +382,10 @@ namespace eval trackgraph.legend {
         set extra [catch {.tg track legend voltage bbox extra}]
         set ambiguous [catch {.tg track legend voltage b}]
         list $unknown $extra $ambiguous $::legendFormatCalls
-    } -cleanup {destroy .tg; unset ::legendFormatCalls} -result {1 1 1 0}
+    } -cleanup {
+        destroy .tg
+        unset ::legendFormatCalls
+    } -result {1 1 1 0}
 
     test trackgraph.legend.19.1 {nested arguments and diagnostics preserve quoted track names} -setup {
         Create
@@ -370,25 +394,29 @@ namespace eval trackgraph.legend {
     } -body {
         .tg track legend $name configure -hide 0
         set code [catch {.tg track legend $name cget} message options]
-        list [.tg track legend $name cget -hide] $code \
-                [dict get $options -errorcode] \
-                [expr {[string first [list track legend $name] $message] >= 0}] \
-                [.tg track exists $name]
-    } -cleanup {destroy .tg; unset name} -result {0 1 {TCL WRONGARGS} 1 1}
+        list [.tg track legend $name cget -hide] $code [dict get $options -errorcode]\
+                [expr {[string first [list track legend $name] $message] >= 0}] [.tg track exists $name]
+    } -cleanup {
+        destroy .tg
+        unset name
+    } -result {0 1 {TCL WRONGARGS} 1 1}
 
     set coordinateCase 0
     foreach state {visible hidden empty} {
         foreach badPosition {@bad @x,1 @1,y @1,2,3} {
-            test trackgraph.legend.20.[incr coordinateCase] \
-                "malformed coordinates fail for a $state legend: $badPosition" -setup {
+            test trackgraph.legend.20.[incr coordinateCase]\
+                    "malformed coordinates fail for a $state legend: $badPosition" -setup {
                         LocalLegendSetup
-                        if {$state eq "hidden"} {.tg track legend voltage configure -hide yes}
-                        if {$state eq "empty"} {.tg element configure v -label {}}
+                        if {$state eq {hidden}} {
+                            .tg track legend voltage configure -hide yes
+                        }
+                        if {$state eq {empty}} {
+                            .tg element configure v -label {}
+                        }
                         update
                     } -body {
                         set code [catch {.tg track legend voltage get $badPosition} message]
-                        list $code [string match *position* $message] \
-                            [.tg track legend voltage get @-100,-100]
+                        list $code [string match *position* $message] [.tg track legend voltage get @-100,-100]
                     } -cleanup {destroy .tg} -result {1 1 {}}
         }
     }

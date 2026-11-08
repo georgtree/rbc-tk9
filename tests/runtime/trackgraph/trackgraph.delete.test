@@ -24,8 +24,7 @@ namespace eval trackgraph.delete {
         .tg element configure v -track current -mapy amps
         .tg track delete voltage
         update
-        list [.tg track names] [.tg element cget v -track] \
-            [expr {"volts" in [.tg axis names]}] [.tg yaxis use]
+        list [.tg track names] [.tg element cget v -track] [expr {{volts} in [.tg axis names]}] [.tg yaxis use]
     } -cleanup {destroy .tg} -result {current current 1 amps}
 
     test trackgraph.delete.2.1 {batch deletion accepts duplicates and retains axes for reuse} -setup {

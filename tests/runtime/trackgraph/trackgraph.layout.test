@@ -23,9 +23,8 @@ namespace eval trackgraph.layout {
     } -body {
         lassign [.tg track bbox voltage] l1 t1 r1 b1
         lassign [.tg track bbox current] l2 t2 r2 b2
-        list [.tg track names] [expr {$l1 == $l2 && $r1 == $r2 && $b1 < $t2}] \
-            [expr {abs(($b1-$t1-40)-2*($b2-$t2-40)) <= 2}] \
-            [.tg element cget v -track] [.tg element type i]
+        list [.tg track names] [expr {$l1 == $l2 && $r1 == $r2 && $b1 < $t2}]\
+                [expr {abs(($b1-$t1-40)-2*($b2-$t2-40)) <= 2}] [.tg element cget v -track] [.tg element type i]
     } -cleanup {destroy .tg} -result {{voltage current} 1 1 voltage StripElement}
 
     test trackgraph.layout.2.1 {small layouts and weight changes do not retain stale regions} -setup {
@@ -68,10 +67,9 @@ namespace eval trackgraph.layout {
         lassign [.tg track bbox current] l2 t2 r2 b2
         lassign [.tg track transform voltage 4 0] x1 y1
         lassign [.tg track transform current 4 0] x2 y2
-        list [expr {$t1==$t2 && $b1==$b2 && $r1<$l2}] \
-            [expr {abs(($r1-$l1-40)-2*($r2-$l2-40))<=2}] \
-            [expr {$y1==$y2 && $x1<$x2}] [.tg track identify $x1] [.tg track identify $x2] \
-            [.tg track separator [.tg track sashpos voltage] [expr {round($y1)}]]
+        list [expr {$t1==$t2 && $b1==$b2 && $r1<$l2}] [expr {abs(($r1-$l1-40)-2*($r2-$l2-40))<=2}]\
+                [expr {$y1==$y2 && $x1<$x2}] [.tg track identify $x1] [.tg track identify $x2]\
+                [.tg track separator [.tg track sashpos voltage] [expr {round($y1)}]]
     } -cleanup {destroy .tg} -result {1 1 1 voltage current voltage}
 
     test trackgraph.layout.5.1 {orientation changes restore ordinary geometry without recreating tracks} -setup {

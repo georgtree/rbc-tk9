@@ -26,8 +26,7 @@ namespace eval trackgraph.configure {
             Create
         } -body {
             set before [.tg track configure voltage]
-            list [catch {.tg track configure voltage {*}$options}] \
-                [expr {$before eq [.tg track configure voltage]}]
+            list [catch {.tg track configure voltage {*}$options}] [expr {$before eq [.tg track configure voltage]}]
         } -cleanup {destroy .tg} -result {1 1}
     }
 
@@ -40,14 +39,15 @@ namespace eval trackgraph.configure {
             -height height Height 160 -yaxes yAxes YAxes {}
         } {
             set info [.tg track configure voltage $option]
-            lappend result [expr {[llength $info]==5 && [lrange $info 0 3] eq [list $option $resource $class $default]}] \
-                [expr {[lindex $info 4] eq [.tg track cget voltage $option]}]
+            lappend result [expr {[llength $info]==5 &&\
+                                          [lrange $info 0 3] eq [list $option $resource $class $default]}]\
+                    [expr {[lindex $info 4] eq [.tg track cget voltage $option]}]
         }
         set options [.tg track configure voltage]
         .tg track configure voltage -weight 3 -height 250
-        lappend result [expr {[llength $options]==5}] \
-            [expr {[lindex [.tg track configure voltage -weight] 4]==3.0}] \
-            [expr {[lindex [.tg track configure voltage -height] 4]==250}]
+        lappend result [expr {[llength $options]==5}]\
+                [expr {[lindex [.tg track configure voltage -weight] 4]==3.0}]\
+                [expr {[lindex [.tg track configure voltage -height] 4]==250}]
         expr {0 ni $result}
     } -cleanup {destroy .tg} -result 1
 
@@ -56,19 +56,17 @@ namespace eval trackgraph.configure {
     } -body {
         .tg track create extra -w 3 -min 50 -hei 220 -y {}
         .tg track conf extra -w 4 -h 240
-        list [.tg track cg extra -w] [.tg track cg extra -min] [.tg track cg extra -h] \
-            [.tg track conf extra -h] [catch {.tg track configure extra - 1}] \
-            [catch {.tg track cget extra -unknown}]
+        list [.tg track cg extra -w] [.tg track cg extra -min] [.tg track cg extra -h]\
+                [.tg track conf extra -h] [catch {.tg track configure extra - 1}]\
+                [catch {.tg track cget extra -unknown}]
     } -cleanup {destroy .tg} -result {4.0 50 240 {-height height Height 160 240} 1 1}
 
     test trackgraph.configure.4.1 {failed abbreviated changes preserve all track state and ownership} -setup {
         Create
     } -body {
         set before [.tg track configure voltage]
-        list [catch {.tg track configure voltage -w 3 -y amps}] \
-            [expr {$before eq [.tg track configure voltage]}] \
-            [catch {.tg track configure voltage -h 220 -min 0}] \
-            [expr {$before eq [.tg track configure voltage]}]
+        list [catch {.tg track configure voltage -w 3 -y amps}] [expr {$before eq [.tg track configure voltage]}]\
+                [catch {.tg track configure voltage -h 220 -min 0}] [expr {$before eq [.tg track configure voltage]}]
     } -cleanup {destroy .tg} -result {1 1 1 1}
 
     test trackgraph.configure.5.1 {operation arity is checked before track lookup} -setup {
@@ -105,12 +103,13 @@ namespace eval trackgraph.configure {
             option add *voltage.height 300
             .tg track create voltage
             .tg track create current
-            list [.tg track cget voltage -weight] [.tg track cget voltage -minheight] \
-                [.tg track cget voltage -height] [.tg track cget current -height] [winfo children .tg]
+            list [.tg track cget voltage -weight] [.tg track cget voltage -minheight] [.tg track cget voltage -height]\
+                    [.tg track cget current -height] [winfo children .tg]
         }
     } -cleanup {interp delete trackOptionChild} -result {2.5 55 300 200 {}}
 
-    test trackgraph.configure.7.1 {explicit values override database defaults and existing tracks do not reread defaults} -setup {
+    test trackgraph.configure.7.1\
+            {explicit values override database defaults and existing tracks do not reread defaults} -setup {
         interp create trackOptionChild
         interp eval trackOptionChild [list set auto_path $::auto_path]
         interp eval trackOptionChild {
@@ -125,8 +124,8 @@ namespace eval trackgraph.configure {
             option add *Track.height 400
             .tg track configure voltage -minheight 60
             .tg track create current
-            list [.tg track cget voltage -height] [.tg track cget voltage -weight] \
-                [.tg track cget voltage -minheight] [.tg track cget current -height]
+            list [.tg track cget voltage -height] [.tg track cget voltage -weight] [.tg track cget voltage -minheight]\
+                    [.tg track cget current -height]
         }
     } -cleanup {interp delete trackOptionChild} -result {250 3.0 60 400}
 
@@ -154,7 +153,8 @@ namespace eval trackgraph.configure {
         }
     } -cleanup {interp delete trackOptionChild} -result {1 {} 1 current volts}
 
-    test trackgraph.configure.9.1 {invalid database values fail atomically and explicit replacements are validated normally} -setup {
+    test trackgraph.configure.9.1\
+            {invalid database values fail atomically and explicit replacements are validated normally} -setup {
         interp create trackOptionChild
         interp eval trackOptionChild [list set auto_path $::auto_path]
         interp eval trackOptionChild {
@@ -181,6 +181,7 @@ namespace eval trackgraph.configure {
             expr {0 ni $result}
         }
     } -cleanup {interp delete trackOptionChild} -result 1
+
     test trackgraph.configure.10.1 {cached option prefixes can be reused across tracks and export components} -setup {
         Create
         .tg track configure voltage -height 210
@@ -196,7 +197,8 @@ namespace eval trackgraph.configure {
     } -cleanup {destroy .tg} -result {{210 320 430 210 320 430 210 320 430} {-barmode barMode BarMode inherit inherit}}
 
 
-    test trackgraph.configure.11.1 {track resources lowercase only the first character and preserve track identity} -setup {
+    test trackgraph.configure.11.1 {track resources lowercase only the first character and preserve track identity}\
+            -setup {
         interp create trackOptionChild
         interp eval trackOptionChild [list set auto_path $::auto_path]
         interp eval trackOptionChild {
@@ -217,14 +219,15 @@ namespace eval trackgraph.configure {
             }
             .tg track configure Voltage -weight 4
             .tg track delete voltage
-            list $created [.tg track names] \
-                [.tg track cget Voltage -height] [.tg track cget VOLTAGE -height] \
-                [.tg track cget Current -height] [.tg track cget Voltage -weight] \
-                [.tg track exists Voltage] [.tg track exists voltage] [winfo children .tg]
+            list $created [.tg track names] [.tg track cget Voltage -height] [.tg track cget VOLTAGE -height]\
+                    [.tg track cget Current -height] [.tg track cget Voltage -weight] [.tg track exists Voltage]\
+                    [.tg track exists voltage] [winfo children .tg]
         }
-    } -cleanup {interp delete trackOptionChild} -result {{Voltage voltage VOLTAGE Current} {Voltage VOLTAGE Current} 230 310 180 4.0 1 0 {}}
+    } -cleanup {interp delete trackOptionChild}\
+            -result {{Voltage voltage VOLTAGE Current} {Voltage VOLTAGE Current} 230 310 180 4.0 1 0 {}}
 
-    test trackgraph.configure.11.2 {uppercase tracks retain resource validation and explicit override precedence} -setup {
+    test trackgraph.configure.11.2 {uppercase tracks retain resource validation and explicit override precedence}\
+            -setup {
         interp create trackOptionChild
         interp eval trackOptionChild [list set auto_path $::auto_path]
         interp eval trackOptionChild {
@@ -241,8 +244,7 @@ namespace eval trackgraph.configure {
             option add *voltage.weight 5
             .tg track create voltage
             .tg track configure Voltage -height 240
-            list $failed $empty [.tg track cget Voltage -weight] \
-                [.tg track cget voltage -weight] [.tg track names]
+            list $failed $empty [.tg track cget Voltage -weight] [.tg track cget voltage -weight] [.tg track names]
         }
     } -cleanup {interp delete trackOptionChild} -result {1 {} 3.0 5.0 {Voltage voltage}}
 

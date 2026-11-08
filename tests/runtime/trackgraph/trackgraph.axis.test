@@ -45,8 +45,7 @@ namespace eval trackgraph.axis {
         lassign [.tg track transform voltage 5 50 -mapy volts2] x2 y2
         lassign [.tg track bbox voltage] l1 t1 r1 b1
         lassign [.tg track bbox current] l2 t2 r2 b2
-        list [expr {$x1 == $x2 && $y1 == $y2}] [expr {$l1==$l2 && $r1==$r2}] \
-            [.tg yaxis use]
+        list [expr {$x1 == $x2 && $y1 == $y2}] [expr {$l1==$l2 && $r1==$r2}] [.tg yaxis use]
     } -cleanup {destroy .tg} -result {1 1 {volts volts2 amps}}
 
     test trackgraph.axis.3.1 {automatic Y limits remain independent while X limits are shared} -setup {
@@ -60,8 +59,7 @@ namespace eval trackgraph.axis {
         lassign [.tg axis limits volts] vmin vmax
         lassign [.tg axis limits amps] imin imax
         lassign [.tg axis limits x] xmin xmax
-        list [expr {$vmin<=-1 && $vmax>=1 && $vmax<100}] \
-            [expr {$imin>100 && $imax>=2000}] [expr {$xmax>=15}]
+        list [expr {$vmin<=-1 && $vmax>=1 && $vmax<100}] [expr {$imin>100 && $imax>=2000}] [expr {$xmax>=15}]
     } -cleanup {destroy .tg} -result {1 1 1}
 
     test trackgraph.axis.4.1 {multiple local axes share horizontal bounds and use the bottom margin} -setup {

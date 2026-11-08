@@ -41,8 +41,8 @@ namespace eval trackgraph.marker {
         MarkerSetup
         .tg marker create line -name m -track voltage -mapy volts -coords {0 0 10 0}
     } -body {
-        set result [list [.tg marker cget m -track] [catch {.tg marker configure m -track current}] \
-            [.tg marker cget m -track] [.tg marker cget m -mapy]]
+        set result [list [.tg marker cget m -track] [catch {.tg marker configure m -track current}]\
+                            [.tg marker cget m -track] [.tg marker cget m -mapy]]
         .tg marker configure m -track current -mapy amps
         lappend result [.tg marker cget m -track] [.tg marker cget m -mapy]
         set result
@@ -52,8 +52,8 @@ namespace eval trackgraph.marker {
         MarkerSetup
         .tg marker create text -name m -track voltage -mapy volts -hide yes
     } -body {
-        set result [list [catch {.tg track delete voltage}] \
-            [catch {.tg track configure voltage -yaxes {}}] [catch {.tg axis delete volts}]]
+        set result [list [catch {.tg track delete voltage}] [catch {.tg track configure voltage -yaxes {}}]\
+                            [catch {.tg axis delete volts}]]
         .tg marker configure m -track current -mapy amps
         .tg track delete voltage
         .tg marker delete m

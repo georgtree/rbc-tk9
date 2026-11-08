@@ -28,9 +28,9 @@ namespace eval trackgraph.create {
     test trackgraph.create.2.1 {unsupported or ambiguous operations fail without leaving objects} -setup {
         Create
     } -body {
-        list [catch {.tg bar create nope -data {1 1}}] [catch {.tg line create nope -data {1 1}}] \
-            [expr {"nope" ni [.tg element names]}] [catch {.tg transform 1 1}] \
-            [catch {.tg track transform voltage 1 1 -mapy amps}]
+        list [catch {.tg bar create nope -data {1 1}}] [catch {.tg line create nope -data {1 1}}]\
+                [expr {"nope" ni [.tg element names]}] [catch {.tg transform 1 1}]\
+                [catch {.tg track transform voltage 1 1 -mapy amps}]
     } -cleanup {destroy .tg} -result {1 1 1 1 1}
 
     test trackgraph.create.3.1 {failed creation does not retain an axis reference or track name} -setup {

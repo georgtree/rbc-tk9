@@ -24,11 +24,9 @@ namespace eval trackgraph.element {
     test trackgraph.element.draw.1.1 {element and axis ownership changes are checked before commit} -setup {
         Create
     } -body {
-        list [catch {.tg element configure v -track current}] \
-            [.tg element cget v -track] [.tg element cget v -mapy] \
-            [catch {.tg track configure voltage -yaxes {}}] \
-            [catch {.tg axis delete volts}] [catch {.tg track delete voltage}] \
-            [catch {.tg yaxis use amps}]
+        list [catch {.tg element configure v -track current}] [.tg element cget v -track] [.tg element cget v -mapy]\
+                [catch {.tg track configure voltage -yaxes {}}] [catch {.tg axis delete volts}]\
+                [catch {.tg track delete voltage}] [catch {.tg yaxis use amps}]
     } -cleanup {destroy .tg} -result {1 voltage volts 1 1 1 1}
 
     test trackgraph.element.draw.2.1 {vector notifications update line and strip geometry in their own tracks} -setup {
@@ -42,7 +40,10 @@ namespace eval trackgraph.element {
         update
         lassign [.tg track transform current 5 2] x y
         list [.tg element closest $x $y hit -halo 3] $hit(name) $hit(index) $hit(y)
-    } -cleanup {destroy .tg; ::rbc::vector destroy trackX trackY} -result {1 i 1 2.0}
+    } -cleanup {
+        destroy .tg
+        ::rbc::vector destroy trackX trackY
+    } -result {1 i 1 2.0}
 
     test trackgraph.element.draw.3.1 {out-of-range lines are clipped to their owning track} -setup {
         Create
@@ -53,10 +54,14 @@ namespace eval trackgraph.element {
         set count 0
         set valid 1
         foreach line [split $svg \n] {
-            if {[string first {stroke="#ff0000"} $line]<0} {continue}
+            if {[string first {stroke="#ff0000"} $line]<0} {
+                continue
+            }
             if {[regexp {<polyline points="([^"]+)"} $line -> points]} {
                 foreach {x y} [string map {, { }} $points] {
-                    if {$y < $t-1 || $y > $b+1} {set valid 0}
+                    if {$y < $t-1 || $y > $b+1} {
+                        set valid 0
+                    }
                     incr count
                 }
             }
@@ -66,7 +71,7 @@ namespace eval trackgraph.element {
 
     foreach renderer {native cairo} {
         foreach inverted {0 1} {
-            test trackgraph.element.draw.4.[incr testCase(4)] {out-of-range trace pixels remain inside their track} \
+            test trackgraph.element.draw.4.[incr testCase(4)] {out-of-range trace pixels remain inside their track}\
                 -constraints trackRenderer$renderer -setup {
                 Create $inverted
                 .tg configure -renderer $renderer
@@ -83,12 +88,17 @@ namespace eval trackgraph.element {
                         lassign [$photo get $x $y] red green blue
                         if {$red>180 && $green<80 && $blue<80} {
                             incr count
-                            if {$y < $t-1 || $y > $b+1 || $x < $l-1 || $x > $r+1} {incr outside}
+                            if {$y < $t-1 || $y > $b+1 || $x < $l-1 || $x > $r+1} {
+                                incr outside
+                            }
                         }
                     }
                 }
                 list [expr {$count>0}] $outside
-            } -cleanup {image delete $photo; destroy .tg} -result {1 0}
+            } -cleanup {
+                image delete $photo
+                destroy .tg
+            } -result {1 0}
         }
     }
     cleanupTests

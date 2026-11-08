@@ -23,7 +23,9 @@ namespace eval trackgraph.element {
 
     foreach inverted {0 1} {
         foreach kind {line strip} {
-            test trackgraph.element.decimate.1.[incr testCase(1)] {dense track traces preserve extrema and original picking after remapping and vector updates} -setup {
+            test trackgraph.element.decimate.1.[incr testCase(1)]\
+                    {dense track traces preserve extrema and original picking after remapping and vector updates}\
+                    -setup {
                 Create $inverted
                 ::rbc::vector create trackDenseX trackDenseY
                 set xs {}; set ys {}
@@ -34,8 +36,8 @@ namespace eval trackgraph.element {
                 trackDenseX set $xs
                 trackDenseY set $ys
                 .tg element delete v
-                .tg $kind create v -track voltage -mapy volts -xdata trackDenseX -ydata trackDenseY \
-                    -decimate auto -symbol none -linewidth 1 -color red
+                .tg $kind create v -track voltage -mapy volts -xdata trackDenseX -ydata trackDenseY -decimate auto\
+                        -symbol none -linewidth 1 -color red
                 set photo [image create photo]
                 update
             } -body {
@@ -55,7 +57,9 @@ namespace eval trackgraph.element {
                             lassign [$photo get $px $py] red green blue
                             # A one-pixel Cairo stroke between columns has partial coverage.
                             # Require red dominance rather than an almost solid red pixel.
-                            if {$red>180 && $red-$green>80 && $red-$blue>80} {set visible 1}
+                            if {$red>180 && $red-$green>80 && $red-$blue>80} {
+                                set visible 1
+                            }
                         }
                     }
                     lappend result $visible
@@ -65,7 +69,11 @@ namespace eval trackgraph.element {
                 .tg element configure v -decimate auto
                 lappend result [expr {$full eq [.tg svg output]}]
                 set result
-            } -cleanup {image delete $photo; destroy .tg; ::rbc::vector destroy trackDenseX trackDenseY} -result {1 1 1 1 1}
+            } -cleanup {
+                image delete $photo
+                destroy .tg
+                ::rbc::vector destroy trackDenseX trackDenseY
+            } -result {1 1 1 1 1}
         }
     }
 
@@ -88,8 +96,8 @@ namespace eval trackgraph.element {
                         .tg element delete v i
                         .tg axis configure x -min 0 -max 10000 -descending $descending
                         .tg axis configure volts -descending $descending
-                        .tg $elementKind create Element1 -track voltage -mapy volts -xdata $xs -ydata $ys \
-                            -symbol none -linewidth 1 -smooth linear -reduce 0.0
+                        .tg $elementKind create Element1 -track voltage -mapy volts -xdata $xs -ydata $ys -symbol none\
+                                -linewidth 1 -smooth linear -reduce 0.0
                     } -body {
                         set result {}
                         set snapshots {}
@@ -98,17 +106,21 @@ namespace eval trackgraph.element {
                             update
                             lassign [.tg track transform voltage 100 0.8] px py
                             lassign [.tg track transform voltage 9000 -0.8] farX farY
-                            if {$along eq "x"} {set py $farY}
-                            if {$along eq "y"} {set px $farX}
+                            if {$along eq {x}} {
+                                set py $farY
+                            }
+                            if {$along eq {y}} {
+                                set px $farX
+                            }
                             unset -nocomplain hit
-                            set found [.tg element closest $px $py hit \
-                                -along $along -interpolate no -halo 3 Element1]
+                            set found [.tg element closest $px $py hit -along $along -interpolate no -halo 3 Element1]
                             # Integer query pixels can select a neighbouring X sample.
                             # Only the ordinate-only and Euclidean searches must hit the spike.
-                            set spike [expr {$along eq "both" ||
-                                ($inverted && $along eq "x") || (!$inverted && $along eq "y")}]
-                            lappend result $found [expr {$found && (!$spike || $hit(index) == 100) &&
-                                $hit(x) == [lindex $xs $hit(index)] && $hit(y) == [lindex $ys $hit(index)]}]
+                            set spike [expr {$along eq "both" || ($inverted && $along eq {x}) ||\
+                                                     (!$inverted && $along eq {y})}]
+                            lappend result $found [expr {$found && (!$spike || $hit(index) == 100) &&\
+                                                                 $hit(x) == [lindex $xs $hit(index)] &&\
+                                                                 $hit(y) == [lindex $ys $hit(index)]}]
                             if {$found} {
                                 lappend snapshots [list $hit(index) $hit(x) $hit(y) $hit(dist)]
                             } else {

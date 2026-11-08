@@ -67,7 +67,9 @@ proc LocalLegendPoint {track element} {
     lassign [.tg track legend $track bbox] left top width height
     for {set y $top} {$y<$top+$height} {incr y 2} {
         for {set x $left} {$x<$left+$width} {incr x 2} {
-            if {[.tg track legend $track get @$x,$y] eq $element} {return [list $x $y]}
+            if {[.tg track legend $track get @$x,$y] eq $element} {
+                return [list $x $y]
+            }
         }
     }
     error "legend entry $element not found in $track"
@@ -91,7 +93,9 @@ proc GridSetup {inverted renderer} {
 proc GridPixel {photo x y color} {
     for {set px [expr {int($x)-1}]} {$px<=int($x)+1} {incr px} {
         for {set py [expr {int($y)-1}]} {$py<=int($y)+1} {incr py} {
-            if {[$photo get $px $py] eq $color} {return 1}
+            if {[$photo get $px $py] eq $color} {
+                return 1
+            }
         }
     }
     return 0

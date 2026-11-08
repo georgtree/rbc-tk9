@@ -33,9 +33,8 @@ namespace eval trackgraph.transform {
                     lassign [.tg track transform $track 4 10] px py
                     lassign [.tg track invtransform $track $px $py] x y
                     lassign [.tg track bbox $track] l t r b
-                    lappend result [expr {abs($x-4)<1e-9 && abs($y-10)<1e-9}] \
-                        [expr {$py >= $t && $py <= $b}] \
-                        [expr {abs([.tg axis transform $axis 10]-$py)<1.0}]
+                    lappend result [expr {abs($x-4)<1e-9 && abs($y-10)<1e-9}] [expr {$py >= $t && $py <= $b}]\
+                            [expr {abs([.tg axis transform $axis 10]-$py)<1.0}]
                 }
                 set result
             } -cleanup {destroy .tg} -result {1 1 1 1 1 1}
@@ -44,7 +43,8 @@ namespace eval trackgraph.transform {
 
     foreach logarithmic {0 1} {
         foreach descending {0 1} {
-            test trackgraph.transform.2.[incr testCase(2)] {inverted local axes round trip and agree with track transforms} -setup {
+            test trackgraph.transform.2.[incr testCase(2)]\
+                    {inverted local axes round trip and agree with track transforms} -setup {
                 Create
                 .tg configure -invertxy yes
                 .tg axis configure volts -min 1 -max 100 -logscale $logarithmic -descending $descending
@@ -55,9 +55,8 @@ namespace eval trackgraph.transform {
                     lassign [.tg track transform $track 4 10] px py
                     lassign [.tg track invtransform $track $px $py] x y
                     lassign [.tg track bbox $track] l t r b
-                    lappend result [expr {abs($x-4)<1e-9 && abs($y-10)<1e-9}] \
-                        [expr {$px >= $l && $px <= $r}] \
-                        [expr {abs([.tg axis transform $axis 10]-$px)<1.0}]
+                    lappend result [expr {abs($x-4)<1e-9 && abs($y-10)<1e-9}] [expr {$px >= $l && $px <= $r}]\
+                            [expr {abs([.tg axis transform $axis 10]-$px)<1.0}]
                 }
                 set result
             } -cleanup {destroy .tg} -result {1 1 1 1 1 1}

@@ -23,7 +23,8 @@ namespace eval trackgraph.bar {
 
     foreach inverted {0 1} {
         foreach {mode x y expected} {normal 5 2 a aligned 5.5 2 a overlap 5.8 2 a stacked 5 5 b} {
-            test trackgraph.bar.1.[incr testCase(1)] {bar groups are local to each track and coexist with line and strip elements} -setup {
+            test trackgraph.bar.1.[incr testCase(1)]\
+                    {bar groups are local to each track and coexist with line and strip elements} -setup {
                 BarsSetup $inverted
                 .tg track configure voltage -barmode $mode
                 .tg track configure current -barmode stacked
@@ -32,11 +33,15 @@ namespace eval trackgraph.bar {
                 lassign [.tg track transform voltage $x $y] px py
                 set barHit [.tg element closest [expr {round($px)}] [expr {round($py)}] barFound -halo 1 a b]
                 list $barHit $barFound(name) [.tg element cget a -track] [.tg element type v] [.tg element type i]
-            } -cleanup {destroy .tg; unset -nocomplain barFound barHit} -result [list 1 $expected voltage LineElement StripElement]
+            } -cleanup {
+                destroy .tg
+                unset -nocomplain barFound barHit
+            } -result [list 1 $expected voltage LineElement StripElement]
         }
 
         foreach format {svg pdf postscript} {
-            test trackgraph.bar.2.[incr testCase(2)] {mixed bar modes and error bars export and restore track geometry} -setup {
+            test trackgraph.bar.2.[incr testCase(2)]\
+                    {mixed bar modes and error bars export and restore track geometry} -setup {
                 BarsSetup $inverted
                 .tg track configure voltage -barmode aligned
                 .tg track configure current -barmode stacked
@@ -53,8 +58,8 @@ namespace eval trackgraph.bar {
                 if {$format eq "postscript"} {
                     foreach name {original restored} {regsub -line {^%%CreationDate:.*$} [set $name] {} $name}
                 }
-                list [expr {$original ne $enlarged}] [expr {$original eq $restored}] \
-                    [expr {$before eq [.tg track transform voltage 5 2]}]
+                list [expr {$original ne $enlarged}] [expr {$original eq $restored}]\
+                        [expr {$before eq [.tg track transform voltage 5 2]}]
             } -cleanup {destroy .tg} -result {1 1 1}
         }
     }
@@ -77,7 +82,8 @@ namespace eval trackgraph.bar {
         set result
     } -cleanup {destroy .tg} -result {{0.0 7.0} {0.0 30.0} {0.0 4.0} {0.0 30.0} {0.0 7.0} inherit}
 
-    test trackgraph.bar.4.1 {local stacks remap after data updates with fixed axes and isolate additional Y axes} -setup {
+    test trackgraph.bar.4.1 {local stacks remap after data updates with fixed axes and isolate additional Y axes}\
+            -setup {
         BarsSetup
         .tg track configure voltage -barmode stacked
         .tg axis create alternate -min 0 -max 100 -loose no
@@ -111,10 +117,10 @@ namespace eval trackgraph.bar {
         BarsSetup
     } -body {
         set before [.tg track configure voltage]
-        list [catch {.tg element configure a -track current}] [.tg element cget a -track] \
-            [catch {.tg track configure voltage -barmode invalid -height 500}] \
-            [expr {$before eq [.tg track configure voltage]}] \
-            [catch {.tg element configure a -track current -mapy amps}] [.tg element cget a -track]
+        list [catch {.tg element configure a -track current}] [.tg element cget a -track]\
+                [catch {.tg track configure voltage -barmode invalid -height 500}]\
+                [expr {$before eq [.tg track configure voltage]}]\
+                [catch {.tg element configure a -track current -mapy amps}] [.tg element cget a -track]
     } -cleanup {destroy .tg} -result {1 voltage 1 1 0 current}
 
     foreach inverted {0 1} {
@@ -125,26 +131,32 @@ namespace eval trackgraph.bar {
                 .tg configure -renderer $renderer
                 .tg element delete v i
                 .tg grid off
-                .tg bar create bars -track voltage -mapy volts -data {5 1} -barwidth 20 \
-                    -foreground #ff00ff -background #ff00ff -yerror {1} -errorbarcolor #ff00ff -errorbarwidth 12
+                .tg bar create bars -track voltage -mapy volts -data {5 1} -barwidth 20 -foreground #ff00ff\
+                        -background #ff00ff -yerror {1} -errorbarcolor #ff00ff -errorbarwidth 12
                 .tg track view scroll 5 units
                 set photo [image create photo]
                 update
             } -body {
                 .tg snap $photo
                 lassign [.tg track bbox voltage] l t r b
-                set valid 1; set count 0
+                set valid 1
+                set count 0
                 for {set y 0} {$y<[image height $photo]} {incr y} {
                     for {set x 0} {$x<[image width $photo]} {incr x} {
                         lassign [$photo get $x $y] red green blue
                         if {$red>200 && $green<80 && $blue>200} {
                             incr count
-                            if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                            if {$x<$l || $x>$r || $y<$t || $y>$b} {
+                                set valid 0
+                            }
                         }
                     }
                 }
                 list $valid [expr {$count>0}]
-            } -cleanup {image delete $photo; destroy .tg} -result {1 1}
+            } -cleanup {
+                image delete $photo
+                destroy .tg
+            } -result {1 1}
         }
     }
 
@@ -162,12 +174,14 @@ namespace eval trackgraph.bar {
                     foreach axis [.tg axis names] {
                         .tg axis configure $axis -showticks no -title {}
                     }
-                    .tg bar create bars -track voltage -mapy volts -data {3 5 7 -5} \
-                        -barwidth 1 -foreground magenta -background magenta -borderwidth 4 -relief raised
-                    .tg pen create borderActive -type bar -foreground magenta -background magenta \
-                        -borderwidth 4 -relief raised
+                    .tg bar create bars -track voltage -mapy volts -data {3 5 7 -5} -barwidth 1 -foreground magenta\
+                            -background magenta -borderwidth 4 -relief raised
+                    .tg pen create borderActive -type bar -foreground magenta -background magenta -borderwidth 4\
+                            -relief raised
                     .tg element configure bars -activepen borderActive
-                    if {$active} {.tg element activate bars}
+                    if {$active} {
+                        .tg element activate bars
+                    }
                     set photo [image create photo]
                     update
                 } -body {
@@ -179,12 +193,17 @@ namespace eval trackgraph.bar {
                             lassign [$photo get $x $y] red green blue
                             if {$red>80 && $blue>80 && $green<$red/2 && $green<$blue/2} {
                                 incr count
-                                if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                                if {$x<$l || $x>$r || $y<$t || $y>$b} {
+                                    set valid 0
+                                }
                             }
                         }
                     }
                     list $valid [expr {$count>0}]
-                } -cleanup {image delete $photo; destroy .tg} -result {1 1}
+                } -cleanup {
+                    image delete $photo
+                    destroy .tg
+                } -result {1 1}
             }
         }
     }

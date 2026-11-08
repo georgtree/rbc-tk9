@@ -21,7 +21,8 @@ namespace eval trackgraph.separator {
     # Number the generated cases independently within each test group.
     array set testCase {9 0 11 0 12 0 13 0 15 0 16 0 17 0 18 0 20 0}
 
-    test trackgraph.separator.1.1 {moving a separator changes only adjacent weights and respects minimum heights} -setup {
+    test trackgraph.separator.1.1 {moving a separator changes only adjacent weights and respects minimum heights}\
+            -setup {
         Create
         ThirdTrack
     } -body {
@@ -30,9 +31,10 @@ namespace eval trackgraph.separator {
         set total [expr {[.tg track cget voltage -weight]+[.tg track cget current -weight]}]
         set old [.tg track sashpos voltage]
         set moved [.tg track sashpos voltage [expr {$old+20}]]
-        set result [list [expr {abs($moved-$old-20)<=1}] [expr {$outside eq [.tg track bbox auxiliary]}] \
-            [expr {$otherWeight == [.tg track cget auxiliary -weight]}] \
-            [expr {abs($total-[.tg track cget voltage -weight]-[.tg track cget current -weight])<1e-12}]]
+        set result [list [expr {abs($moved-$old-20)<=1}] [expr {$outside eq [.tg track bbox auxiliary]}]\
+                            [expr {$otherWeight == [.tg track cget auxiliary -weight]}]\
+                            [expr {abs($total-[.tg track cget voltage -weight]-\
+                                               [.tg track cget current -weight])<1e-12}]]
         foreach target {-1000000 1000000} {
             .tg track sashpos voltage $target
             foreach name {voltage current} {
@@ -48,10 +50,9 @@ namespace eval trackgraph.separator {
     } -body {
         lassign [.tg track bbox voltage] l t r b
         set y [.tg track sashpos voltage]
-        list [.tg track separator [expr {($l+$r)/2}] $y] \
-            [.tg track separator [expr {$l-1}] $y] [.tg track separator $l $b] \
-            [.tg track separator $l -100] [catch {.tg track sashpos current}] \
-            [catch {.tg track sashpos voltage bad}]
+        list [.tg track separator [expr {($l+$r)/2}] $y] [.tg track separator [expr {$l-1}] $y]\
+                [.tg track separator $l $b] [.tg track separator $l -100] [catch {.tg track sashpos current}]\
+                [catch {.tg track sashpos voltage bad}]
     } -cleanup {destroy .tg} -result {voltage {} {} {} 1 1}
 
     test trackgraph.separator.3.1 {minimum-height compression leaves no space to redistribute} -setup {
@@ -60,8 +61,8 @@ namespace eval trackgraph.separator {
         .tg track configure current -minheight 1000
     } -body {
         set old [.tg track sashpos voltage]
-        list [expr {$old == [.tg track sashpos voltage [expr {$old+50}]]}] \
-            [.tg track cget voltage -weight] [.tg track cget current -weight]
+        list [expr {$old == [.tg track sashpos voltage [expr {$old+50}]]}] [.tg track cget voltage -weight]\
+                [.tg track cget current -weight]
     } -cleanup {destroy .tg} -result {1 2.0 1.0}
 
     test trackgraph.separator.4.1 {default bindings do not resize tracks until explicitly enabled} -setup {
@@ -86,8 +87,8 @@ namespace eval trackgraph.separator {
         event generate .tg <B1-Motion> -x $x -y [expr {$y+30}]
         event generate .tg <ButtonRelease-1> -x $x -y [expr {$y+30}]
         update
-        list $hover [expr {abs([.tg track sashpos voltage]-$y-30)<=1}] \
-            [.tg cget -cursor] [dict exists $::rbc::trackgraph::drag .tg]
+        list $hover [expr {abs([.tg track sashpos voltage]-$y-30)<=1}] [.tg cget -cursor]\
+                [dict exists $::rbc::trackgraph::drag .tg]
     } -cleanup {destroy .tg} -result {sb_v_double_arrow 1 crosshair 0}
 
     test trackgraph.separator.6.1 {clicking without motion does not quantize the weights} -setup {
@@ -111,8 +112,8 @@ namespace eval trackgraph.separator {
         .tg track order {auxiliary voltage current}
         set before [list [.tg track cget voltage -weight] [.tg track cget current -weight]]
         event generate .tg <B1-Motion> -x $x -y [expr {$y+30}]
-        list [dict exists $::rbc::trackgraph::drag .tg] \
-            [expr {$before eq [list [.tg track cget voltage -weight] [.tg track cget current -weight]]}]
+        list [dict exists $::rbc::trackgraph::drag .tg] [expr {$before eq [list [.tg track cget voltage -weight]\
+                                                                                   [.tg track cget current -weight]]}]
     } -cleanup {destroy .tg} -result {0 1}
 
     test trackgraph.separator.8.1 {Escape restores original weights and geometry} -setup {
@@ -125,12 +126,13 @@ namespace eval trackgraph.separator {
         # Invoke the installed Escape binding without depending on WM focus.
         catch {eval [string map [list %W .tg] [bind Trackgraph <Escape>]]}
         update
-        list [expr {$y == [.tg track sashpos voltage]}] [.tg track cget voltage -weight] \
-            [.tg track cget current -weight] [dict exists $::rbc::trackgraph::drag .tg]
+        list [expr {$y == [.tg track sashpos voltage]}] [.tg track cget voltage -weight]\
+                [.tg track cget current -weight] [dict exists $::rbc::trackgraph::drag .tg]
     } -cleanup {destroy .tg} -result {1 2.0 1.0 0}
 
     foreach change {{.tg track order {current voltage}} {.tg configure -trackresize no}} {
-        test trackgraph.separator.9.[incr testCase(9)] {structural changes or disabling cancel the active gesture safely} -setup {
+        test trackgraph.separator.9.[incr testCase(9)]\
+                {structural changes or disabling cancel the active gesture safely} -setup {
             Create
             .tg configure -trackresize yes
         } -body {
@@ -155,7 +157,8 @@ namespace eval trackgraph.separator {
     } -result {0 0}
 
     foreach format {svg postscript pdf} {
-        test trackgraph.separator.11.[incr testCase(11)] {exports preserve reordered tracks and separator allocations} -setup {
+        test trackgraph.separator.11.[incr testCase(11)]\
+                {exports preserve reordered tracks and separator allocations} -setup {
             Create
             .tg track order {current voltage}
             .tg track sashpos current [expr {[.tg track sashpos current]+20}]
@@ -165,13 +168,14 @@ namespace eval trackgraph.separator {
             .tg $format output -width 900 -height 700
             .tg $format configure -width 0 -height 0
             update
-            list [.tg track order] [expr {$before eq [.tg track bbox current]}] \
-                [expr {$weights eq [list [.tg track cget current -weight] [.tg track cget voltage -weight]]}]
+            list [.tg track order] [expr {$before eq [.tg track bbox current]}]\
+                    [expr {$weights eq [list [.tg track cget current -weight] [.tg track cget voltage -weight]]}]
         } -cleanup {destroy .tg} -result {{current voltage} 1 1}
     }
 
     foreach finish {release cancel invalidate} {
-        test trackgraph.separator.12.[incr testCase(12)] {drag temporarily borrows focus and restores it on completion} -setup {
+        test trackgraph.separator.12.[incr testCase(12)]\
+                {drag temporarily borrows focus and restores it on completion} -setup {
             FocusSetup
         } -body {
             lassign [SeparatorPoint] x y
@@ -179,8 +183,12 @@ namespace eval trackgraph.separator {
             update
             set during [expr {[focus] eq ".tg"}]
             switch $finish {
-                release {event generate .tg <ButtonRelease-1> -x $x -y $y}
-                cancel {event generate .tg <Escape>}
+                release {
+                    event generate .tg <ButtonRelease-1> -x $x -y $y
+                }
+                cancel {
+                    event generate .tg <Escape>
+                }
                 invalidate {
                     .tg configure -trackresize no
                     event generate .tg <B1-Motion> -x $x -y [expr {$y+20}]
@@ -192,7 +200,8 @@ namespace eval trackgraph.separator {
     }
 
     foreach initial {empty graph destroyed changed} {
-        test trackgraph.separator.13.[incr testCase(13)] {restoration respects empty, existing, destroyed and independently changed focus} -setup {
+        test trackgraph.separator.13.[incr testCase(13)]\
+                {restoration respects empty, existing, destroyed and independently changed focus} -setup {
             FocusSetup
         } -body {
             switch $initial {
@@ -203,9 +212,16 @@ namespace eval trackgraph.separator {
             event generate .tg <ButtonPress-1> -x $x -y $y
             update
             switch $initial {
-                empty {dict set ::rbc::trackgraph::drag .tg focus {}}
-                destroyed {destroy .trackFocus}
-                changed {focus .trackOther; update}
+                empty {
+                    dict set ::rbc::trackgraph::drag .tg focus {}
+                }
+                destroyed {
+                    destroy .trackFocus
+                }
+                changed {
+                    focus .trackOther
+                    update
+                }
             }
             event generate .tg <ButtonRelease-1> -x $x -y $y
             update
@@ -237,23 +253,25 @@ namespace eval trackgraph.separator {
             event generate .tg <Motion> -x $x -y $y
             set cursor [.tg cget -cursor]
             event generate .tg <ButtonPress-1> -x $x -y $y
-            if {$finish eq "invert"} {.tg configure -invertxy no}
+            if {$finish eq {invert}} {
+                .tg configure -invertxy no
+            }
             event generate .tg <B1-Motion> -x [expr {$x+30}] -y $y
-            if {$finish eq "cancel"} {
+            if {$finish eq {cancel}} {
                 catch {eval [string map [list %W .tg] [bind Trackgraph <Escape>]]}
             } else {
                 event generate .tg <ButtonRelease-1> -x [expr {$x+30}] -y $y
             }
             update
-            set valid [expr {$finish eq "release" ? abs([.tg track sashpos voltage]-$x-30)<=1 :
-                [.tg track cget voltage -weight]==2.0 && [.tg track cget current -weight]==1.0}]
+            set valid [expr {$finish eq {release} ? abs([.tg track sashpos voltage]-$x-30)<=1 :
+                             [.tg track cget voltage -weight]==2.0 && [.tg track cget current -weight]==1.0}]
             list $cursor $valid [.tg cget -cursor] [dict exists $::rbc::trackgraph::drag .tg]
         } -cleanup {destroy .tg} -result {sb_h_double_arrow 1 crosshair 0}
     }
 
     foreach inverted {0 1} {
         foreach renderer {native cairo} {
-            test trackgraph.separator.16.[incr testCase(16)] {optional dividers follow the sash and disappear cleanly} \
+            test trackgraph.separator.16.[incr testCase(16)] {optional dividers follow the sash and disappear cleanly}\
                     -constraints trackRenderer$renderer -setup {
                 Create $inverted
                 .tg configure -renderer $renderer
@@ -264,21 +282,30 @@ namespace eval trackgraph.separator {
                 update
                 lassign [.tg track bbox voltage] l t r b
                 set sash [.tg track sashpos voltage]
-                if {$inverted} {set x $sash; set y [expr {($t+$b)/2}]} else {set x [expr {($l+$r)/2}]; set y $sash}
+                if {$inverted} {
+                    set x $sash; set y [expr {($t+$b)/2}]
+                } else {
+                    set x [expr {($l+$r)/2}]
+                    set y $sash
+                }
                 .tg snap $photo
                 set color [$photo get $x $y]
                 .tg configure -trackseparatorcolor {}
                 update
                 .tg snap $photo
-                list $defaults $color [expr {[$photo get $x $y] ne $color}] \
-                    [catch {.tg configure -trackseparatorwidth 0}] [.tg cget -trackseparatorwidth]
-            } -cleanup {image delete $photo; destroy .tg} -result {{{} 1} {255 0 255} 1 1 3}
+                list $defaults $color [expr {[$photo get $x $y] ne $color}]\
+                        [catch {.tg configure -trackseparatorwidth 0}] [.tg cget -trackseparatorwidth]
+            } -cleanup {
+                image delete $photo
+                destroy .tg
+            } -result {{{} 1} {255 0 255} 1 1 3}
         }
     }
 
     foreach inverted {0 1} {
         foreach format {svg pdf postscript} {
-            test trackgraph.separator.17.[incr testCase(17)] {divider export is optional and restores its screen layout} -setup {
+            test trackgraph.separator.17.[incr testCase(17)]\
+                    {divider export is optional and restores its screen layout} -setup {
                 Create $inverted
             } -body {
                 set original [.tg $format output -decorations yes]
@@ -289,9 +316,9 @@ namespace eval trackgraph.separator {
                 set enlarged [.tg $format output -width 900 -height 700]
                 .tg $format configure -width 0 -height 0
                 update
-                list [expr {$original ne $decorated && $decorated ne $enlarged}] \
-                    [expr {$plain eq [.tg $format output -decorations no]}] \
-                    [expr {$before == [.tg track sashpos voltage]}]
+                list [expr {$original ne $decorated && $decorated ne $enlarged}]\
+                        [expr {$plain eq [.tg $format output -decorations no]}]\
+                        [expr {$before == [.tg track sashpos voltage]}]
             } -cleanup {destroy .tg} -result {1 1 1}
         }
     }
@@ -312,16 +339,22 @@ namespace eval trackgraph.separator {
                 for {set y 0} {$y<[image height $photo]} {incr y} {
                     for {set x 0} {$x<[image width $photo]} {incr x} {
                         if {[$photo get $x $y] eq {255 0 255}} {
-                            if {$inverted ? !($x>$r && $x<$l2) : !($y>$b && $y<$t2)} {set valid 0}
+                            if {$inverted ? !($x>$r && $x<$l2) : !($y>$b && $y<$t2)} {
+                                set valid 0
+                            }
                         }
                     }
                 }
             }
             set valid
-        } -cleanup {image delete $photo; destroy .tg} -result 1
+        } -cleanup {
+            image delete $photo
+            destroy .tg
+        } -result 1
     }
 
-    test trackgraph.separator.19.1 {scrolling layout resizes requested height, changing extent instead of adjacent weights} -setup {
+    test trackgraph.separator.19.1\
+            {scrolling layout resizes requested height, changing extent instead of adjacent weights} -setup {
         ScrollSetup
     } -body {
         set height [.tg track cget voltage -height]
@@ -329,13 +362,13 @@ namespace eval trackgraph.separator {
         set weights [list [.tg track cget voltage -weight] [.tg track cget current -weight]]
         .tg track sashpos voltage [expr {[.tg track sashpos voltage]+30}]
         update
-        list [expr {[.tg track cget voltage -height]==$height+30}] \
-            [expr {[.tg track cget current -height]==$next}] \
-            [expr {$weights eq [list [.tg track cget voltage -weight] [.tg track cget current -weight]]}]
+        list [expr {[.tg track cget voltage -height]==$height+30}] [expr {[.tg track cget current -height]==$next}]\
+                [expr {$weights eq [list [.tg track cget voltage -weight] [.tg track cget current -weight]]}]
     } -cleanup {destroy .tg} -result {1 1 1}
 
     foreach inverted {0 1} {
-        test trackgraph.separator.20.[incr testCase(20)] {Escape restores requested size in scrolling mode and list scrolling cancels a gesture} -setup {
+        test trackgraph.separator.20.[incr testCase(20)]\
+                {Escape restores requested size in scrolling mode and list scrolling cancels a gesture} -setup {
             ScrollSetup $inverted
             .tg track configure voltage -height 140
             .tg configure -trackresize yes
@@ -343,7 +376,13 @@ namespace eval trackgraph.separator {
         } -body {
             lassign [.tg track bbox voltage] l t r b
             set sash [.tg track sashpos voltage]
-            if {$inverted} {set x $sash; set y [expr {($t+$b)/2}]} else {set x [expr {($l+$r)/2}]; set y $sash}
+            if {$inverted} {
+                set x $sash
+                set y [expr {($t+$b)/2}]
+            } else {
+                set x [expr {($l+$r)/2}]
+                set y $sash
+            }
             event generate .tg <ButtonPress-1> -x $x -y $y
             event generate .tg <B1-Motion> -x [expr {$x+($inverted?20:0)}] -y [expr {$y+($inverted?0:20)}]
             set changed [expr {[.tg track cget voltage -height]==160}]
