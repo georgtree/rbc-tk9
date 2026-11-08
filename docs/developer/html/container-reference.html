@@ -86,6 +86,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
@@ -1186,7 +1187,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#c.Rbc_ListPrepend"><code class="docutils literal notranslate"><span class="pre">Rbc_ListPrepend()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#c.Rbc_ListLinkAfter"><code class="docutils literal notranslate"><span class="pre">Rbc_ListLinkAfter()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#c.Rbc_ListLinkBefore"><code class="docutils literal notranslate"><span class="pre">Rbc_ListLinkBefore()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#c.Rb_ListDeleteNodeByKey"><code class="docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#c.Rbc_ListDeleteNodeByKey"><code class="docutils literal notranslate"><span class="pre">Rbc_ListDeleteNodeByKey()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#c.Rbc_ListGetNthNode"><code class="docutils literal notranslate"><span class="pre">Rbc_ListGetNthNode()</span></code></a></li>
 </ul>
 </li>
@@ -1732,8 +1733,8 @@
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Rb_ListDeleteNodeByKey">
-<span class="target" id="rbc_list_8h_1a92c6e605f1213292984a842e22c06a5b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rb_ListDeleteNodeByKey</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rb_ListDeleteNodeByKey" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object c" id="c.Rbc_ListDeleteNodeByKey">
+<span class="target" id="rbc_list_8h_1a4c3f00957984ddd582240db0a9a84411"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ListDeleteNodeByKey</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Rbc_List</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">key</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ListDeleteNodeByKey" title="Link to this definition"></a><br /></dt>
 <dd><p>Delete only the first matching node in current list order. </p>
 <p>A NULL list or absent key is a no-op. Otherwise unlinks and frees the node and copied key, leaving clientData and one-word key targets owned by the caller. Uses the historical Rb_ spelling. Does not call a payload destructor.</p>
 <dl class="field-list simple">

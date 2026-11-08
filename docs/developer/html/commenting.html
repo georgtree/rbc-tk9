@@ -86,6 +86,7 @@
 </li>
 <li class="current toctree-l2"><a class="current reference internal" href="#">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#navigation-and-groups">Navigation and groups</a></li>
@@ -1244,11 +1245,24 @@ mechanically converting every historical block into reference documentation.</p>
 <li><p>Do not hand-edit generated stub declarations.</p></li>
 </ul>
 </section>
+<section id="c-function-names">
+<h2>C function names<a class="headerlink" href="#c-function-names" title="Link to this heading"></a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">Rbc_</span></code> followed by PascalCase for RBC-owned functions shared between C translation units, including private
+interfaces. Public C functions use the same prefix; public API status is determined by installed headers and the stubs
+interface, not by the spelling alone. Keep public symbols and stub entries stable.</p>
+<p>Use unprefixed PascalCase for file-local <code class="docutils literal notranslate"><span class="pre">static</span></code> functions, including callbacks. Shared <code class="docutils literal notranslate"><span class="pre">static</span> <span class="pre">inline</span></code> helpers
+in headers retain the <code class="docutils literal notranslate"><span class="pre">Rbc_</span></code> prefix because they form a shared source interface.</p>
+<p>Keep externally prescribed names for platform entry points such as <code class="docutils literal notranslate"><span class="pre">DllMain</span></code> and <code class="docutils literal notranslate"><span class="pre">DllEntryPoint</span></code>, and for
+conditional compatibility replacements such as <code class="docutils literal notranslate"><span class="pre">strcasecmp</span></code>, <code class="docutils literal notranslate"><span class="pre">strncasecmp</span></code> and the legacy <code class="docutils literal notranslate"><span class="pre">strtolower</span></code> fallback.
+RBC-owned adapters around Tcl/Tk facilities use <code class="docutils literal notranslate"><span class="pre">Rbc_</span></code> rather than claiming the <code class="docutils literal notranslate"><span class="pre">Tcl_</span></code> or <code class="docutils literal notranslate"><span class="pre">Tk_</span></code> namespace.</p>
+<p>When renaming private functions, update declarations, definitions, callers, Doxygen references and Sphinx C-domain
+links together, then run the strict developer-manual build.</p>
+</section>
 <section id="contract-contents">
 <h2>Contract contents<a class="headerlink" href="#contract-contents" title="Link to this heading"></a></h2>
 <p>Describe inputs, supported operations, ownership, borrowed-data lifetimes, failure reporting and mutation. Include
 coordinates, units, clipping, callbacks, reentry and threading requirements where relevant. State reference-count rules
-for Tcl objects and whether cleanup functions accept NULL. Do not assume these policies are uniform throughout </p>
+for Tcl objects and whether cleanup functions accept NULL. Do not assume these policies are uniform throughout RBC.</p>
 <p>An illustrative contract (not an existing function):</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
 <span class="cm"> * @brief Create mapped geometry for one component.</span>

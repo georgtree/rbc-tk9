@@ -86,6 +86,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
@@ -1236,9 +1237,9 @@ copy, a reference-counted UID, a borrowed UID lookup and a scratch formatting bu
 <a class="reference internal" href="utility-reference.html"><span class="doc">Utility ownership C reference</span></a> for the selected C declarations.</p>
 <section id="allocation-and-failure-policy">
 <h2>Allocation and failure policy<a class="headerlink" href="#allocation-and-failure-policy" title="Link to this heading"></a></h2>
-<p><a class="reference internal" href="utility-reference.html#c.RbcCalloc" title="RbcCalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcCalloc()</span></code></a> checks the multiplication of element count and element size against <code class="docutils literal notranslate"><span class="pre">SIZE_MAX</span></code>. Overflow invokes
+<p><a class="reference internal" href="utility-reference.html#c.Rbc_Calloc" title="Rbc_Calloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Calloc()</span></code></a> checks the multiplication of element count and element size against <code class="docutils literal notranslate"><span class="pre">SIZE_MAX</span></code>. Overflow invokes
 <code class="docutils literal notranslate"><span class="pre">Tcl_Panic</span></code>. A zero logical size still allocates and zeros one byte, retaining ckalloc-style non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code>
-behavior. <a class="reference internal" href="utility-reference.html#c.RbcStrdup" title="RbcStrdup"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a> copies a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> NUL-terminated string, including its terminator. Both use Tcl
+behavior. <a class="reference internal" href="utility-reference.html#c.Rbc_Strdup" title="Rbc_Strdup"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Strdup()</span></code></a> copies a non-<code class="docutils literal notranslate"><span class="pre">NULL</span></code> NUL-terminated string, including its terminator. Both use Tcl
 allocation and return storage to release with ckfree, not libc free.</p>
 <p>These wrappers do not offer a recoverable allocation-failure protocol. Code that requires a diagnostic and <code class="docutils literal notranslate"><span class="pre">TCL_ERROR</span></code>
 must choose an appropriate allocation strategy explicitly. A check after a fatal allocator is not a substitute.
@@ -1257,7 +1258,7 @@ those calculations.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="utility-reference.html#c.RbcCalloc" title="RbcCalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcCalloc()</span></code></a> / <a class="reference internal" href="utility-reference.html#c.RbcStrdup" title="RbcStrdup"><code class="xref c c-func docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="utility-reference.html#c.Rbc_Calloc" title="Rbc_Calloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Calloc()</span></code></a> / <a class="reference internal" href="utility-reference.html#c.Rbc_Strdup" title="Rbc_Strdup"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_Strdup()</span></code></a></p></td>
 <td><p>New allocation owned by caller</p></td>
 <td><p>ckfree</p></td>
 </tr>

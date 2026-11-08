@@ -1903,7 +1903,7 @@ void Rbc_DestroyTrackLegend(Graph *graphPtr, RbcTrack *track) {
 int Rbc_CreateLegend(Graph *graphPtr) {
     Legend *legendPtr;
 
-    legendPtr = RbcCalloc(1, sizeof(Legend));
+    legendPtr = Rbc_Calloc(1, sizeof(Legend));
     assert(legendPtr != NULL);
     graphPtr->legend = legendPtr;
     legendPtr->graphPtr = graphPtr;
@@ -1946,7 +1946,7 @@ error:
 int Rbc_CreateTrackLegend(Graph *graphPtr, RbcTrack *track) {
     Legend *legendPtr;
 
-    legendPtr = RbcCalloc(1, sizeof(Legend));
+    legendPtr = Rbc_Calloc(1, sizeof(Legend));
     assert(legendPtr != NULL);
     track->legend = legendPtr;
     legendPtr->track = track;

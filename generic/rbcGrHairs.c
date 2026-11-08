@@ -502,7 +502,7 @@ void Rbc_DestroyCrosshairs(Graph *graphPtr) {
 int Rbc_CreateCrosshairs(Graph *graphPtr) {
     Crosshairs *chPtr;
 
-    chPtr = RbcCalloc(1, sizeof(Crosshairs));
+    chPtr = Rbc_Calloc(1, sizeof(Crosshairs));
     assert(chPtr != NULL);
     graphPtr->crosshairs = chPtr;
     chPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, crosshairsOptionSpecs);

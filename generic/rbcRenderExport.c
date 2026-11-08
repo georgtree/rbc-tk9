@@ -103,7 +103,7 @@ Rbc_ColorImage Rbc_RenderExportRasterImage(Rbc_ExportContext *token, Tk_Image im
     int width, height, pass;
     size_t i, count;
 
-    if (image == NULL || Tk_ImageIsDeleted(image)) {
+    if (image == NULL || Rbc_ImageIsDeleted(image)) {
         return NULL;
     }
     Tk_SizeOfImage(image, &width, &height);

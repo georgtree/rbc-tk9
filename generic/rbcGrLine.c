@@ -3898,11 +3898,11 @@ Pen *Rbc_LinePen(const char *penName) {
         optionSpecs = normalLinePenOptionSpecs;
         flags = NORMAL_PEN;
     }
-    penPtr = RbcCalloc(1, sizeof(LinePen));
+    penPtr = Rbc_Calloc(1, sizeof(LinePen));
     assert(penPtr != NULL);
     InitPen(penPtr, optionSpecs, flags);
     corePtr = &penPtr->core;
-    corePtr->name = RbcStrdup(penName);
+    corePtr->name = Rbc_Strdup(penName);
     return corePtr;
 }
 
@@ -11354,7 +11354,7 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     Line *linePtr;
     Element *elemPtr;
 
-    linePtr = RbcCalloc(1, sizeof(Line));
+    linePtr = Rbc_Calloc(1, sizeof(Line));
     if (linePtr == NULL) {
         return NULL;
     }
@@ -11381,8 +11381,8 @@ Element *Rbc_LineElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     /*
      * By default an element's name and label are the same.
      */
-    elemPtr->label = RbcStrdup(name);
-    elemPtr->name = RbcStrdup(name);
+    elemPtr->label = Rbc_Strdup(name);
+    elemPtr->name = Rbc_Strdup(name);
     elemPtr->classUid = classUid;
     elemPtr->flags = SCALE_SYMBOL;
     elemPtr->graphPtr = graphPtr;

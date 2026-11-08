@@ -3,9 +3,9 @@ Utility ownership C reference
 
 See :doc:`utility-ownership` for lifetime and failure policy.
 
-.. doxygenfunction:: RbcCalloc
+.. doxygenfunction:: Rbc_Calloc
 
-.. doxygenfunction:: RbcStrdup
+.. doxygenfunction:: Rbc_Strdup
 
 .. doxygenfunction:: Rbc_GetUid
 

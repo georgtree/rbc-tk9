@@ -5477,7 +5477,7 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
         axisPtr->deletePending = FALSE;
         axisPtr->notifiedLimitsValid = FALSE;
     } else {
-        axisPtr = RbcCalloc(1, sizeof(Axis));
+        axisPtr = Rbc_Calloc(1, sizeof(Axis));
         assert(axisPtr);
         axisPtr->graphPtr = graphPtr;
         axisPtr->optionTable = NULL;
@@ -5487,7 +5487,7 @@ static Axis *CreateAxis(Graph *graphPtr, char *name, int margin) {
         axisPtr->optionsConfigured = FALSE;
         axisPtr->optionsInitialized = FALSE;
         axisPtr->tkResourcesReleased = FALSE;
-        axisPtr->name = RbcStrdup(name);
+        axisPtr->name = Rbc_Strdup(name);
         axisPtr->hashPtr = hPtr;
         axisPtr->classUid = NULL;
         axisPtr->looseMin = axisPtr->looseMax = TICK_RANGE_TIGHT;

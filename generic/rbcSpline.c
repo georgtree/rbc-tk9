@@ -1028,7 +1028,7 @@ static int SplineStoreResult(Tcl_Interp *interp, const char *name, Rbc_VectorTyp
     Tcl_Preserve(interp);
     Tcl_Preserve(vPtr);
     if (isNew && type == RBC_VECTOR_REAL && strchr(vPtr->name, '(') == NULL) {
-        mapName = RbcStrdup(vPtr->name);
+        mapName = Rbc_Strdup(vPtr->name);
     }
     oldData = vPtr->data.raw;
     oldFree = vPtr->freeProc;

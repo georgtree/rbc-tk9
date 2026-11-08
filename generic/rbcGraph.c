@@ -2335,7 +2335,7 @@ static Graph *CreateGraph(Tcl_Interp *interp, Tcl_Size objc, Tcl_Obj *const objv
         Tcl_RestoreInterpState(interp, state);
         return NULL;
     }
-    graphPtr = RbcCalloc(1, sizeof(Graph));
+    graphPtr = Rbc_Calloc(1, sizeof(Graph));
     assert(graphPtr);
     /*
      * Initialize the graph data structure.

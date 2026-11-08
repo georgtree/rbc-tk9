@@ -83,6 +83,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
@@ -4380,8 +4381,6 @@
 </li>
       <li><a href="vector-numeric-reference.html#c.RangeOp">RangeOp (C function)</a>
 </li>
-      <li><a href="container-reference.html#c.Rb_ListDeleteNodeByKey">Rb_ListDeleteNodeByKey (C function)</a>
-</li>
       <li><a href="scroll-reference.html#c.Rbc_AdjustViewport">Rbc_AdjustViewport (C function)</a>
 </li>
       <li><a href="vector-reference.html#c.Rbc_AllocVectorId">Rbc_AllocVectorId (C function)</a>
@@ -4445,6 +4444,8 @@
       <li><a href="binding-reference.html#c.Rbc_BindTableStruct.tkwin">Rbc_BindTableStruct.tkwin (C var)</a>
 </li>
       <li><a href="binding-reference.html#c.Rbc_BindTagProc">Rbc_BindTagProc (C type)</a>
+</li>
+      <li><a href="utility-reference.html#c.Rbc_Calloc">Rbc_Calloc (C function)</a>
 </li>
       <li><a href="spline-reference.html#c.Rbc_CatromParametricSpline">Rbc_CatromParametricSpline (C function)</a>
 </li>
@@ -4862,6 +4863,16 @@
 </li>
       <li><a href="mapping-reference.html#c.Rbc_HMap">Rbc_HMap (C function)</a>
 </li>
+      <li><a href="image-compatibility-reference.html#c.Rbc_ImageGetMaster">Rbc_ImageGetMaster (C function)</a>
+</li>
+      <li><a href="image-compatibility-reference.html#c.Rbc_ImageGetPhotoGC">Rbc_ImageGetPhotoGC (C function)</a>
+</li>
+      <li><a href="image-compatibility-reference.html#c.Rbc_ImageGetPhotoPixmap">Rbc_ImageGetPhotoPixmap (C function)</a>
+</li>
+      <li><a href="image-compatibility-reference.html#c.Rbc_ImageGetType">Rbc_ImageGetType (C function)</a>
+</li>
+      <li><a href="image-compatibility-reference.html#c.Rbc_ImageIsDeleted">Rbc_ImageIsDeleted (C function)</a>
+</li>
       <li><a href="image-tile-reference.html#c.Rbc_ImageOfTile">Rbc_ImageOfTile (C function)</a>
 </li>
       <li><a href="initialization-reference.html#c.Rbc_Init">Rbc_Init (C function)</a>
@@ -4897,6 +4908,8 @@
       <li><a href="container-reference.html#c.Rbc_ListCreateNode">Rbc_ListCreateNode (C function)</a>
 </li>
       <li><a href="container-reference.html#c.Rbc_ListDeleteNode">Rbc_ListDeleteNode (C function)</a>
+</li>
+      <li><a href="container-reference.html#c.Rbc_ListDeleteNodeByKey">Rbc_ListDeleteNodeByKey (C function)</a>
 </li>
       <li><a href="container-reference.html#c.Rbc_ListDestroy">Rbc_ListDestroy (C function)</a>
 </li>
@@ -5640,6 +5653,8 @@
 </li>
       <li><a href="spline-reference.html#c.Rbc_SplineInit">Rbc_SplineInit (C function)</a>
 </li>
+      <li><a href="utility-reference.html#c.Rbc_Strdup">Rbc_Strdup (C function)</a>
+</li>
       <li><a href="pen-reference.html#c.Rbc_StyleMap">Rbc_StyleMap (C function)</a>
 </li>
       <li><a href="svg-reference.html#c.Rbc_SvgFontsFinish">Rbc_SvgFontsFinish (C function)</a>
@@ -5907,8 +5922,6 @@
       <li><a href="cairo-reference.html#c.rbcCairoWindows.Rbc_RenderTarget.image">rbcCairoWindows.Rbc_RenderTarget.image (C var)</a>
 </li>
       <li><a href="cairo-reference.html#c.rbcCairoWindows.Rbc_RenderTarget.surface">rbcCairoWindows.Rbc_RenderTarget.surface (C var)</a>
-</li>
-      <li><a href="utility-reference.html#c.RbcCalloc">RbcCalloc (C function)</a>
 </li>
       <li><a href="crosshair-reference.html#c.rbcCrosshairs.CgetOp">rbcCrosshairs.CgetOp (C function)</a>
 </li>
@@ -6738,14 +6751,14 @@
 </li>
       <li><a href="bar-reference.html#c.rbcGrBarGeometry.BarPen.valueStyle">rbcGrBarGeometry.BarPen.valueStyle (C var)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bar-reference.html#c.rbcGrBarGeometry.BarPenStyle">rbcGrBarGeometry.BarPenStyle (C struct)</a>
 </li>
       <li><a href="bar-reference.html#c.rbcGrBarGeometry.BarPenStyle.errorBarCapWidth">rbcGrBarGeometry.BarPenStyle.errorBarCapWidth (C var)</a>
 </li>
       <li><a href="bar-reference.html#c.rbcGrBarGeometry.BarPenStyle.nRects">rbcGrBarGeometry.BarPenStyle.nRects (C var)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bar-reference.html#c.rbcGrBarGeometry.BarPenStyle.penPtr">rbcGrBarGeometry.BarPenStyle.penPtr (C var)</a>
 </li>
       <li><a href="bar-reference.html#c.rbcGrBarGeometry.BarPenStyle.rectangles">rbcGrBarGeometry.BarPenStyle.rectangles (C var)</a>
@@ -8620,8 +8633,6 @@
 </li>
       <li><a href="reference.html#c.rbcRenderDispatch.ScreenTkImage">rbcRenderDispatch.ScreenTkImage (C function)</a>
 </li>
-      <li><a href="utility-reference.html#c.RbcStrdup">RbcStrdup (C function)</a>
-</li>
       <li><a href="text-font-reference.html#c.rbcTextDrawing.DrawTextLayout">rbcTextDrawing.DrawTextLayout (C function)</a>
 </li>
       <li><a href="text-font-reference.html#c.rbcTextDrawing.GetTextLayoutByteCount">rbcTextDrawing.GetTextLayoutByteCount (C function)</a>
@@ -9520,16 +9531,6 @@
 </li>
       <li><a href="axis-reference.html#c.TickSweep.step">TickSweep.step (C var)</a>
 </li>
-      <li><a href="image-compatibility-reference.html#c.Tk_ImageGetMaster">Tk_ImageGetMaster (C function)</a>
-</li>
-      <li><a href="image-compatibility-reference.html#c.Tk_ImageGetPhotoGC">Tk_ImageGetPhotoGC (C function)</a>
-</li>
-      <li><a href="image-compatibility-reference.html#c.Tk_ImageGetPhotoPixmap">Tk_ImageGetPhotoPixmap (C function)</a>
-</li>
-      <li><a href="image-compatibility-reference.html#c.Tk_ImageGetType">Tk_ImageGetType (C function)</a>
-</li>
-      <li><a href="image-compatibility-reference.html#c.Tk_ImageIsDeleted">Tk_ImageIsDeleted (C function)</a>
-</li>
       <li><a href="image-compatibility-reference.html#c.TkImageMasterStruct">TkImageMasterStruct (C struct)</a>
 </li>
       <li><a href="image-compatibility-reference.html#c.TkImageMasterStruct.height">TkImageMasterStruct.height (C var)</a>
@@ -9570,14 +9571,14 @@
 </li>
       <li><a href="image-compatibility-reference.html#c.TkPhotoInstanceStruct.defaultPalette">TkPhotoInstanceStruct.defaultPalette (C var)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="image-compatibility-reference.html#c.TkPhotoInstanceStruct.display">TkPhotoInstanceStruct.display (C var)</a>
 </li>
       <li><a href="image-compatibility-reference.html#c.TkPhotoInstanceStruct.error">TkPhotoInstanceStruct.error (C var)</a>
 </li>
       <li><a href="image-compatibility-reference.html#c.TkPhotoInstanceStruct.gc">TkPhotoInstanceStruct.gc (C var)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="image-compatibility-reference.html#c.TkPhotoInstanceStruct.height">TkPhotoInstanceStruct.height (C var)</a>
 </li>
       <li><a href="image-compatibility-reference.html#c.TkPhotoInstanceStruct.imagePtr">TkPhotoInstanceStruct.imagePtr (C var)</a>

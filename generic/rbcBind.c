@@ -98,7 +98,7 @@ static void DoEvent(Rbc_BindTableStruct *bindPtr, XEvent *eventPtr, ClientData i
 
         dynamic = (nIds > 32);
         if (dynamic) {
-            idArray = RbcCalloc((size_t)nIds, sizeof(*idArray));
+            idArray = Rbc_Calloc((size_t)nIds, sizeof(*idArray));
         } else {
             idArray = tags;
         }
@@ -432,7 +432,7 @@ Rbc_BindTable Rbc_CreateBindingTable(Tcl_Interp *interp, Tk_Window tkwin, Client
     unsigned int mask;
     Rbc_BindTableStruct *bindPtr;
 
-    bindPtr = RbcCalloc(1, sizeof(Rbc_BindTableStruct));
+    bindPtr = Rbc_Calloc(1, sizeof(Rbc_BindTableStruct));
     assert(bindPtr);
     bindPtr->clientData = clientData;
     bindPtr->pickProc = pickProc;

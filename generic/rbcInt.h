@@ -1013,7 +1013,7 @@ Tcl_AppInitProc Rbc_SplineInit;
  * @param[in] ptr Borrowed non-NULL NUL-terminated source; the result owns a separate copy through its first
  *   NUL.
  */
-char *RbcStrdup(const char *ptr);
+char *Rbc_Strdup(const char *ptr);
 /**
  * @brief Allocate a zero-initialized Tcl-owned block.
  *
@@ -1025,7 +1025,7 @@ char *RbcStrdup(const char *ptr);
  * @param[in] nElem Logical element count; multiplication by size is checked for size_t overflow.
  * @param[in] size Bytes per element; either zero argument still yields a one-byte zeroed allocation.
  */
-void *RbcCalloc(size_t nElem, size_t size);
+void *Rbc_Calloc(size_t nElem, size_t size);
 
 #ifdef WIN32
 #include "rbcWin.h"

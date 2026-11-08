@@ -12,12 +12,12 @@
 
 #include "rbcInt.h"
 
-void *RbcCalloc(size_t nElems, size_t sizeOfElem) {
+void *Rbc_Calloc(size_t nElems, size_t sizeOfElem) {
     char *allocPtr;
     size_t size;
 
     if ((nElems != 0) && (sizeOfElem > SIZE_MAX / nElems)) {
-        Tcl_Panic("RbcCalloc: allocation size overflow");
+        Tcl_Panic("Rbc_Calloc: allocation size overflow");
     }
     size = nElems * sizeOfElem;
     /*
@@ -32,7 +32,7 @@ void *RbcCalloc(size_t nElems, size_t sizeOfElem) {
     return allocPtr;
 }
 
-char *RbcStrdup(const char *string) {
+char *Rbc_Strdup(const char *string) {
     size_t size;
     char *allocPtr;
 

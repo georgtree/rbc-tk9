@@ -156,7 +156,7 @@ Rbc_ListNode Rbc_ListCreateNode(struct Rbc_ListStruct *listPtr, const char *key)
         Tcl_Panic("Rbc_ListCreateNode: allocation size overflow");
     }
     totalSize = baseSize + keySize;
-    nodePtr = RbcCalloc(1, totalSize);
+    nodePtr = Rbc_Calloc(1, totalSize);
     nodePtr->clientData = NULL;
     nodePtr->nextPtr = NULL;
     nodePtr->prevPtr = NULL;
@@ -308,7 +308,7 @@ void Rbc_ListDeleteNode(struct Rbc_ListNodeStruct *nodePtr) {
 }
 
 /* Contract and ownership are documented in rbcList.h. */
-void Rb_ListDeleteNodeByKey(struct Rbc_ListStruct *listPtr, const char *key) {
+void Rbc_ListDeleteNodeByKey(struct Rbc_ListStruct *listPtr, const char *key) {
     struct Rbc_ListNodeStruct *nodePtr;
 
     nodePtr = Rbc_ListGetNode(listPtr, key);

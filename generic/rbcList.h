@@ -199,7 +199,7 @@ Rbc_ListNode Rbc_ListGetNode(Rbc_List list, const char *key);
  * @param[in] key Key matching the list type: readable NUL-terminated string, pointer-sized identity, or
  *   readable native int array; only identity keys may be NULL.
  */
-void Rb_ListDeleteNodeByKey(Rbc_List list, const char *key);
+void Rbc_ListDeleteNodeByKey(Rbc_List list, const char *key);
 /**
  * @brief Return a borrowed node at a zero-based position.
  *

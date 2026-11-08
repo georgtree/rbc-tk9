@@ -273,8 +273,8 @@ Rbc_ColorImage Rbc_CreateColorImage(int width, int height) {
     size_t nPixels;
 
     nPixels = GetColorImagePixelCount(width, height);
-    imagePtr = RbcCalloc(1, sizeof(*imagePtr));
-    imagePtr->bits = RbcCalloc(nPixels, sizeof(*imagePtr->bits));
+    imagePtr = Rbc_Calloc(1, sizeof(*imagePtr));
+    imagePtr->bits = Rbc_Calloc(nPixels, sizeof(*imagePtr->bits));
     imagePtr->width = width;
     imagePtr->height = height;
     return imagePtr;
@@ -1101,7 +1101,7 @@ static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filter
         fscale = 1.0 / scale;
         filterSize = GetFilterSize(srcWidth, radius);
         size = GetSampleRecordSize(filterSize);
-        samples = RbcCalloc((size_t)destWidth, size);
+        samples = Rbc_Calloc((size_t)destWidth, size);
         s = samples;
         for (x = 0; x < destWidth; x++) {
             center = (double)x * fscale;
@@ -1133,7 +1133,7 @@ static size_t ComputeWeights(int srcWidth, int destWidth, ResampleFilter *filter
         fscale = 1.0 / scale;
         filterSize = GetFilterSize(srcWidth, radius);
         size = GetSampleRecordSize(filterSize);
-        samples = RbcCalloc((size_t)destWidth, size);
+        samples = Rbc_Calloc((size_t)destWidth, size);
         s = samples;
         for (x = 0; x < destWidth; x++) {
             center = (double)x * fscale;
@@ -1429,8 +1429,8 @@ Rbc_ColorImage Rbc_ResizeColorImage(Rbc_ColorImage src, int x, int y, int width,
     if (!ClipImageRegion(srcWidth, srcHeight, &x, &y, &width, &height)) {
         return dest;
     }
-    mapX = RbcCalloc((size_t)destWidth, sizeof(*mapX));
-    mapY = RbcCalloc((size_t)destHeight, sizeof(*mapY));
+    mapX = Rbc_Calloc((size_t)destWidth, sizeof(*mapX));
+    mapY = Rbc_Calloc((size_t)destHeight, sizeof(*mapY));
     for (i = 0; i < destWidth; i++) {
         mapX[i] = MapNearestCoordinate(x, width, i, destWidth);
     }
@@ -1497,8 +1497,8 @@ Rbc_ColorImage Rbc_ResizeColorSubimage(Rbc_ColorImage src, int regionX, int regi
     if ((srcWidth <= 0) || (srcHeight <= 0)) {
         return dest;
     }
-    mapX = RbcCalloc((size_t)regionWidth, sizeof(*mapX));
-    mapY = RbcCalloc((size_t)regionHeight, sizeof(*mapY));
+    mapX = Rbc_Calloc((size_t)regionWidth, sizeof(*mapX));
+    mapY = Rbc_Calloc((size_t)regionHeight, sizeof(*mapY));
     for (x = 0; x < regionWidth; x++) {
         mapX[x] = MapVirtualCoordinate(srcWidth, (double)regionX + (double)x, destWidth);
     }
@@ -2224,7 +2224,7 @@ static ColorImageStatistics *GetColorImageStatistics(Rbc_ColorImage image) {
     register int i;
     ColorImageStatistics *s;
 
-    s = RbcCalloc(1, sizeof(ColorImageStatistics));
+    s = Rbc_Calloc(1, sizeof(ColorImageStatistics));
     /* Precompute table of squares. */
     for (i = 0; i < MAX_INTENSITIES; i++) {
         sqr[i] = i * i;
@@ -2564,7 +2564,7 @@ static int SplitColorSpace(ColorImageStatistics *s, Cube *cubes, int nColors) {
     register int i;
     register int n, k;
 
-    vv = RbcCalloc((size_t)nColors, sizeof(*vv));
+    vv = Rbc_Calloc((size_t)nColors, sizeof(*vv));
     assert(vv);
     cubes[0].r0 = cubes[0].g0 = cubes[0].b0 = 0;
     cubes[0].r1 = cubes[0].g1 = cubes[0].b1 = 32;
@@ -2649,7 +2649,7 @@ static unsigned int *CreateColorLookupTable(ColorImageStatistics *s, Cube *cubes
     Cube *cubePtr;
     int i;
 
-    lut = RbcCalloc(33u * 33u * 33u, sizeof(*lut));
+    lut = Rbc_Calloc(33u * 33u * 33u, sizeof(*lut));
     color.rgba.alpha = (unsigned char)-1;
     for (cubePtr = cubes, i = 0; i < nColors; i++, cubePtr++) {
         weight = Volume(cubePtr, s->wt);
@@ -2765,7 +2765,7 @@ int Rbc_QuantizeColorImage(Rbc_ColorImage src, Rbc_ColorImage dest, int reduceCo
      */
     statistics = GetColorImageStatistics(src);
     M3d(statistics);
-    cubes = RbcCalloc((size_t)reduceColors, sizeof(*cubes));
+    cubes = Rbc_Calloc((size_t)reduceColors, sizeof(*cubes));
     nColors = SplitColorSpace(statistics, cubes, reduceColors);
     assert(nColors <= reduceColors);
     lut = CreateColorLookupTable(statistics, cubes, nColors);
@@ -2868,7 +2868,7 @@ typedef struct TkPhotoInstanceStruct {
 /*
  * ----------------------------------------------------------------------
  *
- * Tk_ImageDeleted --
+ * Rbc_ImageIsDeleted --
  *
  *      Is there any other way to determine if an image has been
  *      deleted?
@@ -2884,7 +2884,7 @@ typedef struct TkPhotoInstanceStruct {
  *
  * ----------------------------------------------------------------------
  */
-int Tk_ImageIsDeleted(Tk_Image tkImage) {
+int Rbc_ImageIsDeleted(Tk_Image tkImage) {
     TkImage *imagePtr = (TkImage *)tkImage;
     if (imagePtr->masterPtr == NULL) {
         return TRUE;
@@ -2895,7 +2895,7 @@ int Tk_ImageIsDeleted(Tk_Image tkImage) {
 /*
  *--------------------------------------------------------------
  *
- * Tk_ImageGetMaster --
+ * Rbc_ImageGetMaster --
  *
  *      TODO: Description
  *
@@ -2910,7 +2910,7 @@ int Tk_ImageIsDeleted(Tk_Image tkImage) {
  *
  *--------------------------------------------------------------
  */
-Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage) {
+Tk_ImageMaster Rbc_ImageGetMaster(Tk_Image tkImage) {
     TkImage *imagePtr = (TkImage *)tkImage;
     return (Tk_ImageMaster)imagePtr->masterPtr;
 }
@@ -2918,7 +2918,7 @@ Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage) {
 /*
  *--------------------------------------------------------------
  *
- * Tk_ImageGetType --
+ * Rbc_ImageGetType --
  *
  *      TODO: Description
  *
@@ -2933,7 +2933,7 @@ Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage) {
  *
  *--------------------------------------------------------------
  */
-Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage) {
+Tk_ImageType *Rbc_ImageGetType(Tk_Image tkImage) {
     TkImage *imagePtr = (TkImage *)tkImage;
     return imagePtr->masterPtr->typePtr;
 }
@@ -2941,7 +2941,7 @@ Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage) {
 /*
  *--------------------------------------------------------------
  *
- * Tk_ImageGetPhotoPixmap --
+ * Rbc_ImageGetPhotoPixmap --
  *
  *      TODO: Description
  *
@@ -2956,7 +2956,7 @@ Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage) {
  *
  *--------------------------------------------------------------
  */
-Pixmap Tk_ImageGetPhotoPixmap(Tk_Image tkImage) {
+Pixmap Rbc_ImageGetPhotoPixmap(Tk_Image tkImage) {
     TkImage *imagePtr = (TkImage *)tkImage;
     if (strcmp(imagePtr->masterPtr->typePtr->name, "photo") == 0) {
         TkPhotoInstance *instPtr = (TkPhotoInstance *)imagePtr->instanceData;
@@ -2968,7 +2968,7 @@ Pixmap Tk_ImageGetPhotoPixmap(Tk_Image tkImage) {
 /*
  *--------------------------------------------------------------
  *
- * Tk_ImageGetPhotoGC --
+ * Rbc_ImageGetPhotoGC --
  *
  *      TODO: Description
  *
@@ -2983,7 +2983,7 @@ Pixmap Tk_ImageGetPhotoPixmap(Tk_Image tkImage) {
  *
  *--------------------------------------------------------------
  */
-GC Tk_ImageGetPhotoGC(Tk_Image photoImage) {
+GC Rbc_ImageGetPhotoGC(Tk_Image photoImage) {
     TkImage *imagePtr = (TkImage *)photoImage;
     if (strcmp(imagePtr->masterPtr->typePtr->name, "photo") == 0) {
         TkPhotoInstance *instPtr = (TkPhotoInstance *)imagePtr->instanceData;
@@ -3104,7 +3104,7 @@ int Rbc_DestroyTemporaryImage(Tcl_Interp *interp, Tk_Image tkImage) {
         return TCL_OK;
     }
     /* A retained instance may outlive deletion of its named image. */
-    if (!Tk_ImageIsDeleted(tkImage)) {
+    if (!Rbc_ImageIsDeleted(tkImage)) {
         nameObj = Tcl_NewStringObj(Rbc_NameOfImage(tkImage), -1);
         Tcl_IncrRefCount(nameObj);
     }
@@ -3142,6 +3142,6 @@ int Rbc_DestroyTemporaryImage(Tcl_Interp *interp, Tk_Image tkImage) {
 const char *Rbc_NameOfImage(Tk_Image tkImage) {
     Tk_ImageMaster master;
 
-    master = Tk_ImageGetMaster(tkImage);
+    master = Rbc_ImageGetMaster(tkImage);
     return Tk_NameOfImage(master);
 }

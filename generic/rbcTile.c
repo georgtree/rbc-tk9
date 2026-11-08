@@ -221,7 +221,7 @@ static void UpdateTile(ClientData clientData) {
     Tcl_Preserve(tilePtr);
     Tcl_Preserve(interp);
     tilePtr->flags &= ~TILE_NOTIFY_PENDING;
-    if (Tk_ImageIsDeleted(tilePtr->tkImage)) {
+    if (Rbc_ImageIsDeleted(tilePtr->tkImage)) {
         if (tilePtr->pixmap != None) {
             Tk_FreePixmap(tilePtr->display, tilePtr->pixmap);
         }
@@ -358,7 +358,7 @@ static Tile *CreateTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageNa
     Tile *tilePtr;
     Tk_Image tkImage;
 
-    tilePtr = RbcCalloc(1, sizeof(Tile));
+    tilePtr = Rbc_Calloc(1, sizeof(Tile));
     assert(tilePtr);
     /*
      * Get the image. Funnel all change notifications to a single routine.
@@ -373,7 +373,7 @@ static Tile *CreateTile(Tcl_Interp *interp, Tk_Window tkwin, const char *imageNa
      */
     tilePtr->display = Tk_Display(tkwin);
     tilePtr->interp = interp;
-    tilePtr->name = RbcStrdup(imageName);
+    tilePtr->name = Rbc_Strdup(imageName);
     tilePtr->clients = Rbc_ChainCreate();
     tilePtr->tkImage = tkImage;
     RedrawTile(tkwin, tilePtr);
@@ -454,7 +454,7 @@ static TileClient *CreateClient(Tcl_Interp *interp, Tk_Window tkwin, const char 
     } else {
         tilePtr = Tcl_GetHashValue(hPtr);
     }
-    clientPtr = RbcCalloc(1, sizeof(TileClient));
+    clientPtr = Rbc_Calloc(1, sizeof(TileClient));
     assert(clientPtr);
     /* Initialize client information. */
     clientPtr->magic = TILE_MAGIC;
@@ -577,7 +577,7 @@ Pixmap Rbc_PixmapOfTile(TileClient *clientPtr) {
 /* Borrow the image until the next tile change; the caller must not free it. */
 Tk_Image Rbc_ImageOfTile(TileClient *clientPtr) {
     if (clientPtr == NULL || clientPtr->magic != TILE_MAGIC ||
-        Tk_ImageIsDeleted(clientPtr->tilePtr->tkImage)) {
+        Rbc_ImageIsDeleted(clientPtr->tilePtr->tkImage)) {
         return NULL;
     }
     return clientPtr->tilePtr->tkImage;
@@ -593,7 +593,7 @@ int Rbc_GetTilePhoto(TileClient *clientPtr, Tk_PhotoImageBlock *blockPtr) {
         return FALSE;
     }
     tilePtr = clientPtr->tilePtr;
-    if (Tk_ImageIsDeleted(tilePtr->tkImage)) {
+    if (Rbc_ImageIsDeleted(tilePtr->tkImage)) {
         return TRUE;
     }
     photo = Tk_FindPhoto(tilePtr->interp, Rbc_NameOfImage(tilePtr->tkImage));

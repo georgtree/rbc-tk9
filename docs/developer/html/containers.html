@@ -86,6 +86,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
@@ -1301,9 +1302,8 @@ addresses remain valid, but neighbor/order assumptions do not. Its comparator re
 must not mutate membership or invoke reentrant code that does so. Sorting is not stable for equal comparisons. Failure
 of the attempted scratch allocation leaves the list unchanged without an error result; this void helper is not a promise
 that sorting succeeded under allocation pressure.</p>
-<p>See <a class="reference internal" href="container-reference.html"><span class="doc">Container C reference</span></a> for selected lifecycle contracts. The historical <a class="reference internal" href="container-reference.html#c.Rb_ListDeleteNodeByKey" title="Rb_ListDeleteNodeByKey"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey()</span></code></a>
-spelling remains unchanged; it removes only the first matching node. These documentation changes do not rename private
-functions or alter container behavior.</p>
+<p>See <a class="reference internal" href="container-reference.html"><span class="doc">Container C reference</span></a> for selected lifecycle contracts. <a class="reference internal" href="container-reference.html#c.Rbc_ListDeleteNodeByKey" title="Rbc_ListDeleteNodeByKey"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListDeleteNodeByKey()</span></code></a>
+removes only the first matching node.</p>
 </section>
 <section id="insertion-and-lookup-contracts">
 <h2>Insertion and lookup contracts<a class="headerlink" href="#insertion-and-lookup-contracts" title="Link to this heading"></a></h2>
@@ -1345,7 +1345,7 @@ is not a membership check or a move operation: callers must unlink existing memb
 </table>
 <p>All searches walk from the head and return the first match. Sorting or moving nodes can therefore change which duplicate
 is found without changing any key. Array keys are native-memory representations, not a portable byte encoding. Lookup
-returns a borrowed node; it adds no protection against deletion by a later callback. <a class="reference internal" href="container-reference.html#c.Rb_ListDeleteNodeByKey" title="Rb_ListDeleteNodeByKey"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rb_ListDeleteNodeByKey()</span></code></a>
+returns a borrowed node; it adds no protection against deletion by a later callback. <a class="reference internal" href="container-reference.html#c.Rbc_ListDeleteNodeByKey" title="Rbc_ListDeleteNodeByKey"><code class="xref c c-func docutils literal notranslate"><span class="pre">Rbc_ListDeleteNodeByKey()</span></code></a>
 uses this same first-match rule.</p>
 </section>
 <section id="private-key-lookup-contracts">

@@ -2681,7 +2681,7 @@ int Rbc_ExprVector(Tcl_Interp *interp, char *string, Rbc_Vector *vecPtr) {
     }
     value.vPtr = Rbc_VectorNew(dataPtr);
     if (vPtr != NULL) {
-        clientPtr = RbcCalloc(1, sizeof(VectorClient));
+        clientPtr = Rbc_Calloc(1, sizeof(VectorClient));
         clientPtr->magic = VECTOR_MAGIC;
         clientPtr->serverPtr = vPtr;
         clientPtr->proc = ExpressionDestinationChanged;

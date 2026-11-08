@@ -86,6 +86,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
@@ -1013,11 +1014,11 @@
 </ul>
 </li>
 <li class="current toctree-l2"><a class="current reference internal" href="#">Image compatibility C reference</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#c.Tk_ImageIsDeleted"><code class="docutils literal notranslate"><span class="pre">Tk_ImageIsDeleted()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#c.Tk_ImageGetMaster"><code class="docutils literal notranslate"><span class="pre">Tk_ImageGetMaster()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#c.Tk_ImageGetType"><code class="docutils literal notranslate"><span class="pre">Tk_ImageGetType()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#c.Tk_ImageGetPhotoPixmap"><code class="docutils literal notranslate"><span class="pre">Tk_ImageGetPhotoPixmap()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#c.Tk_ImageGetPhotoGC"><code class="docutils literal notranslate"><span class="pre">Tk_ImageGetPhotoGC()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c.Rbc_ImageIsDeleted"><code class="docutils literal notranslate"><span class="pre">Rbc_ImageIsDeleted()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c.Rbc_ImageGetMaster"><code class="docutils literal notranslate"><span class="pre">Rbc_ImageGetMaster()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c.Rbc_ImageGetType"><code class="docutils literal notranslate"><span class="pre">Rbc_ImageGetType()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c.Rbc_ImageGetPhotoPixmap"><code class="docutils literal notranslate"><span class="pre">Rbc_ImageGetPhotoPixmap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c.Rbc_ImageGetPhotoGC"><code class="docutils literal notranslate"><span class="pre">Rbc_ImageGetPhotoGC()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#c.Rbc_NameOfImage"><code class="docutils literal notranslate"><span class="pre">Rbc_NameOfImage()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#c.Rbc_CreateTemporaryImage"><code class="docutils literal notranslate"><span class="pre">Rbc_CreateTemporaryImage()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#c.Rbc_DestroyTemporaryImage"><code class="docutils literal notranslate"><span class="pre">Rbc_DestroyTemporaryImage()</span></code></a></li>
@@ -1280,11 +1281,11 @@
              
   <section id="image-compatibility-c-reference">
 <h1>Image compatibility C reference<a class="headerlink" href="#image-compatibility-c-reference" title="Link to this heading"></a></h1>
-<p>These functions are defined by RBC in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> and declared privately in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code>, including those whose
-names start with <code class="docutils literal notranslate"><span class="pre">Tk_</span></code>. See <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for lifetime and private-layout requirements.</p>
+<p>These functions are defined by RBC in <code class="docutils literal notranslate"><span class="pre">rbcImage.c</span></code> and declared privately in <code class="docutils literal notranslate"><span class="pre">rbcImage.h</span></code>.
+See <a class="reference internal" href="image-compatibility.html"><span class="doc">Temporary images and private Tk adapters</span></a> for lifetime and private-layout requirements.</p>
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Tk_ImageIsDeleted">
-<span class="target" id="rbc_image_8h_1ab4b36422d3155c8ea296fc46b98b947e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageIsDeleted</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageIsDeleted" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object c" id="c.Rbc_ImageIsDeleted">
+<span class="target" id="rbc_image_8h_1a7b6f4725fc36e5710691e5ab03183a1f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ImageIsDeleted</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ImageIsDeleted" title="Link to this definition"></a><br /></dt>
 <dd><p>Inspect whether a retained image instance has lost its image manager. </p>
 <p>Require a non-NULL, unfreed Tk_Image. Return true for a NULL master pointer or NULL master type. This RBC-defined helper reads copied private Tk layout; it cannot validate an arbitrary or already-freed pointer.</p>
 <dl class="field-list simple">
@@ -1297,8 +1298,8 @@ names start with <code class="docutils literal notranslate"><span class="pre">Tk
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Tk_ImageGetMaster">
-<span class="target" id="rbc_image_8h_1a767ff4a2d512356cb4adc239b08cf86f"></span><span class="n"><span class="pre">Tk_ImageMaster</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageGetMaster</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageGetMaster" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object c" id="c.Rbc_ImageGetMaster">
+<span class="target" id="rbc_image_8h_1a23a1b0dc5bf8f011986da397f6ef04f6"></span><span class="n"><span class="pre">Tk_ImageMaster</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ImageGetMaster</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ImageGetMaster" title="Link to this definition"></a><br /></dt>
 <dd><p>Return the borrowed master pointer from a retained, non-NULL Tk image. </p>
 <p>No reference is acquired. The result may be NULL; callers must establish validity before passing it to further Tk or RBC operations. This helper is implemented by RBC using copied private Tk structure layout.</p>
 <dl class="field-list simple">
@@ -1311,8 +1312,8 @@ names start with <code class="docutils literal notranslate"><span class="pre">Tk
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Tk_ImageGetType">
-<span class="target" id="rbc_image_8h_1aeea731fa3a70b64b67253712f28f2d59"></span><span class="n"><span class="pre">Tk_ImageType</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageGetType</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageGetType" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object c" id="c.Rbc_ImageGetType">
+<span class="target" id="rbc_image_8h_1a8cc84200d829e6902eb793a7523d844d"></span><span class="n"><span class="pre">Tk_ImageType</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ImageGetType</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">tkImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ImageGetType" title="Link to this definition"></a><br /></dt>
 <dd><p>Return a borrowed image-type pointer using RBC’s private-layout adapter. </p>
 <p>Require a retained non-NULL instance with a non-NULL master. A deleted master’s type may be NULL. Do not free or modify the returned descriptor.</p>
 <dl class="field-list simple">
@@ -1325,8 +1326,8 @@ names start with <code class="docutils literal notranslate"><span class="pre">Tk
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Tk_ImageGetPhotoPixmap">
-<span class="target" id="rbc_image_8h_1ac02f3ba9aa43641e0b708727d76a331d"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageGetPhotoPixmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">photoImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageGetPhotoPixmap" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object c" id="c.Rbc_ImageGetPhotoPixmap">
+<span class="target" id="rbc_image_8h_1a26a6182e68d341d95e3c60beda2a92c6"></span><span class="n"><span class="pre">Pixmap</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ImageGetPhotoPixmap</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">photoImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ImageGetPhotoPixmap" title="Link to this definition"></a><br /></dt>
 <dd><p>Borrow the native display pixmap of a live photo instance, or return None for a different live image type. </p>
 <p>Require non-NULL instance, master and type. This is RBC’s private-layout accessor, not a retained pixel snapshot. Do not free the pixmap or retain it across image changes.</p>
 <dl class="field-list simple">
@@ -1339,8 +1340,8 @@ names start with <code class="docutils literal notranslate"><span class="pre">Tk
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.Tk_ImageGetPhotoGC">
-<span class="target" id="rbc_image_8h_1a3b60d95baa9af09b503307a01b91c27e"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tk_ImageGetPhotoGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">photoImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Tk_ImageGetPhotoGC" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object c" id="c.Rbc_ImageGetPhotoGC">
+<span class="target" id="rbc_image_8h_1ad82da7f821493f4b20cd52d31180fea5"></span><span class="n"><span class="pre">GC</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_ImageGetPhotoGC</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Tk_Image</span></span><span class="w"> </span><span class="n"><span class="pre">photoImage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_ImageGetPhotoGC" title="Link to this definition"></a><br /></dt>
 <dd><p>Borrow the display GC of a live photo instance, or return NULL for another live type. </p>
 <p>Require non-NULL instance, master and type. Do not free or mutate the returned Tk-owned GC. This RBC helper relies on private photo layout.</p>
 <dl class="field-list simple">

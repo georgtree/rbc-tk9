@@ -262,7 +262,7 @@ TextLayout *Rbc_GetTextLayout(const char *string, TextStyle *tsPtr) {
         nFrags++;
     }
     size = GetTextLayoutByteCount(nFrags);
-    textPtr = RbcCalloc(1, size);
+    textPtr = Rbc_Calloc(1, size);
     textPtr->nFrags = nFrags;
     maxWidth = 0;
     height = tsPtr->padTop;

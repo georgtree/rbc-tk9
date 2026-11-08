@@ -14,6 +14,23 @@ Where comments belong
 * Keep algorithm rationale near the implementation, without duplicating the contract in both header and source.
 * Do not hand-edit generated stub declarations.
 
+C function names
+----------------
+
+Use ``Rbc_`` followed by PascalCase for RBC-owned functions shared between C translation units, including private
+interfaces. Public C functions use the same prefix; public API status is determined by installed headers and the stubs
+interface, not by the spelling alone. Keep public symbols and stub entries stable.
+
+Use unprefixed PascalCase for file-local ``static`` functions, including callbacks. Shared ``static inline`` helpers
+in headers retain the ``Rbc_`` prefix because they form a shared source interface.
+
+Keep externally prescribed names for platform entry points such as ``DllMain`` and ``DllEntryPoint``, and for
+conditional compatibility replacements such as ``strcasecmp``, ``strncasecmp`` and the legacy ``strtolower`` fallback.
+RBC-owned adapters around Tcl/Tk facilities use ``Rbc_`` rather than claiming the ``Tcl_`` or ``Tk_`` namespace.
+
+When renaming private functions, update declarations, definitions, callers, Doxygen references and Sphinx C-domain
+links together, then run the strict developer-manual build.
+
 Contract contents
 -----------------
 

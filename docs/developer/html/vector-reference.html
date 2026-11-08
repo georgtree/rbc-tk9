@@ -86,6 +86,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
@@ -1446,7 +1447,7 @@ Does not invoke the callback immediately or transfer ownership of clientData. </
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>clientId</strong> – <strong>[in]</strong> Non-NULL live token. </p></li>
 <li><p><strong>proc</strong> – <strong>[in]</strong> Callback, or NULL to disable calls without detaching the ID. </p></li>
-<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed data passed to proc; never freed by </p></li>
+<li><p><strong>clientData</strong> – <strong>[in]</strong> Borrowed data passed to proc; never freed by RBC.</p></li>
 </ul>
 </dd>
 </dl>

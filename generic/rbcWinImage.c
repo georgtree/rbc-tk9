@@ -203,7 +203,7 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     if (destBytesPerRow == 0) {
         return None;
     }
-    destBits = RbcCalloc((size_t)src.height, (size_t)destBytesPerRow);
+    destBits = Rbc_Calloc((size_t)src.height, (size_t)destBytesPerRow);
     destHeight = src.height;
     srcRowPtr = src.pixelPtr;
     /* FIXME: figure out why this is so! */
@@ -280,7 +280,7 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     if (destBytesPerRow == 0) {
         return None;
     }
-    destBits = RbcCalloc((size_t)destHeight, (size_t)destBytesPerRow);
+    destBits = Rbc_Calloc((size_t)destHeight, (size_t)destBytesPerRow);
     count = 0;
     srcPtr = Rbc_ColorImageBits(image);
     for (y = 0; y < destHeight; y++) {
@@ -435,7 +435,7 @@ Pixmap Rbc_RotateBitmap(Tk_Window tkwin, Pixmap srcBitmap, int srcWidth, int src
         Tk_FreePixmap(display, destBitmap);
         return None;
     }
-    destBits = RbcCalloc((size_t)destHeight, (size_t)destBytesPerRow);
+    destBits = Rbc_Calloc((size_t)destHeight, (size_t)destBytesPerRow);
     /*
      * Windows monochrome bitmaps are bottom-to-top.  The mappings
      * below intentionally preserve the orientation of the original
@@ -721,7 +721,7 @@ Pixmap Rbc_ScaleRotateBitmapRegion(Tk_Window tkwin, Pixmap srcBitmap, int srcWid
         Tk_FreePixmap(display, destBitmap);
         return None;
     }
-    destBits = RbcCalloc((size_t)regionHeight, (size_t)destBytesPerRow);
+    destBits = Rbc_Calloc((size_t)regionHeight, (size_t)destBytesPerRow);
     destHeight = regionHeight;
     theta = FMOD(theta, 360.0);
     if (theta < 0.0) {

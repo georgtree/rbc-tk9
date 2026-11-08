@@ -62,7 +62,7 @@ Creation, insertion and lookup
 
 .. doxygenfunction:: Rbc_ListLinkBefore
 
-.. doxygenfunction:: Rb_ListDeleteNodeByKey
+.. doxygenfunction:: Rbc_ListDeleteNodeByKey
 
 .. doxygenfunction:: Rbc_ListGetNthNode
 

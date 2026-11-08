@@ -1490,7 +1490,7 @@ static void VectorInterpDeleteProc(ClientData clientData, Tcl_Interp *interp) {
 VectorObject *Rbc_VectorNew(VectorInterpData *dataPtr) {
     VectorObject *vPtr;
 
-    vPtr = RbcCalloc(1, sizeof(VectorObject));
+    vPtr = Rbc_Calloc(1, sizeof(VectorObject));
     vPtr->type = RBC_VECTOR_REAL;
     vPtr->notifyFlags = NOTIFY_WHENIDLE | UPDATE_RANGE;
     vPtr->freeProc = TCL_STATIC;
@@ -1555,7 +1555,7 @@ VectorObject *Rbc_VectorCreate(VectorInterpData *dataPtr, const char *vecName, c
     }
     Tcl_Preserve(interp);
     if (varName != NULL) {
-        savedVarName = RbcStrdup(varName);
+        savedVarName = Rbc_Strdup(varName);
     }
     varName = savedVarName;
     /* process the vector name: */
@@ -1775,7 +1775,7 @@ void Rbc_VectorFree(VectorObject *vPtr) {
     }
     /* Remove the old registration before callbacks can recreate this name. */
     if (vPtr->hashPtr != NULL) {
-        savedName = RbcStrdup(vPtr->name);
+        savedName = Rbc_Strdup(vPtr->name);
         Tcl_DeleteHashEntry(vPtr->hashPtr);
         vPtr->hashPtr = NULL;
         vPtr->name = savedName;
@@ -1917,7 +1917,7 @@ void Rbc_VectorFlushCache(VectorObject *vPtr) {
     }
     Tcl_Preserve(vPtr);
     Tcl_Preserve(interp);
-    arrayName = RbcStrdup(vPtr->arrayName);
+    arrayName = Rbc_Strdup(vPtr->arrayName);
     varFlags = vPtr->varFlags;
     /* User unset/write traces may delete the vector or remap its variable. */
     Tcl_UntraceVar2(interp, arrayName, NULL, TRACE_ALL | varFlags,
@@ -1973,7 +1973,7 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
     }
     Tcl_Preserve(vPtr);
     Tcl_Preserve(interp);
-    savedName = RbcStrdup(name != NULL ? name : "");
+    savedName = Rbc_Strdup(name != NULL ? name : "");
     name = savedName;
     if (vPtr->arrayName != NULL) {
         UnmapVariable(vPtr);
@@ -2024,7 +2024,7 @@ int Rbc_VectorMapVariable(Tcl_Interp *interp, VectorObject *vPtr, const char *na
         /*printf("trace on %s with variable %s\n",vPtr->name,name);*/
         Tcl_TraceVar2(interp, name, NULL, (TRACE_ALL | vPtr->varFlags), (Tcl_VarTraceProc *)VectorVarTrace, vPtr);
     }
-    vPtr->arrayName = RbcStrdup(name);
+    vPtr->arrayName = Rbc_Strdup(name);
     code = (result == NULL) ? TCL_ERROR : TCL_OK;
     goto done;
 
@@ -3766,7 +3766,7 @@ Rbc_VectorId Rbc_AllocVectorId(Tcl_Interp *interp, const char *name) {
      * into the string.  Therefore make a writable copy and free it
      * when we're done.
      */
-    nameCopy = RbcStrdup(name);
+    nameCopy = Rbc_Strdup(name);
     result = Rbc_VectorLookupName(dataPtr, nameCopy, &vPtr);
     ckfree((char *)nameCopy);
     if (result != TCL_OK) {
@@ -3777,7 +3777,7 @@ Rbc_VectorId Rbc_AllocVectorId(Tcl_Interp *interp, const char *name) {
         return NULL;
     }
     /* Allocate a new client structure */
-    clientPtr = RbcCalloc(1, sizeof(VectorClient));
+    clientPtr = Rbc_Calloc(1, sizeof(VectorClient));
     assert(clientPtr);
     clientPtr->magic = VECTOR_MAGIC;
     /* Add the new client to the server's list of clients */

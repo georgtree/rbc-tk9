@@ -183,7 +183,7 @@ Rbc_ChainLink *Rbc_ChainAllocLink(size_t extraSize) {
         Tcl_Panic("Rbc_ChainAllocLink: allocation size overflow");
     }
     totalSize = linkSize + extraSize;
-    linkPtr = RbcCalloc(1, totalSize);
+    linkPtr = Rbc_Calloc(1, totalSize);
     if (extraSize > 0) {
         /*
          * Point clientData at the aligned storage immediately after

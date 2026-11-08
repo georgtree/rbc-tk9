@@ -259,7 +259,7 @@ static const char *DistanceToString(ClientData clientData, Tk_Window tkwin, char
     int value = *(int *)(widgRec + offset);
     char *result;
 
-    result = RbcStrdup(Rbc_Itoa(value));
+    result = Rbc_Strdup(Rbc_Itoa(value));
     assert(result);
     *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     return result;
@@ -545,7 +545,7 @@ int Rbc_RestoreOptionsOnError(Tcl_Interp *interp, Tk_SavedOptions *savedOptionsP
 }
 
 char *Rbc_GetComponentResourceName(const char *name) {
-    char *copy = RbcStrdup(name);
+    char *copy = Rbc_Strdup(name);
 
     if (copy[0] != '\0') {
         copy[0] = (char)tolower((unsigned char)copy[0]);

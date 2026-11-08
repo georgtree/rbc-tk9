@@ -649,7 +649,7 @@ static int ConvolveOp(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc, 
         Tcl_SetObjResult(interp, Tcl_NewStringObj("kernel must be square", -1));
         goto error;
     }
-    kernel = RbcCalloc((size_t)nValues, sizeof(*kernel));
+    kernel = Rbc_Calloc((size_t)nValues, sizeof(*kernel));
     sum = 0.0;
     for (i = 0; i < nValues; i++) {
         if (Tcl_GetDoubleFromObj(interp, valueArr[i], &value) != TCL_OK) {

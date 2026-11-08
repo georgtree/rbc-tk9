@@ -1386,7 +1386,7 @@ int Rbc_CreateGrid(Graph *graphPtr) {
     Grid *gridPtr;
     const Tk_OptionSpec *specsPtr;
 
-    gridPtr = RbcCalloc(1, sizeof(Grid));
+    gridPtr = Rbc_Calloc(1, sizeof(Grid));
     assert(gridPtr != NULL);
     graphPtr->gridPtr = gridPtr;
     gridPtr->graphPtr = graphPtr;
@@ -1652,7 +1652,7 @@ int Rbc_TrackGridOp(Graph *graphPtr, RbcTrack *track, Tcl_Interp *interp, Tcl_Si
         Tcl_Obj *values[14];
         Tk_SavedOptions saved;
         int mask;
-        local = RbcCalloc(1, sizeof(*local));
+        local = Rbc_Calloc(1, sizeof(*local));
         local->graphPtr = graphPtr;
         local->track = track;
         local->optionTable = Tk_CreateOptionTable(interp, trackGridOptionSpecs);

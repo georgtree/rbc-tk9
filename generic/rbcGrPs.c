@@ -1111,7 +1111,7 @@ done:
 int Rbc_CreatePostScript(Graph *graphPtr) {
     PostScript *psPtr;
 
-    psPtr = RbcCalloc(1, sizeof(PostScript));
+    psPtr = Rbc_Calloc(1, sizeof(PostScript));
     assert(psPtr != NULL);
     graphPtr->postscript = psPtr;
     psPtr->optionTable = Tk_CreateOptionTable(graphPtr->interp, postScriptOptionSpecs);

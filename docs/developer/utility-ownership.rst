@@ -8,9 +8,9 @@ copy, a reference-counted UID, a borrowed UID lookup and a scratch formatting bu
 Allocation and failure policy
 -----------------------------
 
-:c:func:`RbcCalloc` checks the multiplication of element count and element size against ``SIZE_MAX``. Overflow invokes
+:c:func:`Rbc_Calloc` checks the multiplication of element count and element size against ``SIZE_MAX``. Overflow invokes
 ``Tcl_Panic``. A zero logical size still allocates and zeros one byte, retaining ckalloc-style non-``NULL``
-behavior. :c:func:`RbcStrdup` copies a non-``NULL`` NUL-terminated string, including its terminator. Both use Tcl
+behavior. :c:func:`Rbc_Strdup` copies a non-``NULL`` NUL-terminated string, including its terminator. Both use Tcl
 allocation and return storage to release with ckfree, not libc free.
 
 These wrappers do not offer a recoverable allocation-failure protocol. Code that requires a diagnostic and ``TCL_ERROR``
@@ -25,7 +25,7 @@ those calculations.
    * - Result
      - Ownership and lifetime
      - Release/copy rule
-   * - :c:func:`RbcCalloc` / :c:func:`RbcStrdup`
+   * - :c:func:`Rbc_Calloc` / :c:func:`Rbc_Strdup`
      - New allocation owned by caller
      - ckfree
    * - :c:func:`Rbc_GetUid`

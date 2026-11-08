@@ -1659,7 +1659,7 @@ static Marker *CreateMarker(Graph *graphPtr, const char *name, Rbc_Uid classUid)
     markerPtr->hidden = markerPtr->drawUnder = FALSE;
     markerPtr->optionMask = 0;
     markerPtr->flags |= MAP_ITEM;
-    markerPtr->name = RbcStrdup(name);
+    markerPtr->name = Rbc_Strdup(name);
     markerPtr->classUid = classUid;
     markerPtr->optionTable = NULL;
     markerPtr->optionsInitialized = FALSE;
@@ -2386,7 +2386,7 @@ static void FreeBitmapMarker(Graph *graphPtr, Marker *markerPtr) {
 static Marker *CreateBitmapMarker(void) {
     BitmapMarker *bmPtr;
 
-    bmPtr = RbcCalloc(1, sizeof(BitmapMarker));
+    bmPtr = Rbc_Calloc(1, sizeof(BitmapMarker));
     if (bmPtr != NULL) {
         bmPtr->core.classPtr = &bitmapMarkerClass;
     }
@@ -2586,7 +2586,7 @@ static void MapImageMarker(Marker *markerPtr) {
     int scaledWidth, scaledHeight;
     int srcWidth, srcHeight;
 
-    if ((imPtr->tkImage == NULL) || Tk_ImageIsDeleted(imPtr->tkImage)) {
+    if ((imPtr->tkImage == NULL) || Rbc_ImageIsDeleted(imPtr->tkImage)) {
         return;
     }
     graphPtr = imPtr->core.graphPtr;
@@ -2838,7 +2838,7 @@ static void DrawImageMarker(Marker *markerPtr, Drawable drawable) {
     ImageMarker *imPtr = IMAGE_MARKER_FROM_CORE(markerPtr);
     Rbc_RenderContext *ctx;
 
-    if ((imPtr->tkImage == NULL) || (Tk_ImageIsDeleted(imPtr->tkImage))) {
+    if ((imPtr->tkImage == NULL) || (Rbc_ImageIsDeleted(imPtr->tkImage))) {
         return;
     }
     ctx = Rbc_RenderBeginScreenRaster(markerPtr->graphPtr, drawable);
@@ -2870,7 +2870,7 @@ static void ImageMarkerExport(Marker *markerPtr, Rbc_ExportContext *exportPtr) {
     const char *imageName;
     Tk_PhotoHandle photo;
 
-    if ((imPtr->tkImage == NULL) || (Tk_ImageIsDeleted(imPtr->tkImage))) {
+    if ((imPtr->tkImage == NULL) || (Rbc_ImageIsDeleted(imPtr->tkImage))) {
         Rbc_RenderEnd(output);
         return; /* Image doesn't exist anymore */
     }
@@ -2937,7 +2937,7 @@ static void FreeImageMarker(Graph *graphPtr, Marker *markerPtr) {
 static Marker *CreateImageMarker(void) {
     ImageMarker *imPtr;
 
-    imPtr = RbcCalloc(1, sizeof(ImageMarker));
+    imPtr = Rbc_Calloc(1, sizeof(ImageMarker));
     if (imPtr != NULL) {
         imPtr->core.classPtr = &imageMarkerClass;
     }
@@ -3370,7 +3370,7 @@ static void FreeTextMarker(Graph *graphPtr, Marker *markerPtr) {
 static Marker *CreateTextMarker(void) {
     TextMarker *tmPtr;
 
-    tmPtr = RbcCalloc(1, sizeof(TextMarker));
+    tmPtr = Rbc_Calloc(1, sizeof(TextMarker));
     if (tmPtr != NULL) {
         tmPtr->core.classPtr = &textMarkerClass;
         Rbc_InitTextStyle(&tmPtr->style);
@@ -3700,7 +3700,7 @@ static void FreeWindowMarker(Graph *graphPtr, Marker *markerPtr) {
 static Marker *CreateWindowMarker(void) {
     WindowMarker *wmPtr;
 
-    wmPtr = RbcCalloc(1, sizeof(WindowMarker));
+    wmPtr = Rbc_Calloc(1, sizeof(WindowMarker));
     if (wmPtr != NULL) {
         wmPtr->core.classPtr = &windowMarkerClass;
     }
@@ -4618,7 +4618,7 @@ static void FreeLineMarker(Graph *graphPtr, Marker *markerPtr) {
 static Marker *CreateLineMarker(void) {
     LineMarker *lmPtr;
 
-    lmPtr = RbcCalloc(1, sizeof(LineMarker));
+    lmPtr = Rbc_Calloc(1, sizeof(LineMarker));
     if (lmPtr != NULL) {
         lmPtr->core.classPtr = &lineMarkerClass;
         lmPtr->xor = FALSE;
@@ -5149,7 +5149,7 @@ static void FreePolygonMarker(Graph *graphPtr, Marker *markerPtr) {
 static Marker *CreatePolygonMarker(void) {
     PolygonMarker *pmPtr;
 
-    pmPtr = RbcCalloc(1, sizeof(PolygonMarker));
+    pmPtr = Rbc_Calloc(1, sizeof(PolygonMarker));
     if (pmPtr != NULL) {
         pmPtr->core.classPtr = &polygonMarkerClass;
         pmPtr->capStyle = CapButt;

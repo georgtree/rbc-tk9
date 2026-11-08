@@ -313,7 +313,7 @@ Rbc_ColorImage Rbc_DrawableToColorImage(Tk_Window tkwin, Drawable drawable, regi
          * Build one XColor array.  The hash-table values point directly
          * into this array, which XQueryColors then fills in place.
          */
-        colorArr = RbcCalloc((size_t)nColors, sizeof(*colorArr));
+        colorArr = Rbc_Calloc((size_t)nColors, sizeof(*colorArr));
         colorPtr = colorArr;
         for (hPtr = Tcl_FirstHashEntry(&pixelTable, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {
             colorPtr->pixel = (unsigned long)Tcl_GetHashValue(hPtr);
@@ -364,7 +364,7 @@ Pixmap Rbc_PhotoImageMask(Tk_Window tkwin, Tk_PhotoImageBlock src) {
     unsigned char *srcRowPtr;
 
     bytesPerLine = GetPackedBitmapRowBytes(src.width);
-    bits = RbcCalloc((size_t)src.height, bytesPerLine);
+    bits = Rbc_Calloc((size_t)src.height, bytesPerLine);
     assert(bits);
     destPtr = bits;
     srcRowPtr = src.pixelPtr;
@@ -427,7 +427,7 @@ Pixmap Rbc_ColorImageMask(Tk_Window tkwin, Rbc_ColorImage image) {
     width = Rbc_ColorImageWidth(image);
     height = Rbc_ColorImageHeight(image);
     bytesPerLine = GetPackedBitmapRowBytes(width);
-    bits = RbcCalloc((size_t)height, bytesPerLine);
+    bits = Rbc_Calloc((size_t)height, bytesPerLine);
     assert(bits);
     destPtr = bits;
     count = 0;

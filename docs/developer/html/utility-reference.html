@@ -86,6 +86,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
@@ -1170,8 +1171,8 @@
 </ul>
 </li>
 <li class="current toctree-l2"><a class="current reference internal" href="#">Utility ownership C reference</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#c.RbcCalloc"><code class="docutils literal notranslate"><span class="pre">RbcCalloc()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#c.RbcStrdup"><code class="docutils literal notranslate"><span class="pre">RbcStrdup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c.Rbc_Calloc"><code class="docutils literal notranslate"><span class="pre">Rbc_Calloc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c.Rbc_Strdup"><code class="docutils literal notranslate"><span class="pre">Rbc_Strdup()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#c.Rbc_GetUid"><code class="docutils literal notranslate"><span class="pre">Rbc_GetUid()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#c.Rbc_FreeUid"><code class="docutils literal notranslate"><span class="pre">Rbc_FreeUid()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#c.Rbc_FindUid"><code class="docutils literal notranslate"><span class="pre">Rbc_FindUid()</span></code></a></li>
@@ -1254,8 +1255,8 @@
 <h1>Utility ownership C reference<a class="headerlink" href="#utility-ownership-c-reference" title="Link to this heading"></a></h1>
 <p>See <a class="reference internal" href="utility-ownership.html"><span class="doc">Allocation, strings and interned names</span></a> for lifetime and failure policy.</p>
 <dl class="c function">
-<dt class="sig sig-object c" id="c.RbcCalloc">
-<span class="target" id="rbc_int_8h_1affd2e78d8fe221e7c54cec24b86a1421"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">RbcCalloc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">nElem</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RbcCalloc" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object c" id="c.Rbc_Calloc">
+<span class="target" id="rbc_int_8h_1a3be23438c9d2e14cd113a3c0edd8084b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Calloc</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">nElem</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Calloc" title="Link to this definition"></a><br /></dt>
 <dd><p>Allocate a zero-initialized Tcl-owned block. </p>
 <p>Check nElem * size for size_t overflow and panic on overflow. A zero logical size allocates one zero byte, preserving a non-NULL ckalloc-style result. The caller releases the allocation with ckfree. Allocation failure is fatal, not a recoverable NULL result.</p>
 <dl class="field-list simple">
@@ -1269,8 +1270,8 @@
 </dd></dl>
 
 <dl class="c function">
-<dt class="sig sig-object c" id="c.RbcStrdup">
-<span class="target" id="rbc_int_8h_1a80e15f606cd4480568f0d0dbcd162dcc"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">RbcStrdup</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.RbcStrdup" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object c" id="c.Rbc_Strdup">
+<span class="target" id="rbc_int_8h_1a7f0dce6ad151855c1f76b13348bb9290"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">Rbc_Strdup</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Rbc_Strdup" title="Link to this definition"></a><br /></dt>
 <dd><p>Copy a non-NULL NUL-terminated string into Tcl-owned storage. </p>
 <p>Borrow the input and copy through its first NUL, including the terminator. The caller releases the result with ckfree, not libc free. Uses ckalloc failure policy; this is not a binary-data or length-delimited copy.</p>
 <dl class="field-list simple">

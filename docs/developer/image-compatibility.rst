@@ -3,17 +3,17 @@ Temporary images and private Tk adapters
 
 The tail of ``rbcImage.c`` bridges gaps in the image API used by older RBC components. It contains copied
 image-instance, image-master and photo-instance structure layouts, plus temporary-photo creation and deletion helpers.
-These are private RBC facilities. Their ``Tk_`` names do not make them public Tk APIs or Tk stub entries.
+These are private RBC facilities with ``Rbc_`` names; they are not public Tk APIs or Tk stub entries.
 
 Private-layout access
 ---------------------
 
-:c:func:`Tk_ImageIsDeleted` inspects the instance's master and type pointers. It can recognize a deleted image while the
+:c:func:`Rbc_ImageIsDeleted` inspects the instance's master and type pointers. It can recognize a deleted image while the
 caller still owns a retained instance; it cannot make a ``NULL`` or dangling instance pointer
-safe. :c:func:`Tk_ImageGetMaster` returns a borrowed pointer. :c:func:`Tk_ImageGetType` requires that master to exist
+safe. :c:func:`Rbc_ImageGetMaster` returns a borrowed pointer. :c:func:`Rbc_ImageGetType` requires that master to exist
 and can return ``NULL`` after deletion.
 
-:c:func:`Tk_ImageGetPhotoPixmap` and :c:func:`Tk_ImageGetPhotoGC` require a live type before checking whether it is a
+:c:func:`Rbc_ImageGetPhotoPixmap` and :c:func:`Rbc_ImageGetPhotoGC` require a live type before checking whether it is a
 photo. They expose Tk-owned display resources rather than independent pixel data. Callers must not free these resources
 or assume that they remain stable across image changes. The GC is not caller-owned scratch state. A different live image
 type yields ``None`` or ``NULL`` respectively.

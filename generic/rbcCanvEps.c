@@ -605,7 +605,7 @@ static int ReadPostScript(Tcl_Interp *interp, EpsItem *epsPtr) {
                 }
             } else if ((field[0] == 'T') && (strncmp(field, "Title:", 6) == 0)) {
                 if (dscTitle == NULL) {
-                    dscTitle = RbcStrdup(field + 6);
+                    dscTitle = Rbc_Strdup(field + 6);
                 }
             } else if ((field[0] == 'E') && (strncmp(field, "EndComments", 11) == 0)) {
                 sawEndComments = TRUE;
@@ -929,7 +929,7 @@ static int CreateEps(Tcl_Interp *interp,    /* Interpreter for error reporting. 
 static void ImageChangedProc(ClientData clientData, int x, int y, int width, int height, int imageWidth,
                              int imageHeight) {
     EpsItem *epsPtr = clientData;
-    if ((epsPtr->preview == NULL) || (Tk_ImageIsDeleted(epsPtr->preview))) {
+    if ((epsPtr->preview == NULL) || (Rbc_ImageIsDeleted(epsPtr->preview))) {
         /* Tk's deletion loop still visits this instance after the callback.
          * Retain it until reconfiguration or DeleteEps can release it safely. */
         if (epsPtr->previewName != NULL) {

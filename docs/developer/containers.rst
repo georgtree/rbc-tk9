@@ -87,9 +87,8 @@ must not mutate membership or invoke reentrant code that does so. Sorting is not
 of the attempted scratch allocation leaves the list unchanged without an error result; this void helper is not a promise
 that sorting succeeded under allocation pressure.
 
-See :doc:`container-reference` for selected lifecycle contracts. The historical :c:func:`Rb_ListDeleteNodeByKey`
-spelling remains unchanged; it removes only the first matching node. These documentation changes do not rename private
-functions or alter container behavior.
+See :doc:`container-reference` for selected lifecycle contracts. :c:func:`Rbc_ListDeleteNodeByKey`
+removes only the first matching node.
 
 Insertion and lookup contracts
 ------------------------------
@@ -125,7 +124,7 @@ The list's key type determines lookup semantics:
 
 All searches walk from the head and return the first match. Sorting or moving nodes can therefore change which duplicate
 is found without changing any key. Array keys are native-memory representations, not a portable byte encoding. Lookup
-returns a borrowed node; it adds no protection against deletion by a later callback. :c:func:`Rb_ListDeleteNodeByKey`
+returns a borrowed node; it adds no protection against deletion by a later callback. :c:func:`Rbc_ListDeleteNodeByKey`
 uses this same first-match rule.
 
 Private key lookup contracts

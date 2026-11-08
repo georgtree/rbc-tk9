@@ -86,6 +86,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="commenting.html">C documentation conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#where-comments-belong">Where comments belong</a></li>
+<li class="toctree-l3"><a class="reference internal" href="commenting.html#c-function-names">C function names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#contract-contents">Contract contents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#migration-and-review">Migration and review</a></li>
 <li class="toctree-l3"><a class="reference internal" href="commenting.html#navigation-and-groups">Navigation and groups</a></li>
@@ -1276,7 +1277,9 @@ executable, not a command with extra flags.</p>
 <h2>Generated files and validation<a class="headerlink" href="#generated-files-and-validation" title="Link to this heading"></a></h2>
 <p>Maintained sources live in <code class="docutils literal notranslate"><span class="pre">docs/developer</span></code>. Doxygen configuration, XML, warning logs and Sphinx caches live under the
 build directory. HTML is published separately under <code class="docutils literal notranslate"><span class="pre">docs/developer/html</span></code>. Commit that directory to publish the manual
-with GitHub Pages. It is retained by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code>. Use <code class="docutils literal notranslate"><span class="pre">--html-dir</span> <span class="pre">PATH</span></code> for a different HTML destination. XML is
+with GitHub Pages. The published pages, assets and <code class="docutils literal notranslate"><span class="pre">.nojekyll</span></code> are retained by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code>. With the default paths, clean removes
+the entire source and build root <code class="docutils literal notranslate"><span class="pre">_build</span></code> directories, the developer source’s Python bytecode cache, and Sphinx’s <code class="docutils literal notranslate"><span class="pre">.doctrees</span></code>, <code class="docutils literal notranslate"><span class="pre">_sources</span></code> and
+<code class="docutils literal notranslate"><span class="pre">.buildinfo</span></code> from the developer HTML directory. Use <code class="docutils literal notranslate"><span class="pre">--html-dir</span> <span class="pre">PATH</span></code> for a different HTML destination. XML is
 regenerated and all pages rebuilt on each invocation.</p>
 <p><code class="docutils literal notranslate"><span class="pre">Doxyfile.in</span></code> explicitly lists the two renderer headers and the common graph header/source pair, the public/private
 vector headers, and the binding header/source pair. Extraction does not follow includes into Tk or SDK headers.
@@ -1306,7 +1309,7 @@ string. Breathe then emits invalid C such as <code class="docutils literal notra
 before Sphinx runs, producing <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">(*text)(...)</span></code> while retaining member contracts and link targets. Source
 declarations and already-compatible XML are unchanged; no warning suppression or dependency upgrade is required.</p>
 <p>The helper’s regression checks run without Tk, RBC or documentation tools:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tclsh</span><span class="w"> </span><span class="n">tests</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">RBC</span><span class="p">.</span><span class="n">build</span><span class="p">.</span><span class="n">doxygenCompat</span><span class="p">.</span><span class="n">A</span><span class="p">.</span><span class="n">test</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tclsh</span><span class="w"> </span><span class="n">tests</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">build</span><span class="p">.</span><span class="n">doxygenCompat</span><span class="p">.</span><span class="n">test</span>
 </pre></div>
 </div>
 </section>
@@ -1351,7 +1354,7 @@ filtering is deliberately performed on resolved navigation trees, not on the C d
 <p>The build runner remains Tcl. The Python module is a Sphinx extension, using Sphinx’s toctree resolver to retain
 reference sections and relative links. The optional regression test requires Sphinx and the RTD theme, but not Doxygen,
 Breathe, Tk or RBC:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tclsh</span><span class="w"> </span><span class="n">tests</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">RBC</span><span class="p">.</span><span class="n">build</span><span class="p">.</span><span class="n">docNavigation</span><span class="p">.</span><span class="n">A</span><span class="p">.</span><span class="n">test</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tclsh</span><span class="w"> </span><span class="n">tests</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">build</span><span class="p">.</span><span class="n">docNavigation</span><span class="p">.</span><span class="n">test</span>
 </pre></div>
 </div>
 <p>It checks main-page grouping and declaration suppression, full inactive groups, current-page

@@ -923,11 +923,11 @@ Pen *Rbc_BarPen(const char *penName) {
         optionSpecs = normalBarPenOptionSpecs;
         flags = NORMAL_PEN;
     }
-    penPtr = RbcCalloc(1, sizeof(BarPen));
+    penPtr = Rbc_Calloc(1, sizeof(BarPen));
     assert(penPtr != NULL);
     InitPen(penPtr, optionSpecs, flags);
     corePtr = &penPtr->core;
-    corePtr->name = RbcStrdup(penName);
+    corePtr->name = Rbc_Strdup(penName);
     return corePtr;
 }
 
@@ -2601,7 +2601,7 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     Bar *barPtr;
     Element *elemPtr;
 
-    barPtr = RbcCalloc(1, sizeof(Bar));
+    barPtr = Rbc_Calloc(1, sizeof(Bar));
     if (barPtr == NULL) {
         return NULL;
     }
@@ -2621,8 +2621,8 @@ Element *Rbc_BarElement(Graph *graphPtr, const char *name, Rbc_Uid classUid) {
     /*
      * By default, an element's name and label are identical.
      */
-    elemPtr->label = RbcStrdup(name);
-    elemPtr->name = RbcStrdup(name);
+    elemPtr->label = Rbc_Strdup(name);
+    elemPtr->name = Rbc_Strdup(name);
     elemPtr->graphPtr = graphPtr;
     elemPtr->hidden = FALSE;
     elemPtr->plotHidden = FALSE;
@@ -2751,7 +2751,7 @@ void Rbc_InitFreqTable(Graph *graphPtr) {
          * FreqInfo.count, lastY and sum rely on initial zero values, so
          * preserve calloc semantics here.
          */
-        graphPtr->freqArr = RbcCalloc(1, freqBytes);
+        graphPtr->freqArr = Rbc_Calloc(1, freqBytes);
         assert(graphPtr->freqArr);
         infoPtr = graphPtr->freqArr;
         for (hPtr = Tcl_FirstHashEntry(&freqTable, &cursor); hPtr != NULL; hPtr = Tcl_NextHashEntry(&cursor)) {

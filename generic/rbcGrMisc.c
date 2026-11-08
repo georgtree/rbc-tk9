@@ -236,7 +236,7 @@ static const char *ColorPairToString(ClientData clientData, Tk_Window tkwin, cha
     Tcl_DStringAppendElement(&dString, NameOfColor(pairPtr->bgColor));
     result = Tcl_DStringValue(&dString);
     if (result == dString.staticSpace) {
-        result = RbcStrdup(result);
+        result = Rbc_Strdup(result);
     }
     *freeProcPtr = (Tcl_FreeProc *)Tcl_Free;
     return result;

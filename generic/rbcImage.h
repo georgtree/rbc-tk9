@@ -131,7 +131,7 @@ Region2D *Rbc_SetRegion(int x, int y, int width, int height, Region2D *regionPtr
  *
  * @param[in] tkImage Borrowed retained image instance; master validity requirements are described above.
  */
-int Tk_ImageIsDeleted(Tk_Image tkImage);
+int Rbc_ImageIsDeleted(Tk_Image tkImage);
 /**
  * @brief Return the borrowed master pointer from a retained, non-NULL Tk image.
  * No reference is acquired. The result may be NULL; callers must establish
@@ -140,7 +140,7 @@ int Tk_ImageIsDeleted(Tk_Image tkImage);
  *
  * @param[in] tkImage Borrowed retained image instance; master validity requirements are described above.
  */
-Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage);
+Tk_ImageMaster Rbc_ImageGetMaster(Tk_Image tkImage);
 /**
  * @brief Return a borrowed image-type pointer using RBC's private-layout adapter.
  * Require a retained non-NULL instance with a non-NULL master. A deleted
@@ -148,7 +148,7 @@ Tk_ImageMaster Tk_ImageGetMaster(Tk_Image tkImage);
  *
  * @param[in] tkImage Borrowed retained image instance; master validity requirements are described above.
  */
-Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage);
+Tk_ImageType *Rbc_ImageGetType(Tk_Image tkImage);
 /**
  * @brief Borrow the native display pixmap of a live photo instance, or return None
  * for a different live image type. Require non-NULL instance, master and type.
@@ -157,7 +157,7 @@ Tk_ImageType *Tk_ImageGetType(Tk_Image tkImage);
  *
  * @param[in] photoImage Borrowed live instance with a valid master and image type.
  */
-Pixmap Tk_ImageGetPhotoPixmap(Tk_Image photoImage);
+Pixmap Rbc_ImageGetPhotoPixmap(Tk_Image photoImage);
 /**
  * @brief Borrow the display GC of a live photo instance, or return NULL for another
  * live type. Require non-NULL instance, master and type. Do not free or mutate
@@ -165,7 +165,7 @@ Pixmap Tk_ImageGetPhotoPixmap(Tk_Image photoImage);
  *
  * @param[in] photoImage Borrowed live instance with a valid master and image type.
  */
-GC Tk_ImageGetPhotoGC(Tk_Image photoImage);
+GC Rbc_ImageGetPhotoGC(Tk_Image photoImage);
 /**
  * @brief Return the borrowed Tk name of an image with a valid master.
  * No name copy or lifetime reference is acquired. Do not free the result;
