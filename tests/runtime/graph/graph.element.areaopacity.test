@@ -44,5 +44,27 @@ namespace eval graph.element.areaopacity {
         } -result {}
     }
 
+    namespace eval batching {
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    namespace import ::rbcTest::rendering::OpacityFixture \
+        ::rbcTest::rendering::OpacityPixel
+    array set testCase {}
+    test graph.element.areaopacity.22.2 {native solid fills ignore opacity} -setup {
+        OpacityFixture graph no native
+        set photo [image create photo]
+    } -body {
+        set results {}
+        foreach opacity {0 0.5 1} {
+            .opacity element configure signal -areaopacity $opacity
+            .opacity snap $photo
+            lappend results [OpacityPixel $photo 1 1 {255 0 0}]
+        }
+        set results
+    } -cleanup {
+        destroy .opacity
+        image delete $photo
+    } -result {1 1 1}
+    }
+
     cleanupTests
 }

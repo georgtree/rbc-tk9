@@ -1,0 +1,47 @@
+# graph.element.draw regression tests.
+# See license.terms for details.
+package provide graph.element.draw
+package require rbc
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.element.draw {
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    namespace import ::rbcTest::rendering::StrokeFixture
+    array set testCase {68 0}
+    foreach kind {graph stripchart} {
+        foreach width {1 4} {
+            foreach inverted {0 1} {
+                test graph.element.draw.batching.68.[incr testCase(68)] {native dense traces preserve pixels across batches} -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    ::rbc::vector create rendererStrokeX rendererStrokeY
+                    rendererStrokeX seq 1 9 0.0004
+                    rendererStrokeY length [rendererStrokeX length]
+                    rendererStrokeY expr {rendererStrokeX*0+5}
+                    .renderer element configure signal -linewidth $width -decimate none
+                    if {$kind eq "graph"} {.renderer element configure signal -reduce 0}
+                    set photo [image create photo]
+                } -body {
+                    .renderer element configure signal -xdata rendererStrokeX -ydata rendererStrokeY
+                    update
+                    .renderer snap $photo
+                    set dense [$photo data]
+                    .renderer element configure signal -data {1 5 9 5}
+                    .renderer snap $photo
+                    set same [expr {$dense eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$dense ne [$photo data]}]
+                } -cleanup {
+                    destroy .renderer
+                    image delete $photo
+                    ::rbc::vector destroy rendererStrokeX rendererStrokeY
+                } -result {1 1}
+            }
+        }
+    }
+
+    cleanupTests
+}

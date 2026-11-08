@@ -18,54 +18,11 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.marker.arrowalignment {
+    source [file join [file dirname [info script]] graph.marker.arrowalignment.support.tcl]
+    namespace import ::rbcTest::arrow::*
+
     # Numeric case IDs for loop-generated tests.
-    array set testCase {5 0 6 0 7 0}
-    proc Setup {renderer} {
-        rbc::graph .arrowAlign -width 240 -height 240 -renderer $renderer -antialias gray \
-            -plotbackground white -background white -plotborderwidth 0 -borderwidth 0 \
-            -highlightthickness 0 -leftmargin 20 -rightmargin 20 -topmargin 20 -bottommargin 20
-        .arrowAlign legend configure -hide yes
-        .arrowAlign grid configure -hide yes
-        foreach axis {x y x2 y2} {
-            .arrowAlign axis configure $axis -hide yes -min 0 -max 1 -loose no
-        }
-        pack .arrowAlign
-        update
-    }
-
-    proc Coordinates {pixels} {
-        set coords {}
-        foreach {x y} $pixels {
-            lappend coords {*}[.arrowAlign invtransform $x $y]
-        }
-        return $coords
-    }
-
-    proc AddArrow {pixels arrow width} {
-        .arrowAlign marker create line -name direction -coords [Coordinates $pixels] \
-            -arrow $arrow -arrowshape {20 26 10} -outline red -linewidth $width
-    }
-
-    proc Snapshot {} {
-        update idletasks
-        set photo [image create photo]
-        .arrowAlign snap $photo
-        return $photo
-    }
-
-    proc Region {photo vertical} {
-        set pixels {}
-        for {set along 80} {$along <= 110} {incr along} {
-            for {set across 76} {$across <= 85} {incr across} {
-                if {$vertical} {
-                    lappend pixels [$photo get $across $along]
-                } else {
-                    lappend pixels [$photo get $along $across]
-                }
-            }
-        }
-        return $pixels
-    }
+    array set testCase {5 0 7 0}
 
     # 1. Native shafts and arrow vertices use nearest-integer conversion.
     foreach vertical {0 1} {
@@ -95,41 +52,8 @@ namespace eval graph.marker.arrowalignment {
         }
     }
 
-    Setup native
-    set code [catch {.arrowAlign configure -renderer cairo} message]
-    destroy .arrowAlign
-    if {$code && $message ne {Cairo renderer is not available in this build}} {
-        error $message
-    }
-    testConstraint arrowAlignmentCairo [expr {!$code}]
-
-    # 2. Coverage-weighted centers expose the half-pixel fill/stroke offset.
-    #    Sampling well inside the head avoids its tip and neck boundaries.
-    foreach arrow {first last both} {
-        test graph.marker.arrowalignment.6.[incr testCase(6)] \
-                {Cairo arrowhead is centered on the fractional shaft} \
-                -constraints arrowAlignmentCairo -setup {
-            Setup cairo
-            AddArrow {40 80.25 180 80.25} $arrow 1
-            set photo [Snapshot]
-        } -body {
-            set weight 0.0
-            set moment 0.0
-            set start [expr {$arrow eq "first" ? 50 : 166}]
-            for {set x $start} {$x < $start+4} {incr x} {
-                for {set y 60} {$y <= 100} {incr y} {
-                    lassign [$photo get $x $y] r g b
-                    set coverage [expr {(255.0-$g)/255.0}]
-                    set weight [expr {$weight+$coverage}]
-                    set moment [expr {$moment+$coverage*$y}]
-                }
-            }
-            expr {$weight > 0 && abs($moment/$weight-80.25) < 0.12}
-        } -cleanup {
-            catch {image delete $photo}
-            destroy .arrowAlign
-        } -result 1
-    }
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    ::rbcTest::rendering::CheckCairo
 
     # 3. A diagonal head is symmetric about x+y=240. Integer polygon
     #    boundaries must not shift the fill away from the shaft's centers.
@@ -164,7 +88,7 @@ namespace eval graph.marker.arrowalignment {
 
     # 4. Drawing either backend must not mutate the geometry used by SVG.
     test graph.marker.arrowalignment.4.1 {screen drawing preserves SVG geometry} \
-            -constraints arrowAlignmentCairo -setup {
+            -constraints rbcCairo -setup {
         Setup native
         AddArrow {40.75 180.25 180.75 40.25} both 2
         set photo [Snapshot]
@@ -185,7 +109,7 @@ namespace eval graph.marker.arrowalignment {
     set testCase(8) 0
     foreach renderer {native cairo} {
         set constraints {}
-        if {$renderer eq "cairo"} {set constraints arrowAlignmentCairo}
+        if {$renderer eq "cairo"} {set constraints rbcCairo}
         foreach {arrow geometry} {first shaft last shaft both shaft first head last head} {
             foreach operation {clear disable delete move restyle} {
                 test graph.marker.arrowalignment.8.[incr testCase(8)] \

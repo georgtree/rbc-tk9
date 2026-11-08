@@ -1,0 +1,232 @@
+# trackgraph.rendering regression tests.
+# See license.terms for details.
+package provide trackgraph.rendering
+package require rbc
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+
+namespace eval trackgraph.rendering {
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    namespace import ::rbcTest::rendering::CountPhotoColor \
+        ::rbcTest::rendering::BitmapFixture
+    ::rbcTest::rendering::CheckCairo
+    array set testCase {73 0 76 0 78 0 80 0}
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            foreach layout {fit scroll} {
+                foreach symbol {circle square} {
+                    test trackgraph.rendering.73.[incr testCase(73)]\
+                            {nested symbol and track clips restore shared drawing resources after remapping}\
+                            -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                        ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -tracklayout $layout\
+                                -width 320 -height 240 -plotbackground white -bufferelements no
+                        pack .renderer
+                        .renderer legend configure -hide yes
+                        .renderer axis configure x -min 0 -max 10 -loose no -hide yes
+                        foreach name {first second} {
+                            .renderer axis create $name -min 0 -max 10 -loose no -hide yes
+                            .renderer track create $name -yaxes $name -height 200
+                            .renderer track legend $name configure -hide yes
+                        }
+                        .renderer pen create shared -symbol $symbol -pixels 17 -color magenta -fill magenta\
+                                -outline magenta -linewidth 0
+                        .renderer line create a -track first -mapy first -pen shared -scalesymbols no\
+                                -data {0 0 0 10 5 5 10 0 10 10}
+                        .renderer line create b -track second -mapy second -pen shared -scalesymbols no\
+                                -data {0 0 0 10 5 5 10 0 10 10} -hide yes
+                        .renderer line create blue -track second -mapy second -symbol none -color blue\
+                                -linewidth 5 -data {0 0 10 10}
+                        .renderer bar create bars -track first -mapy first -data {0 12 10 12}\
+                                -barwidth 1 -foreground magenta -borderwidth 3 -relief raised
+                        .renderer marker create polygon -name region -track first -mapy first\
+                                -coords {-1 -1 2 -1 2 11 -1 11} -fill magenta -outline magenta -linewidth 5
+                        .renderer marker create arc -track first -mapy first -coords {8 -2 12 12}\
+                                -style arc -outline magenta -linewidth 5
+                        set photo [image create photo]
+                        update
+                        if {$layout eq "scroll"} {
+                            .renderer track view moveto 0.12
+                            update
+                        }
+                    } -body {
+                        .renderer snap $photo
+                        set initial [$photo data]
+                        # Exercise a shared pen in a different viewport, then restore.
+                        .renderer element configure b -hide no
+                        .renderer snap $photo
+                        .renderer element configure b -hide yes
+                        .renderer marker configure region -hide yes
+                        .renderer snap $photo
+                        .renderer marker configure region -hide no
+                        .renderer axis configure x -max 12
+                        .renderer snap $photo
+                        .renderer axis configure x -max 10
+                        .renderer snap $photo
+                        set same [expr {$initial eq [$photo data]}]
+                        lassign [.renderer track bbox first] l t r b
+                        set valid 1; set count 0; set blue 0
+                        for {set y 0} {$y<[image height $photo]} {incr y} {
+                            for {set x 0} {$x<[image width $photo]} {incr x} {
+                                lassign [$photo get $x $y] red green blueValue
+                                if {$red>80 && $blueValue>80 && $green<$red/2 && $green<$blueValue/2} {
+                                    incr count
+                                    if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                                }
+                                if {$red<80 && $green<80 && $blueValue>180} {incr blue}
+                            }
+                        }
+                        list $same $valid [expr {$count>0}] [expr {$blue>0}]
+                    } -cleanup {destroy .renderer; image delete $photo} -result {1 1 1 1}
+                }
+            }
+        }
+    }
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            test trackgraph.rendering.76.[incr testCase(76)] {track text and local legends restore after scrolling} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -tracklayout scroll \
+                        -width 400 -height 320 -bufferelements no
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                foreach track {first second} {
+                    .renderer axis create $track -min 0 -max 10 -title $track -rotate 45
+                    .renderer track create $track -yaxes $track -height 240
+                    .renderer line create $track -track $track -mapy $track -data {2 3 8 7} -label "Signal $track"
+                    .renderer track legend $track configure -hide no -position right
+                    .renderer marker create text -track $track -mapy $track -coords {5 5} \
+                            -text "Track $track\nVoltage" -rotate 45 -foreground red -background {}
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                .renderer track view moveto 0.4
+                update
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer track view moveto 0
+                update
+                .renderer snap $photo
+                list $changed [expr {$original eq [$photo data]}]
+            } -cleanup {destroy .renderer; image delete $photo} -result {1 1}
+        }
+    }
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            foreach layout {fit scroll} {
+                test trackgraph.rendering.78.[incr testCase(78)]\
+                        {mapped raster markers retain track clips and restore after scrolling and remapping} \
+                        -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                    lassign [BitmapFixture $renderer] bitmap mask
+                    destroy .renderer
+                    ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -tracklayout $layout \
+                            -width 320 -height 240 -plotbackground white -buffergraph no -bufferelements no
+                    pack .renderer
+                    .renderer legend configure -hide yes
+                    .renderer axis configure x -min 0 -max 10 -loose no -hide yes
+                    foreach track {first second} {
+                        .renderer axis create $track -min 0 -max 10 -loose no -hide yes
+                        .renderer track create $track -yaxes $track -height 200
+                        .renderer track legend $track configure -hide yes
+                    }
+                    set tile [image create photo -width 8 -height 8]
+                    $tile put magenta -to 0 0 8 8
+                    for {set i 0} {$i<8} {incr i} {$tile transparency set $i $i 1}
+                    set bitmapImage [image create bitmap -file $bitmap -foreground magenta -background {}]
+                    set photo [image create photo]
+                    update
+                    if {$layout eq "scroll"} {.renderer track view moveto 0.15; update}
+                } -body {
+                    set results {}
+                    foreach kind {bitmap photo tkbitmap} {
+                        if {$kind eq "bitmap"} {
+                            .renderer marker create bitmap -name raster -track first -mapy first \
+                                    -coords {-2 2 8 12} -bitmap @$bitmap -mask @$mask -rotate 45 \
+                                    -foreground magenta -background {}
+                        } else {
+                            set image [expr {$kind eq "photo" ? $tile : $bitmapImage}]
+                            # Non-photo Tk images retain their natural size.
+                            set coords [expr {$kind eq "photo" ? {-2 2 8 12} : {5 5}}]
+                            .renderer marker create image -name raster -track first -mapy first \
+                                    -coords $coords -image $image
+                        }
+                        .renderer snap $photo
+                        set original [$photo data]
+                        lassign [.renderer track bbox first] l t r b
+                        set valid 1; set count 0
+                        for {set y 0} {$y<[image height $photo]} {incr y} {
+                            for {set x 0} {$x<[image width $photo]} {incr x} {
+                                lassign [$photo get $x $y] red green blue
+                                if {$red>150 && $green<100 && $blue>150} {
+                                    incr count
+                                    if {$x<$l || $x>$r || $y<$t || $y>$b} {set valid 0}
+                                }
+                            }
+                        }
+                        .renderer marker configure raster -hide yes
+                        .renderer snap $photo
+                        set hidden [expr {$original ne [$photo data]}]
+                        .renderer marker configure raster -hide no
+                        .renderer axis configure x -max 12
+                        if {$layout eq "scroll"} {.renderer track view moveto 0.3}
+                        .renderer snap $photo
+                        .renderer axis configure x -max 10
+                        if {$layout eq "scroll"} {.renderer track view moveto 0.15}
+                        .renderer snap $photo
+                        lappend results [expr {$count>0 && $valid && $hidden && $original eq [$photo data]}]
+                        .renderer marker delete raster
+                    }
+                    set results
+                } -cleanup {
+                    destroy .renderer
+                    catch {image delete $photo $tile $bitmapImage}
+                    removeFile $bitmap
+                    removeFile $mask
+                } -result {1 1 1}
+            }
+        }
+    }
+    foreach renderer {native cairo} {
+        foreach inverted {0 1} {
+            test trackgraph.rendering.80.[incr testCase(80)]\
+                    {track divider and local legend decorations survive divider reconfiguration} \
+                    -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
+                ::rbc::trackgraph .renderer -renderer $renderer -invertxy $inverted -width 400 -height 300 \
+                        -background ivory -plotbackground white -buffergraph no -bufferelements no \
+                        -trackseparatorcolor magenta -trackseparatorwidth 5
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                foreach track {first second} {
+                    .renderer axis create $track -min 0 -max 10 -background lightblue -borderwidth 2 -relief raised
+                    .renderer track create $track -yaxes $track
+                    .renderer line create $track -track $track -mapy $track -data {2 3 8 7} -label $track
+                    .renderer track legend $track configure -hide no -position right -background lightyellow \
+                            -borderwidth 3 -relief ridge -activebackground orange -activeborderwidth 2
+                    .renderer track legend $track activate $track
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set original [$photo data]
+                set visible [expr {[CountPhotoColor $photo {255 0 255}]>0}]
+                .renderer configure -trackseparatorcolor {}
+                .renderer snap $photo
+                set changed [expr {$original ne [$photo data]}]
+                .renderer configure -trackseparatorcolor magenta
+                .renderer snap $photo
+                list $visible $changed [expr {$original eq [$photo data]}]
+            } -cleanup {
+                destroy .renderer
+                catch {image delete $photo}
+            } -result {1 1 1}
+        }
+    }
+
+    cleanupTests
+}

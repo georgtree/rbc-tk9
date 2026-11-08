@@ -10,30 +10,12 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval graph.marker.arc {
+    source [file join [file dirname [info script]] graph.marker.arc.support.tcl]
+    namespace import ::rbcTest::arc::*
+
     # Numeric case IDs for loop-generated tests.
     array set testCase {2 0 12 0 13 0 14 0 17 0}
-    proc Setup {{renderer native}} {
-        ::rbc::graph .arc -width 420 -height 320 -plotbackground white -renderer $renderer
-        .arc axis configure x y -min 0 -max 10
-        pack .arc
-        update
-        .arc marker create arc -name a -coords {2 2 8 8} -outline black -fill red
-    }
     # A position in the mapped box: u increases right, v increases upward.
-    proc Point {u v} {
-        lassign [.arc transform 2 2] x1 y1
-        lassign [.arc transform 8 8] x2 y2
-        list [expr {round(($x1+$x2)/2.0+$u*abs($x2-$x1)/2.0)}] [expr {round(($y1+$y2)/2.0-$v*abs($y2-$y1)/2.0)}]
-    }
-    proc Find {u v} {
-        update
-        lassign [Point $u $v] x y
-        .arc marker find overlapping [expr {$x-2}] [expr {$y-2}] [expr {$x+2}] [expr {$y+2}]
-    }
-    proc Pixel {photo u v} {
-        lassign [Point $u $v] x y
-        $photo get $x $y
-    }
 
     test graph.marker.arc.1.1 {defaults, type, and original box coordinates} -setup {
         Setup
@@ -138,11 +120,10 @@ namespace eval graph.marker.arc {
         set ::arcPicked
     } -cleanup {destroy .arc; unset ::arcPicked} -result a
 
-    ::rbc::graph .arcProbe
-    testConstraint arcCairo [expr {![catch {.arcProbe configure -renderer cairo}]}]
-    destroy .arcProbe
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    ::rbcTest::rendering::CheckCairo
     foreach renderer {native cairo} {
-        set constraints [expr {$renderer eq "cairo" ? "arcCairo" : ""}]
+        set constraints [expr {$renderer eq "cairo" ? "rbcCairo" : ""}]
         test graph.marker.arc.12.[incr testCase(12)] {fill and open-arc snapshots} -constraints $constraints -setup {
             Setup $renderer
             .arc marker configure a -extent 90
@@ -208,7 +189,6 @@ namespace eval graph.marker.arc {
             .arc marker type a
         } -cleanup {destroy .arc} -result ArcMarker
     }
-
 
     proc SvgArcPaths {svg} {
         set paths {}
@@ -332,7 +312,7 @@ namespace eval graph.marker.arc {
         destroy .arc
     } -result {1 1 1}
 
-    test graph.marker.arc.25.1 {curved exports do not depend on the screen renderer} -constraints arcCairo -setup {
+    test graph.marker.arc.25.1 {curved exports do not depend on the screen renderer} -constraints rbcCairo -setup {
         Setup native
         .arc marker configure a -extent -270 -style chord -dashes {4 3}
     } -body {
@@ -343,59 +323,6 @@ namespace eval graph.marker.arc {
         list [expr {$svg eq [SvgArcPaths [.arc svg output]]}] \
             [expr {$ps eq [PsArcBody [.arc postscript output]]}]
     } -cleanup {destroy .arc} -result {1 1}
-
-    test graph.marker.arc.26.1 {Cairo eccentric ellipse keeps constant stroke width} -constraints arcCairo -setup {
-        Setup cairo
-        .arc configure -antialias none
-        .arc marker configure a -coords {1 4 9 6} -fill {} -linewidth 6
-        set photo [image create photo]
-        update
-    } -body {
-        .arc snap $photo
-        lassign [.arc transform 9 5] right cy
-        lassign [.arc transform 5 6] cx top
-        set horizontal 0
-        set vertical 0
-        for {set d -8} {$d <= 8} {incr d} {
-            if {[$photo get [expr {round($right)+$d}] [expr {round($cy)}]] eq {0 0 0}} {incr horizontal}
-            if {[$photo get [expr {round($cx)}] [expr {round($top)+$d}]] eq {0 0 0}} {incr vertical}
-        }
-        expr {$horizontal >= 5 && $horizontal <= 7 && $vertical >= 5 && $vertical <= 7}
-    } -cleanup {image delete $photo; destroy .arc} -result 1
-
-    test graph.marker.arc.27.1 {Cairo clips the curve without outlining the clip rectangle} -constraints arcCairo -setup {
-        Setup cairo
-        .arc marker configure a -coords {-10 -10 20 20} -fill {} -linewidth 6
-        set photo [image create photo]
-        update
-    } -body {
-        .arc snap $photo
-        list [Pixel $photo 0 0] [Pixel $photo 1 0] [Pixel $photo -1 0]
-    } -cleanup {image delete $photo; destroy .arc} -result {{255 255 255} {255 255 255} {255 255 255}}
-
-    test graph.marker.arc.28.1 {Cairo stipple stays fixed in widget pixels when ellipse is stretched} -constraints arcCairo -setup {
-        Setup cairo
-        .arc marker configure a -fill {red blue} -stipple gray50 -outline {}
-        set photo [image create photo]
-        update
-    } -body {
-        lassign [.arc transform 5 5] cx cy
-        set samples {}
-        foreach coords {{2 2 8 8} {1 3 9 7}} {
-            .arc marker configure a -coords $coords
-            update
-            .arc snap $photo
-            set colors {}
-            for {set y -5} {$y <= 5} {incr y} {
-                for {set x -5} {$x <= 5} {incr x} {
-                    lappend colors [$photo get [expr {round($cx)+$x}] [expr {round($cy)+$y}]]
-                }
-            }
-            lappend samples $colors
-        }
-        list [expr {[lindex $samples 0] eq [lindex $samples 1]}] \
-            [lsort -unique [lindex $samples 0]]
-    } -cleanup {image delete $photo; destroy .arc} -result {1 {{0 0 255} {255 0 0}}}
 
 cleanupTests
 }

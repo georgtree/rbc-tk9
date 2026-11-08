@@ -62,7 +62,7 @@ interpreter used for testing.
 A targeted test run uses the same arguments:
 
 ```bat
-nmake /nologo /f makefile.vc %RBC_ARGS% test "TESTFLAGS=-file graph.renderer.test -verbose start"
+nmake /nologo /f makefile.vc %RBC_ARGS% test "TESTFLAGS=-file graph.cairo.test -verbose start"
 ```
 
 `test` builds `rbccapitest.dll` as a separate public-API consumer and exposes it through `RBC_CAPI_TEST_LIB`. Automated

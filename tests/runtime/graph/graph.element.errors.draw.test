@@ -1,0 +1,85 @@
+# graph.element.errors.draw regression tests.
+# See license.terms for details.
+package provide graph.element.errors.draw
+package require rbc
+namespace import rbc::*
+package require tcltest
+namespace import tcltest::*
+
+namespace eval graph.element.errors.draw {
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    namespace import ::rbcTest::rendering::StrokeFixture
+    array set testCase {69 0}
+    foreach kind {graph stripchart} {
+        foreach width {1 4} {
+            foreach inverted {0 1} {
+                test graph.element.errors.draw.batching.69.[incr testCase(69)] {native error-bar batches preserve clipping and hairlines}\
+                        -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    .renderer element configure signal -linewidth 0 -errorbarcolor red \
+                        -errorbarwidth [expr {$width == 1 ? 0 : $width}] -errorbarcap 8
+                    set photo [image create photo]
+                } -body {
+                    # Duplicate bars exercise batching without changing the picture.
+                    .renderer element configure signal -xdata [lrepeat 10001 5] -ydata [lrepeat 10001 5]\
+                            -yerror [lrepeat 10001 20]
+                    update
+                    .renderer snap $photo
+                    set dense [$photo data]
+                    .renderer element configure signal -xdata {5} -ydata {5} -yerror {20}
+                    .renderer snap $photo
+                    set same [expr {$dense eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$dense ne [$photo data]}]
+                } -cleanup {
+                    destroy .renderer
+                    image delete $photo
+                } -result {1 1}
+            }
+        }
+    }
+
+    source [file join [file dirname [info script]] graph.element.errors.support.tcl]
+    ::rbcTest::rendering::CheckCairo
+    set testCase(10) 0
+    foreach kind {graph barchart stripchart} {
+        foreach renderer {native cairo} {
+            set constraints {}
+            if {$renderer eq "cairo"} {set constraints rbcCairo}
+            foreach inverted {0 1} {
+                test graph.element.errors.draw.caps.10.[incr testCase(10)] {
+                    both ends of X and Y caps are visible away from the error shaft
+                } -constraints $constraints -setup {
+                    ::rbcTest::errors::CapCreate $kind $inverted 0 0 symmetric
+                    .ce configure -renderer $renderer
+                    set photo [image create photo]
+                } -body {
+                    update
+                    .ce snap $photo
+                    set result {}
+                    foreach {axis valueX valueY} {x 4 3 x 2 3 y 3 4 y 3 2} {
+                        lassign [.ce transform $valueX $valueY] px py
+                        set horizontal [expr {($axis eq "y") != $inverted}]
+                        foreach sign {-1 1} {
+                            set cx [expr {$px + ($horizontal ? 6*$sign : 0)}]
+                            set cy [expr {$py + ($horizontal ? 0 : 6*$sign)}]
+                            set found 0
+                            for {set dx -1} {$dx <= 1} {incr dx} {
+                                for {set dy -1} {$dy <= 1} {incr dy} {
+                                    lassign [$photo get [expr {round($cx)+$dx}] [expr {round($cy)+$dy}]] red green blue
+                                    if {$red > 200 && $blue > 200 && $green < 80} {set found 1}
+                                }
+                            }
+                            lappend result $found
+                        }
+                    }
+                    set result
+                } -cleanup {destroy .ce; image delete $photo} -result {1 1 1 1 1 1 1 1}
+            }
+        }
+    }
+
+    cleanupTests
+}

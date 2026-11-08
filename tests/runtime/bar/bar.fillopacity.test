@@ -10,33 +10,13 @@ package require tcltest
 namespace import tcltest::*
 
 namespace eval bar.fillopacity {
+    source [file join [file dirname [info script]] bar.fillopacity.support.tcl]
+    namespace import ::rbcTest::barOpacity::*
+
     # Numeric case IDs for loop-generated tests.
     array set testCase {2 0 6 0}
-    ::rbc::graph .opacityProbe
-    set code [catch {.opacityProbe configure -renderer cairo} message]
-    destroy .opacityProbe
-    if {$code && $message ne {Cairo renderer is not available in this build}} {
-        error $message
-    }
-    testConstraint barOpacityCairo [expr {!$code}]
-
-    proc Create {{renderer native}} {
-        ::rbc::barchart .bo -width 400 -height 300 -renderer $renderer -plotbackground white
-        .bo axis configure x -min 0 -max 2 -loose no
-        .bo axis configure y -min 0 -max 6 -loose no
-        .bo grid configure -hide yes
-        .bo legend configure -hide yes
-        .bo element create e -data {1 4} -barwidth 1 -foreground red -background red \
-            -borderwidth 0 -label bar
-        pack .bo
-        update
-    }
-
-    proc Pixel {photo x y} {
-        .bo snap $photo
-        lassign [.bo transform $x $y] px py
-        return [$photo get [expr {round($px)}] [expr {round($py)}]]
-    }
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    ::rbcTest::rendering::CheckCairo
 
     test bar.fillopacity.1.1 {element and pen defaults, metadata, and transactional validation} -setup {
         Create
@@ -64,7 +44,7 @@ namespace eval bar.fillopacity {
     foreach renderer {native cairo} {
         set constraints {}
         if {$renderer eq "cairo"} {
-            set constraints barOpacityCairo
+            set constraints rbcCairo
         }
         test bar.fillopacity.2.[incr testCase(2)] {zero, partial and full fill opacity} -constraints $constraints -setup {
             Create $renderer
@@ -88,44 +68,6 @@ namespace eval bar.fillopacity {
             if {[info exists photo]} {catch {image delete $photo}}
         } -result {1 1 1}
     }
-
-    test bar.fillopacity.3.1 {active pen opacity overrides normal fill opacity} -constraints barOpacityCairo -setup {
-        Create cairo
-        set photo [image create photo]
-        .bo element configure e -fillopacity 0
-        .bo pen configure activeBar -foreground blue -background blue -borderwidth 0 -fillopacity 0.5
-        .bo element activate e
-    } -body {
-        lassign [Pixel $photo 1.2 1] r g b
-        expr {$b == 255 && $r >= 126 && $r <= 129 && $g == $r}
-    } -cleanup {
-        destroy .bo
-        if {[info exists photo]} {catch {image delete $photo}}
-    } -result 1
-
-    test bar.fillopacity.4.1 {Cairo blends both stipple colors} -constraints barOpacityCairo -setup {
-        Create cairo
-        set photo [image create photo]
-        .bo element configure e -foreground red -background blue -stipple gray25 -fillopacity 0.5
-    } -body {
-        .bo snap $photo
-        lassign [.bo transform 1 1] x y
-        set x [expr {round($x)}]
-        set y [expr {round($y)}]
-        set red 0
-        set blue 0
-        for {set dy 0} {$dy < 8} {incr dy} {
-            for {set dx 0} {$dx < 8} {incr dx} {
-                lassign [$photo get [expr {$x + $dx}] [expr {$y + $dy}]] r g b
-                if {$r == 255 && $g >= 126 && $g <= 129 && $b == $g} {incr red}
-                if {$b == 255 && $g >= 126 && $g <= 129 && $r == $g} {incr blue}
-            }
-        }
-        expr {$red > 0 && $blue > 0 && $red + $blue == 64}
-    } -cleanup {
-        destroy .bo
-        if {[info exists photo]} {catch {image delete $photo}}
-    } -result 1
 
     test bar.fillopacity.5.1 {zero fill leaves error bars visible} -setup {
         Create

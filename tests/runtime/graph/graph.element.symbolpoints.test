@@ -203,5 +203,76 @@ namespace eval graph.element.symbolpoints {
             if {$photo ne {}} {image delete $photo}
         } -result {1 {0 1 2 3}}
     }
+    namespace eval batching {
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    namespace import ::rbcTest::rendering::StrokeFixture \
+        ::rbcTest::rendering::PlotInk
+    array set testCase {70 0 84 0}
+    foreach kind {graph stripchart} {
+        foreach symbol {circle square diamond plus cross splus scross triangle arrow} {
+            foreach inverted {0 1} {
+                test graph.element.symbolpoints.batching.70.[incr testCase(70)] {native symbol sampling matches explicit source subset}\
+                        -setup {
+                    StrokeFixture $kind native
+                    .renderer configure -invertxy $inverted
+                    .renderer element configure signal -data {1 2 2 5 3 8 4 2 5 5 6 8 7 2 8 5 9 8} -linewidth 0\
+                            -symbol $symbol -pixels 11 -scalesymbols no -maxsymbols 3 -fill red -outline blue\
+                            -outlinewidth 2
+                    set photo [image create photo]
+                    update
+                } -body {
+                    .renderer snap $photo
+                    set sampled [$photo data]
+                    .renderer element configure signal -maxsymbols 0 -data {1 2 4 2 7 2}
+                    .renderer snap $photo
+                    set same [expr {$sampled eq [$photo data]}]
+                    .renderer element configure signal -hide yes
+                    .renderer snap $photo
+                    list $same [expr {$sampled ne [$photo data]}]
+                } -cleanup {
+                    destroy .renderer
+                    image delete $photo
+                } -result {1 1}
+            }
+        }
+    }
+    foreach symbol {circle square plus cross diamond triangle arrow} {
+        test graph.element.symbolpoints.batching.84.[incr testCase(84)]\
+                {native symbol batches retain every symbol independent of input order and resize} -setup {
+            StrokeFixture graph native
+            set data {}
+            set reverse {}
+            for {set row 0} {$row < 20} {incr row} {
+                for {set column 0} {$column < 20} {incr column} {
+                    set pair [list [expr {0.25 + $column * 0.5}] [expr {0.25 + $row * 0.5}]]
+                    lappend data {*}$pair
+                    set reverse [concat $pair $reverse]
+                }
+            }
+            .renderer element configure signal -data $data -linewidth 0 -symbol $symbol \
+                    -pixels 3 -scalesymbols no -fill red -outline black -outlinewidth 1
+            set photo [image create photo]
+            update
+        } -body {
+            .renderer snap $photo
+            set before [$photo data]
+            set ink [lindex [PlotInk $photo] 0]
+            .renderer element configure signal -data $reverse
+            .renderer snap $photo
+            set reordered [expr {$before eq [$photo data]}]
+            .renderer configure -width 320 -height 240
+            update
+            .renderer snap $photo
+            .renderer configure -width 240 -height 180
+            update
+            .renderer snap $photo
+            list [expr {$ink > 400}] $reordered [expr {$before eq [$photo data]}]
+        } -cleanup {
+            destroy .renderer
+            catch {image delete $photo}
+        } -result {1 1 1}
+    }
+    }
+
 ::tcltest::cleanupTests
 }

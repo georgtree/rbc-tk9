@@ -518,6 +518,19 @@ Or select tests by name:
 make test TESTFLAGS="-match graph.element.decimate.*"
 ```
 
+Cairo-specific drawing and native comparison checks live in `graph.cairo.test` and `barchart.cairo.test`.
+Shared configuration, caching and drawing-state checks live in `graph.rendering.test` and
+`trackgraph.rendering.test`. Feature tests cover native drawing regressions and feature behaviour across renderers.
+Each suite loads its support files directly and can run independently. Cairo-dependent cases are skipped when Cairo
+is unavailable, while independent native cases run.
+
+Run the Cairo suites or the shared rendering suites:
+
+```sh
+make test TESTFLAGS="-file *.cairo.test"
+make test TESTFLAGS="-file *.rendering.test"
+```
+
 On a headless Linux system, an X11 virtual display can be used if Xvfb is installed:
 ```sh
 xvfb-run -a make test

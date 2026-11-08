@@ -663,5 +663,44 @@ namespace eval barchart.bar {
         }
     }
 
+    namespace eval batching {
+    source [file join [file dirname [info script]] .. renderingSupport.tcl]
+    array set testCase {72 0}
+    foreach style {flat raised stipple} {
+        foreach inverted {0 1} {
+            test barchart.bar.batching.72.[incr testCase(72)] {native bar fill and bevel batches match a single identical bar}\
+                    -setup {
+                ::rbc::barchart .renderer -renderer native -width 240 -height 180 -barmode normal -invertxy $inverted
+                pack .renderer
+                .renderer legend configure -hide yes
+                .renderer axis configure x -min 0 -max 10
+                .renderer axis configure y -min 0 -max 10
+                .renderer element create signal -xdata [lrepeat 1001 5] -ydata [lrepeat 1001 7]\
+                        -barwidth 2 -foreground red -background white -borderwidth 0 -relief flat
+                if {$style eq "raised"} {
+                    .renderer element configure signal -borderwidth 2 -relief raised
+                }
+                if {$style eq "stipple"} {
+                    .renderer element configure signal -stipple gray50
+                }
+                set photo [image create photo]
+                update
+            } -body {
+                .renderer snap $photo
+                set batched [$photo data]
+                .renderer element configure signal -data {5 7}
+                .renderer snap $photo
+                set same [expr {$batched eq [$photo data]}]
+                .renderer element configure signal -hide yes
+                .renderer snap $photo
+                list $same [expr {$batched ne [$photo data]}]
+            } -cleanup {
+                destroy .renderer
+                image delete $photo
+            } -result {1 1}
+        }
+    }
+    }
+
 	cleanupTests
 }
