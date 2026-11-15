@@ -719,6 +719,18 @@ license notices as applicable. Archive names end in `-static-cairo` or `-native`
 notices or libraries. Tcl/Tk itself and Tcllib are not bundled. MSVC and UCRT64 artifacts must be used with their matching
 Tcl/Tk toolchain. The staged installation is smoke-tested before it is archived.
 
+After all six manual package jobs succeed, a publishing job updates the
+[Latest stable release](https://github.com/georgtree/rbc-tk9/releases/tag/latest). It uploads the six archives and
+`SHA256SUMS.txt`, removes assets from older builds, and moves the `latest` tag to the exact tested commit. Release
+notes record that commit, the workflow run, publication time and dependency revisions. Version tags are unaffected.
+Push-triggered tests do not publish releases. Manual package runs are serialized to prevent overlapping updates.
+
+The publishing job alone receives `contents: write` through the automatic `GITHUB_TOKEN`; no personal token is needed.
+The `latest` release must remain mutable, and tag rules must allow the workflow to update `latest`. The first release
+is created as a draft and published after uploading; subsequent runs replace assets in the existing release.
+Uploads and tag updates are separate GitHub operations, so replacement is not atomic. A failed publishing step can be
+rerun; it does not require rebuilding successful matrix jobs. Dependency caching is unchanged.
+
 Dependency versions and the argparse commit are maintained in `.github/actions/build-rbc/action.yml` and
 `.github/scripts/build-cairo.py`. Build outputs and downloaded dependencies live under `_ci/`.
 
