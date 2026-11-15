@@ -2,6 +2,8 @@
 
 ![RBC preview](docs/images/preview.png)
 
+[![Tests: Linux, Windows UCRT64 and MSVC](https://img.shields.io/github/actions/workflow/status/georgtree/rbc-tk9/tests.yml?branch=main&label=Tests%3A%20Linux%2C%20Windows%20UCRT64%20and%20MSVC)](https://github.com/georgtree/rbc-tk9/actions/workflows/tests.yml)
+
 RBC extends Tcl/Tk 9 with scientific plots, interactive graph controls, real and complex vectors, spline interpolation,
 and window and image utilities. Graphs update automatically when their attached vectors change. All types of plots and
 graphical elements support SVG, PostScript and PDF export. All three exporters work without Cairo.
