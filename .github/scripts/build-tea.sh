@@ -18,23 +18,31 @@ mkdir -p _ci/{tcl-build,tk-build,argparse-build,rbc-build}
 export PATH="$prefix/bin:$PATH"
 export LD_LIBRARY_PATH="$prefix/lib:${LD_LIBRARY_PATH:-}"
 
-cd "$root/_ci/tcl-build"
-bash "$root/_ci/tcl/$platform/configure" --prefix="$prefix" "${static_runtime[@]}"
-make -j2
-make install
-cd "$root/_ci/tk-build"
-bash "$root/_ci/tk/$platform/configure" --with-tcl="$prefix/lib" --prefix="$prefix" "${static_runtime[@]}"
-make -j2
-make install
+if [[ ${RUNTIME_CACHE_HIT:-false} != true ]]; then
+    cd "$root/_ci/tcl-build"
+    bash "$root/_ci/tcl/$platform/configure" --prefix="$prefix" "${static_runtime[@]}"
+    make -j2
+    make install
+    cd "$root/_ci/tk-build"
+    bash "$root/_ci/tk/$platform/configure" --with-tcl="$prefix/lib" --prefix="$prefix" "${static_runtime[@]}"
+    make -j2
+    make install
 
-cd "$root/_ci/argparse-build"
-bash "$root/_ci/argparse/configure" --with-tcl="$prefix/lib" \
-    --prefix="$prefix" --exec-prefix="$prefix" "${static_runtime[@]}"
-make -j2
-make install
+    cd "$root/_ci/argparse-build"
+    bash "$root/_ci/argparse/configure" --with-tcl="$prefix/lib" \
+        --prefix="$prefix" --exec-prefix="$prefix" "${static_runtime[@]}"
+    make -j2
+    make install
+else
+    echo "Using cached Tcl/Tk and argparse runtime"
+fi
 
 cd "$root"
-python .github/scripts/build-cairo.py
+if [[ ${CAIRO_CACHE_HIT:-false} != true ]]; then
+    python .github/scripts/build-cairo.py
+else
+    echo "Using cached static Cairo and Pixman"
+fi
 export PKG_CONFIG_PATH="$root/_ci/cairo-static/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 cd "$root/_ci/rbc-build"
 cairo_flags=(--enable-cairo-static)

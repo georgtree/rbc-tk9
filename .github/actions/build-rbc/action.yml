@@ -63,18 +63,48 @@ runs:
       uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: x64
+    - name: Identify dependency cache inputs
+      id: cache-keys
+      if: inputs.toolchain != 'windows-ucrt64'
+      shell: bash
+      run: python .github/scripts/cache-keys.py '${{ inputs.toolchain }}'
+    - name: Identify UCRT64 dependency cache inputs
+      id: cache-keys-ucrt64
+      if: inputs.toolchain == 'windows-ucrt64'
+      shell: msys2 {0}
+      run: python .github/scripts/cache-keys.py windows-ucrt64
+    - name: Cache Tcl/Tk and argparse runtime
+      id: runtime-cache
+      uses: actions/cache@v4
+      with:
+        path: _ci/runtime
+        key: ${{ steps.cache-keys.outputs.runtime || steps.cache-keys-ucrt64.outputs.runtime }}
+    - name: Cache static Cairo and Pixman
+      id: cairo-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          _ci/cairo-static
+          _ci/notices
+        key: ${{ steps.cache-keys.outputs.cairo || steps.cache-keys-ucrt64.outputs.cairo }}
     - if: inputs.toolchain == 'linux-gcc'
       shell: bash
       env:
         MAKE_DIST: ${{ inputs.make-dist }}
+        RUNTIME_CACHE_HIT: ${{ steps.runtime-cache.outputs.cache-hit }}
+        CAIRO_CACHE_HIT: ${{ steps.cairo-cache.outputs.cache-hit }}
       run: bash .github/scripts/build-tea.sh
     - if: inputs.toolchain == 'windows-ucrt64'
       shell: msys2 {0}
       env:
         MAKE_DIST: ${{ inputs.make-dist }}
+        RUNTIME_CACHE_HIT: ${{ steps.runtime-cache.outputs.cache-hit }}
+        CAIRO_CACHE_HIT: ${{ steps.cairo-cache.outputs.cache-hit }}
       run: bash .github/scripts/build-tea.sh
     - if: inputs.toolchain == 'windows-msvc'
       shell: pwsh
       env:
         MAKE_DIST: ${{ inputs.make-dist }}
+        RUNTIME_CACHE_HIT: ${{ steps.runtime-cache.outputs.cache-hit }}
+        CAIRO_CACHE_HIT: ${{ steps.cairo-cache.outputs.cache-hit }}
       run: ./.github/scripts/build-msvc.ps1

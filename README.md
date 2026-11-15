@@ -694,6 +694,13 @@ static Cairo 1.18.4 and Pixman 0.44.2 from checksum-verified sources, and runs t
 checks. Linux GUI tests use Xvfb; Windows tests use the hosted runner's desktop. A separate smoke test requires
 installed argparse and creates a Cairo-rendered graph.
 
+Successful runs cache the installed Tcl/Tk/argparse runtime and static Cairo/Pixman separately for each toolchain.
+Subsequent push and manual distribution runs reuse exact cache matches; RBC is still built and tested every time.
+Keys include dependency revisions, build recipes, architecture, compiler/SDK versions, runner image, system packages
+and installation location. A changed key or an evicted cache automatically rebuilds the affected dependencies.
+Source checkouts remain available for private Tcl/Tk headers, and the Cairo cache includes distribution notices.
+Caches are saved after successful jobs; a failed job does not publish newly built dependencies.
+
 RBC remains a loadable `.so` or `.dll`. Cairo and Pixman are linked statically; the UCRT64 build also links the GCC/C++
 and winpthreads support into RBC. Import checks reject shared Cairo, Pixman or MinGW runtime dependencies.  Tcl/Tk and
 operating-system libraries remain external, including Linux X11/Fontconfig and the Windows C runtime.  The minimal Cairo

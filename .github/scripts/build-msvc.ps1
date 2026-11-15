@@ -14,26 +14,34 @@ function Invoke-Native {
 function Invoke-Nmake {
     Invoke-Native nmake /nologo /f makefile.vc @args
 }
-Push-Location "$tcl/win"
-try {
-    Invoke-Nmake "INSTALLDIR=$prefix" release
-    Invoke-Nmake "INSTALLDIR=$prefix" install
-} finally { Pop-Location }
-Push-Location "$tk/win"
-try {
-    Invoke-Nmake "TCLDIR=$tcl" "INSTALLDIR=$prefix" release
-    Invoke-Nmake "TCLDIR=$tcl" "INSTALLDIR=$prefix" install
-} finally { Pop-Location }
 $env:Path = "$prefix\bin;" + $env:Path
 $tclsh = Join-Path $prefix 'bin/tclsh91.exe'
-Push-Location "$root/_ci/argparse/win"
-try {
-    Invoke-Nmake "TCLDIR=$tcl" "INSTALLDIR=$prefix"
-    Invoke-Nmake "TCLDIR=$tcl" "INSTALLDIR=$prefix" install
-} finally { Pop-Location }
+if ($env:RUNTIME_CACHE_HIT -ne 'true') {
+    Push-Location "$tcl/win"
+    try {
+        Invoke-Nmake "INSTALLDIR=$prefix" release
+        Invoke-Nmake "INSTALLDIR=$prefix" install
+    } finally { Pop-Location }
+    Push-Location "$tk/win"
+    try {
+        Invoke-Nmake "TCLDIR=$tcl" "INSTALLDIR=$prefix" release
+        Invoke-Nmake "TCLDIR=$tcl" "INSTALLDIR=$prefix" install
+    } finally { Pop-Location }
+    Push-Location "$root/_ci/argparse/win"
+    try {
+        Invoke-Nmake "TCLDIR=$tcl" "INSTALLDIR=$prefix"
+        Invoke-Nmake "TCLDIR=$tcl" "INSTALLDIR=$prefix" install
+    } finally { Pop-Location }
+} else {
+    Write-Host "Using cached Tcl/Tk and argparse runtime"
+}
 $env:CC = 'cl'
 $env:CXX = 'cl'
-Invoke-Native python "$root/.github/scripts/build-cairo.py"
+if ($env:CAIRO_CACHE_HIT -ne 'true') {
+    Invoke-Native python "$root/.github/scripts/build-cairo.py"
+} else {
+    Write-Host "Using cached static Cairo and Pixman"
+}
 
 # Meson names static archives lib*.a even with MSVC. They contain COFF
 # objects built with the matching CRT and can be passed directly to link.exe.
