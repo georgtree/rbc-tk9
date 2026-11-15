@@ -47,6 +47,23 @@ $cairoLibs = (($cairoArchives | ForEach-Object { '"' + $_ + '"' }) -join ' ') + 
 $rbcArgs = @("TCLDIR=$tcl", "TKDIR=$tk", "TCLSH=$tclsh",
              "OUT_DIR=$out", "TMP_DIR=$out\obj", 'CAIRO=1', 'CAIRO_STATIC=1',
              "CAIRODIR=$cairo", "CAIRO_LIBS=$cairoLibs")
+# Tcl 9.1 derives BUILDDIRTOP from OUT_DIR's final component. With RBC's
+# separate output directory, the default source-tree library paths would
+# incorrectly point into Tcl/Tk's win/rbc-build directories. Keep source
+# headers (RBC needs private APIs), but link the installed Tcl/Tk libraries.
+$runtimeLibraries = [ordered]@{
+    TCLSTUBLIB = 'tclstub.lib'
+    TCLIMPLIB = 'tcl91.lib'
+    TKSTUBLIB = 'tkstub.lib'
+    TKIMPLIB = 'tcl9tk91.lib'
+}
+foreach ($entry in $runtimeLibraries.GetEnumerator()) {
+    $library = Join-Path $prefix "lib/$($entry.Value)"
+    if (!(Test-Path -LiteralPath $library -PathType Leaf)) {
+        throw "Tcl/Tk installation is missing the library: $library"
+    }
+    $rbcArgs += "$($entry.Key)=$library"
+}
 Push-Location "$root/win"
 try {
     Invoke-Nmake @rbcArgs "INSTALLDIR=$prefix"
