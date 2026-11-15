@@ -3494,6 +3494,7 @@ test graphtoolbar.100.1 {closest marker: mixed bar and line elements use indepen
 
 test graphtoolbar.101.1 {polar current marker supports axis, complex, and polar representations}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
                         -crosshairsmode current -crosshairsmarkopts {-formatx .6g -formaty .6g}]
     pack .gtb -fill both -expand yes
@@ -3502,6 +3503,7 @@ test graphtoolbar.101.1 {polar current marker supports axis, complex, and polar 
     $widget graph axis configure y -min -6 -max 6
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     set x [$graph axis transform x 3]
     set y [$graph axis transform y 4]
@@ -3514,7 +3516,7 @@ test graphtoolbar.101.1 {polar current marker supports axis, complex, and polar 
     set actual [list]
     foreach mode {auto axis complex polar polardegrees} {
         $widget configure -coordmark $mode
-        GenerateGraphEvent $graph <Motion> $x $y 20
+        MoveCrosshairsPointer $graph $x $y
         if {![$graph marker exists gtbCrosshairsText]} {
             return "gtbCrosshairsText marker was not created for mode '$mode'"
         }
@@ -3526,10 +3528,12 @@ test graphtoolbar.101.1 {polar current marker supports axis, complex, and polar 
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.102.1 {smith current marker supports all coordinate representations}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -crosshairs\
                         -crosshairsmode current -crosshairsmarkopts {-formatx .6g -formaty .6g}]
     pack .gtb -fill both -expand yes
@@ -3538,6 +3542,7 @@ test graphtoolbar.102.1 {smith current marker supports all coordinate representa
     $widget graph axis configure y -min -1.2 -max 1.2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     set x [$graph axis transform x 0.2]
     set y [$graph axis transform y 0.4]
@@ -3559,13 +3564,13 @@ test graphtoolbar.102.1 {smith current marker supports all coordinate representa
     set actual [list]
     foreach mode $modes {
         $widget configure -coordmark $mode
-        GenerateGraphEvent $graph <Motion> $x $y 20
+        MoveCrosshairsPointer $graph $x $y
         lappend actual [$graph marker cget gtbCrosshairsText -text]
     }
     $widget configure -coordmark auto
     foreach {gridMode expectedMode} {admittance admittance both impedance} {
         $graph grid configure -smithgrid $gridMode
-        GenerateGraphEvent $graph <Motion> $x $y 20
+        MoveCrosshairsPointer $graph $x $y
         if {$expectedMode eq {impedance}} {
             lappend actual [$graph marker cget gtbCrosshairsText -text]
             lappend expected [ExpectedRealImagMarkerText $zReal $zImag .6g .6g]
@@ -3580,10 +3585,12 @@ test graphtoolbar.102.1 {smith current marker supports all coordinate representa
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.103.1 {polar current axis marker includes visible auxiliary axes and hidden grid axes}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
                         -crosshairsmode current -coordmark axis -crosshairsmarkopts {-formatx .6g -formaty .6g}]
     pack .gtb -fill both -expand yes
@@ -3596,6 +3603,7 @@ test graphtoolbar.103.1 {polar current axis marker includes visible auxiliary ax
     $widget graph y2axis use yAlt
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] left top width height
     set x [expr {round($left+$width/2.0)}]
@@ -3604,17 +3612,19 @@ test graphtoolbar.103.1 {polar current axis marker includes visible auxiliary ax
                                 [format "real(h)=%.6g" [$graph axis invtransform x $x]]\
                                 [format "yAlt(v)=%.6g" [$graph axis invtransform yAlt $y]]\
                                 [format "imag(v)=%.6g" [$graph axis invtransform y $y]]] \n]
-    GenerateGraphEvent $graph <Motion> $x $y 20
+    MoveCrosshairsPointer $graph $x $y
     sleep $defaultDelay
     set actual [$graph marker cget gtbCrosshairsText -text]
     list [expr {$actual eq $expected}] [$graph marker cget gtbCrosshairsText -mapx]\
             [$graph marker cget gtbCrosshairsText -mapy]
 } -result {1 xAlt yAlt} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.104.1 {polar closest marker supports axis, complex, and polar representations}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation polar -crosshairs\
                         -crosshairsmode closest -crosshairsmarkopts {-formatx .6g -formaty .6g}\
                         -crosshairsclosestopts {-interpolate no -halo 10 -single yes}]
@@ -3625,6 +3635,7 @@ test graphtoolbar.104.1 {polar closest marker supports axis, complex, and polar 
     $widget graph element create Element1 -data {3 4} -symbol circle
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph transform 3 4] x y
     set expected [list "Element1\n[ExpectedRealImagMarkerText 3 4 .6g .6g]"\
@@ -3634,7 +3645,7 @@ test graphtoolbar.104.1 {polar closest marker supports axis, complex, and polar 
     set actual [list]
     foreach mode {axis complex polar polardegrees} {
         $widget configure -coordclosestmark $mode
-        GenerateGraphEvent $graph <Motion> $x $y 20
+        MoveCrosshairsPointer $graph $x $y
         if {![$graph marker exists gtbCrosshairsClosestText]} {
             return "gtbCrosshairsClosestText marker was not created for mode '$mode'"
         }
@@ -3646,10 +3657,12 @@ test graphtoolbar.104.1 {polar closest marker supports axis, complex, and polar 
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.105.1 {smith closest marker supports every available coordinate representation}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     vector create gtbSmithGamma -type complex
     gtbSmithGamma set {{0.2 0.4}}
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -crosshairs\
@@ -3662,6 +3675,7 @@ test graphtoolbar.105.1 {smith closest marker supports every available coordinat
     $widget graph element create Element1 -cdata gtbSmithGamma -z0 50 -symbol circle
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph transform 0.2 0.4] x y
     set expected [list "Element1\n[ExpectedRealImagMarkerText 0.2 0.4 .6g .6g]"\
@@ -3673,7 +3687,7 @@ test graphtoolbar.105.1 {smith closest marker supports every available coordinat
     set actual [list]
     foreach mode {axis gamma normalizedimpedance impedance normalizedadmittance admittance} {
         $widget configure -coordclosestmark $mode
-        GenerateGraphEvent $graph <Motion> $x $y 20
+        MoveCrosshairsPointer $graph $x $y
         if {![$graph marker exists gtbCrosshairsClosestText]} {
             return "gtbCrosshairsClosestText marker was not created for mode '$mode'"
         }
@@ -3685,6 +3699,7 @@ test graphtoolbar.105.1 {smith closest marker supports every available coordinat
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
     catch {vector destroy gtbSmithGamma}
 }
 
@@ -3709,6 +3724,7 @@ test graphtoolbar.106.1 {closest coordinate selector chooses valid default when 
 
 test graphtoolbar.107.1 {smith normalized real/imag current marker follows inverted physical orientations}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -type polar -representation smith -smithgrid impedance -crosshairs\
                         -crosshairsmode current -coordmark normalizedimpedanceri\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
@@ -3718,13 +3734,14 @@ test graphtoolbar.107.1 {smith normalized real/imag current marker follows inver
     $widget graph axis configure y -min -1.2 -max 1.2
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph transform 0.2 0.4] x y
     set gammaReal [$graph axis invtransform x $y]
     set gammaImag [$graph axis invtransform y $x]
     lassign [ExpectedSmithNormalized $gammaReal $gammaImag impedance] real imag
     set expected [ExpectedRealImagMarkerText $real $imag .6g .6g yes]
-    GenerateGraphEvent $graph <Motion> $x $y 20
+    MoveCrosshairsPointer $graph $x $y
     set actual [$graph marker cget gtbCrosshairsText -text]
     if {$actual ne $expected} {
         return [list expected $expected actual $actual]
@@ -3732,6 +3749,7 @@ test graphtoolbar.107.1 {smith normalized real/imag current marker follows inver
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.108.1 {closest bar marker: long bar keeps arrowheads inside dimension line}\

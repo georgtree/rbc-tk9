@@ -81,6 +81,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#regenerating-documentation">Regenerating documentation</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#github-actions">GitHub Actions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reporting-problems">Reporting problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#history-and-acknowledgments">History and acknowledgments</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#copyright-and-licensing">Copyright and licensing</a></li>
@@ -1416,6 +1417,34 @@ required. Existing user and developer page URLs remain the same.</p>
 <p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> supplies the shared introduction and build instructions. <code class="docutils literal notranslate"><span class="pre">docs/startPage.ruff</span></code> reads that file as the
 documentation preamble.</p>
 </section>
+</section>
+<section id="github-actions">
+<span id="r-github-actions"></span><span id="r-github20actions"></span><h2>GitHub Actions<a class="headerlink" href="#github-actions" title="Link to this heading"></a></h2>
+<p>The <strong>Tests</strong> workflow runs on pushes, using the same three x64 targets as argparse: Linux GCC (<code class="docutils literal notranslate"><span class="pre">ubuntu-24.04</span></code>), Windows
+UCRT64 and Windows MSVC (<code class="docutils literal notranslate"><span class="pre">windows-2022</span></code>). Each job builds Tcl/Tk 9.1.0, installs a pinned argparse revision, builds
+static Cairo 1.18.4 and Pixman 0.44.2 from checksum-verified sources, and runs the full runtime test suite and header
+checks. Linux GUI tests use Xvfb; Windows tests use the hosted runner’s desktop. A separate smoke test requires
+installed argparse and creates a Cairo-rendered graph.</p>
+<p>Successful runs cache the installed Tcl/Tk/argparse runtime and static Cairo/Pixman separately for each toolchain.
+Subsequent push and manual distribution runs reuse exact cache matches; RBC is still built and tested every time.
+Keys include dependency revisions, build recipes, architecture, compiler/SDK versions, runner image, system packages
+and installation location. A changed key or an evicted cache automatically rebuilds the affected dependencies.
+Source checkouts remain available for private Tcl/Tk headers, and the Cairo cache includes distribution notices.
+Caches are saved after successful jobs; a failed job does not publish newly built dependencies.</p>
+<p>RBC remains a loadable <code class="docutils literal notranslate"><span class="pre">.so</span></code> or <code class="docutils literal notranslate"><span class="pre">.dll</span></code>. Cairo and Pixman are linked statically; the UCRT64 build also links the GCC/C++
+and winpthreads support into RBC. Import checks reject shared Cairo, Pixman or MinGW runtime dependencies.  Tcl/Tk and
+operating-system libraries remain external, including Linux X11/Fontconfig and the Windows C runtime.  The minimal Cairo
+build supplies image and Xlib/Win32 surfaces. Its optional font, PNG, GLib and document-export backends are disabled:
+RBC uses Tk for text and its own SVG/PostScript/PDF exporters. The Linux recipe adds a missing Fontconfig constants
+header to Cairo’s Xlib screen source; the modified source is included with its notices.</p>
+<p>For distributions, open <strong>Actions → Build packages → Run workflow</strong> and select the branch. This reruns the same builds
+and tests, then uploads one installation archive per target: <code class="docutils literal notranslate"><span class="pre">.tar.gz</span></code> for Linux and <code class="docutils literal notranslate"><span class="pre">.zip</span></code> for Windows.  Push runs do
+not create distributions. Extract an archive into your matching Tcl/Tk 9.1 installation prefix; it includes RBC, the
+separately loadable argparse package, headers, demos, checked-in generated user documentation, and Cairo/Pixman/argparse
+license notices. Tcl/Tk itself and Tcllib are not bundled. MSVC and UCRT64 artifacts must be used with their matching
+Tcl/Tk toolchain. The staged installation is smoke-tested before it is archived.</p>
+<p>Dependency versions and the argparse commit are maintained in <code class="docutils literal notranslate"><span class="pre">.github/actions/build-rbc/action.yml</span></code> and
+<code class="docutils literal notranslate"><span class="pre">.github/scripts/build-cairo.py</span></code>. Build outputs and downloaded dependencies live under <code class="docutils literal notranslate"><span class="pre">_ci/</span></code>.</p>
 </section>
 <section id="reporting-problems">
 <span id="r-reporting-problems"></span><span id="r-reporting20problems"></span><h2>Reporting problems<a class="headerlink" href="#reporting-problems" title="Link to this heading"></a></h2>

@@ -10,7 +10,8 @@ variable startPage [apply {{readmePath} {
     set channel [open $readmePath r]
     try {
         fconfigure $channel -encoding utf-8 -translation auto
-        return [read $channel]
+        # Omit the GitHub Actions badge from generated documentation.
+        return [regsub -all -line {^\[!\[Tests:[^\n]*\n?} [read $channel] {}]
     } finally {
         close $channel
     }
