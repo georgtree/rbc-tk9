@@ -3070,6 +3070,7 @@ test graphtoolbar.88.1 {current crosshairs marker text with multiple inverted ax
 
 test graphtoolbar.89.1 {closest crosshairs marker text uses element mapped axes}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}\
                         -crosshairsclosestopts {-interpolate no -halo 10}]
@@ -3082,6 +3083,7 @@ test graphtoolbar.89.1 {closest crosshairs marker text uses element mapped axes}
     $widget graph element create line1 -xdata xVec1 -ydata yVec1 -mapx time -mapy voltage
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     # exact point from line1.
     set xValue 1.0
@@ -3094,7 +3096,7 @@ test graphtoolbar.89.1 {closest crosshairs marker text uses element mapped axes}
     set x $xPixel
     set y $yPixel
     set expected [join [list line1 [format "time(h)=%.6g" $xValue] [format "voltage(v)=%.6g" $yValue]] \n]
-    GenerateGraphEvent $graph <Motion> $x $y 20
+    MoveCrosshairsPointer $graph $x $y
     sleep $defaultDelay
     if {![$graph marker exists gtbCrosshairsClosestText]} {
         return {gtbCrosshairsClosestText marker was not created}
@@ -3106,10 +3108,12 @@ test graphtoolbar.89.1 {closest crosshairs marker text uses element mapped axes}
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.90.1 {closest crosshairs marker text uses element mapped axes when inverted}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode closest\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}\
                         -crosshairsclosestopts {-interpolate no -halo 10}]
@@ -3123,6 +3127,7 @@ test graphtoolbar.90.1 {closest crosshairs marker text uses element mapped axes 
     $widget graph element create line1 -xdata xVec1 -ydata yVec1 -mapx time -mapy voltage
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     # exact point from line1.
     set xValue 1.0
@@ -3136,7 +3141,7 @@ test graphtoolbar.90.1 {closest crosshairs marker text uses element mapped axes 
     set x $yPixel
     set y $xPixel
     set expected [join [list line1 [format "time(v)=%.6g" $xValue] [format "voltage(h)=%.6g" $yValue]] \n]
-    GenerateGraphEvent $graph <Motion> $x $y 20
+    MoveCrosshairsPointer $graph $x $y
     sleep $defaultDelay
     if {![$graph marker exists gtbCrosshairsClosestText]} {
         return {gtbCrosshairsClosestText marker was not created}
@@ -3148,6 +3153,7 @@ test graphtoolbar.90.1 {closest crosshairs marker text uses element mapped axes 
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.91.1 {closest marker: ordinary line marker is removed outside halo}\

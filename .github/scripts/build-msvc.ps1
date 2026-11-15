@@ -97,7 +97,9 @@ if ($env:MAKE_DIST -eq 'true') {
     New-Item -ItemType Directory -Force $stage | Out-Null
     Push-Location "$root/win"
     try {
-        Invoke-Nmake @rbcArgs "INSTALLDIR=$stage" `
+        # An empty staging prefix has no include/tcl.h, so Tcl's Nmake
+        # rules do not append /lib as they do for an installed Tcl prefix.
+        Invoke-Nmake @rbcArgs "INSTALLDIR=$stage\lib" `
             "DOC_INSTALL_DIR=$stage\share\rbc$version\doc" `
             "DEMO_INSTALL_DIR=$stage\share\rbc$version\demos" install
     } finally { Pop-Location }

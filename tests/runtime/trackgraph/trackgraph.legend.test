@@ -211,6 +211,12 @@ namespace eval trackgraph.legend {
                 .tg $format configure -width 0 -height 0
                 update
                 set restored [.tg $format output]
+                if {$format eq "postscript"} {
+                    # Exports can straddle a second without changing geometry.
+                    foreach document {original resized restored} {
+                        regsub -line {^%%CreationDate:.*$} [set $document] {} $document
+                    }
+                }
                 list [expr {$original ne $resized}] [expr {$original eq $restored}]\
                         [expr {$before eq [.tg track legend current bbox]}]
             } -cleanup {destroy .tg} -result {1 1 1}

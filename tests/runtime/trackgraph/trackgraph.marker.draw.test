@@ -44,11 +44,10 @@ namespace eval trackgraph.marker {
     } -body {
         lassign [.tg track transform voltage 5 -1] x y
         set x [expr {int($x)}]; set y [expr {int($y)}]
-        event generate .tg <Motion> -x $x -y [expr {$y-2}]
-        update
+        # Read each synthetic pick before native pointer events can repick it.
+        event generate .tg <Motion> -x $x -y [expr {$y-2}] -when now
         set result [list [.tg marker get current]]
-        event generate .tg <Motion> -x $x -y [expr {$y+5}]
-        update
+        event generate .tg <Motion> -x $x -y [expr {$y+5}] -when now
         lappend result [.tg marker get current]\
                 [.tg marker find overlapping [expr {$x-2}] [expr {$y+2}] [expr {$x+2}] [expr {$y+8}]]
         set result
