@@ -166,7 +166,7 @@ namespace eval graph.legend {
         .graph1 element create Line1 -x $X -y $Y
         .graph1 element create Line2 -x $Y -y $X
         pack .graph1
-        update idletasks
+        update
         set ::legendBindingResult {}
         .graph1 legend bind Line1 <Enter> {
 			set ::legendBindingResult entered
@@ -174,8 +174,8 @@ namespace eval graph.legend {
         set point [FindLegendEntryPoint .graph1 Line1]
     } -body {
         lassign $point x y
-        event generate .graph1 <Motion> -x $x -y $y
-        update
+        # Inspect the synthetic pick before native pointer events can replace it.
+        event generate .graph1 <Motion> -x $x -y $y -when now
         list $::legendBindingResult [.graph1 legend get current]
     } -cleanup {
         unset -nocomplain ::legendBindingResult
@@ -203,10 +203,9 @@ namespace eval graph.legend {
         ::rbcTest::focus::Acquire .graph1
     } -body {
         lassign $point x y
-        event generate .graph1 <Motion> -x $x -y $y
-        update
-        event generate .graph1 <KeyPress> -keysym a
-        update
+        # Deliver the key to this pick without an intervening native repick.
+        event generate .graph1 <Motion> -x $x -y $y -when now
+        event generate .graph1 <KeyPress> -keysym a -when now
         set ::legendKeyBindingResult
     } -cleanup {
         unset -nocomplain ::legendKeyBindingResult

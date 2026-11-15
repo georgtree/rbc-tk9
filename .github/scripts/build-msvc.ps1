@@ -35,8 +35,15 @@ $env:CC = 'cl'
 $env:CXX = 'cl'
 Invoke-Native python "$root/.github/scripts/build-cairo.py"
 
-# These are genuine static libraries produced above with the matching MSVC CRT.
-$cairoLibs = '"' + "$cairo\lib\cairo.lib" + '" "' + "$cairo\lib\pixman-1.lib" + '" gdi32.lib msimg32.lib'
+# Meson names static archives lib*.a even with MSVC. They contain COFF
+# objects built with the matching CRT and can be passed directly to link.exe.
+$cairoArchives = @("$cairo\lib\libcairo.a", "$cairo\lib\libpixman-1.a")
+foreach ($archive in $cairoArchives) {
+    if (!(Test-Path -LiteralPath $archive -PathType Leaf)) {
+        throw "Cairo build did not install the static archive: $archive"
+    }
+}
+$cairoLibs = (($cairoArchives | ForEach-Object { '"' + $_ + '"' }) -join ' ') + ' gdi32.lib msimg32.lib'
 $rbcArgs = @("TCLDIR=$tcl", "TKDIR=$tk", "TCLSH=$tclsh",
              "OUT_DIR=$out", "TMP_DIR=$out\obj", 'CAIRO=1', 'CAIRO_STATIC=1',
              "CAIRODIR=$cairo", "CAIRO_LIBS=$cairoLibs")
