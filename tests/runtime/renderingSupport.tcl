@@ -152,10 +152,10 @@ namespace eval ::rbcTest::rendering {
                 -anchor center
         return [list $bitmap $mask]
     }
-    proc BitmapSymbolFixture {kind} {
-        lassign [BitmapFixture] bitmap mask
+    proc BitmapSymbolFixture {kind {renderer cairo}} {
+        lassign [BitmapFixture $renderer] bitmap mask
         destroy .renderer
-        StrokeFixture $kind
+        StrokeFixture $kind $renderer
         .renderer element configure signal -data {2 2 5 5 8 8} -linewidth 0 -symbol @$bitmap -pixels 17 -outline black\
                 -fill blue
         return [list $bitmap $mask]

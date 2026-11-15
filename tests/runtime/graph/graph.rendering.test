@@ -84,8 +84,8 @@ namespace eval graph.rendering {
     foreach renderer {native cairo} {
         test graph.rendering.36.[incr testCase(36)] {tile edits invalidate the displayed element cache}\
                 -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
-            StrokeFixture graph
-            .renderer configure -renderer $renderer -bufferelements yes
+            StrokeFixture graph $renderer
+            .renderer configure -bufferelements yes
             set tile [image create photo -width 2 -height 2]
             $tile put red -to 0 0 2 2
             .renderer element configure signal -data {1 8 5 8 9 8} -linewidth 0 -areatile $tile
@@ -114,9 +114,9 @@ namespace eval graph.rendering {
     foreach renderer {native cairo} {
         test graph.rendering.42.[incr testCase(42)] {source resizing discards a stale scaled photo}\
                 -constraints [expr {$renderer eq "cairo" ? "rbcCairo" : {}}] -setup {
-            StrokeFixture graph
+            StrokeFixture graph $renderer
             .renderer element delete signal
-            .renderer configure -renderer $renderer -plotpadx 0 -plotpady 0
+            .renderer configure -plotpadx 0 -plotpady 0
             update
             set tile [image create photo -width 12 -height 8]
             $tile put red -to 0 0 12 8
@@ -149,8 +149,7 @@ namespace eval graph.rendering {
         foreach shape {circle bitmap} {
             test graph.rendering.57.[incr testCase(57)] {explicit active points survive repeated snapshot remapping}\
                     -constraints [expr {$backend eq "cairo" ? "rbcCairo" : {}}] -setup {
-                lassign [BitmapSymbolFixture graph] bitmap mask
-                .renderer configure -renderer $backend
+                lassign [BitmapSymbolFixture graph $backend] bitmap mask
                 set symbol [expr {$shape eq "bitmap" ? "@$bitmap" : "circle"}]
                 .renderer pen create selected -type line -linewidth 0 -symbol $symbol -pixels 17 -outline red -fill red
                 .renderer element configure signal -activepen selected
