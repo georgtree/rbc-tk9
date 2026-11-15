@@ -103,6 +103,16 @@ CAIRO_BINDIR = $(CAIRODIR)\bin
 !if !exist("$(CAIRODIR)\include\cairo\cairo.h") && !exist("$(CAIRODIR)\include\cairo.h")
 !error Cannot find cairo.h under CAIRODIR\include.
 !endif
+# Static Cairo's public declarations must not use __declspec(dllimport).
+!ifndef CAIRO_STATIC
+CAIRO_STATIC = 0
+!endif
+!if $(CAIRO_STATIC) != 0 && $(CAIRO_STATIC) != 1
+!error CAIRO_STATIC must be 0 or 1.
+!endif
+!if $(CAIRO_STATIC)
+PRJ_DEFINES = $(PRJ_DEFINES) /DCAIRO_WIN32_STATIC_BUILD
+!endif
 PRJ_INCLUDES = $(CAIRO_INCLUDES)
 PRJ_DEFINES = $(PRJ_DEFINES) /DRBC_HAVE_CAIRO=1
 PRJ_LIBS = $(PRJ_LIBS) $(CAIRO_LIBS)

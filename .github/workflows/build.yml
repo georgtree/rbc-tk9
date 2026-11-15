@@ -1,0 +1,30 @@
+name: Build packages
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  build:
+    name: ${{ matrix.toolchain }} / Tcl-Tk 9.1.0 / static Cairo
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            toolchain: linux-gcc
+          - os: windows-2022
+            toolchain: windows-ucrt64
+          - os: windows-2022
+            toolchain: windows-msvc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build-rbc
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          make-dist: 'true'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rbc-${{ matrix.toolchain }}-tcl9.1.0-static-cairo
+          path: _ci/package/
+          if-no-files-found: error

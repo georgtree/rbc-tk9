@@ -26,13 +26,11 @@ configure~
 /*.eps
 /docs/examples/*.tcl
 /dist
-# Private toolbar fallback copied into the build directory.
 /argparse.tcl
 /argparse-LICENSE.txt
 /argparse-README.txt
-
-# Generated developer manual (source is docs/developer).
 /_build/
 /docs/developer/__pycache__/
 /docs/developer/html/.doctrees/
 /docs/developer/html/.buildinfo
+/_ci/

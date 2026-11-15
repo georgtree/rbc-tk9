@@ -131,20 +131,21 @@ Keep the complete matching vcpkg runtime dependency set available. Copying only 
 
 ## Options
 
-| Nmake macro            | Meaning                                                                          |
-|------------------------|----------------------------------------------------------------------------------|
-| `CAIRO=0`              | Native-only build; the default.                                                  |
-| `CAIRO=1`              | Compile and link Cairo; missing headers/backend cause a build error.             |
-| `CAIRODIR=path`        | MSVC Cairo installation prefix.                                                  |
-| `CAIRO_INCLUDES=flags` | Override Cairo compiler include flags.                                           |
-| `CAIRO_LIBS=libs`      | Override the complete Cairo linker input list.                                   |
-| `CAIRO_BINDIR=path`    | Runtime DLL directory prepended to `PATH` by `test` and `shell`.                 |
-| `OPTS=symbols`         | Debug build, using the standard Tcl Nmake rules; use matching dependency builds. |
-| `TCLSH=path`           | Installed Tcl executable used by `test` and `shell`.                             |
-| `OUT_DIR=path`         | Output directory for the DLL, package index, and runtime files.                  |
-| `TMP_DIR=path`         | Intermediate object directory.                                                   |
-| `TESTFLAGS=arguments`  | Tcltest selection options for the runtime suites.                                                   |
-| `INSTALLDIR=path`      | Tcl installation/package destination, following the standard rules.              |
+| Nmake macro            | Meaning                                                                               |
+|------------------------|---------------------------------------------------------------------------------------|
+| `CAIRO=0`              | Native-only build; the default.                                                       |
+| `CAIRO=1`              | Compile and link Cairo; missing headers/backend cause a build error.                  |
+| `CAIRO_STATIC=1`       | Use static Cairo declarations; pass the complete static library list in `CAIRO_LIBS`. |
+| `CAIRODIR=path`        | MSVC Cairo installation prefix.                                                       |
+| `CAIRO_INCLUDES=flags` | Override Cairo compiler include flags.                                                |
+| `CAIRO_LIBS=libs`      | Override the complete Cairo linker input list.                                        |
+| `CAIRO_BINDIR=path`    | Runtime DLL directory prepended to `PATH` by `test` and `shell`.                      |
+| `OPTS=symbols`         | Debug build, using the standard Tcl Nmake rules; use matching dependency builds.      |
+| `TCLSH=path`           | Installed Tcl executable used by `test` and `shell`.                                  |
+| `OUT_DIR=path`         | Output directory for the DLL, package index, and runtime files.                       |
+| `TMP_DIR=path`         | Intermediate object directory.                                                        |
+| `TESTFLAGS=arguments`  | Tcltest selection options for the runtime suites.                                     |
+| `INSTALLDIR=path`      | Tcl installation/package destination, following the standard rules.                   |
 
 The example explicitly selects `build-cairo` and `build-cairo\obj`; directory separation is not automatic. For a
 native-only build, define a separate argument set:
@@ -182,3 +183,13 @@ nmake /nologo /f makefile.vc %RBC_ARGS% test-vector
 Use `package require rbc::vector` for vector-only Tcl scripts. The same DLL is loaded, so its runtime
 DLL dependencies must still be available. The normal `test` target also checks upgrading to full RBC
 without replacing existing vectors.
+
+## Automated static-Cairo builds
+
+The repository's GitHub Actions workflow also builds an MSVC DLL with static Cairo/Pixman. It uses `CAIRO=1`
+and `CAIRO_STATIC=1`, with an explicit `CAIRO_LIBS` list of matching MSVC static libraries and Windows system libraries.
+`CAIRO_STATIC` defaults to zero, so the shared-Cairo commands above retain their behavior. It changes Cairo's header
+declarations, not library selection; setting it alone does not turn a Cairo import library into a static library.
+Do not use `OPTS=static`, which would request a static RBC library rather than a loadable DLL.
+
+See the main README's GitHub Actions section for manual distributions and the three supported build targets.
