@@ -4,12 +4,14 @@ permissions:
   contents: read
 jobs:
   test:
-    name: ${{ matrix.toolchain }} / Tcl-Tk 9.1.0 / static Cairo
+    name: ${{ matrix.toolchain }} / Tcl-Tk 9.1.0 / ${{ matrix.renderer }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
+        toolchain: [linux-gcc, windows-ucrt64, windows-msvc]
+        renderer: [static-cairo, native]
         include:
           - os: ubuntu-24.04
             toolchain: linux-gcc
@@ -22,3 +24,4 @@ jobs:
       - uses: ./.github/actions/build-rbc
         with:
           toolchain: ${{ matrix.toolchain }}
+          renderer: ${{ matrix.renderer }}

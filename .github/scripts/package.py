@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Archive an installed prefix, including notices for the embedded libraries."""
+import os
 from pathlib import Path
 import re
 import shutil
@@ -9,6 +10,9 @@ import sys
 
 def main():
     toolchain, stage_arg = sys.argv[1:]
+    variant = os.environ.get('RBC_CI_RENDERER', 'static-cairo')
+    if variant not in ('static-cairo', 'native'):
+        raise ValueError(f'Unknown renderer variant: {variant}')
     stage = Path(stage_arg).resolve()
     root = Path(__file__).resolve().parents[2]
     version = re.search(r'AC_INIT\(\[rbc\],\[([^]]+)\]\)',
@@ -30,7 +34,9 @@ def main():
                 shutil.copytree(source, docs / name, dirs_exist_ok=True)
         shutil.copy2(root / 'license.terms', docs / 'license.terms')
     notices = stage / 'share' / f'rbc{version}' / 'third-party'
-    shutil.copytree(root / '_ci' / 'notices', notices, dirs_exist_ok=True)
+    notices.mkdir(parents=True, exist_ok=True)
+    if variant == 'static-cairo':
+        shutil.copytree(root / '_ci' / 'notices', notices, dirs_exist_ok=True)
     argparse = root / '_ci' / 'argparse'
     shutil.copy2(argparse / 'LICENSE', notices / 'argparse-LICENSE')
     revisions = '\n'.join(
@@ -39,10 +45,10 @@ def main():
         for name, path in [('rbc', root), ('tcl', root / '_ci/tcl'),
                            ('tk', root / '_ci/tk'), ('argparse', argparse)])
     with (notices / 'BUILD.txt').open('a', encoding='utf-8') as manifest:
-        manifest.write(revisions + '\n')
+        manifest.write(f'Renderer build: {variant}\n' + revisions + '\n')
     output = root / '_ci' / 'package'
     output.mkdir(exist_ok=True)
-    name = output / f'rbc{version}-{toolchain}-tcl9.1.0-static-cairo'
+    name = output / f'rbc{version}-{toolchain}-tcl9.1.0-{variant}'
     archive = shutil.make_archive(str(name), 'gztar' if toolchain == 'linux-gcc' else 'zip', stage)
     print(f'Installation archive: {archive}')
 

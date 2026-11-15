@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export RBC_CI_RENDERER=${RBC_CI_RENDERER:-static-cairo}
+case $RBC_CI_RENDERER in
+    static-cairo|native) ;;
+    *) echo "Unknown renderer variant: $RBC_CI_RENDERER" >&2; exit 1 ;;
+esac
+
 root=$(pwd)
 prefix="$root/_ci/runtime"
 platform=unix
@@ -38,14 +44,18 @@ else
 fi
 
 cd "$root"
-if [[ ${CAIRO_CACHE_HIT:-false} != true ]]; then
-    python .github/scripts/build-cairo.py
-else
-    echo "Using cached static Cairo and Pixman"
+cairo_flags=(--disable-cairo)
+if [[ $RBC_CI_RENDERER == static-cairo ]]; then
+    if [[ ${CAIRO_CACHE_HIT:-false} != true ]]; then
+        python .github/scripts/build-cairo.py
+    else
+        echo "Using cached static Cairo and Pixman"
+    fi
+    export PKG_CONFIG_PATH="$root/_ci/cairo-static/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+    cairo_flags=(--enable-cairo-static)
 fi
-export PKG_CONFIG_PATH="$root/_ci/cairo-static/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 cd "$root/_ci/rbc-build"
-cairo_flags=(--enable-cairo-static)
+# Static winpthreads is independent of the optional Cairo renderer.
 if [[ $platform == win ]]; then cairo_flags+=(--enable-winpthreads-static); fi
 bash "$root/configure" --with-tcl="$prefix/lib" --with-tk="$prefix/lib" \
     --prefix="$prefix" --exec-prefix="$prefix" "${cairo_flags[@]}"

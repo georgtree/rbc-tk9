@@ -4,6 +4,9 @@ inputs:
   toolchain:
     description: linux-gcc, windows-ucrt64, or windows-msvc
     required: true
+  renderer:
+    description: static-cairo or native (without Cairo)
+    default: static-cairo
   make-dist:
     description: Create an installation archive after tests pass
     default: 'false'
@@ -81,6 +84,7 @@ runs:
         key: ${{ steps.cache-keys.outputs.runtime || steps.cache-keys-ucrt64.outputs.runtime }}
     - name: Cache static Cairo and Pixman
       id: cairo-cache
+      if: inputs.renderer == 'static-cairo'
       uses: actions/cache@v4
       with:
         path: |
@@ -90,6 +94,7 @@ runs:
     - if: inputs.toolchain == 'linux-gcc'
       shell: bash
       env:
+        RBC_CI_RENDERER: ${{ inputs.renderer }}
         MAKE_DIST: ${{ inputs.make-dist }}
         RUNTIME_CACHE_HIT: ${{ steps.runtime-cache.outputs.cache-hit }}
         CAIRO_CACHE_HIT: ${{ steps.cairo-cache.outputs.cache-hit }}
@@ -97,6 +102,7 @@ runs:
     - if: inputs.toolchain == 'windows-ucrt64'
       shell: msys2 {0}
       env:
+        RBC_CI_RENDERER: ${{ inputs.renderer }}
         MAKE_DIST: ${{ inputs.make-dist }}
         RUNTIME_CACHE_HIT: ${{ steps.runtime-cache.outputs.cache-hit }}
         CAIRO_CACHE_HIT: ${{ steps.cairo-cache.outputs.cache-hit }}
@@ -104,6 +110,7 @@ runs:
     - if: inputs.toolchain == 'windows-msvc'
       shell: pwsh
       env:
+        RBC_CI_RENDERER: ${{ inputs.renderer }}
         MAKE_DIST: ${{ inputs.make-dist }}
         RUNTIME_CACHE_HIT: ${{ steps.runtime-cache.outputs.cache-hit }}
         CAIRO_CACHE_HIT: ${{ steps.cairo-cache.outputs.cache-hit }}

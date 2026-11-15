@@ -28,6 +28,7 @@ def main():
         packages = (output('pacman', '-Q') if toolchain == 'windows-ucrt64'
                     else output('dpkg-query', '-W'))
         recipe = 'build-tea.sh'
+    # Deliberately omit RBC_CI_RENDERER: both RBC variants use the same runtime.
     common = {
         'toolchain': toolchain,
         'arch': os.environ['RUNNER_ARCH'],

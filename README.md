@@ -688,31 +688,35 @@ documentation preamble.
 
 ## GitHub Actions
 
-The **Tests** workflow runs on pushes, using the same three x64 targets as argparse: Linux GCC (`ubuntu-24.04`), Windows
-UCRT64 and Windows MSVC (`windows-2022`). Each job builds Tcl/Tk 9.1.0, installs a pinned argparse revision, builds
-static Cairo 1.18.4 and Pixman 0.44.2 from checksum-verified sources, and runs the full runtime test suite and header
-checks. Linux GUI tests use Xvfb; Windows tests use the hosted runner's desktop. A separate smoke test requires
-installed argparse and creates a Cairo-rendered graph.
+The **Tests** workflow runs six jobs on pushes: Linux GCC (`ubuntu-24.04`), Windows UCRT64 and Windows MSVC
+(`windows-2022`), each with `static-cairo` and `native` variants. Every job uses Tcl/Tk 9.1.0 and a pinned argparse
+revision, and runs the runtime test suite and header checks. Cairo-specific tests use their existing availability
+constraints in native-only builds. Linux GUI tests use Xvfb; Windows tests use the hosted runner's desktop.
+The `static-cairo` variant builds Cairo 1.18.4 and Pixman 0.44.2 from checksum-verified sources. The `native` variant
+neither builds nor restores Cairo/Pixman and explicitly disables Cairo support. The smoke test checks the selected
+renderer and verifies that native-only builds reject requests for Cairo.
 
 Successful runs cache the installed Tcl/Tk/argparse runtime and static Cairo/Pixman separately for each toolchain.
+The two renderer variants share the same runtime cache within each toolchain; only `static-cairo` uses the Cairo cache.
 Subsequent push and manual distribution runs reuse exact cache matches; RBC is still built and tested every time.
 Keys include dependency revisions, build recipes, architecture, compiler/SDK versions, runner image, system packages
 and installation location. A changed key or an evicted cache automatically rebuilds the affected dependencies.
 Source checkouts remain available for private Tcl/Tk headers, and the Cairo cache includes distribution notices.
 Caches are saved after successful jobs; a failed job does not publish newly built dependencies.
 
-RBC remains a loadable `.so` or `.dll`. Cairo and Pixman are linked statically; the UCRT64 build also links the GCC/C++
-and winpthreads support into RBC. Import checks reject shared Cairo, Pixman or MinGW runtime dependencies.  Tcl/Tk and
+RBC remains a loadable `.so` or `.dll`. In the Cairo variant, Cairo and Pixman are linked statically. Both UCRT64
+variants link GCC/C++ and winpthreads support statically into RBC. Import checks reject shared Cairo, Pixman or MinGW runtime dependencies.  Tcl/Tk and
 operating-system libraries remain external, including Linux X11/Fontconfig and the Windows C runtime.  The minimal Cairo
 build supplies image and Xlib/Win32 surfaces. Its optional font, PNG, GLib and document-export backends are disabled:
 RBC uses Tk for text and its own SVG/PostScript/PDF exporters. The Linux recipe adds a missing Fontconfig constants
 header to Cairo's Xlib screen source; the modified source is included with its notices.
 
 For distributions, open **Actions → Build packages → Run workflow** and select the branch. This reruns the same builds
-and tests, then uploads one installation archive per target: `.tar.gz` for Linux and `.zip` for Windows.  Push runs do
+and tests, then uploads six installation archives, one per toolchain/renderer combination: `.tar.gz` for Linux and `.zip` for Windows.  Push runs do
 not create distributions. Extract an archive into your matching Tcl/Tk 9.1 installation prefix; it includes RBC, the
 separately loadable argparse package, headers, demos, checked-in generated user documentation, and Cairo/Pixman/argparse
-license notices. Tcl/Tk itself and Tcllib are not bundled. MSVC and UCRT64 artifacts must be used with their matching
+license notices as applicable. Archive names end in `-static-cairo` or `-native`; native archives contain no Cairo/Pixman
+notices or libraries. Tcl/Tk itself and Tcllib are not bundled. MSVC and UCRT64 artifacts must be used with their matching
 Tcl/Tk toolchain. The staged installation is smoke-tested before it is archived.
 
 Dependency versions and the argparse commit are maintained in `.github/actions/build-rbc/action.yml` and

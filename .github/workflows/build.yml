@@ -4,12 +4,14 @@ permissions:
   contents: read
 jobs:
   build:
-    name: ${{ matrix.toolchain }} / Tcl-Tk 9.1.0 / static Cairo
+    name: ${{ matrix.toolchain }} / Tcl-Tk 9.1.0 / ${{ matrix.renderer }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
+        toolchain: [linux-gcc, windows-ucrt64, windows-msvc]
+        renderer: [static-cairo, native]
         include:
           - os: ubuntu-24.04
             toolchain: linux-gcc
@@ -22,9 +24,10 @@ jobs:
       - uses: ./.github/actions/build-rbc
         with:
           toolchain: ${{ matrix.toolchain }}
+          renderer: ${{ matrix.renderer }}
           make-dist: 'true'
       - uses: actions/upload-artifact@v4
         with:
-          name: rbc-${{ matrix.toolchain }}-tcl9.1.0-static-cairo
+          name: rbc-${{ matrix.toolchain }}-tcl9.1.0-${{ matrix.renderer }}
           path: _ci/package/
           if-no-files-found: error
