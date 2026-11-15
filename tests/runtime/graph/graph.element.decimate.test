@@ -291,6 +291,10 @@ namespace eval graph.element.decimate {
         set CacheYVar($changedIndex) 2.0
         update
         lassign [.graph1 transform 50 2.0] px py
+        # Query just above the peak so integer pixel rounding cannot put
+        # the query inside the vertical segment and interpolate a lower Y.
+        # Keep trace interpolation: a source-point search bypasses the cache.
+        incr py -1
         set found [.graph1 element closest $px $py info -along both -interpolate 1 -halo 2 Element1]
         list $found [expr {$found && abs(double($info(y)) - 2.0) < 0.01}]
     } -cleanup {

@@ -2983,6 +2983,7 @@ test graphtoolbar.86.1 {crosshairs with current coordinate marker and inverted a
 
 test graphtoolbar.87.1 {current crosshairs marker text with multiple axes}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
     pack .gtb -fill both -expand yes
@@ -2994,10 +2995,12 @@ test graphtoolbar.87.1 {current crosshairs marker text with multiple axes}\
     $widget graph y2axis use yAlt
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] left top width height
     set x [expr {$left+$width/2}]
     set y [expr {$top+$height/2}]
+    lassign [MoveCrosshairsPointer $graph $x $y] x y
     # not inverted:
     #   xPixel -> physical horizontal coordinate
     #   yPixel -> physical vertical coordinate
@@ -3007,7 +3010,6 @@ test graphtoolbar.87.1 {current crosshairs marker text with multiple axes}\
                                 [format "xAlt(h)=%.6g" [$graph axis invtransform xAlt $xPixel]]\
                                 [format "y(v)=%.6g" [$graph axis invtransform y $yPixel]]\
                                 [format "yAlt(v)=%.6g" [$graph axis invtransform yAlt $yPixel]]] \n]
-    GenerateGraphEvent $graph <Motion> $x $y 20
     sleep $defaultDelay
     if {![$graph marker exists gtbCrosshairsText]} {
         return {gtbCrosshairsText marker was not created}
@@ -3019,10 +3021,12 @@ test graphtoolbar.87.1 {current crosshairs marker text with multiple axes}\
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.88.1 {current crosshairs marker text with multiple inverted axes}\
         -constraints {isInteractive isCrosshairs} -setup {
+    set savedPointer [winfo pointerxy .]
     set widget [graphtoolbar .gtb {*}$winSize -crosshairs -crosshairsmode current\
                         -crosshairsmarkopts {-formatx .6g -formaty .6g}]
     pack .gtb -fill both -expand yes
@@ -3035,10 +3039,12 @@ test graphtoolbar.88.1 {current crosshairs marker text with multiple inverted ax
     $widget graph y2axis use yAlt
     set graph [$widget subwidget graph]
 } -body {
+    raise [winfo toplevel $graph]
     WaitForWindow $graph
     lassign [$graph extents plotarea] left top width height
     set x [expr {$left+$width/2}]
     set y [expr {$top+$height/2}]
+    lassign [MoveCrosshairsPointer $graph $x $y] x y
     # inverted:
     #   X data dimension is physically vertical.
     #   Y data dimension is physically horizontal.
@@ -3048,7 +3054,6 @@ test graphtoolbar.88.1 {current crosshairs marker text with multiple inverted ax
                                 [format "xAlt(v)=%.6g" [$graph axis invtransform xAlt $xPixel]]\
                                 [format "y(h)=%.6g" [$graph axis invtransform y $yPixel]]\
                                 [format "yAlt(h)=%.6g" [$graph axis invtransform yAlt $yPixel]]] \n]
-    GenerateGraphEvent $graph <Motion> $x $y 20
     sleep $defaultDelay
     if {![$graph marker exists gtbCrosshairsText]} {
         return {gtbCrosshairsText marker was not created}
@@ -3060,6 +3065,7 @@ test graphtoolbar.88.1 {current crosshairs marker text with multiple inverted ax
     return
 } -result {} -cleanup {
     destroy $widget
+    RestorePointer $savedPointer
 }
 
 test graphtoolbar.89.1 {closest crosshairs marker text uses element mapped axes}\

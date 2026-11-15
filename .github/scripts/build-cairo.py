@@ -51,6 +51,12 @@ def main():
         '-Dpixman:sse2=enabled',
     ]
     if os.name == 'nt':
+        # Cairo 1.18.4 targets Windows 2000 without DirectWrite, but its
+        # Win32 font code uses ClearType constants hidden by that SDK target.
+        # Raise the target in Meson itself to avoid conflicting /D definitions.
+        meson_file = cairo / 'meson.build'
+        meson_file.write_text(meson_file.read_text().replace(
+            '_WIN32_WINNT_WIN2K', '_WIN32_WINNT_WIN7'))
         if not os.environ.get('MSYSTEM'):
             options += ['-Db_vscrt=md']
     else:
@@ -72,7 +78,9 @@ def main():
                         (cairo / 'COPYING-MPL-1.1', 'cairo-COPYING-MPL-1.1'),
                         (pixman / 'COPYING', 'pixman-COPYING')]:
         shutil.copy2(source, notices / name)
-    if os.name != 'nt':
+    if os.name == 'nt':
+        shutil.copy2(meson_file, notices / 'cairo-meson.build')
+    else:
         # Supply the modified MPL/LGPL source with the distributed binary.
         shutil.copy2(screen, notices / 'cairo-xlib-screen.c')
     (notices / 'BUILD.txt').write_text(
@@ -80,7 +88,8 @@ def main():
         'Sources: https://cairographics.org/releases/\n'
         'Build recipe: .github/scripts/build-cairo.py in the RBC repository.\n'
         'Linux adds the Fontconfig constants header in cairo-xlib-screen.c;\n'
-        'the modified source is supplied here. No other Cairo source changes.\n',
+        'Windows raises Cairo\'s non-DirectWrite SDK target to Windows 7.\n'
+        'The modified source/build file for this platform is supplied here.\n',
         encoding='utf-8')
 
 
