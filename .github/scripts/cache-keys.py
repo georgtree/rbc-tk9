@@ -12,6 +12,19 @@ def output(*command):
     return subprocess.check_output(command, text=True).strip()
 
 
+def msys_packages(cairo=False):
+    """Fingerprint build inputs, not unrelated packages in the MSYS2 image."""
+    names = ['bash', 'make']
+    names += ['mingw-w64-ucrt-x86_64-' + name for name in (
+        'gcc', 'binutils', 'headers', 'crt', 'cc-libs', 'libgcc', 'libstdc++',
+        'libiconv', 'winpthreads', 'libwinpthread', 'zlib',
+    )]
+    if cairo:
+        names += ['mingw-w64-ucrt-x86_64-' + name for name in
+                  ('python', 'meson', 'ninja', 'pkgconf')]
+    return output('pacman', '-Q', *names)
+
+
 def main():
     toolchain = sys.argv[1]
     root = Path(__file__).resolve().parents[2]
@@ -23,9 +36,9 @@ def main():
     else:
         compiler = output('gcc', '--version')
         compiler += '\n' + output('gcc', '-dumpmachine')
-        # Include system libraries/headers: MSYS2 updates independently of
-        # the runner image, and Linux packages can change between image updates.
-        packages = (output('pacman', '-Q') if toolchain == 'windows-ucrt64'
+        # MSYS2 updates independently of the runner image. Only changes to
+        # build inputs should invalidate its dependency caches.
+        packages = (msys_packages() if toolchain == 'windows-ucrt64'
                     else output('dpkg-query', '-W'))
         recipe = 'build-tea.sh'
     # Deliberately omit RBC_CI_RENDERER: both RBC variants use the same runtime.
@@ -41,6 +54,8 @@ def main():
 
     def key(kind, sources, files):
         inputs = dict(common)
+        if toolchain == 'windows-ucrt64' and kind == 'cairo':
+            inputs['packages'] = msys_packages(cairo=True)
         inputs['sources'] = {name: output('git', '-C', str(root / '_ci' / name),
                                          'rev-parse', 'HEAD') for name in sources}
         inputs['recipes'] = {name: hashlib.sha256((root / name).read_bytes()).hexdigest()

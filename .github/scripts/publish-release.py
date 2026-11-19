@@ -17,17 +17,21 @@ def run(*args):
     subprocess.run(args, check=True)
 
 
-def api(path):
-    return json.loads(subprocess.check_output(['gh', 'api', path], text=True))
+def api(path, *args):
+    return json.loads(subprocess.check_output(['gh', 'api', path, *args], text=True))
 
 
 def latest_release(repository):
-    # The tag endpoint only finds published releases. Include drafts so a
-    # failed first publication can resume on the next manual run.
-    pages = json.loads(subprocess.check_output(
-        ['gh', 'api', f'repos/{repository}/releases', '--paginate', '--slurp'], text=True))
-    return next((release for page in pages for release in page
-                 if release['tag_name'] == 'latest'), None)
+    # Drafts can have an untagged-* REST tag_name until publication. GraphQL
+    # resolves the pending tag as well, allowing a failed publication to resume.
+    owner, name = repository.split('/')
+    result = api('graphql', '-f', '''query=query($owner:String!, $name:String!) {
+        repository(owner:$owner, name:$name) {
+            release(tagName:"latest") { databaseId }
+        }
+    }''', '-f', f'owner={owner}', '-f', f'name={name}')
+    release = result['data']['repository']['release']
+    return api(f'repos/{repository}/releases/{release["databaseId"]}') if release else None
 
 
 def packages(directory, sha):
@@ -103,10 +107,11 @@ def main():
         notes_file = Path(temporary) / 'notes.md'
         notes_file.write_text(notes, encoding='utf-8')
         if release is None:
-            run('gh', 'release', 'create', 'latest', '--repo', repository,
-                '--target', sha, '--draft', '--title', 'Latest stable',
-                '--notes-file', str(notes_file))
-            release = latest_release(repository)
+            # Retain the draft ID directly from the creation response.
+            release = api(f'repos/{repository}/releases', '--method', 'POST',
+                          '-f', 'tag_name=latest', '-f', f'target_commitish={sha}',
+                          '-F', 'draft=true', '-f', 'name=Latest stable',
+                          '-f', f'body={notes}')
         assets = [*archives, checksums]
         run('gh', 'release', 'upload', 'latest', '--repo', repository,
             '--clobber', *(str(path) for path in assets))
