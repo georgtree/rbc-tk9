@@ -25,6 +25,19 @@ def msys_packages(cairo=False):
     return output('pacman', '-Q', *names)
 
 
+def linux_packages():
+    """Track the compiler, system headers and libraries used by the Linux build."""
+    gcc_major = output('gcc', '-dumpversion').split('.')[0]
+    return output(
+        'dpkg-query', '-W', 'binutils', 'make', 'pkgconf', f'gcc-{gcc_major}',
+        f'libgcc-{gcc_major}-dev', 'libc6-dev', 'linux-libc-dev', 'zlib1g-dev',
+        'libx11-dev', 'libxext-dev', 'libxrender-dev', 'libxft-dev', 'libxss-dev',
+        'libxrandr-dev', 'libxcursor-dev', 'libxi-dev', 'x11proto-dev',
+        'libxcb1-dev', 'libfontconfig-dev', 'libfreetype-dev', 'libfribidi-dev',
+        'libharfbuzz-dev',
+    )
+
+
 def main():
     toolchain = sys.argv[1]
     root = Path(__file__).resolve().parents[2]
@@ -39,13 +52,13 @@ def main():
         # MSYS2 updates independently of the runner image. Only changes to
         # build inputs should invalidate its dependency caches.
         packages = (msys_packages() if toolchain == 'windows-ucrt64'
-                    else output('dpkg-query', '-W'))
+                    else linux_packages())
         recipe = 'build-tea.sh'
     # Deliberately omit RBC_CI_RENDERER: both RBC variants use the same runtime.
     common = {
         'toolchain': toolchain,
         'arch': os.environ['RUNNER_ARCH'],
-        'image': [os.environ.get('ImageOS'), os.environ.get('ImageVersion')],
+        'image_os': os.environ.get('ImageOS'),
         'compiler': compiler,
         'packages': packages,
         # Tcl config files and Cairo pkg-config files contain absolute paths.

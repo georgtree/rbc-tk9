@@ -699,8 +699,8 @@ renderer and verifies that native-only builds reject requests for Cairo.
 Successful runs cache the installed Tcl/Tk/argparse runtime and static Cairo/Pixman separately for each toolchain.
 The two renderer variants share the same runtime cache within each toolchain; only `static-cairo` uses the Cairo cache.
 Subsequent push and manual distribution runs reuse exact cache matches; RBC is still built and tested every time.
-Keys include dependency revisions, build recipes, architecture, compiler/SDK versions, runner image, system packages
-and installation location. A changed key or an evicted cache automatically rebuilds the affected dependencies.
+Keys include dependency revisions, build recipes, architecture, compiler/SDK versions, OS family and release, relevant system
+packages and installation location. Jobs on different revisions of the same runner image can reuse these caches. A changed key or an evicted cache automatically rebuilds the affected dependencies.
 Source checkouts remain available for private Tcl/Tk headers, and the Cairo cache includes distribution notices.
 Caches are saved after successful jobs; a failed job does not publish newly built dependencies.
 
